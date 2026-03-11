@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presensi Komsel - PPP</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 340px; text-align: center; }
+        h2 { color: #333; margin-bottom: 20px; }
+        
+        .btn-hadir { width: 100%; padding: 15px; background-color: #28a745; color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 18px; margin-bottom: 15px; cursor: pointer; }
+        .btn-absen { width: 100%; padding: 15px; background-color: #dc3545; color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 18px; cursor: pointer; }
+        
+        #box-alasan { display: none; margin-top: 20px; text-align: left; background: #fff5f5; padding: 15px; border-radius: 10px; border: 1px solid #fab1b1; }
+        textarea { width: 100%; height: 80px; margin-top: 10px; border-radius: 8px; border: 1px solid #ddd; padding: 10px; box-sizing: border-box; }
+        .btn-kirim { width: 100%; padding: 12px; background-color: #333; color: white; border: none; border-radius: 8px; margin-top: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Lapor Kehadiran</h2>
+    <p style="font-size: 14px; color: #666;">Silakan pilih status kehadiran Anda hari ini.</p>
+    <br>
+
+    <button class="btn-hadir" onclick="kirimHadir()">SAYA HADIR ✅</button>
+    <button class="btn-absen" onclick="bukaAlasan()">TIDAK HADIR ❌</button>
+
+    <div id="box-alasan">
+        <label style="font-weight: bold; font-size: 14px;">Alasan Tidak Hadir:</label>
+        <textarea id="alasan" placeholder="Contoh: Sedang sakit, kerja lembur, atau di luar kota..."></textarea>
+        <button class="btn-kirim" onclick="kirimAbsen()">Kirim Keterangan</button>
+    </div>
+</div>
+
+<script>
+    const urlServer = "https://script.google.com/macros/s/AKfycbz2lNjzbAuUxxCE0vQpjUr8TvWFx20EtUHgQvg5i5APUhHjy8Iw-rHJpXtqJIm7te6M1Q/exec";
+
+    function kirimHadir() {
+        if(confirm("Konfirmasi kehadiran Anda hari ini?")) {
+            prosesKirim("Hadir", "-");
+        }
+    }
+
+    function bukaAlasan() {
+        document.getElementById('box-alasan').style.display = 'block';
+        document.getElementById('alasan').focus();
+    }
+
+    function kirimAbsen() {
+        const alasan = document.getElementById('alasan').value;
+        if (alasan.length < 5) {
+            alert("Mohon berikan alasan yang jelas.");
+            return;
+        }
+        prosesKirim("Tidak Hadir", alasan);
+    }
+
+    function prosesKirim(status, ket) {
+        alert("Data " + status + " sedang dikirim ke database...");
+        // Logika pengiriman data akan kita hubungkan ke tab Log_Presensi di Google Sheets
+        window.location.href = "main_menu.html";
+    }
+</script>
+
+</body>
+</html>
