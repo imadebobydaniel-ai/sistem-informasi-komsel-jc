@@ -13,11 +13,31 @@
         
         input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; background: #fafafa; }
         
-        /* Container untuk Password agar bisa ditaruh ikon mata */
-        .pass-container { position: relative; width: 100%; }
-        .toggle-pass { position: absolute; right: 12px; top: 18px; cursor: pointer; color: #777; font-size: 18px; }
+        /* Container untuk Password agar ikon mata stabil */
+        .pass-container { 
+            position: relative; 
+            width: 100%; 
+            margin-top: 8px;
+        }
 
-        .info-text { font-size: 11px; color: #666; text-align: left; margin-top: -5px; margin-bottom: 5px; line-height: 1.4; }
+        .pass-container input {
+            padding-right: 45px; /* Memberi ruang di kanan agar teks tidak tertutup mata */
+            margin: 0;
+        }
+
+        .toggle-pass { 
+            position: absolute; 
+            right: 15px; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            cursor: pointer; 
+            color: #777; 
+            font-size: 18px; 
+            z-index: 10; /* Memastikan ikon di atas input */
+            user-select: none;
+        }
+
+        .info-text { font-size: 11px; color: #666; text-align: left; margin-top: 5px; margin-bottom: 5px; line-height: 1.4; }
         
         button { width: 100%; padding: 14px; background-color: #28a745; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 15px; transition: 0.3s; }
         button:hover { background-color: #218838; }
@@ -75,13 +95,12 @@
 </div>
 
 <script>
-    // Fungsi untuk melihat/sembunyikan password
     function togglePassword() {
         const passInput = document.getElementById('pass');
         const icon = document.querySelector('.toggle-pass');
         if (passInput.type === 'password') {
             passInput.type = 'text';
-            icon.innerText = '🔒'; // Berubah jadi ikon gembok saat terlihat
+            icon.innerText = '🔒'; 
         } else {
             passInput.type = 'password';
             icon.innerText = '👁️';
@@ -90,7 +109,6 @@
 
     function validatePassword(pass) {
         let text = document.getElementById('strength-text');
-        // Syarat: Minimal 8 karakter, 1 Huruf Besar, 1 Angka, 1 Simbol
         let regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
         if (pass.length === 0) { 
             text.innerHTML = "Kekuatan: -"; 
@@ -117,7 +135,6 @@
         const urlServer = "https://script.google.com/macros/s/AKfycbz2lNjzbAuUxxCE0vQpjUr8TvWFx20EtUHgQvg5i5APUhHjy8Iw-rHJpXtqJIm7te6M1Q/exec";
 
         if (data.nama && data.wilayah && data.jabatan && data.email && data.pass) {
-            // Validasi keamanan password sebelum kirim
             let regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
             if (!regex.test(data.pass)) {
                 alert("Password belum memenuhi syarat keamanan!");
