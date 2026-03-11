@@ -5,18 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pondok Pemulihan Papua</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 300px; text-align: center; }
-        img.logo { width: 100px; margin-bottom: 15px; }
-        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
-        button { width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        .strength { font-size: 12px; margin-top: -5px; margin-bottom: 10px; text-align: left; padding-left: 15px; }
-        .weak { color: red; }
-        .strong { color: green; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #e9ecef; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 320px; text-align: center; transition: 0.3s; }
+        img.logo { width: 120px; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        button:hover { background-color: #218838; }
+        .strength { font-size: 12px; margin-top: -5px; margin-bottom: 10px; text-align: left; font-weight: bold; }
+        .weak { color: #dc3545; }
+        .strong { color: #28a745; }
         
         /* Layar Loading */
         #loading-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 999; flex-direction: column; justify-content: center; align-items: center; }
-        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 2s linear infinite; margin-top: 20px; }
+        .spinner { border: 5px solid #f3f3f3; border-top: 5px solid #ffd700; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-top: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -25,17 +26,22 @@
 <div id="loading-screen">
     <img src="logo_pondok.png" alt="Logo" class="logo">
     <div class="spinner"></div>
-    <p>Mohon Tunggu...</p>
+    <p style="margin-top: 20px; font-weight: bold; color: #555;">Memproses Data...</p>
 </div>
 
 <div id="auth-form" class="card">
     <img src="logo_pondok.png" alt="Logo" class="logo">
-    <h3>Pendaftaran Anggota</h3>
+    <h2 style="color: #333; margin-bottom: 5px;">Pendaftaran</h2>
+    <p style="color: #777; font-size: 14px; margin-bottom: 20px;">Pondok Pemulihan Papua</p>
+    
     <input type="text" id="nama" placeholder="Nama Lengkap">
-    <input type="email" id="email" placeholder="Email">
+    <input type="text" id="nohp" placeholder="Nomor HP (WhatsApp)">
+    <input type="email" id="email" placeholder="Email Aktif">
     <input type="password" id="pass" placeholder="Password" oninput="validatePassword(this.value)">
-    <div id="strength-text" class="strength">Kekuatan Password: -</div>
-    <button onclick="prosesLogin()">Daftar / Login</button>
+    <div id="strength-text" class="strength">Kekuatan: -</div>
+    
+    <button onclick="prosesLogin()">DAFTAR SEKARANG</button>
+    <p style="font-size: 11px; color: #999; margin-top: 15px;">Admin gunakan akses khusus</p>
 </div>
 
 <script>
@@ -45,43 +51,69 @@
         let regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
         
         if (pass.length === 0) {
-            text.innerHTML = "Kekuatan Password: -";
+            text.innerHTML = "Kekuatan: -";
             text.className = "strength";
         } else if (regex.test(pass)) {
-            text.innerHTML = "Kekuatan Password: **Strong**";
+            text.innerHTML = "Kekuatan: **STRONG** (Sangat Baik)";
             text.className = "strength strong";
         } else {
-            text.innerHTML = "Kekuatan Password: **Weak** (Butuh Huruf Besar, Angka, & Simbol)";
+            text.innerHTML = "Kekuatan: **WEAK** (Butuh Huruf Besar, Angka, & Simbol)";
             text.className = "strength weak";
         }
     }
 
     function prosesLogin() {
-        let email = document.getElementById('email').value;
-        let pass = document.getElementById('pass').value;
+        const nama = document.getElementById('nama').value;
+        const nohp = document.getElementById('nohp').value;
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('pass').value;
 
-        // Cek Akses Admin
+        // URL Server Google Apps Script kamu
+        const urlServer = "https://script.google.com/macros/s/AKfycbz2lNjzbAuUxxCE0vQpjUr8TvWFx20EtUHgQvg5i5APUhHjy8Iw-rHJpXtqJIm7te6M1Q/exec";
+
+        // Cek Login Admin Khusus
         if (email === "admin@mail.com" && pass === "admin2026") {
-            startLoading("Selamat Datang Admin!");
+            startLoading("Akses Admin Diterima!");
             return;
         }
 
-        // Cek Validasi standar (Untuk User Umum)
-        if (email !== "" && pass !== "") {
-            startLoading("Pendaftaran Berhasil!");
+        if (nama && nohp && email && pass) {
+            startLoading("Mendaftarkan Akun...");
+
+            // Kirim data ke Google Sheets
+            fetch(urlServer, {
+                method: 'POST',
+                mode: 'no-cors', // Penting untuk menghindari CORS error di Apps Script
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    "nama": nama,
+                    "nohp": nohp,
+                    "email": email,
+                    "password": pass
+                })
+            })
+            .then(() => {
+                alert("Pendaftaran Berhasil! Data sudah tersimpan di Google Sheets dan email konfirmasi sedang dikirim.");
+                window.location.href = "halaman_laporan.html"; // Pastikan file ini ada di GitHub
+            })
+            .catch(err => {
+                alert("Gagal terhubung ke server. Cek koneksi internet.");
+                document.getElementById('auth-form').style.display = 'block';
+                document.getElementById('loading-screen').style.display = 'none';
+            });
         } else {
-            alert("Harap isi semua data!");
+            alert("Harap lengkapi semua kolom!");
         }
     }
 
     function startLoading(msg) {
         document.getElementById('auth-form').style.display = 'none';
         document.getElementById('loading-screen').style.display = 'flex';
-        
+        // Simulasi loading 3 detik agar user melihat logo & spinner
         setTimeout(() => {
-            // Ganti ini dengan halaman laporan kamu setelah login berhasil
-            alert(msg);
-            window.location.href = "halaman_laporan.html"; 
+            if(document.getElementById('email').value === "admin@mail.com") {
+                window.location.href = "halaman_laporan.html";
+            }
         }, 3000);
     }
 </script>
