@@ -20,7 +20,7 @@
         button { width: 100%; padding: 12px; background-color: #0084ff; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         button:hover { background-color: #0073e6; }
 
-        /* Tombol Admin yang Hilang */
+        /* Tombol Admin */
         .admin-btn { background-color: #dc3545; margin-top: 15px; }
         .admin-btn:hover { background-color: #a71d2a; }
 
@@ -44,7 +44,7 @@
 
     <button type="button" onclick="prosesLogin()">Masuk Sekarang</button>
 
-    <button type="button" class="admin-btn" onclick="window.location.href='admin_portal.html'">
+    <button type="button" class="admin-btn" onclick="aksesAdmin()">
         Akses Administrator
     </button>
 
@@ -76,10 +76,20 @@
         const eyeIcon = document.querySelector(".toggle-password");
         if (passInput.type === "password") {
             passInput.type = "text";
-            eyeIcon.textContent = "🙈"; // Ganti ikon saat terbuka
+            eyeIcon.textContent = "🙈"; 
         } else {
             passInput.type = "password";
             eyeIcon.textContent = "👁️";
+        }
+    }
+
+    // Fungsi Akses Admin dengan Password khusus
+    function aksesAdmin() {
+        const inputPass = prompt("Masukkan Password Administrator:");
+        if (inputPass === "admin2026") {
+            window.location.href = 'admin_portal.html';
+        } else if (inputPass !== null) {
+            alert("Password Salah! Akses ditolak.");
         }
     }
 
