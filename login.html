@@ -1,41 +1,51 @@
 async function cekLogin() {
-    const email = document.getElementById('email').value;
-    const pass = document.getElementById('pass').value;
-    const btn = document.querySelector('.btn-masuk');
+    const email = document.getElementById('email').value.trim();
+    const pass = document.getElementById('pass').value.trim();
     const loader = document.getElementById('loading');
+    const btn = document.querySelector('.btn-masuk');
 
-    if (!email || !pass) { 
-        alert("Email dan Password harus diisi!"); 
-        return; 
+    if (!email || !pass) {
+        alert("Email dan Password tidak boleh kosong!");
+        return;
     }
 
-    // Tampilkan loading & matikan tombol agar tidak diklik dua kali
-    if(loader) loader.style.display = "block";
+    // Tampilkan loading
+    loader.style.display = "block";
     btn.disabled = true;
-    btn.innerText = "MEMPROSES...";
+    btn.innerText = "MENGHUBUNGKAN...";
 
-    const urlServer = "https://script.google.com/macros/s/AKfycbykeGLvmiwTuJk1YPpPuLjAxn1NjaLw3_zcbORgyw0iFh7WraLcmyxhp-JHUA4fvxl0bw/exec
-";
+    // PASTI-KAN URL INI SAMA DENGAN DEPLOYMENT TERBARU ANDA
+    const urlServer = "https://script.google.com/macros/s/AKfycbykeGLvmiwTuJk1YPpPuLjAxn1NjaLw3_zcbORgyw0iFh7WraLcmyxhp-JHUA4fvxl0bw/exec";
 
     try {
-        const response = await fetch(`${urlServer}?action=login&email=${encodeURIComponent(email)}&pass=${encodeURIComponent(pass)}`);
+        // Tambahkan parameter unik agar tidak terkena cache di HP
+        const finalUrl = `${urlServer}?action=login&email=${encodeURIComponent(email)}&pass=${encodeURIComponent(pass)}&_cache=${new Date().getTime()}`;
+        
+        const response = await fetch(finalUrl, {
+            method: 'GET',
+            mode: 'cors', // Penting untuk HP
+            headers: { 'Content-Type': 'text/plain' }
+        });
+
+        if (!response.ok) throw new Error("Server tidak merespon");
+
         const result = await response.json();
 
         if (result.status === "Aktif") {
             alert("Login Berhasil!");
             window.location.href = "main_menu.html";
         } else if (result.status === "Pending") {
-            alert("Akun belum AKTIF. Silakan cek email aktivasi kamu.");
+            alert("Akun belum AKTIF. Silakan cek email aktivasi.");
         } else if (result.status === "Nonaktif") {
-            alert("Akses dicabut oleh Admin.");
+            alert("Akun dinonaktifkan oleh Admin.");
         } else {
             alert("Email atau Password salah!");
         }
     } catch (err) {
         console.error(err);
-        alert("Gagal terhubung ke server. Periksa koneksi internet.");
+        alert("Koneksi Gagal: Silakan pastikan internet aktif dan URL Script sudah benar.");
     } finally {
-        if(loader) loader.style.display = "none";
+        loader.style.display = "none";
         btn.disabled = false;
         btn.innerText = "MASUK";
     }
