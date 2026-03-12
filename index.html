@@ -121,44 +121,38 @@
         }
     }
 
-    function prosesLogin() {
-        // Data disusun agar sesuai dengan kolom B-G di Spreadsheet
-        const data = {
-            nama: document.getElementById('nama').value,
-            nohp: document.getElementById('nohp').value,
-            wilayah: document.getElementById('wilayah').value,
-            jabatan: document.getElementById('jabatan').value,
-            email: document.getElementById('email').value,
-            pass: document.getElementById('pass').value
-        };
+  function prosesLogin() {
+    const data = {
+        nama: document.getElementById('nama').value,
+        nohp: document.getElementById('nohp').value,
+        wilayah: document.getElementById('wilayah').value,
+        jabatan: document.getElementById('jabatan').value,
+        email: document.getElementById('email').value,
+        pass: document.getElementById('pass').value
+    };
 
-        // Link Apps Script terbaru
-        const urlServer = "https://script.google.com/macros/s/AKfycbyGPdLAtxEx-Ueb9Jm4jT-IZBMqUY0yBDk6qZRrEC_F5ZAwAifYUGaGrEGYbUy4BT8Oxg/exec";
+    // Pastikan link ini adalah link terbaru dari "Manage Deployments"
+    const urlServer = "URL_WEB_APP_TERBARU_KAMU";
 
-        if (data.nama && data.wilayah && data.jabatan && data.email && data.pass) {
-            let regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-            if (!regex.test(data.pass)) {
-                alert("Password belum memenuhi syarat keamanan!");
-                return;
-            }
+    if (data.nama && data.wilayah && data.jabatan && data.email && data.pass) {
+        tampilkanLoading("Mendaftarkan Identitas...");
 
-            tampilkanLoading("Mendaftarkan Identitas...");
-            
-            fetch(urlServer, {
-    method: 'POST',
-    mode: 'no-cors', // Tetap gunakan ini jika perlu, tapi data harus dikirim sebagai teks/form
-    body: JSON.stringify(data),
-    headers: {
-        'Content-Type': 'text/plain;charset=utf-8' // Ini kuncinya agar tidak error CORS
+        // Gunakan URLSearchParams agar data terkirim dengan format yang mudah dibaca Apps Script
+        fetch(urlServer, {
+            method: 'POST',
+            mode: 'no-cors', 
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams(data).toString()
+        })
+        .then(() => {
+            alert("Pendaftaran Berhasil dikirim!");
+            window.location.href = "main_menu.html";
+        })
+        .catch(err => alert("Terjadi kesalahan koneksi: " + err));
+    } else {
+        alert("Harap lengkapi semua data!");
     }
-}).then(() => {
-    alert("Pendaftaran Berhasil dikirim ke sistem!");
-    window.location.href = "main_menu.html";
-}).catch(err => alert("Gagal koneksi: " + err));
-        } else {
-            alert("Harap lengkapi semua data!");
-        }
-    }
+}
 
     function tampilkanLoading(pesan) {
         document.getElementById('auth-form').style.display = 'none';
@@ -168,6 +162,7 @@
 </script>
 </body>
 </html>
+
 
 
 
