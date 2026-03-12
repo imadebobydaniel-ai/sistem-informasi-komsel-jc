@@ -10,43 +10,33 @@
             margin: 0; padding: 0; background-color: #f4f7f6; 
             display: flex; flex-direction: column; align-items: center;
         }
-        
-        /* Header Navigasi */
         .header { 
             width: 100%; background: #007bff; color: white; 
             padding: 15px 20px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-
-        /* Kartu Profil Anggota */
         .profile-card {
             background: white; width: 85%; max-width: 350px; 
             margin-top: 30px; border-radius: 20px; overflow: hidden;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center;
             padding-bottom: 20px;
         }
-
         .card-header { background: #0056b3; height: 80px; }
         .avatar { 
             width: 100px; height: 100px; background-color: #ddd; 
             border-radius: 50%; border: 5px solid white; 
             margin-top: -50px; display: inline-block;
-            background-size: cover;
-            background-position: center;
+            background-size: cover; background-position: center;
         }
-
         .info h2 { margin: 10px 0 5px 0; color: #333; font-size: 22px; }
         .info p { margin: 2px 0; color: #666; font-size: 14px; }
         .status-badge { 
             display: inline-block; background: #28a745; color: white; 
             padding: 5px 15px; border-radius: 20px; font-size: 12px; margin-top: 10px;
         }
-
-        /* Menu Navigasi */
         .menu-grid {
             display: grid; grid-template-columns: 1fr 1fr; 
             gap: 15px; width: 85%; max-width: 350px; margin-top: 25px;
         }
-
         .menu-item {
             background: white; padding: 20px; border-radius: 15px;
             text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
@@ -54,11 +44,9 @@
         }
         .menu-item:active { transform: scale(0.95); }
         .menu-item span { font-size: 28px; display: block; margin-bottom: 8px; }
-
         .btn-logout {
             margin-top: 30px; color: #dc3545; font-weight: bold;
-            cursor: pointer; text-decoration: none; font-size: 14px;
-            padding: 10px;
+            cursor: pointer; text-decoration: none; font-size: 14px; padding: 10px;
         }
     </style>
 </head>
@@ -74,8 +62,8 @@
     
     <div class="info">
         <h2 id="userName">Memuat Nama...</h2>
-        <p id="userJabatan">Jabatan</p>
-        <p id="userWilayah">Wilayah</p>
+        <p id="userJabatan">Memuat Jabatan...</p>
+        <p id="userWilayah">Memuat Wilayah...</p>
         <div class="status-badge">Anggota Aktif</div>
     </div>
 </div>
@@ -97,31 +85,53 @@
 
 <div class="btn-logout" onclick="logout()">Keluar Aplikasi</div>
 
-<script>
-    window.onload = function() {
-        // Mengambil data dari memori browser
-        const nama = localStorage.getItem("namaUser");
-        const jabatan = localStorage.getItem("jabatanUser");
-        const wilayah = localStorage.getItem("wilayahUser");
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-        if (nama) {
-            // Mengganti tulisan "Memuat Nama..." dengan nama asli
-            document.getElementById("userName").innerText = nama;
-            document.getElementById("userJabatan").innerText = jabatan;
-            document.getElementById("userWilayah").innerText = wilayah;
-            
-            // Membuat inisial profil otomatis (misal: "Imade boby" jadi "IB")
-            const avatarUrl = "https://ui-avatars.com/api/?name=" + encodeURIComponent(nama) + "&background=random&color=fff";
-            document.getElementById("userAvatar").style.backgroundImage = "url('" + avatarUrl + "')";
-        } else {
-            // Jika tidak ada data, tendang balik ke login
-            window.location.href = "login.html";
-        }
+<script>
+    // 2. Konfigurasi Firebase (Sama seperti profil.html)
+    const firebaseConfig = {
+        apiKey: "AIzaSy...", 
+        authDomain: "boby-apps-project.firebaseapp.com",
+        projectId: "boby-apps-project",
+        storageBucket: "boby-apps-project.firebasestorage.app",
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389",
+        measurementId: "G-X14300RJL4"
+    };
+
+    // 3. Aktifkan Firebase
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    // 4. Ambil data dari Firestore secara otomatis saat halaman dibuka
+    window.onload = function() {
+        // Kita cari data di koleksi 'users' dengan ID 'user_test'
+        db.collection("users").doc("user_test").get().then((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                
+                // Tempel data ke layar
+                document.getElementById("userName").innerText = data.nama;
+                document.getElementById("userJabatan").innerText = "KTP: " + data.no_ktp;
+                document.getElementById("userWilayah").innerText = data.alamat;
+                
+                // Buat foto profil inisial otomatis
+                const avatarUrl = "https://ui-avatars.com/api/?name=" + encodeURIComponent(data.nama) + "&background=random&color=fff";
+                document.getElementById("userAvatar").style.backgroundImage = "url('" + avatarUrl + "')";
+            } else {
+                console.log("Data tidak ditemukan di database!");
+                window.location.href = "profil.html"; // Jika belum ada data, suruh isi profil dulu
+            }
+        }).catch((error) => {
+            console.error("Gagal ambil data:", error);
+        });
     };
 
     function logout() {
         if(confirm("Apakah Anda ingin keluar?")) {
-            localStorage.clear(); // Hapus memori saat keluar
             window.location.href = "login.html";
         }
     }
