@@ -98,33 +98,30 @@
 <div class="btn-logout" onclick="logout()">Keluar Aplikasi</div>
 
 <script>
-    // FUNGSI MEMUAT DATA SAAT HALAMAN DIBUKA
     window.onload = function() {
+        // Mengambil data dari memori browser
         const nama = localStorage.getItem("namaUser");
         const jabatan = localStorage.getItem("jabatanUser");
         const wilayah = localStorage.getItem("wilayahUser");
 
-        // Jika tidak ada data (belum login), tendang balik ke halaman login
-        if (!nama) {
-            alert("Silakan login terlebih dahulu!");
+        if (nama) {
+            // Mengganti tulisan "Memuat Nama..." dengan nama asli
+            document.getElementById("userName").innerText = nama;
+            document.getElementById("userJabatan").innerText = jabatan;
+            document.getElementById("userWilayah").innerText = wilayah;
+            
+            // Membuat inisial profil otomatis (misal: "Imade boby" jadi "IB")
+            const avatarUrl = "https://ui-avatars.com/api/?name=" + encodeURIComponent(nama) + "&background=random&color=fff";
+            document.getElementById("userAvatar").style.backgroundImage = "url('" + avatarUrl + "')";
+        } else {
+            // Jika tidak ada data, tendang balik ke login
             window.location.href = "login.html";
-            return;
         }
-
-        // Tampilkan data ke layar
-        document.getElementById("userName").innerText = nama;
-        document.getElementById("userJabatan").innerText = jabatan;
-        document.getElementById("userWilayah").innerText = wilayah;
-        
-        // Update Avatar Inisial berdasarkan nama secara otomatis
-        const avatarUrl = "https://ui-avatars.com/api/?name=" + encodeURIComponent(nama) + "&background=random&color=fff&size=128";
-        document.getElementById("userAvatar").style.backgroundImage = "url('" + avatarUrl + "')";
     };
 
-    // FUNGSI LOGOUT
     function logout() {
         if(confirm("Apakah Anda ingin keluar?")) {
-            localStorage.clear(); // Bersihkan data sesi agar aman
+            localStorage.clear(); // Hapus memori saat keluar
             window.location.href = "login.html";
         }
     }
