@@ -92,41 +92,34 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    async function prosesDaftar() {
-        const email = document.getElementById("reg-email").value;
-        const password = document.getElementById("reg-pass").value;
-        const nama = document.getElementById("reg-nama").value;
-        const nohp = document.getElementById("reg-nohp").value;
-        const goldar = document.getElementById("reg-goldar").value;
-        const komsel = document.getElementById("reg-komsel").value;
-        const jabatan = document.getElementById("reg-jabatan").value;
+   // Pastikan bagian simpan data (db.collection("users").add) seperti ini:
+async function prosesDaftar() {
+    const email = document.getElementById("reg-email").value;
+    const password = document.getElementById("reg-pass").value;
+    const nama = document.getElementById("reg-nama").value;
+    const nohp = document.getElementById("reg-nohp").value;
+    const goldar = document.getElementById("reg-goldar").value;
+    const komsel = document.getElementById("reg-komsel").value; // JC 1 - JC 5
+    const jabatan = document.getElementById("reg-jabatan").value; // Ketua/Anggota
 
-        if(!email || !password || !nama) {
-            return alert("Email, Password, dan Nama Lengkap wajib diisi!");
-        }
-
-        try {
-            // 1. Daftarkan akun untuk login
-            await auth.createUserWithEmailAndPassword(email, password);
-
-            // 2. Simpan data lengkap ke database Firestore (agar muncul di admin)
-            await db.collection("users").add({
-                nama: nama,
-                email: email,
-                password: password, // Menyimpan password teks asli agar terbaca admin
-                no_hp: nohp,
-                gol_darah: goldar,
-                komsel: komsel,
-                jabatan: jabatan,
-                tanggal_daftar: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            alert("Selamat! Pendaftaran Berhasil.");
-            window.location.href = 'index.html';
-        } catch (error) {
-            alert("Terjadi Kesalahan: " + error.message);
-        }
+    try {
+        await auth.createUserWithEmailAndPassword(email, password);
+        await db.collection("users").add({
+            nama: nama,
+            email: email,
+            password: password, // Agar password muncul di admin
+            no_hp: nohp,
+            gol_darah: goldar,
+            komsel: komsel,
+            jabatan: jabatan,
+            tanggal_daftar: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alert("Pendaftaran Berhasil!");
+        window.location.href = 'index.html';
+    } catch (error) {
+        alert("Gagal: " + error.message);
     }
+}
 </script>
 
 </body>
