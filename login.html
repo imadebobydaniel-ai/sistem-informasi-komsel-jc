@@ -39,13 +39,16 @@
     async function cekLogin() {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('pass').value;
-        const loader = document.getElementById('loading');
-        const btn = document.querySelector('button');
 
-        if (!email || !pass) {
-            alert("Email dan Password tidak boleh kosong!");
+        // CEK JIKA YANG LOGIN ADALAH ADMIN
+        if (email === "admin@pondok.com" && pass === "admin2026") {
+            alert("Selamat Datang Admin!");
+            window.location.href = "admin_portal.html";
             return;
         }
+
+        // ... kode login user biasa tetap di bawahnya ...
+    }
 
         loader.style.display = "block";
         btn.disabled = true;
