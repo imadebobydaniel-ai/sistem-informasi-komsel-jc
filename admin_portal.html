@@ -3,76 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Portal - Pondok Pemulihan Papua</title>
+    <title>Dashboard Administrator</title>
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        h2 { border-bottom: 2px solid #007bff; padding-bottom: 10px; color: #333; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background: #007bff; color: white; }
-        .btn-revoke { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
-        .status-aktif { color: green; font-weight: bold; }
-        .status-pending { color: orange; font-weight: bold; }
-        .status-nonaktif { color: red; font-weight: bold; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 20px; }
+        .admin-container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 900px; margin: auto; }
+        h2 { color: #1c1e21; border-bottom: 2px solid #0084ff; padding-bottom: 10px; margin-top: 0; }
+        .action-buttons { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+        button { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; }
+        .btn-refresh { background-color: #28a745; }
+        .btn-pdf { background-color: #dc3545; }
+        .btn-back { background-color: #6c757d; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background-color: #0084ff; color: white; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #ddd; font-size: 14px; }
     </style>
 </head>
 <body>
-
-<div class="container">
+<div class="admin-container">
     <h2>Dashboard Administrator</h2>
     <p>Kontrol Database User Pondok Pemulihan Papua</p>
-    
-    <button onclick="loadUsers()" style="padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">Refresh Data User</button>
-    
+    <div class="action-buttons">
+        <button class="btn-back" onclick="window.location.href='index.html'">⬅ Kembali</button>
+        <button class="btn-refresh" onclick="loadUsers()">🔄 Refresh Data</button>
+        <button class="btn-pdf" onclick="exportKePDF()">📄 Export PDF</button>
+    </div>
     <table id="userTable">
         <thead>
-            <tr>
-                <th>Nama</th>
-                <th>Email</th>
-                <th>Status</th>
-                <th>Aksi</th>
-            </tr>
+            <tr><th>Nama</th><th>Email</th><th>Status</th></tr>
         </thead>
-        <tbody>
-            </tbody>
+        <tbody id="userList"></tbody>
     </table>
 </div>
-
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 <script>
-    const urlServer = "URL_APPS_SCRIPT_KAMU"; // Ganti dengan URL deployment kamu
-
+    firebase.initializeApp({
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+        authDomain: "boby-apps-project.firebaseapp.com",
+        projectId: "boby-apps-project",
+        storageBucket: "boby-apps-project.firebasestorage.app",
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+    });
+    const db = firebase.firestore();
     async function loadUsers() {
-        const response = await fetch(`${urlServer}?action=getAllUsers`);
-        const users = await response.json();
-        const tbody = document.querySelector("#userTable tbody");
-        tbody.innerHTML = "";
-
-        users.forEach(user => {
-            const row = `<tr>
-                <td>${user.nama}</td>
-                <td>${user.email}</td>
-                <td class="status-${user.status.toLowerCase()}">${user.status}</td>
-                <td>
-                    ${user.status !== 'Nonaktif' ? `<button class="btn-revoke" onclick="revoke('${user.email}')">Cabut Akses</button>` : '---'}
-                </td>
-            </tr>`;
-            tbody.innerHTML += row;
+        const userList = document.getElementById("userList");
+        userList.innerHTML = "<tr><td colspan='3'>Memuat...</td></tr>";
+        const snapshot = await db.collection("users").get();
+        userList.innerHTML = "";
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            userList.innerHTML += `<tr><td>${data.nama}</td><td>${data.email}</td><td>${data.role || 'anggota'}</td></tr>`;
         });
     }
-
-    async function revoke(email) {
-        if (confirm("Apakah Anda yakin ingin mencabut akses akun " + email + "?")) {
-            const response = await fetch(`${urlServer}?action=revokeUser&email=${email}`);
-            const result = await response.text();
-            if (result === "Success") {
-                alert("Akses berhasil dicabut!");
-                loadUsers(); // Refresh tabel
-            }
-        }
+    function exportKePDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.text("Data Anggota PP Papua", 14, 15);
+        doc.autoTable({ html: '#userTable', startY: 25 });
+        doc.save("Data_Anggota.pdf");
     }
-
-    // Load data saat pertama kali buka
     loadUsers();
 </script>
 </body>
