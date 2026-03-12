@@ -48,6 +48,8 @@
         #loading-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 999; flex-direction: column; justify-content: center; align-items: center; }
         .spinner { border: 5px solid #f3f3f3; border-top: 5px solid #ffd700; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-top: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .login-link { margin-top: 15px; font-size: 13px; color: #666; }
     </style>
 </head>
 <body>
@@ -90,7 +92,11 @@
     <p class="info-text">⚠️ <i>Password harus terdiri dari Huruf Besar, Simbol, dan Angka (Min. 8 Karakter).</i></p>
     <div id="strength-text" class="strength">Kekuatan: -</div>
     
-    <button onclick="prosesLogin()">DAFTAR & MASUK</button>
+    <button onclick="prosesLogin()">DAFTAR SEKARANG</button>
+
+    <div class="login-link">
+        Sudah punya akun? <a href="login.html">Login di sini</a>
+    </div>
 </div>
 
 <script>
@@ -131,7 +137,6 @@
             pass: document.getElementById('pass').value
         };
 
-        // GANTI DENGAN URL DEPLOY TERBARU KAMU JIKA BERUBAH
         const urlServer = "https://script.google.com/macros/s/AKfycbyPOGQj2w3FmcncI5f1NKSol5JXEQc69ABNk2SxAnQm_JuD7TsJ5bN9t3xheyflkhJ2Bw/exec";
 
         if (data.nama && data.wilayah && data.jabatan && data.email && data.pass) {
@@ -149,8 +154,8 @@
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams(data).toString()
             }).then(() => {
-                alert("Pendaftaran Berhasil! Silakan cek Spreadsheet Anda.");
-                window.location.href = "main_menu.html";
+                alert("Pendaftaran Berhasil! Akun Anda sedang dalam status PENDING.\n\nSilakan cek EMAIL Anda dan klik LINK AKTIVASI untuk bisa masuk ke aplikasi.");
+                window.location.href = "login.html";
             }).catch((err) => {
                 alert("Gagal koneksi ke server: " + err);
                 location.reload();
@@ -168,5 +173,3 @@
 </script>
 </body>
 </html>
-
-
