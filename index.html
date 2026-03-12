@@ -121,7 +121,7 @@
         }
     }
 
-  function prosesLogin() {
+ function prosesLogin() {
     const data = {
         nama: document.getElementById('nama').value,
         nohp: document.getElementById('nohp').value,
@@ -131,13 +131,11 @@
         pass: document.getElementById('pass').value
     };
 
-    // Pastikan link ini adalah link terbaru dari "Manage Deployments"
-    const urlServer = "https://script.google.com/macros/s/AKfycbxdVD8eEQz-6Ow-AOeN1I0VRbWSX5V_MFJrNedODp5fGjtVqUg3HpaLlIFmOWna_cDyIw/exec";
+    const urlServer = "https://script.google.com/macros/s/AKfycbz4O_2dDBv3CXXVeAWrLwknhbk24eudTOBksa1l8TKmNERVC4AjFmnqKpFTitzZw504Gw/exec"; // Ganti dengan link hasil deploy terbaru
 
     if (data.nama && data.wilayah && data.jabatan && data.email && data.pass) {
         tampilkanLoading("Mendaftarkan Identitas...");
 
-        // Gunakan URLSearchParams agar data terkirim dengan format yang mudah dibaca Apps Script
         fetch(urlServer, {
             method: 'POST',
             mode: 'no-cors', 
@@ -145,12 +143,14 @@
             body: new URLSearchParams(data).toString()
         })
         .then(() => {
-            alert("Pendaftaran Berhasil dikirim!");
+            alert("Pendaftaran Berhasil dikirim ke sistem!");
             window.location.href = "main_menu.html";
         })
-        .catch(err => alert("Terjadi kesalahan koneksi: " + err));
+        .catch(err => alert("Gagal koneksi: " + err));
     } else {
         alert("Harap lengkapi semua data!");
+    }
+}
     }
 }
 
@@ -162,6 +162,7 @@
 </script>
 </body>
 </html>
+
 
 
 
