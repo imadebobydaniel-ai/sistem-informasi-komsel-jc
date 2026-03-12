@@ -127,9 +127,9 @@
 
         loader.style.display = "block";
         btn.disabled = true;
+        btn.innerText = "MEMERIKSA...";
 
-        const urlServer = "https://script.google.com/macros/s/AKfycbxOFJcwB311Qcr6GNe6yQ6PZl7OcinjGx3XdFn7Sym-wsA4UZ5b1D7HCaoj2NvuscqREg/exec
-";
+        const urlServer = "https://script.google.com/macros/s/AKfycbxOFJcwB311Qcr6GNe6yQ6PZl7OcinjGx3XdFn7Sym-wsA4UZ5b1D7HCaoj2NvuscqREg/exec";
 
         try {
             const finalUrl = `${urlServer}?action=login&email=${encodeURIComponent(email)}&pass=${encodeURIComponent(pass)}&_cache=${new Date().getTime()}`;
@@ -137,16 +137,18 @@
             const result = await response.json();
 
             if (result.status === "Aktif") {
-                alert("Login Berhasil!");
+                alert("Login Berhasil! Selamat Datang.");
                 window.location.href = "main_menu.html";
             } else {
-                alert("Status: " + result.status);
+                // Memberitahu apa status yang terbaca di database
+                alert("Gagal Masuk. Status Akun: " + result.status + "\n(Pastikan Email & Password benar-benar sama)");
             }
         } catch (err) {
-            alert("Koneksi Gagal.");
+            alert("Koneksi Error: Server tidak merespon. Pastikan URL Script sudah benar.");
         } finally {
             loader.style.display = "none";
             btn.disabled = false;
+            btn.innerText = "MASUK";
         }
     }
 </script>
