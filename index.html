@@ -13,7 +13,6 @@
         
         input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; background: #fafafa; }
         
-        /* Container untuk Password agar ikon mata stabil */
         .pass-container { 
             position: relative; 
             width: 100%; 
@@ -21,7 +20,7 @@
         }
 
         .pass-container input {
-            padding-right: 45px; /* Memberi ruang di kanan agar teks tidak tertutup mata */
+            padding-right: 45px;
             margin: 0;
         }
 
@@ -33,7 +32,7 @@
             cursor: pointer; 
             color: #777; 
             font-size: 18px; 
-            z-index: 10; /* Memastikan ikon di atas input */
+            z-index: 10; 
             user-select: none;
         }
 
@@ -123,6 +122,7 @@
     }
 
     function prosesLogin() {
+        // Data disusun agar sesuai dengan kolom B-G di Spreadsheet
         const data = {
             nama: document.getElementById('nama').value,
             nohp: document.getElementById('nohp').value,
@@ -132,8 +132,8 @@
             pass: document.getElementById('pass').value
         };
 
-        const urlServer = https://script.google.com/macros/s/AKfycbwR9q-zo508yc2bOO6dAXHaWZ76PsEy45sOaIN5OrT5B648sLVjprux33H4cxV9V5xxVw/exec
-
+        // Link Apps Script terbaru
+        const urlServer = "https://script.google.com/macros/s/AKfycbwR9q-zo508yc2bOO6dAXHaWZ76PsEy45sOaIN5OrT5B648sLVjprux33H4cxV9V5xxVw/exec";
 
         if (data.nama && data.wilayah && data.jabatan && data.email && data.pass) {
             let regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -143,6 +143,7 @@
             }
 
             tampilkanLoading("Mendaftarkan Identitas...");
+            
             fetch(urlServer, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -164,5 +165,3 @@
 </script>
 </body>
 </html>
-
-
