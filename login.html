@@ -1,108 +1,42 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Login - Pondok Pemulihan Papua</title>
-    <style>
-        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
-        body { display: flex; justify-content: center; align-items: center; }
+async function cekLogin() {
+    const email = document.getElementById('email').value;
+    const pass = document.getElementById('pass').value;
+    const btn = document.querySelector('.btn-masuk');
+    const loader = document.getElementById('loading');
 
-        .card { 
-            background: white; padding: 20px 15px; border-radius: 20px; 
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1); width: 85%; max-width: 300px; 
-            text-align: center; position: relative; z-index: 1;
-        }
+    if (!email || !pass) { 
+        alert("Email dan Password harus diisi!"); 
+        return; 
+    }
 
-        img.logo { width: 60px; margin-bottom: 5px; } 
-        h2 { color: #333; margin: 0; font-size: 20px; }
-        p.subtitle { color: #666; font-size: 11px; margin: 2px 0 10px 0; }
-        
-        input { 
-            width: 100%; padding: 10px 12px; margin: 5px 0; border: 1px solid #ddd; 
-            border-radius: 8px; box-sizing: border-box; font-size: 14px; background: #fafafa; 
-        }
-        
-        .btn-masuk { 
-            width: 100%; padding: 12px; background-color: #007bff; color: white; 
-            border: none; border-radius: 8px; cursor: pointer; font-weight: bold; 
-            font-size: 15px; margin-top: 10px; 
-        }
+    // Tampilkan loading & matikan tombol agar tidak diklik dua kali
+    if(loader) loader.style.display = "block";
+    btn.disabled = true;
+    btn.innerText = "MEMPROSES...";
 
-        .footer-link { margin-top: 12px; font-size: 13px; color: #666; }
-        .admin-area { margin-top: 15px; padding: 10px; cursor: pointer; }
-        .btn-admin { color: #ccc; font-size: 10px; }
+    const urlServer = "https://script.google.com/macros/s/AKfycbykeGLvmiwTuJk1YPpPuLjAxn1NjaLw3_zcbORgyw0iFh7WraLcmyxhp-JHUA4fvxl0bw/exec
+";
 
-        /* MODAL KHUSUS ADMIN */
-        #adminModal {
-            display: none; position: fixed; z-index: 10; left: 0; top: 0; 
-            width: 100%; height: 100%; background: rgba(0,0,0,0.5); 
-            justify-content: center; align-items: center;
-        }
-        .modal-content { 
-            background: white; padding: 20px; border-radius: 15px; 
-            width: 250px; text-align: center; 
-        }
-        .btn-batal { background: #6c757d; color: white; margin-top: 5px; width: 100%; border: none; padding: 8px; border-radius: 5px; }
-    </style>
-</head>
-<body>
+    try {
+        const response = await fetch(`${urlServer}?action=login&email=${encodeURIComponent(email)}&pass=${encodeURIComponent(pass)}`);
+        const result = await response.json();
 
-<div class="card">
-    <img src="logo_pondok.png" alt="Logo" class="logo">
-    <h2>Login</h2>
-    <p class="subtitle">Pondok Pemulihan Papua</p>
-    
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="pass" placeholder="Password">
-    
-    <button class="btn-masuk" onclick="cekLogin()">MASUK</button>
-
-    <div class="footer-link">Baru? <a href="index.html">Daftar</a></div>
-
-    <div class="admin-area" onclick="openAdminModal()">
-        <span class="btn-admin">[ Admin Portal ]</span>
-    </div>
-</div>
-
-<div id="adminModal">
-    <div class="modal-content">
-        <h4 style="margin-top:0">Password Admin</h4>
-        <input type="password" id="adminPass" placeholder="Masukkan password">
-        <button class="btn-masuk" onclick="validasiAdmin()">KONFIRMASI</button>
-        <button class="btn-batal" onclick="closeAdminModal()">BATAL</button>
-    </div>
-</div>
-
-<script>
-    const modal = document.getElementById("adminModal");
-
-    function openAdminModal() { modal.style.display = "flex"; }
-    function closeAdminModal() { modal.style.display = "none"; }
-
-    function validasiAdmin() {
-        const p = document.getElementById("adminPass").value;
-        if (p === "admin2026") {
-            window.location.href = "admin_portal.html";
+        if (result.status === "Aktif") {
+            alert("Login Berhasil!");
+            window.location.href = "main_menu.html";
+        } else if (result.status === "Pending") {
+            alert("Akun belum AKTIF. Silakan cek email aktivasi kamu.");
+        } else if (result.status === "Nonaktif") {
+            alert("Akses dicabut oleh Admin.");
         } else {
-            alert("Password Salah!");
+            alert("Email atau Password salah!");
         }
+    } catch (err) {
+        console.error(err);
+        alert("Gagal terhubung ke server. Periksa koneksi internet.");
+    } finally {
+        if(loader) loader.style.display = "none";
+        btn.disabled = false;
+        btn.innerText = "MASUK";
     }
-
-    async function cekLogin() {
-        const email = document.getElementById('email').value;
-        const pass = document.getElementById('pass').value;
-        const urlServer = "https://script.google.com/macros/s/AKfycbykw5ra1tq4mJ5JQZm-uumsZLnTnpdcCOGGPa_GlTWK5Xqt0U51pa2aytduIE3Y-VSeIA/exec";
-
-        if (!email || !pass) { alert("Isi data!"); return; }
-
-        try {
-            const response = await fetch(`${urlServer}?action=login&email=${email}&pass=${pass}`);
-            const result = await response.json();
-            if (result.status === "Aktif") window.location.href = "main_menu.html";
-            else alert("Status: " + result.status);
-        } catch (err) { alert("Gagal koneksi."); }
-    }
-</script>
-</body>
-</html>
+}
