@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal - Pondok Pemulihan Papua</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        h2 { border-bottom: 2px solid #007bff; padding-bottom: 10px; color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #007bff; color: white; }
+        .btn-revoke { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        .status-aktif { color: green; font-weight: bold; }
+        .status-pending { color: orange; font-weight: bold; }
+        .status-nonaktif { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Dashboard Administrator</h2>
+    <p>Kontrol Database User Pondok Pemulihan Papua</p>
+    
+    <button onclick="loadUsers()" style="padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">Refresh Data User</button>
+    
+    <table id="userTable">
+        <thead>
+            <tr>
+                <th>Nama</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            </tbody>
+    </table>
+</div>
+
+<script>
+    const urlServer = "URL_APPS_SCRIPT_KAMU"; // Ganti dengan URL deployment kamu
+
+    async function loadUsers() {
+        const response = await fetch(`${urlServer}?action=getAllUsers`);
+        const users = await response.json();
+        const tbody = document.querySelector("#userTable tbody");
+        tbody.innerHTML = "";
+
+        users.forEach(user => {
+            const row = `<tr>
+                <td>${user.nama}</td>
+                <td>${user.email}</td>
+                <td class="status-${user.status.toLowerCase()}">${user.status}</td>
+                <td>
+                    ${user.status !== 'Nonaktif' ? `<button class="btn-revoke" onclick="revoke('${user.email}')">Cabut Akses</button>` : '---'}
+                </td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+    }
+
+    async function revoke(email) {
+        if (confirm("Apakah Anda yakin ingin mencabut akses akun " + email + "?")) {
+            const response = await fetch(`${urlServer}?action=revokeUser&email=${email}`);
+            const result = await response.text();
+            if (result === "Success") {
+                alert("Akses berhasil dicabut!");
+                loadUsers(); // Refresh tabel
+            }
+        }
+    }
+
+    // Load data saat pertama kali buka
+    loadUsers();
+</script>
+</body>
+</html>
