@@ -1,98 +1,39 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Administrator - Pondok Pemulihan Papua</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 20px; }
-        .admin-container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 900px; margin: auto; }
-        h2 { color: #1c1e21; border-bottom: 2px solid #0084ff; padding-bottom: 10px; margin-top: 0; }
-        .action-buttons { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
-        
-        button { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; display: flex; align-items: center; gap: 5px; }
-        .btn-refresh { background-color: #28a745; }
-        .btn-refresh:hover { background-color: #218838; }
-        .btn-pdf { background-color: #dc3545; }
-        .btn-pdf:hover { background-color: #c82333; }
-        .btn-back { background-color: #6c757d; }
-        .btn-back:hover { background-color: #5a6268; }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background-color: #0084ff; color: white; padding: 12px; text-align: left; }
-        td { padding: 12px; border-bottom: 1px solid #ddd; font-size: 14px; }
-        tr:hover { background-color: #f8f9fa; }
-        .btn-hapus { background: none; color: #dc3545; border: 1px solid #dc3545; padding: 5px 10px; font-size: 12px; }
-        .btn-hapus:hover { background: #dc3545; color: white; }
-    </style>
-</head>
-<body>
-
-<div class="admin-container">
-    <h2>Dashboard Administrator</h2>
-    <p>Kontrol Database User Pondok Pemulihan Papua</p>
-
-    <div class="action-buttons">
-        <button class="btn-back" onclick="window.location.href='index.html'">⬅ Kembali ke Login</button>
-        
-        <button class="btn-refresh" onclick="loadUsers()">🔄 Refresh Data User</button>
-        
-        <button class="btn-pdf" onclick="exportKePDF()">📄 Export ke PDF</button>
-    </div>
-
-    <table id="userTable">
-        <thead>
-            <tr>
-                <th>Nama</th>
-                <th>Email</th>
-                <th>Status</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody id="userList">
-            </tbody>
-    </table>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<table id="userTable">
+    <thead>
+        <tr>
+            <th>Nama Lengkap</th>
+            <th>Email</th>
+            <th>No. KTP</th>
+            <th>Gol. Darah</th>
+            <th>Alamat</th>
+            <th>Status Nikah</th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
+    <tbody id="userList">
+        </tbody>
+</table>
 
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
-        authDomain: "boby-apps-project.firebaseapp.com",
-        projectId: "boby-apps-project",
-        storageBucket: "boby-apps-project.firebasestorage.app",
-        messagingSenderId: "125984859692",
-        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    // Fungsi Ambil Data dari Firestore
+    // Fungsi loadUsers yang sudah diperbaiki agar tidak 'undefined'
     async function loadUsers() {
         const userList = document.getElementById("userList");
-        userList.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Sedang mengambil data...</td></tr>";
+        userList.innerHTML = "<tr><td colspan='7' style='text-align:center;'>Memuat data...</td></tr>";
 
         try {
             const snapshot = await db.collection("users").get();
             userList.innerHTML = "";
             
-            if (snapshot.empty) {
-                userList.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Tidak ada data anggota.</td></tr>";
-                return;
-            }
-
             snapshot.forEach(doc => {
                 const data = doc.data();
                 userList.innerHTML += `
                     <tr>
-                        <td>${data.nama || 'Tanpa Nama'}</td>
-                        <td>${data.email || 'Tidak ada email'}</td>
-                        <td>${data.role || 'Anggota'}</td>
+                        <td>${data.nama || '-'}</td>
+                        <td>${data.email || '-'}</td>
+                        <td>${data.no_ktp || '-'}</td>
+                        <td>${data.gol_darah || '-'}</td>
+                        <td>${data.alamat || '-'}</td>
+                        <td>${data.status_nikah || '-'}</td>
                         <td>
                             <button class="btn-hapus" onclick="hapusUser('${doc.id}')">Hapus</button>
                         </td>
@@ -104,53 +45,20 @@
         }
     }
 
-    // Fungsi Export PDF
+    // Fungsi Export PDF juga disesuaikan agar kolomnya lengkap
     function exportKePDF() {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+        const doc = new jsPDF('landscape'); // Gunakan landscape agar muat banyak kolom
 
-        doc.setFontSize(18);
-        doc.text("Laporan Anggota Pondok Pemulihan Papua", 14, 20);
-        doc.setFontSize(11);
-        doc.setTextColor(100);
-        doc.text("Dicetak pada: " + new Date().toLocaleString('id-ID'), 14, 28);
+        doc.text("Laporan Lengkap Anggota Pondok Pemulihan Papua", 14, 15);
         
         doc.autoTable({
             html: '#userTable',
-            startY: 35,
-            columns: [
-                { header: 'Nama', dataKey: 'nama' },
-                { header: 'Email', dataKey: 'email' },
-                { header: 'Status', dataKey: 'status' }
-            ],
-            // Sembunyikan kolom aksi 'Hapus' di PDF
-            didParseCell: function (data) {
-                if (data.column.index === 3) {
-                    data.cell.text = ''; 
-                }
-            },
-            headStyles: { fillColor: [0, 132, 255] }
+            startY: 25,
+            // Kita sembunyikan kolom aksi (indeks ke-6) dari PDF
+            columns: [0, 1, 2, 3, 4, 5]
         });
 
-        doc.save("Daftar_Anggota_Pondok_Pemulihan.pdf");
+        doc.save("Data_Lengkap_Anggota.pdf");
     }
-
-    // Fungsi Hapus User (Firestore)
-    async function hapusUser(id) {
-        if (confirm("Apakah Anda yakin ingin menghapus anggota ini?")) {
-            try {
-                await db.collection("users").doc(id).delete();
-                alert("Data berhasil dihapus!");
-                loadUsers();
-            } catch (error) {
-                alert("Gagal menghapus: " + error.message);
-            }
-        }
-    }
-
-    // Jalankan saat halaman dibuka
-    loadUsers();
 </script>
-
-</body>
-</html>
