@@ -14,13 +14,13 @@
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
         .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 25px rgba(0,0,0,0.1); max-width: 1200px; margin: auto; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #0084ff; padding-bottom: 15px; margin-bottom: 25px; }
-        .btn-logout { background: #6c757d; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 14px; transition: 0.3s; }
-        .btn-logout:hover { background: #444; }
+        .btn-logout { background: #e74c3c; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 14px; transition: 0.3s; display: flex; align-items: center; gap: 8px; }
+        .btn-logout:hover { background: #c0392b; }
         
         .toolbar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
         .btn { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
         .btn-refresh { background: #28a745; }
-        .btn-pdf { background: #e74c3c; }
+        .btn-pdf { background: #0084ff; }
         .btn-edit { background: #f1c40f; color: #333; }
         .btn-delete { background: #34495e; }
         .btn:hover { transform: translateY(-2px); opacity: 0.9; }
@@ -31,7 +31,6 @@
         td { padding: 15px; border-bottom: 1px solid #eee; font-size: 14px; }
         tr:hover { background: #f9f9f9; }
 
-        /* MODAL */
         .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal-content { background: white; padding: 30px; border-radius: 15px; width: 450px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
         .field { margin-bottom: 15px; }
@@ -44,7 +43,7 @@
 <div class="container">
     <div class="header">
         <h2 style="margin:0;"><i class="fas fa-database"></i> Database Anggota</h2>
-        <a href="login.html" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Keluar</a>
+        <a href="index.html" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Keluar ke Halaman Utama</a>
     </div>
 
     <div class="toolbar">
@@ -107,7 +106,7 @@
             </select>
         </div>
         <button class="btn btn-refresh" style="width:100%; justify-content:center; margin-bottom:10px;" onclick="simpanEdit()">Update Data</button>
-        <button class="btn btn-logout" style="width:100%; justify-content:center;" onclick="tutupModal()">Batal</button>
+        <button class="btn btn-delete" style="width:100%; justify-content:center;" onclick="tutupModal()">Batal</button>
     </div>
 </div>
 
@@ -121,7 +120,6 @@
     function bukaEdit() {
         const terpilih = document.querySelectorAll('.pilih-item:checked');
         if (terpilih.length !== 1) return alert("Silakan pilih 1 data saja!");
-        
         targetBaris = terpilih[0].closest('tr');
         document.getElementById('edNama').value = targetBaris.cells[1].innerText;
         document.getElementById('edEmail').value = targetBaris.cells[2].innerText;
@@ -129,7 +127,6 @@
         document.getElementById('edGol').value = targetBaris.cells[4].innerText;
         document.getElementById('edJab').value = targetBaris.cells[5].innerText;
         document.getElementById('edJC').value = targetBaris.cells[6].innerText;
-        
         document.getElementById('modalEdit').style.display = 'flex';
     }
 
@@ -154,39 +151,30 @@
         if (confirm("Hapus data ini secara permanen?")) terpilih.forEach(c => c.closest('tr').remove());
     }
 
-    // FUNGSI PDF ANTI-ERROR
     function eksporPDF() {
         if (typeof window.jspdf === 'undefined') {
-            alert("Maaf, Library PDF masih memuat. Pastikan Anda terhubung ke internet sejenak dan coba lagi.");
+            alert("Library PDF belum siap. Tunggu sebentar.");
             return;
         }
-
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('l', 'mm', 'a4');
+        doc.text("LAPORAN DATA ANGGOTA PONDOK PEMULIHAN", 14, 15);
         
-        doc.setFontSize(18);
-        doc.text("LAPORAN DATA ANGGOTA PONDOK PEMULIHAN", 14, 20);
-        doc.setFontSize(10);
-        doc.text("Dicetak pada: " + new Date().toLocaleString(), 14, 28);
-
         doc.autoTable({
             html: '#tabelUtama',
-            startY: 35,
+            startY: 25,
             theme: 'grid',
             headStyles: { fillColor: [0, 132, 255] },
-            columns: [
-                { header: 'Nama', dataKey: '1' },
-                { header: 'Email', dataKey: '2' },
-                { header: 'No HP', dataKey: '3' },
-                { header: 'Gol', dataKey: '4' },
-                { header: 'Jabatan', dataKey: '5' },
-                { header: 'Komsel', dataKey: '6' }
-            ]
+            // Mengabaikan kolom checkbox (kolom 0) agar tidak ikut ke PDF
+            bodyStyles: { fontSize: 9 },
+            didParseCell: function(data) {
+                if (data.column.index === 0) {
+                    data.cell.text = ''; // Kosongkan checkbox
+                }
+            }
         });
-
         doc.save("Data_Anggota_Papua.pdf");
     }
 </script>
-
 </body>
 </html>
