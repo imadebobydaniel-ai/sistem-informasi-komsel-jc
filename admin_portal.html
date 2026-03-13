@@ -6,7 +6,7 @@
     <title>Dashboard Administrator - Pondok Pemulihan Papua</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf-plugin-autotable.min.js"></script>
+    <script src="https://unpkg.com/jspdf-autotable@3.5.28/dist/jspdf.plugin.autotable.js"></script>
 
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
@@ -26,12 +26,6 @@
         td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
         
         input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
-
-        .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-        label { display: block; font-weight: bold; margin-top: 15px; font-size: 13px; }
-        input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .btn-save { background: #0084ff; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -42,15 +36,15 @@
     <div class="header-tools">
         <a href="index.html" class="btn btn-back">← Kembali</a>
         <button class="btn btn-refresh" onclick="location.reload()">Refresh Data</button>
-        <button class="btn btn-pdf" onclick="exportPDFTerpilih()">Export Terpilih (PDF)</button>
-        <button class="btn btn-danger" onclick="hapusMasal()">Hapus Terpilih</button>
+        <button class="btn btn-pdf" onclick="eksekusiPDF()">Export Terpilih (PDF)</button>
+        <button class="btn btn-danger" onclick="hapusTerpilih()">Hapus Terpilih</button>
     </div>
 
     <div class="table-responsive">
-        <table id="tabelAnggota">
+        <table id="tabelData">
             <thead>
                 <tr>
-                    <th style="width: 40px;"><input type="checkbox" id="checkMaster" onclick="pilihSemua(this)"></th>
+                    <th style="width: 40px;"><input type="checkbox" id="checkAll" onclick="toggleAll(this)"></th>
                     <th>Nama Lengkap</th>
                     <th>Email</th>
                     <th>Password</th>
@@ -58,12 +52,11 @@
                     <th>Gol. Darah</th>
                     <th>Jabatan</th>
                     <th>Komsel JC</th>
-                    <th>Aksi</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <tr id="row-1">
-                    <td><input type="checkbox" class="pilih-user"></td>
+                <tr>
+                    <td><input type="checkbox" class="pilih-item"></td>
                     <td>Imade boby</td>
                     <td>imade.bobydaniel@gmail.com</td>
                     <td>Bukadong821</td>
@@ -71,12 +64,9 @@
                     <td>AB</td>
                     <td>Anggota Komsel</td>
                     <td>JC 5</td>
-                    <td>
-                        <button onclick="bukaModalEdit('row-1')" style="background:#ffc107; border:none; padding:5px 10px; border-radius:4px; font-weight:bold; cursor:pointer;">Edit</button>
-                    </td>
                 </tr>
-                <tr id="row-2">
-                    <td><input type="checkbox" class="pilih-user"></td>
+                <tr>
+                    <td><input type="checkbox" class="pilih-item"></td>
                     <td>Budi Santoso</td>
                     <td>budi@gmail.com</td>
                     <td>User123</td>
@@ -84,9 +74,6 @@
                     <td>O</td>
                     <td>Ketua Komsel</td>
                     <td>JC 1</td>
-                    <td>
-                        <button onclick="bukaModalEdit('row-2')" style="background:#ffc107; border:none; padding:5px 10px; border-radius:4px; font-weight:bold; cursor:pointer;">Edit</button>
-                    </td>
                 </tr>
             </tbody>
         </table>
@@ -94,76 +81,69 @@
 </div>
 
 <script>
-    // 1. Logika Checkbox
-    function pilihSemua(master) {
-        const checkboxes = document.querySelectorAll('.pilih-user');
-        checkboxes.forEach(cb => cb.checked = master.checked);
+    // FUNGSI CHECKBOX
+    function toggleAll(source) {
+        const checkboxes = document.querySelectorAll('.pilih-item');
+        checkboxes.forEach(cb => cb.checked = source.checked);
     }
 
-    function hapusMasal() {
-        const terpilih = document.querySelectorAll('.pilih-user:checked');
-        if (terpilih.length === 0) return alert("Pilih data dulu!");
-        if (confirm("Hapus " + terpilih.length + " data?")) {
-            terpilih.forEach(cb => cb.closest('tr').remove());
+    function hapusTerpilih() {
+        const selected = document.querySelectorAll('.pilih-item:checked');
+        if (selected.length === 0) return alert("Pilih data dulu!");
+        if (confirm("Hapus data terpilih?")) {
+            selected.forEach(cb => cb.closest('tr').remove());
         }
     }
 
-    // 2. Logika PDF (FIXED & TESTED)
-    function exportPDFTerpilih() {
-        // Cek apakah library sudah terload
-        if (typeof window.jspdf === 'undefined') {
-            alert("Sistem PDF sedang loading, coba lagi dalam 2 detik.");
-            return;
-        }
+    // FUNGSI PDF (VERSI TERKUAT)
+    function eksekusiPDF() {
+        const selected = document.querySelectorAll('.pilih-item:checked');
+        if (selected.length === 0) return alert("Centang data yang mau di-export ke PDF!");
 
+        // 1. Cek library inti
+        if (!window.jspdf) return alert("Library jspdf gagal dimuat. Cek internet.");
+        
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('l', 'mm', 'a4');
-        const terpilih = document.querySelectorAll('.pilih-user:checked');
-        
-        if (terpilih.length === 0) {
-            alert("Centang dulu data yang ingin di-export!");
+
+        // 2. Cek plugin tabel (Ini kuncinya!)
+        if (typeof doc.autoTable !== 'function') {
+            alert("Plugin Tabel belum siap. Klik OK untuk mencoba memperbaiki otomatis.");
+            // Force Reload plugin if failed
+            const script = document.createElement('script');
+            script.src = "https://unpkg.com/jspdf-autotable@3.5.28/dist/jspdf.plugin.autotable.js";
+            document.head.appendChild(script);
             return;
         }
 
-        const dataPDF = [];
-        terpilih.forEach(cb => {
+        // 3. Ambil data dari baris yang dicentang
+        const barisData = [];
+        selected.forEach(cb => {
             const row = cb.closest('tr');
-            const td = row.querySelectorAll('td');
-            // Ambil data kolom 1 s/d 7 (Nama s/d Komsel)
-            dataPDF.push([
-                td[1].innerText, 
-                td[2].innerText, 
-                td[3].innerText, 
-                td[4].innerText, 
-                td[5].innerText, 
-                td[6].innerText, 
-                td[7].innerText
+            const cols = row.querySelectorAll('td');
+            barisData.push([
+                cols[1].innerText, 
+                cols[2].innerText, 
+                cols[3].innerText, 
+                cols[4].innerText, 
+                cols[5].innerText, 
+                cols[6].innerText, 
+                cols[7].innerText
             ]);
         });
 
-        // Judul Laporan
-        doc.setFontSize(16);
+        // 4. Render PDF
         doc.text("LAPORAN DATA ANGGOTA - PONDOK PEMULIHAN PAPUA", 14, 15);
-        
-        // Cek fungsi autoTable
-        if (typeof doc.autoTable !== 'function') {
-            alert("Maaf, fungsi tabel PDF gagal dimuat. Coba refresh halaman (F5).");
-            return;
-        }
-
         doc.autoTable({
-            head: [['Nama Lengkap', 'Email', 'Password', 'No HP', 'Gol', 'Jabatan', 'Komsel']],
-            body: dataPDF,
+            head: [['Nama', 'Email', 'Password', 'No HP', 'Gol', 'Jabatan', 'Komsel']],
+            body: barisData,
             startY: 25,
-            styles: { fontSize: 9 },
-            headStyles: { fillColor: [0, 132, 255] },
-            theme: 'grid'
+            theme: 'grid',
+            headStyles: { fillColor: [0, 132, 255] }
         });
 
-        doc.save("Laporan_Anggota_PPP.pdf");
+        doc.save("Laporan_Admin.pdf");
     }
-
-    function bukaModalEdit(id) { alert("Fungsi Edit siap."); }
 </script>
 
 </body>
