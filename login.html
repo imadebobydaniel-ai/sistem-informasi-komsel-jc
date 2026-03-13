@@ -5,49 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal Admin - Pondok Pemulihan</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
-        h2 { margin-bottom: 20px; color: #333; }
-        input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; background: #0084ff; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; }
-        button:hover { background: #0073e6; }
-        .back-link { display: block; margin-top: 15px; color: #0084ff; text-decoration: none; font-size: 14px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        h2 { color: #333; margin-bottom: 5px; }
+        p { color: #666; font-size: 14px; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; text-align: center; }
+        button { width: 100%; padding: 15px; background-color: #0084ff; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        button:hover { background-color: #0073e6; }
+        .link { display: block; margin-top: 20px; color: #0084ff; text-decoration: none; font-size: 14px; }
     </style>
 </head>
 <body>
 
-<div class="login-box">
+<div class="card">
+    <h1 style="color: #0084ff; font-size: 24px;">Pondok Pemulihan</h1>
     <h2>Portal Admin</h2>
-    <p style="font-size: 14px; color: #666;">Silakan masukkan password akses</p>
+    <p>Masukkan password untuk masuk</p>
     
-    <input type="password" id="passInput" placeholder="Password Admin" autocomplete="off">
+    <input type="password" id="inputPassAdmin" placeholder="••••••••">
     
-    <button onclick="verifikasiAdmin()">Masuk Sekarang</button>
+    <button onclick="loginAdmin()">Masuk Sekarang</button>
     
-    <a href="index.html" class="back-link">Kembali ke Beranda</a>
+    <a href="index.html" class="link">← Kembali ke Beranda</a>
 </div>
 
 <script>
-    function verifikasiAdmin() {
-        // Mengambil nilai dari input
-        const passwordDiketik = document.getElementById('passInput').value;
+    function loginAdmin() {
+        // Mengambil apa yang diketik di kotak inputPassAdmin
+        var pass = document.getElementById("inputPassAdmin").value;
         
-        // PASSWORD DIKUNCI: admin123
-        if (passwordDiketik === "admin123") {
+        // Verifikasi password (admin123)
+        if (pass === "admin123") {
             alert("Akses Diterima! Membuka Database...");
-            // Langsung pindah ke file admin_portal.html
+            // Menuju ke file admin_portal.html sesuai di GitHub Abang
             window.location.href = "admin_portal.html";
         } else {
-            alert("Password Salah! Silakan gunakan: admin123");
-            // Mengosongkan input jika salah
-            document.getElementById('passInput').value = "";
+            alert("Password Salah! Gunakan password: admin123");
         }
     }
 
-    // Fungsi tambahan agar bisa tekan 'Enter' untuk masuk
-    document.getElementById("passInput").addEventListener("keypress", function(event) {
+    // Biar bisa tekan Enter
+    document.getElementById("inputPassAdmin").addEventListener("keyup", function(event) {
         if (event.key === "Enter") {
-            verifikasiAdmin();
+            loginAdmin();
         }
     });
 </script>
