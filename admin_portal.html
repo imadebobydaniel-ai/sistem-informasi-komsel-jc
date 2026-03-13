@@ -9,11 +9,8 @@
         .login-card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 380px; text-align: center; }
         img { width: 80px; margin-bottom: 20px; }
         h2 { color: #333; margin: 0 0 10px 0; }
-        p { color: #777; font-size: 14px; margin-bottom: 25px; }
-        input { width: 100%; padding: 15px; margin-bottom: 20px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 16px; outline: none; transition: 0.3s; }
-        input:focus { border-color: #0084ff; }
-        button { width: 100%; padding: 15px; background: #0084ff; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
-        button:hover { background: #0073e6; }
+        input { width: 100%; padding: 15px; margin-bottom: 20px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 16px; outline: none; }
+        button { width: 100%; padding: 15px; background: #0084ff; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; }
         .back-link { display: block; margin-top: 20px; color: #0084ff; text-decoration: none; font-size: 14px; }
     </style>
 </head>
@@ -22,29 +19,24 @@
 <div class="login-card">
     <img src="logo_pondok.png" alt="Logo">
     <h2>Portal Admin</h2>
-    <p>Masukkan password akses administrator</p>
+    <p>Silakan masukkan password akses</p>
     
-    <input type="password" id="adminPass" placeholder="Password Administrator" onkeypress="handleKey(event)">
+    <input type="password" id="adminPass" placeholder="Password Administrator">
     <button onclick="cekLoginAdmin()">Masuk Sekarang</button>
     
     <a href="index.html" class="back-link">← Kembali ke Beranda</a>
 </div>
 
 <script>
-    function handleKey(e) {
-        if (e.key === "Enter") cekLoginAdmin();
-    }
-
     function cekLoginAdmin() {
         const pass = document.getElementById('adminPass').value;
-        
-        // Sesuaikan password ini dengan yang Abang mau
+        // Password Admin Abang
         if (pass === "admin123") { 
             alert("Akses Diterima!");
-            // PASTIKAN nama file dashboard Abang adalah admin_portal.html
+            // Sesuai file Abang: admin_portal.html
             window.location.href = 'admin_portal.html';
         } else {
-            alert("Password Salah! Akses Ditolak.");
+            alert("Password Salah!");
         }
     }
 </script>
