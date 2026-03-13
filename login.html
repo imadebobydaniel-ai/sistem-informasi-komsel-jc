@@ -8,7 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
     <style>
-        /* STRUKTUR ASLI ABANG */
+        /* Struktur asli sesuai yang Abang bangun */
         body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; height: 100vh; }
         .login-box { background: white; padding: 30px; border-radius: 12px; width: 100%; max-width: 350px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: #333; margin-bottom: 20px; }
@@ -16,17 +16,18 @@
         .field label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
         input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
         
-        /* POSISI SIMBOL MATA */
-        .password-container { position: relative; display: flex; align-items: center; }
-        .eye-toggle { 
+        /* CSS untuk posisi mata di dalam kolom password */
+        .password-wrapper { position: relative; display: flex; align-items: center; }
+        .password-wrapper input { padding-right: 40px; }
+        .eye-icon { 
             position: absolute; 
             right: 10px; 
             cursor: pointer; 
             font-size: 20px; 
             color: #888; 
             user-select: none;
+            -webkit-user-select: none;
             padding: 5px;
-            line-height: 1;
         }
 
         .btn-login { width: 100%; padding: 12px; background: #ff003c; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
@@ -45,9 +46,9 @@
 
     <div class="field">
         <label>Password</label>
-        <div class="password-container">
+        <div class="password-wrapper">
             <input type="password" id="login_password" placeholder="Masukkan password">
-            <span class="eye-toggle" 
+            <span class="eye-icon" 
                   onmousedown="intip(true)" 
                   onmouseup="intip(false)" 
                   onmouseleave="intip(false)"
@@ -63,7 +64,6 @@
 </div>
 
 <script>
-    // Konfigurasi Firebase Project Abang
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -72,11 +72,10 @@
         messagingSenderId: "125984859692",
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Fungsi Intip Password (Hold to Reveal)
+    // Fungsi Intip Password saat ditekan/hold
     function intip(lihat) {
         const pInput = document.getElementById('login_password');
         if(lihat) {
@@ -86,31 +85,26 @@
         }
     }
 
-    // Fungsi Login yang Diperbaiki (Anti Gagal Spasi)
     async function prosesLogin() {
-        const emailInput = document.getElementById('login_email').value.trim();
-        const passInput = document.getElementById('login_password').value.trim();
+        // .trim() akan menghapus spasi kosong di awal/akhir input
+        const email = document.getElementById('login_email').value.trim();
+        const pass = document.getElementById('login_password').value.trim();
 
-        if(!emailInput || !passInput) {
-            alert("Harap isi email dan password!");
-            return;
-        }
+        if(!email || !pass) return alert("Harap isi email dan password!");
 
         try {
-            // Mencari di koleksi "users" sesuai data pendaftaran
-            const q = await db.collection("users")
-                              .where("email", "==", emailInput)
-                              .where("password", "==", passInput)
-                              .get();
+            const userRef = db.collection("users");
+            // Mencari data yang email DAN passwordnya cocok
+            const q = await userRef.where("email", "==", email).where("password", "==", pass).get();
 
             if(!q.empty) {
                 alert("Login Berhasil!");
                 window.location.href = "admin_portal.html"; 
             } else {
-                alert("Email atau Password salah. Silakan daftar jika belum memiliki akun.");
+                alert("Gagal Login! Periksa kembali email dan password Anda. Pastikan huruf besar/kecil sudah sesuai.");
             }
         } catch(e) { 
-            alert("Gagal terhubung ke database: " + e.message); 
+            alert("Terjadi masalah koneksi: " + e.message); 
         }
     }
 </script>
