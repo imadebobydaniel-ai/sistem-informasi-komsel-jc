@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Pondok Pemulihan Papua</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
         body { 
             font-family: 'Segoe UI', sans-serif; 
@@ -19,19 +21,11 @@
             text-align: center;
         }
 
-        .header-box { display: block; margin-bottom: 20px; }
-
-        .logo { 
-            width: 80px; height: 80px; 
-            margin: 0 auto 15px auto; 
-            display: block; 
-        }
+        .logo { width: 80px; height: 80px; margin: 0 auto 15px auto; display: block; }
 
         h2 { 
-            color: #1c1e21; margin: 0; font-size: 24px;
-            display: block !important; width: 100%;
-            text-align: center; border-bottom: 2px solid #0084ff;
-            padding-bottom: 8px; margin-bottom: 15px;
+            color: #1c1e21; margin: 0 0 15px 0; font-size: 24px;
+            border-bottom: 2px solid #0084ff; padding-bottom: 8px;
         }
 
         p { color: #606770; font-size: 14px; margin-bottom: 20px; }
@@ -39,6 +33,26 @@
         input { 
             width: 100%; padding: 12px; margin: 8px 0; 
             border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; 
+        }
+
+        /* Desain Ikon Mata */
+        .password-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .password-container input {
+            padding-right: 45px !important;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #888;
+            font-size: 18px;
         }
 
         .btn-masuk { 
@@ -57,41 +71,15 @@
             display: block; margin-top: 20px; color: #0084ff;
             text-decoration: none; font-size: 14px; font-weight: 500;
         }
-
-        /* CSS UNTUK IKON MATA */
-        .password-container {
-            position: relative;
-            width: 100%;
-        }
-
-        .password-container input {
-            padding-right: 45px !important;
-        }
-
-        .toggle-password {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: #888;
-            z-index: 10;
-            font-size: 18px;
-        }
-
-        .toggle-password:hover { color: #0084ff; }
     </style>
 </head>
 <body>
 
 <div class="login-container">
-    <div class="header-box">
-        <img src="logo_pondok.png" alt="Logo" class="logo">
-        <h2>Masuk Aplikasi</h2>
-    </div>
-
+    <img src="logo_pondok.png" alt="Logo" class="logo">
+    <h2>Masuk Aplikasi</h2>
     <p>Gunakan Email & Password Anda</p>
-    
+
     <form id="loginForm">
         <input type="email" id="email" placeholder="Alamat Email" required>
         
@@ -101,7 +89,7 @@
         </div>
         
         <button type="submit" class="btn-masuk">Masuk Sekarang</button>
-        <button type="button" class="btn-admin">Akses Administrator</button>
+        <button type="button" class="btn-admin" onclick="keHalamanAdmin()">Akses Administrator</button>
     </form>
 
     <p style="margin-top: 20px;">Belum punya akun?</p>
@@ -109,28 +97,26 @@
 </div>
 
 <script>
-    // Fungsi Pindah ke Admin
-    document.querySelector('.btn-admin').addEventListener('click', function() {
-        window.location.href = 'admin_portal.html';
-    });
-
-    // Logika Mata Password
+    // Fungsi Mata Password
     const passwordInput = document.getElementById('password');
     const eyeIcon = document.getElementById('eyeIcon');
 
     eyeIcon.addEventListener('click', function () {
         const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
         passwordInput.setAttribute('type', type);
-        
-        // Ganti Ikon
         this.classList.toggle('fa-eye');
         this.classList.toggle('fa-eye-slash');
     });
 
-    // Form Submit
+    // Navigasi ke Admin
+    function keHalamanAdmin() {
+        window.location.href = 'admin_portal.html';
+    }
+
+    // Simulasi Login
     document.getElementById('loginForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        alert('Fitur login sedang dikoneksikan ke database...');
+        alert('Menghubungkan ke database...');
     });
 </script>
 
