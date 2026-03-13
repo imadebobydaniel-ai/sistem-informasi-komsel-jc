@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pendaftaran Anggota Baru</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .form-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; color: #333; margin-bottom: 20px; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background-color: #2ed573; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-back { background-color: #666; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>Daftar Anggota</h2>
+    <input type="text" id="nama" placeholder="Nama Lengkap">
+    <input type="text" id="hp" placeholder="Nomor HP">
+    <input type="text" id="alamat" placeholder="Alamat">
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="pass" placeholder="Buat Password">
+    
+    <select id="darah">
+        <option value="">Pilih Golongan Darah</option>
+        <option value="A">A</option><option value="B">B</option><option value="O">O</option><option value="AB">AB</option>
+    </select>
+
+    <select id="jc">
+        <option value="">Pilih Lokasi JC</option>
+        <option value="JC 1">JC 1</option><option value="JC 2">JC 2</option><option value="JC 3">JC 3</option>
+    </select>
+
+    <button onclick="simpanDaftar()">Daftar Sekarang</button>
+    <button class="btn-back" onclick="window.location.href='index.html'">Kembali</button>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+        authDomain: "boby-apps-project.firebaseapp.com",
+        projectId: "boby-apps-project",
+        databaseURL: "https://boby-apps-project-default-rtdb.firebaseio.com",
+        storageBucket: "boby-apps-project.firebasestorage.app",
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    async function simpanDaftar() {
+        const data = {
+            nama: document.getElementById('nama').value,
+            noHP: document.getElementById('hp').value,
+            alamat: document.getElementById('alamat').value,
+            email: document.getElementById('email').value,
+            password: document.getElementById('pass').value,
+            golDarah: document.getElementById('darah').value,
+            lokasiJC: document.getElementById('jc').value,
+            jabatan: "Anggota Komsel"
+        };
+
+        if(!data.nama || !data.email) return alert("Mohon lengkapi data!");
+
+        try {
+            await db.ref('users').push(data);
+            alert("Pendaftaran Berhasil!");
+            window.location.href = 'index.html';
+        } catch (e) { alert("Error: " + e.message); }
+    }
+</script>
+</body>
+</html>
