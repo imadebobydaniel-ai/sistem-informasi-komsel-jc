@@ -3,42 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Admin</title>
+    <title>Akses Admin</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 350px; text-align: center; }
-        input { width: 100%; padding: 15px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; text-align: center; font-size: 18px; }
-        button { width: 100%; padding: 15px; background: #ff003c; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 320px; text-align: center; }
+        input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; text-align: center; font-size: 18px; }
+        button { width: 100%; padding: 12px; background: #ff003c; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-
-<div class="card">
-    <h1 style="color: #ff003c; margin-bottom: 5px;">Admin Access</h1>
-    <p style="color: #666; margin-bottom: 25px;">Masukkan password akses sistem</p>
-    
-    <input type="password" id="adminPassInput" placeholder="••••••••">
-    <button onclick="cekAkses()">Buka Database</button>
-    
-    <p><a href="index.html" style="color:#0084ff; text-decoration:none; font-size:14px; display:block; margin-top:20px;">← Kembali ke Beranda</a></p>
+<div class="box">
+    <h2>Portal Admin</h2>
+    <input type="password" id="p" placeholder="Password Admin">
+    <button onclick="gas()">Buka Database</button>
 </div>
-
 <script>
-    function cekAkses() {
-        const p = document.getElementById('adminPassInput').value;
-        
-        // PASSWORD SAYA SET: admin2026
-        if (p === "admin2026") {
+    function gas() {
+        if (document.getElementById('p').value === "admin2026") {
+            // SAYA KUNCI: Menuju langsung ke admin_portal.html
             window.location.href = 'admin_portal.html';
         } else {
             alert("Password Salah!");
         }
     }
-    
-    // Biar bisa tekan Enter di keyboard
-    document.getElementById("adminPassInput").addEventListener("keyup", function(e) {
-        if (e.key === "Enter") cekAkses();
-    });
 </script>
 </body>
 </html>
