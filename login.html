@@ -105,10 +105,11 @@
             .where("password", "==", pass)
             .get();
 
-       if (!querySnapshot.empty) {
+      if (!querySnapshot.empty) {
     alert("Login Berhasil!");
-    // Hapus baris lama, pastikan hanya baris ini yang ada untuk perpindahan halaman:
-    window.location.replace("main_menu.html");
+    // Gunakan URL lengkap jika file berada di folder yang sama
+    // Ini akan memaksa browser mengabaikan cache lama
+    window.location.href = "main_menu.html?v=" + Date.now();
 }else {
             alert("Data tidak ditemukan.");
         }
