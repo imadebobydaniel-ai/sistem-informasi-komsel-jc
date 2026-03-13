@@ -3,193 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Admin Final - Pondok Pemulihan</title>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf-plugin-autotable.min.js"></script>
-
+    <title>Portal Admin - Pondok Pemulihan</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
-        .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 25px rgba(0,0,0,0.1); max-width: 1250px; margin: auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #0084ff; padding-bottom: 15px; margin-bottom: 25px; }
-        .btn-logout { background: #ff4757; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 14px; transition: 0.3s; display: flex; align-items: center; gap: 8px; }
-        .btn-logout:hover { background: #ff6b81; }
-        
-        .toolbar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-        .btn { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
-        .btn-refresh { background: #2ed573; }
-        .btn-pdf { background: #1e90ff; }
-        .btn-edit { background: #ffa502; color: #fff; }
-        .btn-delete { background: #2f3542; }
-        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
-
-        .table-container { width: 100%; overflow-x: auto; border-radius: 10px; border: 1px solid #eee; }
-        table { width: 100%; border-collapse: collapse; min-width: 1100px; background: #fff; }
-        th { background: #0084ff; color: white; padding: 15px; text-align: left; font-size: 14px; }
-        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 14px; }
-        tr:hover { background: #f9f9f9; }
-
-        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(4px); }
-        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 450px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
-        .field { margin-bottom: 15px; }
-        .field label { display: block; font-weight: bold; font-size: 13px; margin-bottom: 6px; color: #666; }
-        .field input, .field select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 380px; text-align: center; }
+        img { width: 80px; margin-bottom: 20px; }
+        h2 { color: #333; margin: 0 0 10px 0; }
+        p { color: #777; font-size: 14px; margin-bottom: 25px; }
+        input { width: 100%; padding: 15px; margin-bottom: 20px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 16px; outline: none; transition: 0.3s; }
+        input:focus { border-color: #0084ff; }
+        button { width: 100%; padding: 15px; background: #0084ff; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        button:hover { background: #0073e6; }
+        .back-link { display: block; margin-top: 20px; color: #0084ff; text-decoration: none; font-size: 14px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <h2 style="margin:0;"><i class="fas fa-database"></i> Database Anggota</h2>
-        <a href="index.html" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Keluar ke Halaman Utama</a>
-    </div>
-
-    <div class="toolbar">
-        <button class="btn btn-refresh" onclick="window.location.reload()"><i class="fas fa-sync-alt"></i> Refresh</button>
-        <button class="btn btn-pdf" onclick="eksporPDF()"><i class="fas fa-file-pdf"></i> Export PDF</button>
-        <button class="btn btn-edit" onclick="bukaEdit()"><i class="fas fa-edit"></i> Edit</button>
-        <button class="btn btn-delete" onclick="hapusData()"><i class="fas fa-trash-alt"></i> Hapus</button>
-    </div>
-
-    <div class="table-container">
-        <table id="tabelUtama">
-            <thead>
-                <tr>
-                    <th style="width: 40px;"><input type="checkbox" id="checkAll" onclick="pilihSemua(this)"></th>
-                    <th>Nama Lengkap</th>
-                    <th>Email</th>
-                    <th>Password</th>
-                    <th>No HP / WhatsApp</th>
-                    <th>Gol. Darah</th>
-                    <th>Jabatan</th>
-                    <th>Komsel JC</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><input type="checkbox" class="pilih-item"></td>
-                    <td>Imade boby</td>
-                    <td>imade.bobydaniel@gmail.com</td>
-                    <td>Bukadong821</td>
-                    <td>081283393576</td>
-                    <td>AB</td>
-                    <td>Anggota Komsel</td>
-                    <td>JC 5</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<div id="modalEdit" class="modal">
-    <div class="modal-content">
-        <h3 style="margin-top:0; border-bottom: 2px solid #0084ff; padding-bottom:10px;">Edit Data Anggota</h3>
-        <div class="field"><label>Nama Lengkap:</label><input type="text" id="edNama"></div>
-        <div class="field"><label>Email:</label><input type="text" id="edEmail"></div>
-        <div class="field"><label>Password:</label><input type="text" id="edPass"></div>
-        <div class="field"><label>No HP:</label><input type="text" id="edHP"></div>
-        <div class="field">
-            <label>Gol. Darah:</label>
-            <select id="edGol"><option value="A">A</option><option value="B">B</option><option value="AB">AB</option><option value="O">O</option></select>
-        </div>
-        <div class="field">
-            <label>Jabatan:</label>
-            <select id="edJab">
-                <option value="Ketua Komsel">Ketua Komsel</option>
-                <option value="Pengerja">Wakil Ketua</option>
-                <option value="Anggota Komsel">Anggota Komsel</option>
-            </select>
-        </div>
-        <div class="field">
-            <label>Komsel JC:</label>
-            <select id="edJC">
-                <option value="JC 1">JC 1</option><option value="JC 5">JC 5</option>
-            </select>
-        </div>
-        <button class="btn btn-refresh" style="width:100%; justify-content:center; margin-bottom:10px;" onclick="simpanEdit()">Update Data</button>
-        <button class="btn btn-delete" style="width:100%; justify-content:center;" onclick="tutupModal()">Batal</button>
-    </div>
+<div class="login-card">
+    <img src="logo_pondok.png" alt="Logo">
+    <h2>Portal Admin</h2>
+    <p>Masukkan password akses administrator</p>
+    
+    <input type="password" id="adminPass" placeholder="Password Administrator" onkeypress="handleKey(event)">
+    <button onclick="cekLoginAdmin()">Masuk Sekarang</button>
+    
+    <a href="index.html" class="back-link">← Kembali ke Beranda</a>
 </div>
 
 <script>
-    let targetBaris = null;
-
-    function pilihSemua(master) {
-        document.querySelectorAll('.pilih-item').forEach(cb => cb.checked = master.checked);
+    function handleKey(e) {
+        if (e.key === "Enter") cekLoginAdmin();
     }
 
-    function bukaEdit() {
-        const terpilih = document.querySelectorAll('.pilih-item:checked');
-        if (terpilih.length !== 1) return alert("Silakan pilih 1 data saja!");
-        targetBaris = terpilih[0].closest('tr');
+    function cekLoginAdmin() {
+        const pass = document.getElementById('adminPass').value;
         
-        document.getElementById('edNama').value = targetBaris.cells[1].innerText;
-        document.getElementById('edEmail').value = targetBaris.cells[2].innerText;
-        document.getElementById('edPass').value = targetBaris.cells[3].innerText;
-        document.getElementById('edHP').value = targetBaris.cells[4].innerText;
-        document.getElementById('edGol').value = targetBaris.cells[5].innerText;
-        document.getElementById('edJab').value = targetBaris.cells[6].innerText;
-        document.getElementById('edJC').value = targetBaris.cells[7].innerText;
-        
-        document.getElementById('modalEdit').style.display = 'flex';
-    }
-
-    function simpanEdit() {
-        targetBaris.cells[1].innerText = document.getElementById('edNama').value;
-        targetBaris.cells[2].innerText = document.getElementById('edEmail').value;
-        targetBaris.cells[3].innerText = document.getElementById('edPass').value;
-        targetBaris.cells[4].innerText = document.getElementById('edHP').value;
-        targetBaris.cells[5].innerText = document.getElementById('edGol').value;
-        targetBaris.cells[6].innerText = document.getElementById('edJab').value;
-        targetBaris.cells[7].innerText = document.getElementById('edJC').value;
-        tutupModal();
-    }
-
-    function tutupModal() {
-        document.getElementById('modalEdit').style.display = 'none';
-        document.querySelectorAll('.pilih-item').forEach(c => c.checked = false);
-    }
-
-    function hapusData() {
-        const terpilih = document.querySelectorAll('.pilih-item:checked');
-        if (terpilih.length === 0) return alert("Pilih data yang akan dihapus!");
-        if (confirm("Hapus data ini secara permanen?")) terpilih.forEach(c => c.closest('tr').remove());
-    }
-
-    function eksporPDF() {
-        const pdfLib = window.jspdf || window.window?.jspdf;
-        if (!pdfLib) {
-            alert("Sedang memuat library PDF... Tunggu 3 detik dan klik lagi.");
-            return;
+        // Sesuaikan password ini dengan yang Abang mau
+        if (pass === "admin123") { 
+            alert("Akses Diterima!");
+            // PASTIKAN nama file dashboard Abang adalah admin_portal.html
+            window.location.href = 'admin_portal.html';
+        } else {
+            alert("Password Salah! Akses Ditolak.");
         }
-
-        const { jsPDF } = pdfLib;
-        const doc = new jsPDF('l', 'mm', 'a4');
-        
-        doc.setFontSize(16);
-        doc.setTextColor(0, 132, 255);
-        doc.text("LAPORAN DATA ANGGOTA PONDOK PEMULIHAN", 14, 15);
-        
-        doc.autoTable({
-            html: '#tabelUtama',
-            startY: 25,
-            theme: 'grid',
-            headStyles: { fillColor: [0, 132, 255] },
-            columns: [
-                { header: 'Nama', dataKey: 1 },
-                { header: 'Email', dataKey: 2 },
-                { header: 'Password', dataKey: 3 },
-                { header: 'No HP', dataKey: 4 },
-                { header: 'Gol', dataKey: 5 },
-                { header: 'Jabatan', dataKey: 6 },
-                { header: 'Komsel', dataKey: 7 }
-            ]
-        });
-
-        doc.save("Data_Anggota_Pondok_Pemulihan.pdf");
     }
 </script>
+
 </body>
 </html>
