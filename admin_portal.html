@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf-plugin-autotable.min.js"></script>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Administrator</title>
@@ -54,11 +57,11 @@
     <div class="header-tools">
         <button class="btn btn-back" onclick="window.location.href='index.html'">← Kembali</button>
         <button class="btn btn-refresh" onclick="location.reload()">Refresh Data</button>
-        <button class="btn btn-pdf">Export PDF</button>
+        <button class="btn btn-pdf" onclick="exportPDF()">Export PDF</button>
     </div>
 
     <div class="table-responsive">
-        <table>
+        <table id="myTable">
             <thead>
                 <tr>
                     <th>Nama Lengkap</th>
@@ -93,20 +96,15 @@
 <div id="modalEdit" class="modal">
     <div class="modal-content">
         <h3 style="color: #0084ff; text-align: center; border-bottom: 2px solid #0084ff; padding-bottom: 10px; margin-top: 0;">Edit Data Anggota</h3>
-        
         <form id="formEdit">
             <label>Nama Lengkap:</label>
             <input type="text" id="editNama" required>
-
             <label>Alamat Email:</label>
             <input type="email" id="editEmail">
-
             <label>Password:</label>
             <input type="text" id="editPassword">
-
             <label>Nomor HP / WhatsApp:</label>
             <input type="text" id="editNoHP">
-
             <label>Golongan Darah:</label>
             <select id="editGolDarah">
                 <option value="">-- Pilih --</option>
@@ -115,7 +113,6 @@
                 <option value="AB">AB</option>
                 <option value="O">O</option>
             </select>
-
             <label>Jabatan:</label>
             <select id="editJabatan">
                 <option value="">-- Pilih --</option>
@@ -123,10 +120,8 @@
                 <option value="Ketua Komsel">Ketua Komsel</option>
                 <option value="Pengurus">Pengurus</option>
             </select>
-
             <label>Komsel JC:</label>
             <input type="text" id="editKomsel">
-
             <div class="btn-group-modal">
                 <button type="submit" class="btn-save">Simpan Perubahan</button>
                 <button type="button" onclick="tutupModal()" class="btn-close">Batal</button>
@@ -136,6 +131,71 @@
 </div>
 
 <script>
+    // Fungsi Export PDF dengan Kop Surat
+    function exportPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('l', 'mm', 'a4'); 
+
+        const img = new Image();
+        img.src = 'logo_pondok.png'; 
+
+        img.onload = function() {
+            // Logo
+            doc.addImage(img, 'PNG', 15, 10, 25, 25);
+
+            // Kop Surat
+            doc.setFontSize(18);
+            doc.setFont("helvetica", "bold");
+            doc.text("PONDOK PEMULIHAN PAPUA", 45, 18);
+            
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text("Alamat: Jayapura, Papua - Indonesia", 45, 24);
+            doc.text("Email: pondokpemulihanpapua@gmail.com | Kontak: 0812-xxxx-xxxx", 45, 29);
+            
+            // Garis Pembatas
+            doc.setLineWidth(0.5);
+            doc.line(15, 38, 282, 38); 
+
+            // Judul Laporan
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold");
+            doc.text("DAFTAR DATA ANGGOTA", 15, 48);
+
+            // Tabel Data (Mengambil ID myTable)
+            doc.autoTable({
+                html: '#myTable',
+                startY: 55,
+                theme: 'striped',
+                headStyles: { fillColor: [0, 132, 255] },
+                styles: { fontSize: 8 },
+                // Kita hilangkan kolom terakhir (Aksi) agar tidak muncul di PDF
+                columns: [
+                    { header: 'Nama Lengkap' },
+                    { header: 'Email' },
+                    { header: 'Password' },
+                    { header: 'No HP' },
+                    { header: 'Gol. Darah' },
+                    { header: 'Jabatan' },
+                    { header: 'Komsel JC' }
+                ]
+            });
+
+            doc.save("Data_Anggota_Pondok_Pemulihan.pdf");
+        };
+        
+        // Antisipasi jika gambar logo tidak ditemukan/error
+        img.onerror = function() {
+            console.error("Logo tidak ditemukan, mencetak tanpa logo.");
+            doc.setFontSize(18);
+            doc.text("PONDOK PEMULIHAN PAPUA", 15, 18);
+            doc.setLineWidth(0.5);
+            doc.line(15, 30, 282, 30);
+            doc.autoTable({ html: '#myTable', startY: 40 });
+            doc.save("Data_Anggota.pdf");
+        };
+    }
+
     function bukaModalEdit(id, data) {
         document.getElementById('editNama').value = data.nama_lengkap || '';
         document.getElementById('editEmail').value = data.email || '';
@@ -144,7 +204,6 @@
         document.getElementById('editGolDarah').value = data.gol_darah || '';
         document.getElementById('editJabatan').value = data.jabatan || '';
         document.getElementById('editKomsel').value = data.komsel_jc || '';
-
         document.getElementById('modalEdit').style.display = 'flex';
     }
 
