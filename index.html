@@ -14,8 +14,8 @@
         button:hover { background-color: #0073e6; }
         .btn-admin { background-color: #ff003c; }
         .btn-admin:hover { background-color: #d60032; }
-        .link-action { display: block; margin-top: 15px; color: #0084ff; text-decoration: none; font-size: 14px; font-weight: bold; }
-        .link-action:hover { text-decoration: underline; }
+        .link-action { display: block; margin-top: 15px; color: #0084ff; text-decoration: none; font-size: 14px; font-weight: bold; padding: 10px; border: 1px dashed #0084ff; border-radius: 6px; }
+        .link-action:hover { background-color: #f0f8ff; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -32,7 +32,7 @@
     
     <button class="btn-admin" onclick="aksesAdmin()">Akses Administrator</button>
     
-    <a href="daftar.anggota.html" class="link-action">Daftar Anggota Baru</a>
+    <a href="daftar.html" class="link-action">Daftar Anggota Baru</a>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
