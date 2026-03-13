@@ -11,7 +11,7 @@
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .login-container { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
         
-        /* Perbaikan Logo agar pasti muncul */
+        /* Logo */
         .logo { width: 100px; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto; }
         
         h2 { color: #333; margin-bottom: 30px; }
@@ -22,11 +22,11 @@
         .password-wrapper { position: relative; display: flex; align-items: center; }
         .eye-icon { position: absolute; right: 15px; cursor: pointer; font-size: 22px; color: #555; user-select: none; z-index: 10; }
 
-        /* Tombol Masuk & Admin */
+        /* Tombol Utama */
         .btn-masuk { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-admin { width: 100%; padding: 12px; background-color: #ff0019; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
         
-        /* Presisi ukuran kotak Daftar Anggota Baru agar seragam */
+        /* Presisi kotak Daftar Anggota Baru */
         .btn-daftar { width: 100%; padding: 12px; background: none; color: #007bff; border: 1px dashed #007bff; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; text-decoration: none; display: block; box-sizing: border-box; }
 
         /* Modal Admin */
@@ -85,7 +85,7 @@
 
     function intip(id, lihat) { document.getElementById(id).type = lihat ? 'text' : 'password'; }
     function bukaModal() { document.getElementById('modalAdmin').style.display = 'block'; }
-    function tutupModal() { document.getElementById('modalAdmin').style.display = 'none'; }
+    function tutupModal() { document.getElementById('modalAdmin').style.none = 'none'; document.getElementById('modalAdmin').style.display = 'none'; }
 
     function cekAdmin() {
         const pass = document.getElementById('admin_pass_input').value;
@@ -113,4 +113,3 @@
 
 </body>
 </html>
-
