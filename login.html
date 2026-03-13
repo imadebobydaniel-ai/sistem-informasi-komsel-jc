@@ -107,8 +107,8 @@
 
        if (!querySnapshot.empty) {
     alert("Login Berhasil!");
-    // GANTI baris di bawah ini agar tepat ke main_menu.html
-    window.location.href = "main_menu.html";
+    // Hapus baris lama, pastikan hanya baris ini yang ada untuk perpindahan halaman:
+    window.location.replace("main_menu.html");
 }else {
             alert("Data tidak ditemukan.");
         }
