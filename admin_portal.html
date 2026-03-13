@@ -3,16 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Database Admin - Pondok Pemulihan</title>
+    <title>Database Administrator - Pondok Pemulihan</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
         .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 25px rgba(0,0,0,0.1); max-width: 1200px; margin: auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #ff003c; padding-bottom: 15px; margin-bottom: 25px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background: #ff003c; color: white; padding: 15px; text-align: left; }
-        td { padding: 15px; border-bottom: 1px solid #eee; }
-        .btn-back { background: #666; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ff003c; padding-bottom: 15px; margin-bottom: 25px; }
+        .header h2 { margin: 0; display: flex; align-items: center; gap: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+        th { background: #ff003c; color: white; padding: 15px; text-align: left; text-transform: capitalize; }
+        td { padding: 15px; border-bottom: 1px solid #eee; color: #333; }
+        tr:hover { background-color: #fff5f6; }
+        .btn-keluar { background: #666; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 13px; }
+        .btn-edit { background: #0084ff; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-edit:hover { background: #0073e6; }
+        .status-aktif { color: #28a745; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -20,11 +25,11 @@
 <div class="container">
     <div class="header">
         <h2><i class="fas fa-database"></i> Database Administrator</h2>
-        <a href="index.html" class="btn-back">Keluar</a>
+        <a href="index.html" class="btn-keluar">Keluar</a>
     </div>
 
     <div style="overflow-x:auto;">
-        <table>
+        <table id="tabelAnggota">
             <thead>
                 <tr>
                     <th>Nama Anggota</th>
@@ -32,6 +37,7 @@
                     <th>Password User</th>
                     <th>Jabatan</th>
                     <th>Status</th>
+                    <th style="text-align: center;">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -40,12 +46,22 @@
                     <td>imade.bobydaniel@gmail.com</td>
                     <td>Bukadong821</td>
                     <td>Ketua Komsel</td>
-                    <td>Aktif</td>
+                    <td class="status-aktif">Aktif</td>
+                    <td style="text-align: center;">
+                        <button class="btn-edit" onclick="editData(this)"><i class="fas fa-edit"></i> Edit</button>
+                    </td>
                 </tr>
-                </tbody>
+            </tbody>
         </table>
     </div>
 </div>
+
+<script>
+    function editData(btn) {
+        alert("Fitur Edit sedang disiapkan. Menghubungkan ke database...");
+        // Di sini nanti kita pasang fungsi untuk ubah data di Firebase
+    }
+</script>
 
 </body>
 </html>
