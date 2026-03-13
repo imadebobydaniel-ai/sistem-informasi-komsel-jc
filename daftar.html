@@ -40,7 +40,7 @@
     
     <div class="field">
         <label>Alamat Tempat Tinggal</label>
-        <input type="text" id="nomor_hp">
+        <input type="text" id="alamat_tinggal">
     </div>
 
     <div class="field">
@@ -63,9 +63,8 @@
             <option value="JC 1">JC 1</option>
             <option value="JC 2">JC 2</option>
             <option value="JC 3">JC 3</option>
-             <option value="JC 4">JC 4</option>
-             <option value="JC 5">JC 5</option>
-            
+            <option value="JC 4">JC 4</option>
+            <option value="JC 5">JC 5</option>
         </select>
     </div>
 
@@ -92,7 +91,6 @@
 </div>
 
 <script>
-    // Konfigurasi Project Abang
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -102,7 +100,6 @@
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
 
-    // Inisialisasi
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
@@ -112,6 +109,7 @@
             nama: document.getElementById('nama_lengkap').value,
             email: document.getElementById('email_anggota').value,
             no_hp: document.getElementById('nomor_hp').value,
+            alamat: document.getElementById('alamat_tinggal').value, // Data Alamat Baru
             password: document.getElementById('buat_password').value,
             jabatan: document.getElementById('pilih_jabatan').value,
             komsel: document.getElementById('pilih_lokasi_jc').value,
@@ -120,14 +118,12 @@
             status: "Aktif"
         };
 
-        // Validasi Sederhana
         if(!data.nama || !data.email || !data.password) {
             alert("Nama, Email, dan Password wajib diisi!");
             return;
         }
 
         try {
-            // Simpan ke Firestore koleksi "users"
             await db.collection("users").add(data);
             alert("Pendaftaran Berhasil! Data sudah sinkron ke Admin.");
             window.location.href = "index.html";
