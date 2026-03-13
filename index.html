@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login User - Pondok Pemulihan Papua</title>
+    <title>Login - Pondok Pemulihan Papua</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .login-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
         img { width: 70px; margin-bottom: 10px; border-radius: 50%; }
-        h2 { color: #333; margin-bottom: 5px; }
-        p { color: #666; font-size: 14px; margin-bottom: 20px; }
+        h2 { color: #333; margin: 0 0 20px 0; }
         input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background-color: #0084ff; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; width: 100%; }
-        .btn-admin { background-color: #ff003c; margin-top: 10px; }
+        button { width: 100%; padding: 12px; background-color: #0084ff; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-admin { background-color: #ff003c; }
         .link-daftar { display: block; margin-top: 15px; color: #0084ff; text-decoration: none; font-size: 14px; font-weight: bold; }
     </style>
 </head>
@@ -21,12 +20,11 @@
 <div class="login-container">
     <img src="logo_pondok.png" alt="Logo">
     <h2>Masuk Aplikasi</h2>
-    <p>Gunakan Email & Password Anda</p>
     
-    <input type="email" id="loginEmail" placeholder="Email">
-    <input type="password" id="loginPass" placeholder="Password">
+    <input type="email" id="emailUser" placeholder="Email">
+    <input type="password" id="passUser" placeholder="Password">
     
-    <button onclick="prosesLogin()">Masuk Sekarang</button>
+    <button onclick="loginUser()">Masuk Sekarang</button>
     
     <button class="btn-admin" onclick="window.location.href='login.html'">Akses Administrator</button>
     
@@ -47,14 +45,13 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    async function prosesLogin() {
-        const email = document.getElementById("loginEmail").value;
-        const password = document.getElementById("loginPass").value;
+    async function loginUser() {
+        const e = document.getElementById("emailUser").value;
+        const p = document.getElementById("passUser").value;
         try {
-            await auth.signInWithEmailAndPassword(email, password);
-            // LINK DIPERBAIKI: Sesuai file Abang main.menu.html
+            await auth.signInWithEmailAndPassword(e, p);
             window.location.href = 'main.menu.html';
-        } catch (e) { alert("Gagal: " + e.message); }
+        } catch (err) { alert("Login Gagal: " + err.message); }
     }
 </script>
 </body>
