@@ -8,44 +8,30 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
     <style>
-        /* CSS ASLI ABANG - TIDAK ADA PERUBAHAN STRUKTUR */
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .login-container { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
         
-        /* LOGO */
+        /* Perbaikan Logo agar pasti muncul */
         .logo { width: 100px; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto; }
         
         h2 { color: #333; margin-bottom: 30px; }
         .field { margin-bottom: 15px; text-align: left; }
         input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         
-        /* CSS MATA */
+        /* Simbol Mata */
         .password-wrapper { position: relative; display: flex; align-items: center; }
         .eye-icon { position: absolute; right: 15px; cursor: pointer; font-size: 22px; color: #555; user-select: none; z-index: 10; }
 
-        /* TOMBOL ASLI */
+        /* Tombol Masuk & Admin */
         .btn-masuk { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-admin { width: 100%; padding: 12px; background-color: #ff0019; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
-        .btn-daftar { width: 100%; padding: 12px; background: none; color: #007bff; border: 1px dashed #007bff; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; text-decoration: none; display: block; }
+        
+        /* Presisi ukuran kotak Daftar Anggota Baru agar seragam */
+        .btn-daftar { width: 100%; padding: 12px; background: none; color: #007bff; border: 1px dashed #007bff; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; text-decoration: none; display: block; box-sizing: border-box; }
 
-        /* MODAL KHUSUS ADMIN */
-        #modalAdmin {
-            display: none; 
-            position: fixed; 
-            z-index: 100; 
-            left: 0; top: 0; width: 100%; height: 100%; 
-            background-color: rgba(0,0,0,0.6); 
-        }
-        .modal-content {
-            background-color: white; 
-            margin: 15% auto; 
-            padding: 30px; 
-            border-radius: 12px; 
-            width: 85%; 
-            max-width: 320px; 
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
+        /* Modal Admin */
+        #modalAdmin { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); }
+        .modal-content { background-color: white; margin: 15% auto; padding: 30px; border-radius: 12px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .btn-batal { background: #6c757d; color: white; margin-top: 10px; border: none; padding: 10px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; }
     </style>
 </head>
@@ -67,16 +53,13 @@
     </div>
 
     <button class="btn-masuk" onclick="prosesLogin()">Masuk Sekarang</button>
-    
     <button class="btn-admin" onclick="bukaModal()">Akses Administrator</button>
-    
     <a href="daftar.html" class="btn-daftar">Daftar Anggota Baru</a>
 </div>
 
 <div id="modalAdmin">
     <div class="modal-content">
         <h3 style="margin-top:0;">Login Admin</h3>
-        <p style="font-size: 14px; color: #666;">Silakan masukkan password admin</p>
         <div class="field">
             <div class="password-wrapper">
                 <input type="password" id="admin_pass_input" placeholder="Password Khusus">
@@ -100,41 +83,31 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Fungsi Simbol Mata
-    function intip(id, lihat) {
-        document.getElementById(id).type = lihat ? 'text' : 'password';
-    }
-
-    // Fungsi Kendali Modal Admin
+    function intip(id, lihat) { document.getElementById(id).type = lihat ? 'text' : 'password'; }
     function bukaModal() { document.getElementById('modalAdmin').style.display = 'block'; }
     function tutupModal() { document.getElementById('modalAdmin').style.display = 'none'; }
 
-    // Logika Password Admin
     function cekAdmin() {
         const pass = document.getElementById('admin_pass_input').value;
         if (pass === "admin2026") {
-            alert("Akses Diterima!");
             window.location.href = "admin_portal.html";
         } else {
             alert("Password Administrator Salah!");
         }
     }
 
-    // Login Anggota Biasa
     async function prosesLogin() {
         const email = document.getElementById('login_email').value.trim();
         const pass = document.getElementById('login_password').value.trim();
         if(!email || !pass) return alert("Harap isi email dan password!");
-
         try {
             const q = await db.collection("users").where("email", "==", email).where("password", "==", pass).get();
             if(!q.empty) {
-                alert("Login Berhasil!");
                 window.location.href = "admin_portal.html"; 
             } else {
                 alert("Data tidak ditemukan.");
             }
-        } catch(e) { alert("Masalah: " + e.message); }
+        } catch(e) { alert("Error: " + e.message); }
     }
 </script>
 
