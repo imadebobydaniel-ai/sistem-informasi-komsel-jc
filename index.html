@@ -4,129 +4,70 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Pondok Pemulihan Papua</title>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
     <style>
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            background-color: #f0f2f5; 
-            display: flex; justify-content: center; align-items: center; 
-            height: 100vh; margin: 0; 
-        }
-
-        .login-container { 
-            background: white; padding: 40px 30px; border-radius: 12px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 380px; 
-            text-align: center;
-        }
-
-        .logo { width: 80px; height: 80px; margin: 0 auto 15px auto; display: block; }
-
-        h2 { 
-            color: #1c1e21; margin: 0 0 15px 0; font-size: 24px;
-            border-bottom: 2px solid #0084ff; padding-bottom: 8px;
-        }
-
-        p { color: #606770; font-size: 14px; margin-bottom: 20px; }
-        
-        input { 
-            width: 100%; padding: 12px; margin: 8px 0; 
-            border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; 
-        }
-
-        /* Desain Ikon Mata */
-        .password-container {
-            position: relative;
-            width: 100%;
-        }
-
-        .password-container input {
-            padding-right: 45px !important;
-        }
-
-        .toggle-password {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: #888;
-            font-size: 18px;
-        }
-
-        .btn-masuk { 
-            width: 100%; padding: 12px; background-color: #0084ff; 
-            color: white; border: none; border-radius: 8px; 
-            cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 16px;
-        }
-
-        .btn-admin {
-            width: 100%; padding: 12px; background-color: #f02849; 
-            color: white; border: none; border-radius: 8px; 
-            cursor: pointer; font-weight: bold; margin-top: 10px;
-        }
-
-        .footer-link {
-            display: block; margin-top: 20px; color: #0084ff;
-            text-decoration: none; font-size: 14px; font-weight: 500;
-        }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
+        .header img { width: 60px; margin-bottom: 10px; }
+        h2 { color: #333; margin-bottom: 5px; }
+        p { color: #666; font-size: 14px; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background-color: #0084ff; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button:hover { background-color: #0073e6; }
+        .btn-admin { background-color: #ff003c; margin-top: 10px; }
+        .link-daftar { display: block; margin-top: 15px; color: #0084ff; text-decoration: none; font-size: 14px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="login-container">
-    <img src="logo_pondok.png" alt="Logo" class="logo">
-    <h2>Masuk Aplikasi</h2>
-    <p>Gunakan Email & Password Anda</p>
+    <div class="header">
+        <img src="logo_pondok.png" alt="Logo">
+        <h2>Masuk Aplikasi</h2>
+        <p>Gunakan Email & Password Anda</p>
+    </div>
 
-    <form id="loginForm">
-        <input type="email" id="email" placeholder="Alamat Email" required>
-        
-        <div class="password-container">
-            <input type="password" id="password" placeholder="Kata Sandi" required>
-            <i class="fa fa-eye toggle-password" id="eyeIcon"></i>
-        </div>
-        
-        <button type="submit" class="btn-masuk">Masuk Sekarang</button>
-        <button type="button" class="btn-admin" onclick="keHalamanAdmin()">Akses Administrator</button>
-    </form>
+    <input type="email" id="loginEmail" placeholder="Alamat Email">
+    <input type="password" id="loginPass" placeholder="Kata Sandi">
 
-    <p style="margin-top: 20px;">Belum punya akun?</p>
-    <a href="profile.html" class="footer-link">Daftar Anggota Baru</a>
+    <button onclick="prosesLogin()">Masuk Sekarang</button>
+    <button class="btn-admin" onclick="window.location.href='admin_login.html'">Akses Administrator</button>
+
+    <a href="register.html" class="link-daftar">Daftar Anggota Baru</a>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
 <script>
-    // Fungsi Mata Password
-    const passwordInput = document.getElementById('password');
-    const eyeIcon = document.getElementById('eyeIcon');
+    const firebaseConfig = {
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+        authDomain: "boby-apps-project.firebaseapp.com",
+        projectId: "boby-apps-project",
+        storageBucket: "boby-apps-project.firebasestorage.app",
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+    };
 
-    eyeIcon.addEventListener('click', function () {
-        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-        passwordInput.setAttribute('type', type);
-        this.classList.toggle('fa-eye');
-        this.classList.toggle('fa-eye-slash');
-    });
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
-    // Navigasi ke Admin dengan Proteksi Password admin2026
-    function keHalamanAdmin() {
-        let passwordAdmin = prompt("Masukkan Kata Sandi Administrator:", "");
+    async function prosesLogin() {
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPass").value;
 
-        if (passwordAdmin === "admin2026") {
-            alert("Akses Diterima! Selamat Datang Admin.");
-            window.location.href = 'admin_portal.html';
-        } else if (passwordAdmin === null) {
-            return; // User klik Batal
-        } else {
-            alert("Kata Sandi Salah! Anda tidak memiliki akses.");
+        if (!email || !password) {
+            alert("Silakan isi email dan password!");
+            return;
+        }
+
+        try {
+            await auth.signInWithEmailAndPassword(email, password);
+            // Ganti 'main_menu.html' dengan nama file halaman utama Abang yang sebenarnya
+            window.location.href = 'main_menu.html'; 
+        } catch (error) {
+            alert("Gagal Masuk: " + error.message);
         }
     }
-
-    // Simulasi Login
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        alert('Menghubungkan ke database...');
-    });
 </script>
 
 </body>
