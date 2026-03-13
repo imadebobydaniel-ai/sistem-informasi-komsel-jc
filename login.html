@@ -105,11 +105,11 @@
             .where("password", "==", pass)
             .get();
 
-        if (!querySnapshot.empty) {
-            alert("Login Berhasil!");
-            // DIARAHKAN KE MAIN MENU
-            window.location.href = "main_menu.html";
-        } else {
+       if (!querySnapshot.empty) {
+    alert("Login Berhasil!");
+    // GANTI baris di bawah ini agar tepat ke main_menu.html
+    window.location.href = "main_menu.html";
+}else {
             alert("Data tidak ditemukan.");
         }
     } catch (error) {
