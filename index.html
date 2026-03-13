@@ -3,41 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Pondok Pemulihan Papua</title>
+    <title>Login User - Pondok Pemulihan</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .login-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
-        .header img { width: 60px; margin-bottom: 10px; }
+        img { width: 70px; margin-bottom: 10px; }
         h2 { color: #333; margin-bottom: 5px; }
         p { color: #666; font-size: 14px; margin-bottom: 20px; }
         input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background-color: #0084ff; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        button:hover { background-color: #0073e6; opacity: 0.9; }
-        .btn-admin { background-color: #ff003c; margin-top: 10px; }
+        button { width: 100%; padding: 12px; background-color: #0084ff; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-admin { background-color: #ff003c; }
         .link-daftar { display: block; margin-top: 15px; color: #0084ff; text-decoration: none; font-size: 14px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="login-container">
-    <div class="header">
-        <img src="logo_pondok.png" alt="Logo">
-        <h2>Masuk Aplikasi</h2>
-        <p>Gunakan Email & Password Anda</p>
-    </div>
-
-    <input type="email" id="loginEmail" placeholder="Alamat Email">
-    <input type="password" id="loginPass" placeholder="Kata Sandi">
-
-    <button id="btnLogin" onclick="prosesLogin()">Masuk Sekarang</button>
-    <button class="btn-admin" onclick="window.location.href='admin_login.html'">Akses Administrator</button>
-
+    <img src="logo_pondok.png" alt="Logo">
+    <h2>Masuk Aplikasi</h2>
+    <p>Gunakan Email & Password Anda</p>
+    <input type="email" id="loginEmail" placeholder="Email">
+    <input type="password" id="loginPass" placeholder="Password">
+    <button onclick="prosesLogin()">Masuk Sekarang</button>
+    
+    <button class="btn-admin" onclick="window.location.href='login.html'">Akses Administrator</button>
+    
     <a href="register.html" class="link-daftar">Daftar Anggota Baru</a>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
@@ -47,53 +42,18 @@
         messagingSenderId: "125984859692",
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
-
-    // Inisialisasi Firebase
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
     async function prosesLogin() {
-        const btn = document.getElementById("btnLogin");
-        const email = document.getElementById("loginEmail").value.trim();
-        const password = document.getElementById("loginPass").value.trim();
-
-        if (!email || !password) {
-            alert("Silakan isi email dan password!");
-            return;
-        }
-
-        // Ubah tampilan tombol saat proses
-        btn.innerText = "Menghubungkan...";
-        btn.disabled = true;
-
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPass").value;
         try {
-            // Proses Login Firebase
-            const userCredential = await auth.signInWithEmailAndPassword(email, password);
-            console.log("Login sukses:", userCredential.user.email);
-
-            // Alihkan ke main_menu.html
-            // Jika file main_menu.html tidak terbuka, pastikan nama filenya sama persis (huruf kecil semua)
-            window.location.replace('main_menu.html');
-
-        } catch (error) {
-            btn.innerText = "Masuk Sekarang";
-            btn.disabled = false;
-            
-            console.error("Error Detail:", error.code);
-
-            // Pesan error spesifik agar Abang tahu masalahnya
-            if (error.code === 'auth/invalid-credential') {
-                alert("Email atau Password salah! Cek kembali data di Administrator.");
-            } else if (error.code === 'auth/network-request-failed') {
-                alert("Koneksi internet gagal. Periksa sinyal Anda.");
-            } else if (error.code === 'auth/user-not-found') {
-                alert("Email ini belum terdaftar di sistem.");
-            } else {
-                alert("Gagal Masuk: " + error.message);
-            }
-        }
+            await auth.signInWithEmailAndPassword(email, password);
+            // Sesuai file Abang: main.menu.html (pakai titik)
+            window.location.href = 'main.menu.html';
+        } catch (e) { alert("Gagal: " + e.message); }
     }
 </script>
-
 </body>
 </html>
