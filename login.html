@@ -3,36 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Admin - Pondok Pemulihan</title>
+    <title>Portal Admin</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
-        img { width: 80px; margin-bottom: 20px; border-radius: 50%; }
-        input { width: 100%; padding: 15px; margin-bottom: 20px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 16px; outline: none; }
-        button { width: 100%; padding: 15px; background: #ff003c; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 350px; text-align: center; }
+        input { width: 100%; padding: 15px; margin-bottom: 20px; border: 2px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 15px; background: #0084ff; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <img src="logo_pondok.png" alt="Logo">
     <h2>Portal Admin</h2>
-    <p>Masukkan password akses administrator</p>
-    <input type="password" id="adminPassword" placeholder="Password Admin">
-    <button onclick="prosesAdmin()">Masuk Sekarang</button>
-    <p><a href="index.html" style="color:#666; text-decoration:none; font-size:14px;">← Kembali</a></p>
+    <p>Masukkan password untuk masuk</p>
+    <input type="password" id="passAdmin" placeholder="Password Administrator">
+    <button onclick="cekMasuk()">Masuk Sekarang</button>
+    <p><a href="index.html" style="color:#0084ff; text-decoration:none;">Kembali ke Beranda</a></p>
 </div>
 
 <script>
-    function prosesAdmin() {
-        const pass = document.getElementById('adminPassword').value;
+    function cekMasuk() {
+        const inputPass = document.getElementById('passAdmin').value;
         
-        // GANTI password "admin2026" di bawah ini sesuai keinginan Abang
-        if (pass === "admin2026") { 
+        // SAYA SET PASSWORD BARU: admin1234
+        if (inputPass === "admin1234") { 
             alert("Akses Diterima!");
+            // Link ke admin_portal.html sesuai daftar file Abang
             window.location.href = 'admin_portal.html';
         } else {
-            alert("Password Salah! Gunakan password admin yang benar.");
+            alert("Password Salah! Coba lagi dengan: admin1234");
         }
     }
 </script>
