@@ -3,56 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Database Administrator - Firestore</title>
+    <title>Database Administrator - Full Features</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
         .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }
-        th { background: #ff003c; color: white; padding: 12px; text-align: left; white-space: nowrap; }
+        .header-tools { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .action-buttons { display: flex; gap: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th { background: #ff003c; color: white; padding: 12px; text-align: left; }
         td { padding: 12px; border-bottom: 1px solid #eee; }
-        .status-aktif { color: green; font-weight: bold; }
-        .header-tools { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: bold; }
-        .btn-refresh { background: #2ed573; }
-        .btn-keluar { background: #666; }
+        .btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        .btn-refresh { background: #00d48a; }
+        .btn-edit { background: #ffa500; }
+        .btn-delete { background: #2d3436; }
+        .btn-logout { background: #636e72; }
+        .status-aktif { color: #00d48a; font-weight: bold; }
+
+        /* Style Modal Edit */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; }
+        .modal-content input, .modal-content select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header-tools">
-        <h2><i class="fas fa-database"></i> Database Administrator</h2>
-        <div>
-            <button class="btn btn-refresh" onclick="muatData()">Refresh Data</button>
-            <button class="btn btn-keluar" onclick="window.location.href='index.html'">Keluar</button>
-        </div>
+        <h2>Database Administrator</h2>
+        <button class="btn btn-logout" onclick="window.location.href='index.html'">Keluar</button>
+    </div>
+
+    <div class="action-buttons">
+        <button class="btn btn-refresh" onclick="muatData()">Refresh</button>
+        <button class="btn btn-edit" onclick="bukaModalEdit()">Edit Data</button>
+        <button class="btn btn-delete" onclick="hapusData()">Hapus</button>
     </div>
 
     <div style="overflow-x:auto;">
         <table>
             <thead>
                 <tr>
+                    <th><input type="checkbox" id="checkAll" onclick="pilihSemua(this)"></th>
                     <th>Nama Lengkap</th>
                     <th>Email</th>
-                    <th>Password</th>
                     <th>No HP</th>
                     <th>Jabatan</th>
                     <th>Lokasi JC</th>
-                    <th>Gol. Darah</th>
                     <th>Status</th>
                 </tr>
             </thead>
             <tbody id="dataBody">
-                <tr><td colspan="8" style="text-align:center;">Mengambil data dari Firestore...</td></tr>
+                <tr><td colspan="7" style="text-align:center;">Mengambil data...</td></tr>
             </tbody>
         </table>
     </div>
 </div>
 
+<div id="modalEdit" class="modal">
+    <div class="modal-content">
+        <h3>Edit Data Anggota</h3>
+        <input type="hidden" id="editId">
+        <label>Nama Lengkap:</label>
+        <input type="text" id="editNama">
+        <label>Jabatan:</label>
+        <select id="editJabatan">
+            <option value="Anggota Komsel">Anggota Komsel</option>
+            <option value="Ketua Komsel">Ketua Komsel</option>
+            <option value="Wakil Ketua Komsel">Wakil Ketua Komsel</option>
+        </select>
+        <button class="btn btn-refresh" style="width:100%" onclick="simpanPerubahan()">Update</button>
+        <button class="btn btn-delete" style="width:100%; margin-top:10px;" onclick="tutupModal()">Batal</button>
+    </div>
+</div>
+
 <script>
-    // Konfigurasi Firebase Abang
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -61,43 +87,72 @@
         messagingSenderId: "125984859692",
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
-
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore(); // MENGGUNAKAN FIRESTORE
+    const db = firebase.firestore();
 
     function muatData() {
         const tbody = document.getElementById('dataBody');
-        
-        // Mengambil koleksi 'users'
         db.collection("users").get().then((querySnapshot) => {
             tbody.innerHTML = "";
-            if (querySnapshot.empty) {
-                tbody.innerHTML = "<tr><td colspan='8' style='text-align:center;'>Database Kosong (Koleksi 'users' tidak ditemukan).</td></tr>";
-                return;
-            }
-
             querySnapshot.forEach((doc) => {
                 const v = doc.data();
-                // Nama field disesuaikan dengan screenshot Firestore Abang
                 tbody.innerHTML += `
                     <tr>
+                        <td><input type="checkbox" class="userCheck" value="${doc.id}"></td>
                         <td>${v.nama || '-'}</td>
                         <td>${v.email || '-'}</td>
-                        <td>${v.password || '-'}</td>
                         <td>${v.no_hp || '-'}</td>
                         <td>${v.jabatan || '-'}</td>
                         <td>${v.komsel || '-'}</td>
-                        <td>${v.gol_darah || '-'}</td>
                         <td class="status-aktif">Aktif</td>
                     </tr>`;
             });
-        }).catch((error) => {
-            console.error("Error mengambil data: ", error);
-            tbody.innerHTML = `<tr><td colspan='8' style='text-align:center; color:red;'>Error: ${error.message}</td></tr>`;
         });
     }
 
-    // Jalankan saat halaman dibuka
+    function pilihSemua(source) {
+        const checkboxes = document.querySelectorAll('.userCheck');
+        checkboxes.forEach(c => c.checked = source.checked);
+    }
+
+    function bukaModalEdit() {
+        const checked = document.querySelector('.userCheck:checked');
+        if(!checked) return alert("Pilih satu data dulu!");
+        
+        const id = checked.value;
+        db.collection("users").doc(id).get().then(doc => {
+            const d = doc.data();
+            document.getElementById('editId').value = id;
+            document.getElementById('editNama').value = d.nama;
+            document.getElementById('editJabatan').value = d.jabatan;
+            document.getElementById('modalEdit').style.display = 'flex';
+        });
+    }
+
+    async function simpanPerubahan() {
+        const id = document.getElementById('editId').value;
+        await db.collection("users").doc(id).update({
+            nama: document.getElementById('editNama').value,
+            jabatan: document.getElementById('editJabatan').value
+        });
+        alert("Data Berhasil Diupdate!");
+        tutupModal();
+        muatData();
+    }
+
+    async function hapusData() {
+        const checked = document.querySelectorAll('.userCheck:checked');
+        if(checked.length === 0) return alert("Pilih data yang mau dihapus!");
+        
+        if(confirm("Hapus data terpilih?")) {
+            for(let c of checked) {
+                await db.collection("users").doc(c.value).delete();
+            }
+            muatData();
+        }
+    }
+
+    function tutupModal() { document.getElementById('modalEdit').style.display = 'none'; }
     muatData();
 </script>
 </body>
