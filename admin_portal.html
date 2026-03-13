@@ -19,7 +19,7 @@
         .btn-refresh { background: #28a745; }
         .btn-pdf { background: #dc3545; }
 
-        /* TABEL UTAMA - 8 KOLOM SESUAI GAMBAR */
+        /* TABEL UTAMA */
         .table-responsive { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; min-width: 1100px; }
         th { background: #0084ff; color: white; padding: 15px 12px; text-align: left; }
@@ -29,7 +29,7 @@
         .btn-edit { background: #ffc107; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 5px; }
         .btn-hapus { background: #f44336; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
 
-        /* MODAL EDIT DATA - 7 INPUT LENGKAP */
+        /* MODAL EDIT */
         .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; }
         .modal-content { background: white; padding: 30px; border-radius: 15px; width: 95%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
         
@@ -112,7 +112,7 @@
             <option value="Ketua Komsel">Ketua Komsel</option>
             <option value="Wakil Ketua">Wakil Ketua</option>
             <option value="Anggota Komsel" selected>Anggota Komsel</option>
-            
+            <option value="Pengurus">Pengurus</option>
         </select>
 
         <label>Komsel JC:</label>
@@ -148,13 +148,46 @@
         }
     }
 
-    // Fungsi PDF (Sederhana agar tidak crash)
+    // FUNGSI PDF (ANTI-GAGAL)
     function generatePDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('l', 'mm', 'a4');
-        doc.text("PONDOK PEMULIHAN PAPUA - DATA ANGGOTA", 15, 15);
-        doc.autoTable({ html: '#tabelAnggota', startY: 25, columns: [0,1,2,3,4,5,6] });
-        doc.save("Data_Anggota.pdf");
+        try {
+            const { jsPDF } = window.jspdf;
+            if (!jsPDF) {
+                alert("Sistem PDF sedang loading, tunggu 2 detik lagi.");
+                return;
+            }
+            
+            // Set Landscape agar tabel tidak sesak
+            const doc = new jsPDF('l', 'mm', 'a4');
+            
+            // Judul Laporan
+            doc.setFontSize(18);
+            doc.setTextColor(0, 132, 255);
+            doc.text("PONDOK PEMULIHAN PAPUA - DATA ANGGOTA", 14, 15);
+            
+            // Generate Tabel (Abaikan kolom ke-7 yaitu kolom Aksi)
+            doc.autoTable({ 
+                html: '#tabelAnggota', 
+                startY: 25,
+                theme: 'grid',
+                headStyles: { fillColor: [0, 132, 255] },
+                columns: [
+                    { header: 'Nama', dataKey: 0 },
+                    { header: 'Email', dataKey: 1 },
+                    { header: 'Password', dataKey: 2 },
+                    { header: 'No HP', dataKey: 3 },
+                    { header: 'Gol', dataKey: 4 },
+                    { header: 'Jabatan', dataKey: 5 },
+                    { header: 'Komsel', dataKey: 6 }
+                ]
+            });
+            
+            doc.save("Laporan_Anggota_PPP.pdf");
+            alert("Download PDF Berhasil!");
+        } catch (e) {
+            console.error(e);
+            alert("Gagal export PDF: " + e.message);
+        }
     }
 </script>
 
