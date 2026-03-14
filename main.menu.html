@@ -5,21 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menu Utama - Pondok Pemulihan Papua</title>
     <style>
-        /* Tetap menggunakan struktur asli Abang */
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             margin: 0; padding: 0; background-color: #f4f7f6; 
             display: flex; flex-direction: column; align-items: center;
         }
-
-        /* Header diperbaiki agar menampung Watermark & Jam tanpa merusak Judul */
+        /* Header dengan Copyright dan Waktu - Tetap Rapi */
         .header { 
             width: 100%; background: #007bff; color: white; 
             padding: 10px 20px; box-sizing: border-box;
             display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .header-left { font-size: 10px; opacity: 0.8; width: 30%; }
+        .header-left { font-size: 10px; opacity: 0.9; width: 30%; }
         .header-center { font-weight: bold; font-size: 16px; text-align: center; width: 40%; }
         .header-right { font-size: 10px; text-align: right; width: 30%; line-height: 1.2; }
 
@@ -99,7 +97,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
-    // FUNGSI JAM OTOMATIS
+    // 1. FUNGSI JAM OTOMATIS
     function updateClock() {
         const now = new Date();
         const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -116,7 +114,7 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // FIREBASE CONFIG
+    // 2. KONFIGURASI FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -130,6 +128,7 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
+    // 3. AMBIL DATA USER
     window.onload = function() {
         db.collection("users").where("email", "==", "boby.daniel4@gmail.com").get().then((querySnapshot) => {
             if (!querySnapshot.empty) {
@@ -144,7 +143,7 @@
                 const avatarUrl = "https://ui-avatars.com/api/?name=" + encodeURIComponent(data.nama) + "&background=random&color=fff";
                 document.getElementById("userAvatar").style.backgroundImage = "url('" + avatarUrl + "')";
             }
-        });
+        }).catch((err) => { console.error("Gagal ambil data:", err); });
     };
 
     function logout() {
