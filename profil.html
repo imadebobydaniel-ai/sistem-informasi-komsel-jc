@@ -2,131 +2,85 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pendaftaran Anggota - Pondok Pemulihan Papua</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Profil Saya - Pondok Pemulihan Papua</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .reg-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        .header { text-align: center; margin-bottom: 25px; }
-        .header img { width: 70px; border-radius: 50%; }
-        h2 { color: #0084ff; margin: 10px 0; font-size: 22px; border-bottom: 2px solid #0084ff; padding-bottom: 8px; display: inline-block; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; display: flex; flex-direction: column; min-height: 100vh; }
+        .navbar { background: #007bff; color: white; padding: 15px; display: flex; align-items: center; gap: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .navbar a { color: white; text-decoration: none; font-size: 18px; }
         
-        label { display: block; margin-top: 10px; font-size: 13px; font-weight: bold; color: #444; text-align: left; }
-        input, select { width: 100%; padding: 12px; margin: 5px 0 15px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        .container { padding: 20px; flex: 1; text-align: center; }
+        .profile-header { margin-bottom: 25px; }
+        .profile-pic { width: 100px; height: 100px; background: #ddd; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 10px; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .profile-pic i { font-size: 50px; color: #666; }
         
-        button { width: 100%; padding: 12px; background-color: #0084ff; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
-        button:hover { background-color: #0066cc; }
-        .btn-back { background-color: #6c757d; margin-top: 10px; }
-        .btn-back:hover { background-color: #5a6268; }
+        .info-card { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: left; }
+        .info-item { border-bottom: 1px solid #eee; padding: 12px 0; display: flex; justify-content: space-between; align-items: center; }
+        .info-item:last-child { border-bottom: none; }
+        .info-label { font-size: 12px; color: #888; font-weight: bold; text-transform: uppercase; }
+        .info-value { font-size: 14px; color: #333; font-weight: bold; }
         
-        hr { border: 0; border-top: 1px solid #eee; margin: 20px 0; }
+        .btn-edit { display: block; width: 100%; background: #007bff; color: white; text-align: center; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 20px; font-size: 14px; }
+        .footer-padding { background: #007bff; height: 50px; width: 100%; margin-top: auto; }
     </style>
 </head>
 <body>
 
-<div class="reg-container">
-    <div class="header">
-        <img src="logo_pondok.png" alt="Logo">
-        <br>
-        <h2>Daftar Anggota Baru</h2>
-    </div>
-
-    <label>Email Utama:</label>
-    <input type="email" id="reg-email" placeholder="Contoh: nama@email.com">
-
-    <label>Buat Password:</label>
-    <input type="text" id="reg-pass" placeholder="Password (Mudah diingat)">
-
-    <hr>
-
-    <label>Nama Lengkap (Sesuai KTP):</label>
-    <input type="text" id="reg-nama" placeholder="Masukkan Nama Lengkap">
-
-    <label>Nomor HP / WhatsApp:</label>
-    <input type="text" id="reg-nohp" placeholder="Contoh: 08123456789">
-
-    <label>Golongan Darah:</label>
-    <select id="reg-goldar">
-        <option value="-">-- Pilih Golongan Darah --</option>
-        <option value="A">A</option>
-        <option value="B">B</option>
-        <option value="AB">AB</option>
-        <option value="O">O</option>
-    </select>
-
-    <label>Komsel JC:</label>
-    <select id="reg-komsel">
-        <option value="-">-- Pilih Komsel --</option>
-        <option value="JC 1">JC 1</option>
-        <option value="JC 2">JC 2</option>
-        <option value="JC 3">JC 3</option>
-        <option value="JC 4">JC 4</option>
-        <option value="JC 5">JC 5</option>
-    </select>
-
-    <label>Jabatan di Komsel:</label>
-    <select id="reg-jabatan">
-        <option value="-">-- Pilih Jabatan --</option>
-        <option value="Ketua Komsel">Ketua Komsel</option>
-        <option value="Wakil Ketua Komsel">Wakil Ketua Komsel</option>
-        <option value="Anggota Komsel">Anggota Komsel</option>
-    </select>
-
-    <button onclick="prosesDaftar()">Simpan & Daftar Sekarang</button>
-    <button class="btn-back" onclick="window.location.href='index.html'">Batal / Kembali</button>
+<div class="navbar">
+    <a href="main_menu.html"><i class="fa-solid fa-arrow-left"></i></a>
+    <div style="font-weight: bold;">Profil Saya</div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<div class="container">
+    <div class="profile-header">
+        <div class="profile-pic">
+            <i class="fa-solid fa-user"></i>
+        </div>
+        <h2 id="dispName" style="margin: 5px 0; font-size: 18px;">Memuat...</h2>
+        <p id="dispRole" style="margin: 0; color: #666; font-size: 13px;">Anggota Komsel</p>
+    </div>
+
+    <div class="info-card">
+        <div class="info-item">
+            <span class="info-label">Email</span>
+            <span class="info-value" id="dispEmail">-</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Nomor Komsel</span>
+            <span class="info-value" id="dispJC">-</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Lokasi Ibadah</span>
+            <span class="info-value" id="dispLoc">-</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Status</span>
+            <span class="info-value" style="color: #28a745;">Aktif</span>
+        </div>
+    </div>
+
+    <a href="setting.html" class="btn-edit"><i class="fa-solid fa-user-pen"></i> Edit Profil / Pengaturan</a>
+</div>
+
+<div class="footer-padding"></div>
 
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
-        authDomain: "boby-apps-project.firebaseapp.com",
-        projectId: "boby-apps-project",
-        storageBucket: "boby-apps-project.firebasestorage.app",
-        messagingSenderId: "125984859692",
-        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
-    };
+    function loadProfileData() {
+        // Mengambil data dari localStorage yang disimpan saat login/setting
+        const nama = localStorage.getItem('nama_login') || "Pengguna";
+        const email = localStorage.getItem('email_login') || "anggota@pondok.com";
+        const jc = localStorage.getItem('jc_login') || "-";
+        const lokasi = localStorage.getItem('lokasi_ibadah') || "Belum diatur";
 
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    async function prosesDaftar() {
-        const email = document.getElementById("reg-email").value;
-        const password = document.getElementById("reg-pass").value;
-        const nama = document.getElementById("reg-nama").value;
-        const nohp = document.getElementById("reg-nohp").value;
-        const goldar = document.getElementById("reg-goldar").value;
-        const komsel = document.getElementById("reg-komsel").value;
-        const jabatan = document.getElementById("reg-jabatan").value;
-
-        // Validasi Sederhana agar tidak ada data kosong
-        if (!email || !password || !nama || goldar === "-" || komsel === "-" || jabatan === "-") {
-            alert("Mohon lengkapi semua data dan pilih Jabatan/Komsel!");
-            return;
-        }
-
-        try {
-            await auth.createUserWithEmailAndPassword(email, password);
-            await db.collection("users").add({
-                nama: nama,
-                email: email,
-                password: password, 
-                no_hp: nohp,
-                gol_darah: goldar,
-                komsel: komsel,
-                jabatan: jabatan,
-                tanggal_daftar: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            alert("Pendaftaran Berhasil!");
-            window.location.href = 'index.html';
-        } catch (error) {
-            alert("Gagal: " + error.message);
-        }
+        // Menampilkan ke layar
+        document.getElementById('dispName').innerText = nama;
+        document.getElementById('dispEmail').innerText = email;
+        document.getElementById('dispJC').innerText = "JC " + jc;
+        document.getElementById('dispLoc').innerText = lokasi;
     }
+
+    window.onload = loadProfileData;
 </script>
 
 </body>
