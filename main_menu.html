@@ -2,48 +2,87 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Menu Utama - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; }
+        /* Fit & Friendly Mobile View */
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background-color: #f0f2f5; 
+            margin: 0; 
+            overflow-x: hidden;
+            touch-action: pan-y; /* Memastikan gerakan swipe vertikal lancar */
+        }
         
         .navbar { 
             background: #007bff; 
             color: white; 
-            padding: 15px 20px; 
+            padding: 10px 15px; 
             display: flex; 
-            justify-content: flex-end; /* Hanya untuk tombol keluar di kanan */
+            justify-content: flex-end; 
             align-items: center; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            height: 50px;
         }
         
         .btn-logout { 
             background: #ff4757; 
             color: white; 
             border: none; 
-            padding: 8px 15px; 
+            padding: 6px 12px; 
             border-radius: 5px; 
             cursor: pointer; 
-            font-weight: bold; 
+            font-weight: bold;
+            font-size: 14px;
         }
 
-        .container { padding: 20px; max-width: 1000px; margin: auto; text-align: center; }
+        .container { 
+            padding: 15px; 
+            max-width: 100%; 
+            margin: auto; 
+            text-align: center; 
+            box-sizing: border-box;
+        }
 
-        /* Judul yang dipindahkan ke bawah navbar / central */
         .main-title {
             font-weight: bold; 
-            font-size: 22px;
+            font-size: 20px;
             color: #333;
-            margin: 20px 0 10px 0;
+            margin: 15px 0 10px 0;
         }
 
-        .welcome-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .welcome-card { 
+            background: white; 
+            padding: 15px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            margin-bottom: 20px; 
+        }
+
+        .welcome-card h2 { font-size: 18px; margin: 0 0 5px 0; }
+        .welcome-card p { font-size: 13px; margin: 0; color: #666; }
         
-        .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; text-align: center; }
-        .menu-item { background: white; padding: 30px; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-decoration: none; color: #333; }
-        .menu-item:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); color: #007bff; }
-        .menu-item i { font-size: 40px; margin-bottom: 15px; color: #007bff; }
+        /* Grid Responsive Mobile */
+        .menu-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); /* 2 Kolom di HP agar fit */
+            gap: 12px; 
+        }
+
+        .menu-item { 
+            background: white; 
+            padding: 20px 10px; 
+            border-radius: 12px; 
+            text-align: center; 
+            text-decoration: none; 
+            color: #333; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid #eee;
+        }
+        
+        .menu-item i { font-size: 30px; margin-bottom: 10px; color: #007bff; }
+        .menu-item h3 { margin: 0; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -56,8 +95,8 @@
     <div class="main-title">Pondok Pemulihan Papua</div>
 
     <div class="welcome-card">
-        <h2 id="userGreeting">Selamat Datang!</h2>
-        <p>Sistem Informasi Komsel JC - Silakan pilih menu di bawah untuk melanjutkan.</p>
+        <h2 id="userGreeting">Memuat data...</h2>
+        <p>Sistem Informasi Komsel JC</p>
     </div>
 
     <div class="menu-grid">
@@ -67,7 +106,7 @@
         </a>
         <a href="kehadiran.html" class="menu-item">
             <i class="fa-solid fa-calendar-check"></i>
-            <h3>Laporan Kehadiran</h3>
+            <h3>Kehadiran</h3>
         </a>
         <a href="alkitab.html" class="menu-item">
             <i class="fa-solid fa-book-bible"></i>
@@ -77,16 +116,28 @@
 </div>
 
 <script>
-    // Fungsi untuk menampilkan nama dan JC secara otomatis
+    // 1. Fungsi Load Data Nama & JC
     function loadUserData() {
-        // Contoh data sementara, nanti bisa dihubungkan ke data login asli
-        const namaUser = "Imade Boby"; 
-        const nomorJC = "5"; 
-        
+        // Mengambil data dari localStorage (asumsi disimpan saat login)
+        const namaUser = localStorage.getItem('nama_user') || "Imade Boby"; 
+        const nomorJC = localStorage.getItem('nomor_jc') || "5"; 
         document.getElementById('userGreeting').innerText = "Selamat Datang " + namaUser + " Komsel JC " + nomorJC;
     }
 
-    // Jalankan fungsi saat halaman dibuka
+    // 2. Fitur Swipe to Refresh
+    let touchStartPoint = 0;
+    window.addEventListener('touchstart', (e) => {
+        touchStartPoint = e.touches[0].pageY;
+    }, {passive: true});
+
+    window.addEventListener('touchmove', (e) => {
+        const touchEndPoint = e.touches[0].pageY;
+        // Jika tarik kebawah lebih dari 150px dan posisi scroll di paling atas
+        if (touchEndPoint - touchStartPoint > 150 && window.scrollY === 0) {
+            location.reload();
+        }
+    }, {passive: true});
+
     window.onload = loadUserData;
 </script>
 
