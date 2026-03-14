@@ -89,7 +89,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
-    // 2. Konfigurasi Firebase Anda (Sudah diperbarui)
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -100,48 +99,39 @@
         measurementId: "G-X14300RJL4"
     };
 
-    // 3. Inisialisasi Firebase
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.firestore();
-// Ganti baris 108 - 110 menjadi ini:
-} else {
-    console.log("Data tidak ditemukan!");
-    // Kita arahkan ke profile.html (pakai E) agar tidak 404
-    alert("Data profil belum diisi, silakan lengkapi.");
-    window.location.href = "profile.html"; 
-}
-        // Mengambil data dari koleksi 'users' dengan ID dokumen 'user_test'
-        db.collection("users").doc("user_test").get().then((doc) => {
-            if (doc.exists) {
-                const data = doc.data();
+
+    window.onload = function() {
+        // Mencari data berdasarkan email yang ada di database Abang
+        db.collection("users").where("email", "==", "boby.daniel4@gmail.com").get().then((querySnapshot) => {
+            if (!querySnapshot.empty) {
+                const data = querySnapshot.docs[0].data();
                 
-                // Menampilkan data ke elemen HTML
                 document.getElementById("userName").innerText = data.nama;
-                document.getElementById("userJabatan").innerText = "KTP: " + data.no_ktp;
+                document.getElementById("userJabatan").innerText = "Jabatan: " + data.jabatan;
                 document.getElementById("userWilayah").innerText = data.alamat;
                 
-                // Membuat foto profil (avatar) otomatis berdasarkan nama
                 const avatarUrl = "https://ui-avatars.com/api/?name=" + encodeURIComponent(data.nama) + "&background=random&color=fff";
                 document.getElementById("userAvatar").style.backgroundImage = "url('" + avatarUrl + "')";
             } else {
                 console.log("Data tidak ditemukan!");
-                // Jika data tidak ada di database, arahkan ke halaman profil untuk mengisi
-                window.location.href = "profil.html";
+                alert("Data profil belum diisi, silakan lengkapi.");
+                window.location.href = "profile.html"; 
             }
         }).catch((error) => {
-            console.error("Gagal mengambil data dari Firebase:", error);
-            alert("Gagal memuat profil. Pastikan koneksi internet aktif.");
+            console.error("Gagal mengambil data:", error);
+            alert("Gagal memuat profil.");
         });
     };
 
-   function logout() {
-    if(confirm("Apakah Anda ingin keluar?")) {
-        // Balikkan ke halaman depan (index.html), bukan login.html
-        window.location.href = "index.html";
+    function logout() {
+        if(confirm("Apakah Anda ingin keluar?")) {
+            window.location.href = "index.html";
+        }
     }
-}
 </script>
 
 </body>
