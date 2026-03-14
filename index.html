@@ -6,59 +6,42 @@
     <title>Login - Pondok Pemulihan Papua</title>
     <style>
         body { font-family: sans-serif; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-container { background: white; padding: 40px; border-radius: 15px; box-shadow: 0px 4px 15px rgba(0,0,0,0.1); width: 350px; text-align: center; }
+        .login-container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0px 4px 15px rgba(0,0,0,0.1); width: 350px; text-align: center; }
         h2 { margin-bottom: 30px; font-weight: bold; }
         input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
         button { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; }
     </style>
 </head>
 <body>
+    <div class="login-container">
+        <h2>Login Anggota</h2>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="prosesLogin()">Masuk Sekarang</button>
+    </div>
 
-<div class="login-container">
-    <h2>Login Anggota</h2>
-    <input type="email" id="email" placeholder="Email" required>
-    <input type="password" id="password" placeholder="Password" required>
-    <button onclick="prosesLogin()">Masuk Sekarang</button>
-</div>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+            authDomain: "boby-apps-project.firebaseapp.com",
+            projectId: "boby-apps-project",
+            storageBucket: "boby-apps-project.firebasestorage.app",
+            messagingSenderId: "125984859692",
+            appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
-        authDomain: "boby-apps-project.firebaseapp.com",
-        projectId: "boby-apps-project",
-        storageBucket: "boby-apps-project.firebasestorage.app",
-        messagingSenderId: "125984859692",
-        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
-    };
-
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-    const db = firebase.firestore();
-
-    function prosesLogin() {
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-
-        if (!email || !password) {
-            alert("Harap isi email dan password!");
-            return;
+        function prosesLogin() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            db.collection("users").where("email", "==", email).where("password", "==", password).get().then((s) => {
+                if (!s.empty) { window.location.href = "main.menu.html"; }
+                else { alert("Login Gagal!"); }
+            });
         }
-
-        db.collection("users").where("email", "==", email).where("password", "==", password).get()
-        .then((querySnapshot) => {
-            if (!querySnapshot.empty) {
-                // Pastikan file tujuan benar, jangan arahkan kembali ke index.html
-                window.location.href = "main.menu.html";
-            } else {
-                alert("Login Gagal! Akun tidak ditemukan.");
-            }
-        }).catch((err) => {
-            alert("Terjadi kesalahan koneksi.");
-            console.error(err);
-        });
-    }
-</script>
+    </script>
 </body>
 </html>
