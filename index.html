@@ -7,9 +7,8 @@
     <style>
         body { font-family: sans-serif; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .login-container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0px 4px 15px rgba(0,0,0,0.1); width: 350px; text-align: center; }
-        h2 { margin-bottom: 30px; font-weight: bold; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
     </style>
 </head>
 <body>
@@ -37,13 +36,20 @@
         function prosesLogin() {
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
-            if(!email || !password) { alert("Isi semua kolom!"); return; }
-
+            
             db.collection("users").where("email", "==", email).where("password", "==", password).get()
-            .then((s) => {
-                if (!s.empty) { window.location.href = "main_menu.html"; }
-                else { alert("Login Gagal!"); }
-            }).catch((e) => alert("Koneksi Error"));
+            .then((querySnapshot) => {
+                if (!querySnapshot.empty) {
+                    // Pastikan nama file ini sama persis dengan yang ada di GitHub
+                    window.location.href = "main_menu.html"; 
+                } else {
+                    alert("Email atau Password salah!");
+                }
+            })
+            .catch((error) => {
+                console.error("Error: ", error);
+                alert("Terjadi kesalahan koneksi. Pastikan internet stabil.");
+            });
         }
     </script>
 </body>
