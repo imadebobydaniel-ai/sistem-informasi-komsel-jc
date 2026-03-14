@@ -5,11 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Pondok Pemulihan Papua</title>
     <style>
-        body { font-family: sans-serif; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0px 4px 15px rgba(0,0,0,0.1); width: 350px; text-align: center; }
-        h2 { margin-bottom: 30px; font-weight: bold; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 16px; color: #666; }
-        button { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        /* Desain asli sesuai gambar image_4c1483.png */
+        body { 
+            font-family: sans-serif; 
+            background-color: #f4f4f4; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        .login-container { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 15px; 
+            box-shadow: 0px 4px 15px rgba(0,0,0,0.1); 
+            width: 380px; 
+            text-align: center; 
+        }
+        h2 { 
+            margin-bottom: 30px; 
+            font-weight: bold; 
+            font-size: 28px;
+        }
+        input { 
+            width: 100%; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border: 1px solid #ccc; 
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            font-size: 16px; 
+        }
+        button { 
+            width: 100%; 
+            padding: 15px; 
+            background-color: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 16px; 
+            margin-top: 15px; 
+        }
     </style>
 </head>
 <body>
@@ -35,23 +74,34 @@
         measurementId: "G-X14300RJL4"
     };
 
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    if (!firebase.apps.length) { 
+        firebase.initializeApp(firebaseConfig); 
+    }
     const db = firebase.firestore();
 
     function prosesLogin() {
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
 
-        db.collection("users").where("email", "==", email).where("password", "==", password).get().then((querySnapshot) => {
+        if (!email || !password) {
+            alert("Email dan Password tidak boleh kosong!");
+            return;
+        }
+
+        db.collection("users").where("email", "==", email).where("password", "==", password).get()
+        .then((querySnapshot) => {
             if (!querySnapshot.empty) {
                 window.location.href = "main.menu.html";
             } else {
                 alert("Login Gagal! Periksa Email dan Password.");
             }
-        }).catch((error) => {
-            console.error("Error:", error);
+        })
+        .catch((error) => {
+            console.error("Error login:", error);
+            alert("Terjadi kesalahan koneksi.");
         });
     }
 </script>
+
 </body>
 </html>
