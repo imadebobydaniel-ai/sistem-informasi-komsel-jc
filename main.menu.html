@@ -5,21 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menu Utama - Pondok Pemulihan Papua</title>
     <style>
+        /* Tetap menggunakan struktur asli Abang */
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             margin: 0; padding: 0; background-color: #f4f7f6; 
             display: flex; flex-direction: column; align-items: center;
         }
-        /* Header dengan Copyright dan Waktu */
+
+        /* Header diperbaiki agar menampung Watermark & Jam tanpa merusak Judul */
         .header { 
             width: 100%; background: #007bff; color: white; 
             padding: 10px 20px; box-sizing: border-box;
             display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
         }
-        .header-title { font-weight: bold; font-size: 14px; position: absolute; left: 50%; transform: translateX(-50%); }
-        .copyright { opacity: 0.8; }
-        .date-time { text-align: right; }
+        .header-left { font-size: 10px; opacity: 0.8; width: 30%; }
+        .header-center { font-weight: bold; font-size: 16px; text-align: center; width: 40%; }
+        .header-right { font-size: 10px; text-align: right; width: 30%; line-height: 1.2; }
 
         .profile-card {
             background: white; width: 85%; max-width: 350px; 
@@ -60,15 +62,14 @@
 <body>
 
 <div class="header">
-    <div class="copyright">© 2026 by imade boby</div>
-    <div class="header-title">Pondok Pemulihan Papua</div>
-    <div class="date-time" id="realtimeClock">Memuat waktu...</div>
+    <div class="header-left">Copyright 2026 by imade boby</div>
+    <div class="header-center">Pondok Pemulihan Papua</div>
+    <div class="header-right" id="realtimeClock">Memuat...</div>
 </div>
 
 <div class="profile-card">
     <div class="card-header"></div>
     <div class="avatar" id="userAvatar"></div>
-    
     <div class="info">
         <h2 id="userName">Memuat Nama...</h2>
         <p id="userJabatan">Memuat Jabatan...</p>
@@ -98,19 +99,24 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
-    // --- 1. SCRIPT JAM OTOMATIS ---
+    // FUNGSI JAM OTOMATIS
     function updateClock() {
         const now = new Date();
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        const dateString = now.toLocaleDateString('id-ID', options);
-        const timeString = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
         
-        document.getElementById('realtimeClock').innerHTML = dateString + "<br>" + timeString;
+        const dayName = days[now.getDay()];
+        const day = now.getDate();
+        const month = months[now.getMonth()];
+        const year = now.getFullYear();
+        const time = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        document.getElementById('realtimeClock').innerHTML = `${dayName}, ${day} ${month} ${year}<br>${time}`;
     }
     setInterval(updateClock, 1000);
     updateClock();
 
-    // --- 2. KONFIGURASI FIREBASE ---
+    // FIREBASE CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -121,37 +127,29 @@
         measurementId: "G-X14300RJL4"
     };
 
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
     window.onload = function() {
         db.collection("users").where("email", "==", "boby.daniel4@gmail.com").get().then((querySnapshot) => {
             if (!querySnapshot.empty) {
                 const data = querySnapshot.docs[0].data();
-                
                 document.getElementById("userName").innerText = data.nama;
                 document.getElementById("userJabatan").innerText = "Jabatan: " + data.jabatan;
                 document.getElementById("userWilayah").innerText = data.alamat;
-
+                
                 const namaKomsel = data.komsel ? data.komsel : "JC";
                 document.getElementById("userStatus").innerText = "Anggota " + namaKomsel + " Aktif";
                 
                 const avatarUrl = "https://ui-avatars.com/api/?name=" + encodeURIComponent(data.nama) + "&background=random&color=fff";
                 document.getElementById("userAvatar").style.backgroundImage = "url('" + avatarUrl + "')";
             }
-        }).catch((error) => {
-            console.error("Error:", error);
         });
     };
 
     function logout() {
-        if(confirm("Apakah Anda ingin keluar?")) {
-            window.location.href = "index.html";
-        }
+        if(confirm("Apakah Anda ingin keluar?")) { window.location.href = "index.html"; }
     }
 </script>
-
 </body>
 </html>
