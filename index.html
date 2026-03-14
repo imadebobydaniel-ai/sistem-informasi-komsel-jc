@@ -14,7 +14,6 @@
         .input-group { position: relative; margin-bottom: 15px; }
         input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 15px; }
         
-        /* Gaya Simbol Mata */
         .toggle-password { 
             position: absolute; 
             right: 12px; 
@@ -69,7 +68,7 @@
 </div>
 
 <script>
-    // Fungsi Intip Password (Tekan untuk melihat)
+    // Fungsi Intip Password
     function intip(tampilkan) {
         const passInput = document.getElementById("password");
         const eyeIcon = document.getElementById("eyeIcon");
@@ -83,36 +82,36 @@
     }
 
     function prosesLogin() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const role = document.querySelector('input[name="role"]:checked').value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const role = document.querySelector('input[name="role"]:checked').value;
 
-    if(email === "" || password === "") {
-        alert("Harap isi email dan password!");
-        return;
-    }
-
-    if (role === "admin") {
-        if (email === "admin@pondok.com" && password === "papua123") {
-            // Simpan data Admin
-            localStorage.setItem('nama_login', 'Administrator');
-            localStorage.setItem('jc_login', '-');
-            
-            alert("Login Administrator Berhasil!");
-            window.location.href = "admin_portal.html";
-        } else {
-            alert("Email atau Password Administrator Salah!");
+        if(email === "" || password === "") {
+            alert("Harap isi email dan password!");
+            return;
         }
-    } else {
-        // --- BAGIAN PENTING UNTUK ANGGOTA ---
-        // Di sini kita simpan nama "Imade Boby" dan "JC 5" agar terbaca di Menu Utama
-        localStorage.setItem('nama_login', 'Imade Boby');
-        localStorage.setItem('jc_login', '5');
 
-        alert("Mencoba masuk sebagai Anggota...");
-        window.location.href = "main_menu.html";
+        // Hapus data lama agar data baru fresh
+        localStorage.clear();
+
+        if (role === "admin") {
+            if (email === "admin@pondok.com" && password === "papua123") {
+                localStorage.setItem('nama_login', 'Administrator');
+                localStorage.setItem('jc_login', '-');
+                alert("Login Administrator Berhasil!");
+                window.location.href = "admin_portal.html";
+            } else {
+                alert("Email atau Password Administrator Salah!");
+            }
+        } else {
+            // SET DATA OTOMATIS UNTUK ANGGOTA
+            localStorage.setItem('nama_login', 'Imade Boby');
+            localStorage.setItem('jc_login', '5');
+
+            alert("Mencoba masuk sebagai Anggota...");
+            window.location.href = "main_menu.html";
+        }
     }
-}
 </script>
 
 </body>
