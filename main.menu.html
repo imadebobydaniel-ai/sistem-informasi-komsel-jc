@@ -10,10 +10,17 @@
             margin: 0; padding: 0; background-color: #f4f7f6; 
             display: flex; flex-direction: column; align-items: center;
         }
+        /* Header dengan Copyright dan Waktu */
         .header { 
             width: 100%; background: #007bff; color: white; 
-            padding: 15px 20px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 10px 20px; box-sizing: border-box;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 12px;
         }
+        .header-title { font-weight: bold; font-size: 14px; position: absolute; left: 50%; transform: translateX(-50%); }
+        .copyright { opacity: 0.8; }
+        .date-time { text-align: right; }
+
         .profile-card {
             background: white; width: 85%; max-width: 350px; 
             margin-top: 30px; border-radius: 20px; overflow: hidden;
@@ -53,7 +60,9 @@
 <body>
 
 <div class="header">
-    <strong>Pondok Pemulihan Papua</strong>
+    <div class="copyright">© 2026 by imade boby</div>
+    <div class="header-title">Pondok Pemulihan Papua</div>
+    <div class="date-time" id="realtimeClock">Memuat waktu...</div>
 </div>
 
 <div class="profile-card">
@@ -89,6 +98,19 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
+    // --- 1. SCRIPT JAM OTOMATIS ---
+    function updateClock() {
+        const now = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const dateString = now.toLocaleDateString('id-ID', options);
+        const timeString = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        
+        document.getElementById('realtimeClock').innerHTML = dateString + "<br>" + timeString;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // --- 2. KONFIGURASI FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -105,7 +127,6 @@
     const db = firebase.firestore();
 
     window.onload = function() {
-        // Cari data berdasarkan email login
         db.collection("users").where("email", "==", "boby.daniel4@gmail.com").get().then((querySnapshot) => {
             if (!querySnapshot.empty) {
                 const data = querySnapshot.docs[0].data();
@@ -114,15 +135,11 @@
                 document.getElementById("userJabatan").innerText = "Jabatan: " + data.jabatan;
                 document.getElementById("userWilayah").innerText = data.alamat;
 
-                // Teks status tetap rapi di dalam badge hijau
                 const namaKomsel = data.komsel ? data.komsel : "JC";
                 document.getElementById("userStatus").innerText = "Anggota " + namaKomsel + " Aktif";
                 
                 const avatarUrl = "https://ui-avatars.com/api/?name=" + encodeURIComponent(data.nama) + "&background=random&color=fff";
                 document.getElementById("userAvatar").style.backgroundImage = "url('" + avatarUrl + "')";
-            } else {
-                alert("Data tidak ditemukan!");
-                window.location.href = "profile.html"; 
             }
         }).catch((error) => {
             console.error("Error:", error);
