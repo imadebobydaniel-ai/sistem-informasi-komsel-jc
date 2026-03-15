@@ -17,11 +17,19 @@
         #btnHapus { background: #37474f; }
         .search-input { padding: 10px; width: 300px; border: 1px solid #ccc; border-radius: 6px; flex-grow: 1; }
         .table-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 1100px; }
+        table { width: 100%; border-collapse: collapse; min-width: 1200px; }
         thead { background: #ff0000; color: white; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #ddd; font-size: 14px; }
-        .edit-aktif { background-color: #fffde7 !important; border: 2px solid orange !important; outline: none; color: black; }
-        select.edit-aktif { padding: 5px; border-radius: 4px; }
+        
+        /* CSS KHUSUS MODE EDIT AGAR TERLIHAT BISA DIKETIK */
+        .sedang-diedit { 
+            background-color: #fffde7 !important; 
+            border: 2px solid orange !important; 
+            outline: none; 
+            color: black !important;
+            cursor: text;
+        }
+        select.dropdown-darah { padding: 5px; border-radius: 4px; border: 1px solid orange; width: 100%; }
     </style>
 </head>
 <body>
@@ -29,40 +37,42 @@
 <div class="admin-container">
     <div class="header-section">
         <div style="font-size: 24px; font-weight: bold;"><i class="fa-solid fa-database"></i> Database Administrator</div>
-        <button class="btn-keluar" id="btnKeluar"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
+        <button class="btn-keluar" id="logoutSekarang"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
     </div>
 
     <div class="toolbar">
         <button id="btnRefresh" class="btn-tool" onclick="location.reload()"><i class="fa-solid fa-rotate"></i> Refresh</button>
         <button id="btnEdit" class="btn-tool"><i class="fa-solid fa-pen-to-square"></i> Edit Data</button>
         <button id="btnHapus" class="btn-tool"><i class="fa-solid fa-trash"></i> Hapus</button>
-        <input type="text" id="cariInput" class="search-input" placeholder="Cari Nama, No HP, atau Alamat...">
+        <input type="text" id="kotakCari" class="search-input" placeholder="Cari Nama atau No HP...">
     </div>
 
     <div class="table-container">
         <table>
             <thead>
                 <tr>
-                    <th style="width: 20px;"><input type="checkbox" id="checkAll"></th>
+                    <th style="width: 20px;"><input type="checkbox" id="pilihSemuaData"></th>
                     <th>Nama Lengkap</th>
                     <th>Email</th>
                     <th>Password</th>
                     <th>Nomor HP</th>
                     <th>Alamat</th>
                     <th>Jabatan</th>
+                    <th>Lokasi JC</th>
                     <th>Gol. Darah</th>
                 </tr>
             </thead>
-            <tbody id="tabelBody">
+            <tbody id="badanTabel">
                 <tr>
-                    <td><input type="checkbox" class="user-cb"></td>
-                    <td class="bisa-edit">Boby Daniel</td>
-                    <td class="bisa-edit">boby.daniel4@gmail.com</td>
-                    <td class="bisa-edit" style="color:red; font-weight:bold;">Bukadong821</td>
-                    <td class="bisa-edit">081283393576</td>
-                    <td class="bisa-edit">Jl. tanah Hitam Abe pantai</td>
-                    <td class="bisa-edit">Ketua Komsel</td>
-                    <td class="darah-cell">AB</td>
+                    <td><input type="checkbox" class="cek-baris"></td>
+                    <td class="edit-teks">Boby Daniel</td>
+                    <td class="edit-teks">boby.daniel4@gmail.com</td>
+                    <td class="edit-teks" style="color:red; font-weight:bold;">Bukadong821</td>
+                    <td class="edit-teks">081283393576</td>
+                    <td class="edit-teks">Jl. tanah Hitam Abe pantai</td>
+                    <td class="edit-teks">Ketua Komsel</td>
+                    <td class="edit-teks">JC 5</td>
+                    <td class="kolom-darah">AB</td>
                 </tr>
             </tbody>
         </table>
@@ -70,54 +80,65 @@
 </div>
 
 <script>
-    // 1. KELUAR
-    document.getElementById('btnKeluar').onclick = function() {
-        if(confirm("Yakin ingin keluar?")) window.location.href = "index.html";
+    // 1. FUNGSI LOGOUT
+    document.getElementById('logoutSekarang').onclick = function() {
+        if(confirm("Keluar dari Portal Admin?")) window.location.href = "index.html";
     };
 
-    // 2. EDIT (TEKS + DROPDOWN)
+    // 2. FUNGSI EDIT (DENGAN TARGET YANG JELAS)
     document.getElementById('btnEdit').onclick = function() {
-        let selected = document.querySelectorAll('.user-cb:checked');
-        if (selected.length === 0) return alert("Centang datanya dulu, Bang!");
+        let barisTerpilih = document.querySelectorAll('.cek-baris:checked');
+        
+        if (barisTerpilih.length === 0) {
+            alert("Centang dulu kotaknya, Bang!");
+            return;
+        }
 
-        selected.forEach(cb => {
-            let tr = cb.closest('tr');
-            // Edit Teks
-            tr.querySelectorAll('.bisa-edit').forEach(td => {
+        barisTerpilih.forEach(checkbox => {
+            let row = checkbox.closest('tr');
+            
+            // Aktifkan kolom teks biasa
+            let targetTeks = row.querySelectorAll('.edit-teks');
+            targetTeks.forEach(td => {
                 td.contentEditable = "true";
-                td.classList.add('edit-aktif');
+                td.classList.add('sedang-diedit');
             });
-            // Edit Dropdown Gol Darah
-            let darahCell = tr.querySelector('.darah-cell');
-            if (!darahCell.querySelector('select')) {
-                let current = darahCell.innerText;
-                let opts = ['O', 'A', 'B', 'AB', 'AB+'];
-                let html = `<select class="edit-aktif">`;
-                opts.forEach(o => html += `<option value="${o}" ${o==current?'selected':''}>${o}</option>`);
-                darahCell.innerHTML = html + `</select>`;
+
+            // Aktifkan kolom Golongan Darah (Dropdown)
+            let tdDarah = row.querySelector('.kolom-darah');
+            if (!tdDarah.querySelector('select')) {
+                let nilaiAsli = tdDarah.innerText.trim();
+                let listDarah = ['O', 'A', 'B', 'AB', 'AB+'];
+                let selectCode = `<select class="dropdown-darah">`;
+                listDarah.forEach(d => {
+                    selectCode += `<option value="${d}" ${d === nilaiAsli ? 'selected' : ''}>${d}</option>`;
+                });
+                tdDarah.innerHTML = selectCode + `</select>`;
             }
         });
-        alert("Mode Edit Aktif!");
+        alert("Mode Edit Aktif! Silakan klik pada tulisan yang ingin diganti.");
     };
 
-    // 3. HAPUS
+    // 3. FUNGSI HAPUS
     document.getElementById('btnHapus').onclick = function() {
-        let selected = document.querySelectorAll('.user-cb:checked');
-        if (selected.length === 0) return alert("Pilih data yang mau dihapus!");
-        if (confirm("Hapus data terpilih?")) selected.forEach(cb => cb.closest('tr').remove());
+        let terpilih = document.querySelectorAll('.cek-baris:checked');
+        if (terpilih.length === 0) return alert("Pilih data dulu!");
+        if (confirm("Hapus data yang dicentang?")) {
+            terpilih.forEach(cb => cb.closest('tr').remove());
+        }
     };
 
-    // 4. CARI
-    document.getElementById('cariInput').onkeyup = function() {
-        let val = this.value.toLowerCase();
-        document.querySelectorAll('#tabelBody tr').forEach(tr => {
-            tr.style.display = tr.innerText.toLowerCase().includes(val) ? "" : "none";
+    // 4. FUNGSI CARI
+    document.getElementById('kotakCari').onkeyup = function() {
+        let filter = this.value.toLowerCase();
+        document.querySelectorAll('#badanTabel tr').forEach(tr => {
+            tr.style.display = tr.innerText.toLowerCase().includes(filter) ? "" : "none";
         });
     };
 
-    // 5. CHECK ALL
-    document.getElementById('checkAll').onclick = function() {
-        document.querySelectorAll('.user-cb').forEach(cb => cb.checked = this.checked);
+    // 5. FUNGSI SELECT ALL
+    document.getElementById('pilihSemuaData').onclick = function() {
+        document.querySelectorAll('.cek-baris').forEach(cb => cb.checked = this.checked);
     };
 </script>
 
