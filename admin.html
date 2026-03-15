@@ -8,27 +8,29 @@
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
         .admin-container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 95%; margin: auto; }
+        
+        /* Header Section */
         .header-section { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #ff0000; padding-bottom: 15px; margin-bottom: 25px; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .btn-back { background: #007bff; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; text-decoration: none; font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-back:hover { background: #0056b3; }
         .btn-keluar { background: #555; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        
+        /* Toolbar */
         .toolbar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .btn-tool { border: none; padding: 10px 18px; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; }
         #btnRefresh { background: #00e676; }
         #btnEdit { background: #ffa000; }
         #btnHapus { background: #37474f; }
         .search-input { padding: 10px; width: 300px; border: 1px solid #ccc; border-radius: 6px; flex-grow: 1; }
+
+        /* Table */
         .table-container { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 1200px; }
         thead { background: #ff0000; color: white; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #ddd; font-size: 14px; }
         
-        /* CSS KHUSUS MODE EDIT AGAR TERLIHAT BISA DIKETIK */
-        .sedang-diedit { 
-            background-color: #fffde7 !important; 
-            border: 2px solid orange !important; 
-            outline: none; 
-            color: black !important;
-            cursor: text;
-        }
+        .sedang-diedit { background-color: #fffde7 !important; border: 2px solid orange !important; outline: none; color: black !important; cursor: text; }
         select.dropdown-darah { padding: 5px; border-radius: 4px; border: 1px solid orange; width: 100%; }
     </style>
 </head>
@@ -36,7 +38,10 @@
 
 <div class="admin-container">
     <div class="header-section">
-        <div style="font-size: 24px; font-weight: bold;"><i class="fa-solid fa-database"></i> Database Administrator</div>
+        <div class="header-left">
+            <a href="index.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Kembali ke Login</a>
+            <div style="font-size: 24px; font-weight: bold;"><i class="fa-solid fa-database"></i> Database Administrator</div>
+        </div>
         <button class="btn-keluar" id="logoutSekarang"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
     </div>
 
@@ -80,55 +85,42 @@
 </div>
 
 <script>
-    // 1. FUNGSI LOGOUT
+    // 1. LOGOUT
     document.getElementById('logoutSekarang').onclick = function() {
         if(confirm("Keluar dari Portal Admin?")) window.location.href = "index.html";
     };
 
-    // 2. FUNGSI EDIT (DENGAN TARGET YANG JELAS)
+    // 2. EDIT
     document.getElementById('btnEdit').onclick = function() {
         let barisTerpilih = document.querySelectorAll('.cek-baris:checked');
-        
-        if (barisTerpilih.length === 0) {
-            alert("Centang dulu kotaknya, Bang!");
-            return;
-        }
+        if (barisTerpilih.length === 0) return alert("Centang dulu kotaknya, Bang!");
 
         barisTerpilih.forEach(checkbox => {
             let row = checkbox.closest('tr');
-            
-            // Aktifkan kolom teks biasa
-            let targetTeks = row.querySelectorAll('.edit-teks');
-            targetTeks.forEach(td => {
+            row.querySelectorAll('.edit-teks').forEach(td => {
                 td.contentEditable = "true";
                 td.classList.add('sedang-diedit');
             });
-
-            // Aktifkan kolom Golongan Darah (Dropdown)
             let tdDarah = row.querySelector('.kolom-darah');
             if (!tdDarah.querySelector('select')) {
                 let nilaiAsli = tdDarah.innerText.trim();
                 let listDarah = ['O', 'A', 'B', 'AB', 'AB+'];
                 let selectCode = `<select class="dropdown-darah">`;
-                listDarah.forEach(d => {
-                    selectCode += `<option value="${d}" ${d === nilaiAsli ? 'selected' : ''}>${d}</option>`;
-                });
+                listDarah.forEach(d => { selectCode += `<option value="${d}" ${d === nilaiAsli ? 'selected' : ''}>${d}</option>`; });
                 tdDarah.innerHTML = selectCode + `</select>`;
             }
         });
-        alert("Mode Edit Aktif! Silakan klik pada tulisan yang ingin diganti.");
+        alert("Mode Edit Aktif!");
     };
 
-    // 3. FUNGSI HAPUS
+    // 3. HAPUS
     document.getElementById('btnHapus').onclick = function() {
         let terpilih = document.querySelectorAll('.cek-baris:checked');
         if (terpilih.length === 0) return alert("Pilih data dulu!");
-        if (confirm("Hapus data yang dicentang?")) {
-            terpilih.forEach(cb => cb.closest('tr').remove());
-        }
+        if (confirm("Hapus data yang dicentang?")) { terpilih.forEach(cb => cb.closest('tr').remove()); }
     };
 
-    // 4. FUNGSI CARI
+    // 4. CARI
     document.getElementById('kotakCari').onkeyup = function() {
         let filter = this.value.toLowerCase();
         document.querySelectorAll('#badanTabel tr').forEach(tr => {
@@ -136,7 +128,7 @@
         });
     };
 
-    // 5. FUNGSI SELECT ALL
+    // 5. SELECT ALL
     document.getElementById('pilihSemuaData').onclick = function() {
         document.querySelectorAll('.cek-baris').forEach(cb => cb.checked = this.checked);
     };
