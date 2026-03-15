@@ -1,18 +1,94 @@
-<div style="text-align: center; margin-bottom: 20px;">
-    <img src="logo.png" alt="Logo" style="width: 80px; height: auto;">
-</div>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Pondok Pemulihan Papua</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 320px; text-align: center; }
+        .logo-container { margin-bottom: 15px; }
+        .logo-container img { width: 80px; height: auto; }
+        h2 { margin-bottom: 20px; color: #333; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        .pass-wrapper { position: relative; }
+        .pass-wrapper i { position: absolute; right: 10px; top: 22px; cursor: pointer; color: #888; }
+        .btn-red { background: #ff0000; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
+        .footer-links { text-align: left; margin-top: 15px; }
+        .footer-links a { color: blue; text-decoration: none; font-weight: bold; font-size: 14px; }
+    </style>
+</head>
+<body>
 
 <div class="login-box">
+    <div class="logo-container">
+        <img src="logo_pondok.png" alt="Logo">
+    </div>
+    
     <h2>Masuk</h2>
+    
     <input type="email" id="email" placeholder="Masukkan email">
-    <div style="position: relative;">
+    
+    <div class="pass-wrapper">
         <input type="password" id="pass" placeholder="Masukkan password">
-        <i class="fa-solid fa-eye" style="position: absolute; right: 10px; top: 12px; cursor: pointer;"></i>
+        <i class="fa-solid fa-eye" onclick="togglePass()"></i>
     </div>
     
     <button class="btn-red" onclick="loginUser()">Masuk Sekarang</button>
     
-    <div style="text-align: left; margin-top: 10px;">
-        <a href="registrasi.html" style="color: blue; text-decoration: none; font-weight: bold;">Daftar Baru</a>
+    <div class="footer-links">
+        <a href="registrasi.html">Daftar Baru</a>
     </div>
 </div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+        authDomain: "boby-apps-project.firebaseapp.com",
+        projectId: "boby-apps-project",
+        storageBucket: "boby-apps-project.firebasestorage.app",
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389",
+        databaseURL: "https://boby-apps-project-default-rtdb.firebaseio.com"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    function togglePass() {
+        const p = document.getElementById('pass');
+        p.type = p.type === "password" ? "text" : "password";
+    }
+
+    function loginUser() {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('pass').value;
+
+        if(!email || !pass) return alert("Isi email dan password!");
+
+        const userKey = email.replace(/\./g, ',');
+        
+        database.ref('users/' + userKey).once('value').then((snapshot) => {
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                if (userData.password === pass) {
+                    // Simpan email ke localStorage untuk halaman profil/setting
+                    localStorage.setItem('userEmail', email);
+                    alert("Berhasil Masuk!");
+                    window.location.href = "main_menu.html";
+                } else {
+                    alert("Password salah!");
+                }
+            } else {
+                alert("Email tidak terdaftar!");
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
