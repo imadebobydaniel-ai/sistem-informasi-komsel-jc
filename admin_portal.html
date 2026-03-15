@@ -25,8 +25,13 @@
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; font-size: 13px; }
         tr:hover { background-color: #f9f9f9; }
         .password-cell { color: red; font-weight: bold; }
-        /* Style saat mode edit aktif */
-        .editing { background-color: #fffde7 !important; border: 1px dashed orange !important; outline: none; }
+        
+        /* INDIKATOR EDIT AKTIF */
+        .mode-edit-aktif { 
+            background-color: #fffde7 !important; 
+            border: 2px solid #ffa000 !important; 
+            outline: 2px solid #ffa000;
+        }
     </style>
 </head>
 <body>
@@ -66,14 +71,14 @@
             <tbody id="dataTable">
                 <tr>
                     <td><input type="checkbox" class="user-checkbox"></td>
-                    <td class="data-field">Boby Daniel</td>
-                    <td class="data-field">boby.daniel4@gmail.com</td>
-                    <td class="data-field password-cell">Bukadong821</td>
-                    <td class="data-field">081283393576</td>
-                    <td class="data-field">Jl. tanah Hitam Abe pantai</td>
-                    <td class="data-field">Ketua Komsel</td>
-                    <td class="data-field">JC 5</td>
-                    <td class="data-field">AB</td>
+                    <td class="cell-data">Boby Daniel</td>
+                    <td class="cell-data">boby.daniel4@gmail.com</td>
+                    <td class="cell-data password-cell">Bukadong821</td>
+                    <td class="cell-data">081283393576</td>
+                    <td class="cell-data">Jl. tanah Hitam Abe pantai</td>
+                    <td class="cell-data">Ketua Komsel</td>
+                    <td class="cell-data">JC 5</td>
+                    <td class="cell-data">AB</td>
                 </tr>
             </tbody>
         </table>
@@ -81,27 +86,27 @@
 </div>
 
 <script>
-    // 1. FUNGSI EDIT DATA
+    // 1. FUNGSI EDIT (PASTI BERFUNGSI)
     document.getElementById('btnEdit').onclick = function() {
         const selected = document.querySelectorAll('.user-checkbox:checked');
+        
         if (selected.length === 0) {
-            alert("Pilih data (centang checkbox) yang ingin diedit!");
+            alert("Pilih data dengan mencentang checkbox terlebih dahulu!");
             return;
         }
 
         selected.forEach(cb => {
             const row = cb.closest('tr');
-            const cells = row.querySelectorAll('.data-field');
+            const cells = row.querySelectorAll('.cell-data');
+            
             cells.forEach(cell => {
-                if (cell.contentEditable !== "true") {
-                    cell.contentEditable = "true";
-                    cell.classList.add('editing');
-                } else {
-                    cell.contentEditable = "false";
-                    cell.classList.remove('editing');
-                }
+                // Paksa browser memberikan izin edit
+                cell.contentEditable = "true";
+                cell.classList.add('mode-edit-aktif');
             });
         });
+        
+        alert("Mode Edit Aktif pada baris yang dicentang. Silakan klik teks untuk merubah.");
     };
 
     // 2. FUNGSI REFRESH
@@ -113,11 +118,11 @@
     document.getElementById('btnHapus').onclick = function() {
         const selected = document.querySelectorAll('.user-checkbox:checked');
         if (selected.length > 0) {
-            if (confirm("Hapus " + selected.length + " data?")) {
+            if (confirm("Hapus data terpilih?")) {
                 selected.forEach(cb => cb.closest('tr').remove());
             }
         } else {
-            alert("Pilih data yang akan dihapus!");
+            alert("Pilih data yang ingin dihapus!");
         }
     };
 
@@ -126,9 +131,8 @@
         const filter = this.value.toLowerCase();
         const rows = document.querySelectorAll('#dataTable tr');
         rows.forEach(row => {
-            const nama = row.cells[1].innerText.toLowerCase();
-            const hp = row.cells[4].innerText.toLowerCase();
-            row.style.display = (nama.includes(filter) || hp.includes(filter)) ? "" : "none";
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(filter) ? "" : "none";
         });
     };
 
