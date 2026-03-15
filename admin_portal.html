@@ -25,7 +25,7 @@
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; font-size: 13px; }
         tr:hover { background-color: #f9f9f9; }
         .password-cell { color: red; font-weight: bold; }
-        /* Style tambahan saat mode edit aktif */
+        /* Style saat mode edit aktif */
         .editing { background-color: #fffde7 !important; border: 1px dashed orange !important; outline: none; }
     </style>
 </head>
@@ -81,10 +81,9 @@
 </div>
 
 <script>
-    // 1. FUNGSI EDIT DATA (DIPERBAIKI SECARA TOTAL)
-    document.getElementById('btnEdit').addEventListener('click', function() {
+    // 1. FUNGSI EDIT DATA
+    document.getElementById('btnEdit').onclick = function() {
         const selected = document.querySelectorAll('.user-checkbox:checked');
-        
         if (selected.length === 0) {
             alert("Pilih data (centang checkbox) yang ingin diedit!");
             return;
@@ -93,10 +92,8 @@
         selected.forEach(cb => {
             const row = cb.closest('tr');
             const cells = row.querySelectorAll('.data-field');
-            
             cells.forEach(cell => {
-                const isEditable = cell.contentEditable === "true";
-                if (!isEditable) {
+                if (cell.contentEditable !== "true") {
                     cell.contentEditable = "true";
                     cell.classList.add('editing');
                 } else {
@@ -105,9 +102,7 @@
                 }
             });
         });
-        
-        alert("Mode Edit beralih. Silakan ubah data pada sel yang berwarna kuning.");
-    });
+    };
 
     // 2. FUNGSI REFRESH
     document.getElementById('btnRefresh').onclick = function() {
