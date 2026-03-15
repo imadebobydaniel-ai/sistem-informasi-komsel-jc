@@ -25,13 +25,7 @@
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; font-size: 13px; }
         tr:hover { background-color: #f9f9f9; }
         .password-cell { color: red; font-weight: bold; }
-        
-        /* INDIKATOR EDIT AKTIF */
-        .mode-edit-aktif { 
-            background-color: #fffde7 !important; 
-            border: 2px solid #ffa000 !important; 
-            outline: 2px solid #ffa000;
-        }
+        .edit-aktif { background-color: #fffde7 !important; border: 2px solid orange !important; outline: none; }
     </style>
 </head>
 <body>
@@ -86,65 +80,59 @@
 </div>
 
 <script>
-    // 1. FUNGSI EDIT (PASTI BERFUNGSI)
+    // --- 1. FUNGSI LOGOUT (KELUAR) ---
+    // Dipastikan pindah ke halaman login utama
+    document.getElementById('btnKeluar').onclick = function() {
+        if(confirm("Apakah Anda yakin ingin keluar?")) {
+            window.location.replace('index.html'); 
+        }
+    };
+
+    // --- 2. FUNGSI EDIT DATA ---
+    // Begitu diklik, semua baris data bisa langsung diketik ulang
     document.getElementById('btnEdit').onclick = function() {
-        const selected = document.querySelectorAll('.user-checkbox:checked');
-        
-        if (selected.length === 0) {
-            alert("Pilih data dengan mencentang checkbox terlebih dahulu!");
-            return;
-        }
-
-        selected.forEach(cb => {
-            const row = cb.closest('tr');
-            const cells = row.querySelectorAll('.cell-data');
-            
-            cells.forEach(cell => {
-                // Paksa browser memberikan izin edit
-                cell.contentEditable = "true";
-                cell.classList.add('mode-edit-aktif');
-            });
+        const cells = document.querySelectorAll('.cell-data');
+        cells.forEach(cell => {
+            cell.contentEditable = "true";
+            cell.classList.add('edit-aktif');
         });
-        
-        alert("Mode Edit Aktif pada baris yang dicentang. Silakan klik teks untuk merubah.");
+        alert("MODE EDIT AKTIF: Silakan langsung ubah teks di tabel.");
     };
 
-    // 2. FUNGSI REFRESH
-    document.getElementById('btnRefresh').onclick = function() {
-        location.reload();
-    };
-
-    // 3. FUNGSI HAPUS
-    document.getElementById('btnHapus').onclick = function() {
-        const selected = document.querySelectorAll('.user-checkbox:checked');
-        if (selected.length > 0) {
-            if (confirm("Hapus data terpilih?")) {
-                selected.forEach(cb => cb.closest('tr').remove());
-            }
-        } else {
-            alert("Pilih data yang ingin dihapus!");
-        }
-    };
-
-    // 4. FUNGSI SEARCH
+    // --- 3. FUNGSI SEARCH ---
+    // Filter Nama atau No HP secara real-time
     document.getElementById('searchInput').onkeyup = function() {
-        const filter = this.value.toLowerCase();
-        const rows = document.querySelectorAll('#dataTable tr');
+        let filter = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#dataTable tr');
+        
         rows.forEach(row => {
-            const text = row.innerText.toLowerCase();
+            let text = row.innerText.toLowerCase();
             row.style.display = text.includes(filter) ? "" : "none";
         });
     };
 
-    // 5. FUNGSI CHECKALL
+    // --- 4. FUNGSI HAPUS ---
+    // Menghapus baris yang dicentang
+    document.getElementById('btnHapus').onclick = function() {
+        const selected = document.querySelectorAll('.user-checkbox:checked');
+        if (selected.length === 0) {
+            alert("Centang data yang ingin dihapus!");
+            return;
+        }
+        if (confirm("Hapus " + selected.length + " data?")) {
+            selected.forEach(cb => cb.closest('tr').remove());
+        }
+    };
+
+    // --- 5. FUNGSI REFRESH ---
+    document.getElementById('btnRefresh').onclick = function() {
+        location.reload();
+    };
+
+    // --- 6. FUNGSI CHECK ALL ---
     document.getElementById('checkAll').onclick = function() {
         const checkboxes = document.querySelectorAll('.user-checkbox');
         checkboxes.forEach(cb => cb.checked = this.checked);
-    };
-
-    // 6. FUNGSI KELUAR
-    document.getElementById('btnKeluar').onclick = function() {
-        window.location.href = 'index.html';
     };
 </script>
 
