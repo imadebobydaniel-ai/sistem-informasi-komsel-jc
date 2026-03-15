@@ -1,32 +1,18 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Admin</title>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 350px; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        .btn-red { background: #ff0000; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
-        .btn-white { background: white; color: red; border: 1px solid #ccc; padding: 12px; width: 100%; border-radius: 6px; cursor: pointer; text-decoration: none; display: block; font-size: 14px; box-sizing: border-box; }
-    </style>
-</head>
-<body>
-    <div class="login-box">
-        <h2>Login Admin</h2>
-        <input type="email" id="email" placeholder="Email Admin">
-        <input type="password" id="pass" placeholder="Password">
-        <button class="btn-red" onclick="login()">Masuk</button>
-        <a href="main_menu.html" class="btn-white">BATAL / BACK</a>
-    </div>
+<div style="text-align: center; margin-bottom: 20px;">
+    <img src="logo.png" alt="Logo" style="width: 80px; height: auto;">
+</div>
 
-    <script>
-        function login() {
-            if(document.getElementById('email').value === "admin@pondok.com" && document.getElementById('pass').value === "papua123") {
-                window.location.href = "admin.html";
-            } else { alert("Salah!"); }
-        }
-    </script>
-</body>
-</html>
+<div class="login-box">
+    <h2>Masuk</h2>
+    <input type="email" id="email" placeholder="Masukkan email">
+    <div style="position: relative;">
+        <input type="password" id="pass" placeholder="Masukkan password">
+        <i class="fa-solid fa-eye" style="position: absolute; right: 10px; top: 12px; cursor: pointer;"></i>
+    </div>
+    
+    <button class="btn-red" onclick="loginUser()">Masuk Sekarang</button>
+    
+    <div style="text-align: left; margin-top: 10px;">
+        <a href="registrasi.html" style="color: blue; text-decoration: none; font-weight: bold;">Daftar Baru</a>
+    </div>
+</div>
