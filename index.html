@@ -10,25 +10,27 @@
         .login-box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 320px; text-align: center; }
         .logo-container { margin-bottom: 15px; }
         .logo-container img { width: 100px; height: auto; }
-        h2 { margin-bottom: 20px; color: #333; font-size: 20px; }
+        h2 { margin-bottom: 20px; color: #333; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; }
         input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
         .pass-wrapper { position: relative; }
         .pass-wrapper i { position: absolute; right: 12px; top: 22px; cursor: pointer; color: #888; }
         .btn-red { background: #ff0000; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; transition: 0.3s; }
         .btn-red:hover { background: #cc0000; }
-        .footer-links { text-align: left; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
-        .footer-links a { color: #007bff; text-decoration: none; font-weight: bold; font-size: 14px; }
-        .footer-links a:hover { text-decoration: underline; }
+        .footer-links { text-align: left; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; display: flex; flex-direction: column; gap: 12px; }
+        .footer-links a { color: #007bff; text-decoration: none; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        /* Gaya khusus tombol admin agar beda */
+        .btn-admin { color: #555 !important; font-size: 12px !important; opacity: 0.7; }
+        .btn-admin:hover { opacity: 1; color: #000 !important; }
     </style>
 </head>
 <body>
 
 <div class="login-box">
     <div class="logo-container">
-        <img src="logo_pondok.png" alt="Logo Pondok">
+        <img src="logo_pondok.png" alt="Logo">
     </div>
     
-    <h2>MASUK APLIKASI</h2>
+    <h2>Masuk Aplikasi</h2>
     
     <input type="email" id="email" placeholder="Email">
     
@@ -41,6 +43,8 @@
     
     <div class="footer-links">
         <a href="registrasi.html"><i class="fa-solid fa-user-plus"></i> DAFTAR BARU</a>
+        
+        <a href="admin_login.html" class="btn-admin"><i class="fa-solid fa-user-shield"></i> Login Administrator</a>
     </div>
 </div>
 
@@ -77,10 +81,7 @@
         const email = document.getElementById('email').value;
         const pass = document.getElementById('pass').value;
 
-        if(!email || !pass) {
-            alert("Email dan Password harus diisi!");
-            return;
-        }
+        if(!email || !pass) return alert("Email dan Password wajib diisi!");
 
         const userKey = email.replace(/\./g, ',');
         
@@ -89,16 +90,14 @@
                 const userData = snapshot.val();
                 if (userData.password === pass) {
                     localStorage.setItem('userEmail', email);
-                    alert("Selamat Datang, " + userData.nama);
+                    alert("Selamat Datang!");
                     window.location.href = "main_menu.html";
                 } else {
                     alert("Password Salah!");
                 }
             } else {
-                alert("Akun tidak ditemukan. Silakan Daftar Baru.");
+                alert("Email belum terdaftar.");
             }
-        }).catch((err) => {
-            alert("Error: " + err.message);
         });
     }
 </script>
