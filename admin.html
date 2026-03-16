@@ -100,11 +100,11 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // 1. FUNGSI AMBIL DATA DARI FIRESTORE
+    // 1. FUNGSI AMBIL DATA (Diubah ke .get() agar tidak refresh otomatis saat sedang diedit)
     function muatDataUser() {
         const badanTabel = document.getElementById('badanTabel');
-        // Snapshot real-time dari koleksi 'users'
-        db.collection("users").onSnapshot((querySnapshot) => {
+        
+        db.collection("users").get().then((querySnapshot) => {
             badanTabel.innerHTML = "";
             if (querySnapshot.empty) {
                 badanTabel.innerHTML = "<tr><td colspan='9' class='loading-text'>Tidak ada data ditemukan.</td></tr>";
@@ -128,47 +128,44 @@
                 `;
                 badanTabel.innerHTML += baris;
             });
-        }, (error) => {
+        }).catch((error) => {
             console.error("Error: ", error);
-            badanTabel.innerHTML = "<tr><td colspan='9' class='loading-text'>Gagal mengambil data. Periksa Rules Firestore.</td></tr>";
+            badanTabel.innerHTML = "<tr><td colspan='9' class='loading-text'>Gagal mengambil data.</td></tr>";
         });
     }
 
- // 2. FUNGSI EDIT DATA
+    // 2. FUNGSI EDIT DATA (Kunci ID User dan Kirim ke Firestore)
     document.getElementById('btnEdit').onclick = function() {
         let terpilih = document.querySelectorAll('.cek-baris:checked');
         if (terpilih.length === 0) return alert("Pilih data dulu, Bang!");
 
         terpilih.forEach(checkbox => {
             let baris = checkbox.closest('tr');
-            let idUser = baris.getAttribute('data-id'); // Ambil ID di sini agar tidak hilang
+            let idUser = baris.getAttribute('data-id'); 
             let selData = baris.querySelectorAll('.bisa-edit');
             
             selData.forEach(td => {
                 td.contentEditable = "true"; 
                 td.classList.add('sedang-diedit');
                 
-                // Menghapus event lama agar tidak tumpang tindih
-                td.onblur = null; 
-                
                 td.onblur = function() {
                     const field = td.getAttribute('data-field');
                     const valueBaru = td.innerText.trim();
                     
-                    // Eksekusi langsung ke dokumen Firestore yang spesifik
                     db.collection("users").doc(idUser).update({
                         [field]: valueBaru
                     })
                     .then(() => {
-                        console.log("Field " + field + " berhasil diupdate.");
+                        console.log("Berhasil simpan: " + field);
+                        td.style.backgroundColor = "#e8f5e9"; // Hijau muda menandakan tersimpan
                     })
                     .catch(err => {
-                        alert("Gagal Simpan: " + err.message);
+                        alert("Gagal Simpan ke Firebase: " + err.message);
                     });
                 };
             });
         });
-        alert("Mode Edit Aktif! Klik pada kotak kuning untuk merubah.");
+        alert("Mode Edit Aktif! Silakan ubah data di kotak kuning, lalu klik di luar kotak untuk menyimpan.");
     };
 
     // 3. FUNGSI CARI
@@ -189,7 +186,9 @@
         if (confirm("Hapus data dari server?")) {
             terpilih.forEach(cb => {
                 const idUser = cb.closest('tr').getAttribute('data-id');
-                db.collection("users").doc(idUser).delete();
+                db.collection("users").doc(idUser).delete().then(() => {
+                    cb.closest('tr').remove();
+                });
             });
         }
     };
