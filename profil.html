@@ -53,78 +53,56 @@
         messagingSenderId: "125984859692",
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
-    firebase.initializeApp(firebaseConfig);
+    
+    // Inisialisasi
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.firestore();
 
     function muatDataProfil() {
-        // 1. Cek semua kemungkinan kunci penyimpanan
-        let userEmail = localStorage.getItem('email_login') || localStorage.getItem('loggedUserEmail');
+        // Cek email di memori
+        let emailSesi = localStorage.getItem('email_login');
         
-        if (!userEmail) {
-            document.getElementById('p_nama').innerText = "Sesi Tidak Ditemukan";
+        if (!emailSesi) {
+            document.getElementById('p_nama').innerText = "Sesi Berakhir";
             document.getElementById('p_email').innerText = "Silakan Login Ulang";
             return;
         }
 
-        document.getElementById('p_email').innerText = userEmail;
+        document.getElementById('p_email').innerText = emailSesi;
 
-        // 2. Cari di koleksi "users"
-        db.collection("users").where("email", "==", userEmail.trim()).get()
+        // Ambil data dari Firestore
+        db.collection("users").where("email", "==", emailSesi.trim()).get()
         .then((querySnapshot) => {
             if (!querySnapshot.empty) {
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    document.getElementById('p_nama').innerText = data.nama || "Tanpa Nama";
+                    
+                    // Update tampilan dengan pengecekan ganda nama field
+                    document.getElementById('p_nama').innerText = data.nama || "User";
                     document.getElementById('p_jabatan').innerText = data.jabatan || "Anggota";
-                    document.getElementById('p_hp').innerText = data.nomor_hp || data.nomorHp || "-";
-                    document.getElementById('p_jc').innerText = data.komsel || data.lokasiJc || "-";
+                    document.getElementById('p_hp').innerText = data.nomor_hp || data.nomorHp || data.hp || "-";
+                    document.getElementById('p_jc').innerText = data.komsel || data.lokasiJc || data.jc || "-";
                     document.getElementById('p_goldar').innerText = data.gol_darah || data.golDarah || "-";
-                    if (data.fotoProfil) document.getElementById('displayPhoto').src = data.fotoProfil;
+                    
+                    if (data.fotoProfil) {
+                        document.getElementById('displayPhoto').src = data.fotoProfil;
+                    }
                 });
             } else {
-                // Jika email ada tapi dokumen tidak ketemu, coba tampilkan nama dari localStorage
-                document.getElementById('p_nama').innerText = localStorage.getItem('nama_login') || "User Baru";
-                console.log("Data Firestore kosong untuk email ini.");
+                // Jika email terdaftar di login tapi datanya tidak ada di tabel users
+                document.getElementById('p_nama').innerText = "Data Kosong";
+                alert("Data profil tidak ditemukan di database untuk email: " + emailSesi);
             }
         })
         .catch((err) => {
             console.error("Firebase Error:", err);
-            document.getElementById('p_nama').innerText = "Gagal Memuat Data";
+            document.getElementById('p_nama').innerText = "Koneksi Error";
         });
     }
 
-    // Fungsi Upload & Kompresi Foto
-    document.getElementById('fileInput').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            const img = new Image();
-            img.src = event.target.result;
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = 300; canvas.height = 300;
-                ctx.drawImage(img, 0, 0, 300, 300);
-                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                document.getElementById('displayPhoto').src = compressedBase64;
-
-                let userEmail = localStorage.getItem('email_login') || localStorage.getItem('loggedUserEmail');
-                if (userEmail) {
-                    db.collection("users").where("email", "==", userEmail.trim()).get()
-                    .then((qs) => {
-                        qs.forEach((doc) => {
-                            db.collection("users").doc(doc.id).update({ fotoProfil: compressedBase64 })
-                            .then(() => alert("Foto Diperbarui!"));
-                        });
-                    });
-                }
-            };
-        };
-        reader.readAsDataURL(file);
-    });
-
+    // Jalankan saat halaman siap
     window.onload = muatDataProfil;
 </script>
 </body>
