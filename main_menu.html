@@ -162,7 +162,7 @@
         <p>Sistem Informasi Komsel JC</p>
     </div>
 
- <div class="menu-grid">
+    <div class="menu-grid">
         <a href="profil.html" class="menu-item">
             <i class="fa-solid fa-user-gear"></i>
             <h3>Profil Saya</h3>
@@ -216,7 +216,7 @@
     }
 
     function loadUserData() {
-        // PERBAIKAN: Menyesuaikan pengambilan data agar sinkron dengan Firebase Profil
+        // Mengambil data dari localStorage yang diisi saat login di index.html
         const namaUser = localStorage.getItem('nama_login') || "Pengguna"; 
         const nomorJC = localStorage.getItem('jc_login') || "-"; 
         const greetingElement = document.getElementById('userGreeting');
@@ -228,22 +228,12 @@
         }
     }
 
-    // PERBAIKAN: Fungsi Logout agar kembali ke halaman login utama (misal: login_user.html)
-    // Jika halaman login Abang bernama login.html, ganti 'login.html' di bawah.
     function prosesLogout() {
         if(confirm("Apakah Anda yakin ingin keluar?")) {
-            localStorage.removeItem('loggedUserEmail');
-            // Ganti 'login.html' dengan nama file halaman login user Abang yang asli
-            window.location.href = "login.html"; 
+            localStorage.clear(); // Hapus semua data login
+            window.location.href = "index.html"; // Balik ke halaman login utama
         }
     }
-
-    let startY = 0;
-    window.addEventListener('touchstart', (e) => { startY = e.touches[0].pageY; }, {passive: true});
-    window.addEventListener('touchmove', (e) => {
-        const diff = e.touches[0].pageY - startY;
-        if (diff > 100 && window.scrollY === 0) { location.reload(); }
-    }, {passive: true});
 
     window.onload = function() {
         updateClock();
