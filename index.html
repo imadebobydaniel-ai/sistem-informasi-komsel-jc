@@ -17,14 +17,13 @@
         .pass-wrapper i { position: absolute; right: 12px; top: 22px; cursor: pointer; color: #888; }
         .btn-red { background: #ff0000; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
         
-        /* CSS UNTUK POSISI TENGAH (CENTRAL) */
         .footer-links { 
             margin-top: 20px; 
             border-top: 1px solid #eee; 
             padding-top: 15px; 
             display: flex; 
             flex-direction: column; 
-            align-items: center; /* Membuat semua link ke tengah */
+            align-items: center; 
             gap: 12px; 
         }
         .footer-links a { color: #007bff; text-decoration: none; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 8px; }
@@ -41,12 +40,13 @@
         <input type="password" id="pass" placeholder="Password">
         <i class="fa-solid fa-eye" id="toggleIcon" onclick="togglePass()"></i>
     </div>
-    <button class="btn-red" onclick="loginUser()">MASUK</button>
+    <button class="btn-red" id="btnMasuk" onclick="loginUser()">MASUK</button>
     <div class="footer-links">
         <a href="registrasi.html"><i class="fa-solid fa-user-plus"></i> DAFTAR BARU</a>
         <a href="login.html" class="btn-admin"><i class="fa-solid fa-user-shield"></i> Login Administrator</a>
     </div>
 </div>
+
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
@@ -62,16 +62,22 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Pastikan ID tombol di HTML adalah id="btnMasuk" atau panggil via onclick
-    document.querySelector('.btn-masuk').onclick = function(e) {
-        e.preventDefault();
-        loginUser();
-    };
+    function togglePass() {
+        const passInput = document.getElementById('pass');
+        const icon = document.getElementById('toggleIcon');
+        if (passInput.type === "password") {
+            passInput.type = "text";
+            icon.classList.replace("fa-eye", "fa-eye-slash");
+        } else {
+            passInput.type = "password";
+            icon.classList.replace("fa-eye-slash", "fa-eye");
+        }
+    }
 
     function loginUser() {
-        const emailInput = document.getElementById('email').value;
-        const passwordInput = document.getElementById('password').value;
-        const btn = document.querySelector('.btn-masuk');
+        const emailInput = document.getElementById('email').value.trim();
+        const passwordInput = document.getElementById('pass').value.trim();
+        const btn = document.getElementById('btnMasuk');
 
         if (!emailInput || !passwordInput) {
             return alert("Isi email dan password dulu, Bang!");
@@ -80,7 +86,6 @@
         btn.innerText = "Memverifikasi...";
         btn.disabled = true;
 
-        // Mencari user di koleksi 'users' berdasarkan email
         db.collection("users").where("email", "==", emailInput).get()
         .then((querySnapshot) => {
             if (querySnapshot.empty) {
@@ -95,7 +100,6 @@
                 if (userData.password === passwordInput) {
                     loginBerhasil = true;
                     alert("Login Berhasil! Selamat Datang " + userData.nama);
-                    // Arahkan ke halaman utama/dashboard setelah login
                     window.location.href = "dashboard.html"; 
                 }
             });
