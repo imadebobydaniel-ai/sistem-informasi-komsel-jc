@@ -91,6 +91,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
 <script>
     const firebaseConfig = {
@@ -103,25 +104,24 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const storage = firebase.storage();
 
-    // FUNGSI UTAMA: Memastikan data dimuat ulang setiap kali halaman dibuka
-    function muatProfil() {
-        // Mengambil email dari session yang tersimpan saat login
-        const userEmail = localStorage.getItem('userEmail'); 
+    // 1. FUNGSI LOAD DATA: Otomatis mengisi form saat halaman dibuka/reload
+    function muatDataProfil() {
+        const userEmail = localStorage.getItem('userEmail');
         
         if (!userEmail) {
-            // Jika sesi hilang, tampilkan pesan sesuai gambar error yang Abang alami
-            document.getElementById('p_nama').value = "Sesi Tidak Ditemukan";
+            // Jika sesi benar-benar kosong, baru arahkan ke login
+            window.location.href = "index.html";
             return;
         }
 
-        // Mencari data di Firestore berdasarkan email sesi
         db.collection("users").where("email", "==", userEmail).get().then((querySnapshot) => {
             if (!querySnapshot.empty) {
                 const doc = querySnapshot.docs[0];
                 const data = doc.data();
                 
-                // Mengisi kembali field-field agar tidak kosong (100% Sesuai ID Element Abang)
+                // Isi field berdasarkan ID asli dari HTML Abang
                 document.getElementById('user_doc_id').value = doc.id;
                 document.getElementById('p_nama').value = data.nama || "";
                 document.getElementById('p_jabatan').value = data.jabatan || "";
@@ -130,39 +130,63 @@
                 document.getElementById('p_jc').value = data.komsel || "";
                 document.getElementById('p_goldar').value = data.gol_darah || "";
                 
+                // Tetap tampilkan foto jika ada
                 if (data.fotoUrl) {
                     document.getElementById('display_foto').src = data.fotoUrl;
                 }
             }
         }).catch((error) => {
-            console.log("Error mengambil data:", error);
+            console.error("Error muat data:", error);
         });
     }
 
+    // 2. FUNGSI UPLOAD FOTO (MENGEMBALIKAN FITUR YANG HILANG)
+    // Pastikan di HTML Abang ada: <input type="file" id="input_file" style="display:none" onchange="uploadFoto()">
+    // Dan gambar profil dibungkus onclick="document.getElementById('input_file').click()"
+    function uploadFoto() {
+        const file = document.getElementById('input_file').files[0];
+        const docId = document.getElementById('user_doc_id').value;
+        
+        if (!file || !docId) return;
+
+        const storageRef = storage.ref('profil/' + docId);
+        storageRef.put(file).then(() => {
+            storageRef.getDownloadURL().then((url) => {
+                db.collection("users").doc(docId).update({ fotoUrl: url }).then(() => {
+                    document.getElementById('display_foto').src = url;
+                    alert("Foto berhasil diperbarui!");
+                });
+            });
+        });
+    }
+
+    // 3. FUNGSI SIMPAN PERUBAHAN
     function updateProfil() {
         const docId = document.getElementById('user_doc_id').value;
-        if (!docId) return alert("ID Dokumen tidak ditemukan!");
+        const emailInput = document.getElementById('p_email').value;
 
-        const dataUpdate = {
+        if (!docId) return alert("Sesi belum siap, coba refresh.");
+
+        const dataBaru = {
             nama: document.getElementById('p_nama').value,
             jabatan: document.getElementById('p_jabatan').value,
-            email: document.getElementById('p_email').value,
+            email: emailInput,
             nomor_hp: document.getElementById('p_hp').value,
             komsel: document.getElementById('p_jc').value,
             gol_darah: document.getElementById('p_goldar').value
         };
 
-        db.collection("users").doc(docId).update(dataUpdate).then(() => {
-            // Tetap simpan email terbaru di sesi agar saat kembali tetap muncul
-            localStorage.setItem('userEmail', dataUpdate.email);
-            alert("Profil Berhasil Diperbarui!");
+        db.collection("users").doc(docId).update(dataBaru).then(() => {
+            // Update email di sesi agar saat reload tetap pakai email terbaru
+            localStorage.setItem('userEmail', emailInput);
+            alert("Perubahan Berhasil Disimpan Permanen!");
         }).catch((err) => {
-            alert("Gagal menyimpan: " + err);
+            alert("Gagal simpan: " + err);
         });
     }
 
-    // WAJIB: Menjalankan fungsi muat saat halaman selesai loading
-    window.onload = muatProfil;
+    // JALANKAN LOAD DATA SAAT HALAMAN DIBUKA
+    window.onload = muatDataProfil;
 </script>
 
 </body>
