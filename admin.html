@@ -35,8 +35,26 @@
         thead { background: #ff0000; color: white; position: sticky; top: 0; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #ddd; font-size: 14px; }
         
-        .sedang-diedit { background-color: #fffde7 !important; border: 2px solid orange !important; outline: none; color: black !important; }
-        .loading-text { text-align: center; padding: 20px; font-weight: bold; color: #666; }
+        /* Modal Style */
+        .modal-overlay { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center; 
+        }
+        .modal-content { 
+            background: white; width: 90%; max-width: 450px; border-radius: 15px; 
+            overflow: hidden; animation: slideDown 0.3s ease;
+        }
+        @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .modal-header { background: #007bff; color: white; padding: 15px; text-align: center; font-weight: bold; }
+        .modal-body { padding: 20px; max-height: 75vh; overflow-y: auto; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        
+        .modal-footer { padding: 15px; display: flex; gap: 10px; border-top: 1px solid #eee; }
+        .btn-save { flex: 1; background: #28a745; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-cancel { flex: 1; background: #dc3545; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -54,8 +72,8 @@
 
     <div class="toolbar">
         <button id="btnRefresh" class="btn-tool" onclick="muatDataUser()"><i class="fa-solid fa-rotate"></i> Refresh Data</button>
-        <button id="btnEdit" class="btn-tool"><i class="fa-solid fa-pen-to-square"></i> Mode Edit</button>
-        <button id="btnHapus" class="btn-tool"><i class="fa-solid fa-trash"></i> Hapus Terpilih</button>
+        <button id="btnEdit" class="btn-tool" onclick="bukaModeEdit()"><i class="fa-solid fa-pen-to-square"></i> Mode Edit</button>
+        <button id="btnHapus" class="btn-tool" onclick="hapusTerpilih()"><i class="fa-solid fa-trash"></i> Hapus Terpilih</button>
         
         <div class="search-group">
             <input type="text" id="kotakCari" class="search-input" placeholder="Cari Nama atau No HP..." onkeyup="jalankanCari()">
@@ -72,16 +90,71 @@
                     <th>Email</th>
                     <th>Password</th>
                     <th>Nomor HP</th>
-                    <th>Alamat</th>
                     <th>Jabatan</th>
                     <th>Lokasi JC</th>
                     <th>Gol. Darah</th>
                 </tr>
             </thead>
             <tbody id="badanTabel">
-                <tr><td colspan="9" class="loading-text">Sedang mengambil data dari server...</td></tr>
+                <tr><td colspan="8" class="loading-text">Sedang mengambil data dari server...</td></tr>
             </tbody>
         </table>
+    </div>
+</div>
+
+<div id="editModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">EDIT DATA ANGGOTA</div>
+        <div class="modal-body">
+            <input type="hidden" id="edit_id">
+            <div class="form-group">
+                <label>Nama Lengkap</label>
+                <input type="text" id="edit_nama">
+            </div>
+            <div class="form-group">
+                <label>Jabatan Komsel</label>
+                <select id="edit_jabatan">
+                    <option value="Anggota Komsel">Anggota Komsel</option>
+                    <option value="Ketua Komsel">Ketua Komsel</option>
+                    <option value="Wakil ketua Komsel">Wakil ketua Komsel</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Email (Tidak bisa diubah)</label>
+                <input type="email" id="edit_email" readonly style="background:#f9f9f9;">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="text" id="edit_pass">
+            </div>
+            <div class="form-group">
+                <label>Nomor HP</label>
+                <input type="number" id="edit_hp">
+            </div>
+            <div class="form-group">
+                <label>Lokasi Komsel JC</label>
+                <select id="edit_jc">
+                    <option value="JC 1">JC 1</option>
+                    <option value="JC 2">JC 2</option>
+                    <option value="JC 3">JC 3</option>
+                    <option value="JC 4">JC 4</option>
+                    <option value="JC 5">JC 5</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Golongan Darah</label>
+                <select id="edit_goldar">
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="AB">AB</option>
+                    <option value="O">O</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-save" onclick="simpanDataUpdate()">UPDATE DATA</button>
+            <button class="btn-cancel" onclick="tutupModal()">BATAL</button>
+        </div>
     </div>
 </div>
 
@@ -89,7 +162,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    // Konfigurasi Firebase tetap sama
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -101,62 +173,81 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // 1. AMBIL DATA (Sekali ambil, tidak auto-refresh agar tidak bentrok saat edit)
     function muatDataUser() {
         const badanTabel = document.getElementById('badanTabel');
         db.collection("users").get().then((querySnapshot) => {
             badanTabel.innerHTML = "";
             querySnapshot.forEach((doc) => {
                 let user = doc.data();
-                let id = doc.id;
                 let baris = `
-                    <tr data-id="${id}">
+                    <tr data-id="${doc.id}">
                         <td><input type="checkbox" class="cek-baris"></td>
-                        <td class="bisa-edit" data-field="nama">${user.nama || '-'}</td>
+                        <td>${user.nama || '-'}</td>
                         <td>${user.email || '-'}</td>
-                        <td class="bisa-edit" data-field="password" style="color:red; font-weight:bold;">${user.password || '***'}</td>
-                        <td class="bisa-edit" data-field="no_hp">${user.no_hp || '-'}</td>
-                        <td class="bisa-edit" data-field="alamat">${user.alamat || '-'}</td>
-                        <td class="bisa-edit" data-field="jabatan">${user.jabatan || '-'}</td>
-                        <td class="bisa-edit" data-field="komsel">${user.komsel || '-'}</td>
-                        <td class="bisa-edit" data-field="gol_darah">${user.gol_darah || '-'}</td>
+                        <td style="color:red; font-weight:bold;">${user.password || '***'}</td>
+                        <td>${user.nomor_hp || user.no_hp || '-'}</td>
+                        <td>${user.jabatan || '-'}</td>
+                        <td>${user.komsel || '-'}</td>
+                        <td>${user.gol_darah || '-'}</td>
                     </tr>`;
                 badanTabel.innerHTML += baris;
             });
         });
     }
 
-    // 2. MODE EDIT & SIMPAN OTOMATIS
-    document.getElementById('btnEdit').onclick = function() {
-        let terpilih = document.querySelectorAll('.cek-baris:checked');
-        if (terpilih.length === 0) return alert("Pilih data dulu, Bang!");
+    function bukaModeEdit() {
+        const terpilih = document.querySelectorAll('.cek-baris:checked');
+        if (terpilih.length !== 1) return alert("Pilih satu data yang ingin diedit lewat checkbox!");
 
-        terpilih.forEach(checkbox => {
-            let baris = checkbox.closest('tr');
-            let idUser = baris.getAttribute('data-id'); 
-            let selData = baris.querySelectorAll('.bisa-edit');
-            
-            selData.forEach(td => {
-                td.contentEditable = "true"; 
-                td.classList.add('sedang-diedit');
+        const id = terpilih[0].closest('tr').getAttribute('data-id');
+        db.collection("users").doc(id).get().then((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                document.getElementById('edit_id').value = id;
+                document.getElementById('edit_nama').value = data.nama || "";
+                document.getElementById('edit_jabatan').value = data.jabatan || "Anggota Komsel";
+                document.getElementById('edit_email').value = data.email || "";
+                document.getElementById('edit_pass').value = data.password || "";
+                document.getElementById('edit_hp').value = data.nomor_hp || data.no_hp || "";
+                document.getElementById('edit_jc').value = data.komsel || "JC 1";
+                document.getElementById('edit_goldar').value = data.gol_darah || "A";
                 
-                // Simpan saat klik di luar kotak (blur)
-                td.onblur = function() {
-                    const field = td.getAttribute('data-field');
-                    const valueBaru = td.innerText.trim();
-                    
-                    db.collection("users").doc(idUser).update({
-                        [field]: valueBaru
-                    }).then(() => {
-                        td.style.backgroundColor = "#d4edda"; // Warna hijau tanda sukses
-                    });
-                };
-            });
+                document.getElementById('editModal').style.display = 'flex';
+            }
         });
-        alert("Mode Edit Aktif! Klik kotak kuning, ubah, lalu klik di luar kotak untuk simpan.");
-    };
+    }
 
-    // 3. CARI DATA
+    function tutupModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+
+    function simpanDataUpdate() {
+        const id = document.getElementById('edit_id').value;
+        const dataBaru = {
+            nama: document.getElementById('edit_nama').value,
+            jabatan: document.getElementById('edit_jabatan').value,
+            password: document.getElementById('edit_pass').value,
+            nomor_hp: document.getElementById('edit_hp').value,
+            komsel: document.getElementById('edit_jc').value,
+            gol_darah: document.getElementById('edit_goldar').value
+        };
+
+        db.collection("users").doc(id).update(dataBaru).then(() => {
+            alert("Data Berhasil Diupdate!");
+            tutupModal();
+            muatDataUser();
+        }).catch(err => alert("Gagal: " + err));
+    }
+
+    function hapusTerpilih() {
+        const terpilih = document.querySelectorAll('.cek-baris:checked');
+        if (terpilih.length === 0 || !confirm("Hapus data yang dicentang?")) return;
+        terpilih.forEach(cb => {
+            const id = cb.closest('tr').getAttribute('data-id');
+            db.collection("users").doc(id).delete().then(() => cb.closest('tr').remove());
+        });
+    }
+
     function jalankanCari() {
         let input = document.getElementById('kotakCari').value.toLowerCase();
         document.querySelectorAll('#badanTabel tr').forEach(tr => {
@@ -164,17 +255,6 @@
         });
     }
 
-    // 4. HAPUS DATA
-    document.getElementById('btnHapus').onclick = function() {
-        let terpilih = document.querySelectorAll('.cek-baris:checked');
-        if (terpilih.length === 0 || !confirm("Hapus data terpilih?")) return;
-        terpilih.forEach(cb => {
-            const id = cb.closest('tr').getAttribute('data-id');
-            db.collection("users").doc(id).delete().then(() => cb.closest('tr').remove());
-        });
-    };
-
-    // 5. PILIH SEMUA
     document.getElementById('pilihSemua').onclick = function() {
         document.querySelectorAll('.cek-baris').forEach(cb => cb.checked = this.checked);
     }
