@@ -50,7 +50,7 @@
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
     const firebaseConfig = {
@@ -59,41 +59,49 @@
         projectId: "boby-apps-project",
         storageBucket: "boby-apps-project.firebasestorage.app",
         messagingSenderId: "125984859692",
-        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389",
-        measurementId: "G-X14300RJL4",
-        databaseURL: "https://boby-apps-project-default-rtdb.firebaseio.com"
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
     
     firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+    const db = firebase.firestore();
 
     function muatDataProfil() {
-        let userEmail = localStorage.getItem('loggedUserEmail') || "boby.daniel4@gmail.com"; 
-        const userKey = userEmail.replace(/\./g, ',');
+        // Mengambil email dari localStorage yang disimpan saat login
+        // Jika tidak ada, pakai email default untuk testing
+        let userEmail = localStorage.getItem('nama_login') ? localStorage.getItem('email_login') : "boby.daniel4@gmail.com"; 
 
-        database.ref('users/' + userKey).once('value').then((snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                document.getElementById('p_nama').innerText = data.nama || "User";
-                document.getElementById('p_jabatan').innerText = data.jabatan || "Anggota";
-                document.getElementById('p_email').innerText = data.email || userEmail;
-                document.getElementById('p_hp').innerText = data.nomorHp || "-";
-                document.getElementById('p_jc').innerText = data.lokasiJc || "-";
-                document.getElementById('p_goldar').innerText = data.golDarah || "-";
-                
-                if (data.fotoProfil) {
-                    document.getElementById('displayPhoto').src = data.fotoProfil;
-                }
+        if (!userEmail) {
+            document.getElementById('p_nama').innerText = "Belum Login";
+            return;
+        }
+
+        db.collection("users").where("email", "==", userEmail.trim()).get()
+        .then((querySnapshot) => {
+            if (!querySnapshot.empty) {
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    document.getElementById('p_nama').innerText = data.nama || "User";
+                    document.getElementById('p_jabatan').innerText = data.jabatan || "Anggota";
+                    document.getElementById('p_email').innerText = data.email || userEmail;
+                    document.getElementById('p_hp').innerText = data.nomor_hp || data.nomorHp || "-";
+                    document.getElementById('p_jc').innerText = data.komsel || data.lokasiJc || "-";
+                    document.getElementById('p_goldar').innerText = data.gol_darah || data.golDarah || "-";
+                    
+                    if (data.fotoProfil) {
+                        document.getElementById('displayPhoto').src = data.fotoProfil;
+                    }
+                });
             } else {
                 document.getElementById('p_nama').innerText = "Data Tidak Ditemukan";
             }
-        }).catch((err) => {
-            console.error(err);
-            document.getElementById('p_nama').innerText = "Gagal Koneksi";
+        })
+        .catch((err) => {
+            console.error("Error mengambil data: ", err);
+            document.getElementById('p_nama').innerText = "Gagal Memuat";
         });
     }
 
-    // Fungsi Upload Foto dengan Kompresi (Penting untuk HP)
+    // Fungsi Upload Foto
     document.getElementById('fileInput').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
@@ -102,7 +110,6 @@
                 const img = new Image();
                 img.src = event.target.result;
                 img.onload = function() {
-                    // Kompres ke ukuran kecil (300px) agar lancar di Firebase
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     canvas.width = 300;
@@ -112,13 +119,18 @@
                     const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
                     document.getElementById('displayPhoto').src = compressedBase64;
 
-                    let userEmail = localStorage.getItem('loggedUserEmail') || "boby.daniel4@gmail.com";
-                    const userKey = userEmail.replace(/\./g, ',');
+                    let userEmail = localStorage.getItem('email_login') || "boby.daniel4@gmail.com";
                     
-                    database.ref('users/' + userKey).update({
-                        fotoProfil: compressedBase64
-                    }).then(() => {
-                        alert("Foto Berhasil Diperbarui!");
+                    // Simpan foto kembali ke Firestore
+                    db.collection("users").where("email", "==", userEmail).get()
+                    .then((querySnapshot) => {
+                        querySnapshot.forEach((doc) => {
+                            db.collection("users").doc(doc.id).update({
+                                fotoProfil: compressedBase64
+                            }).then(() => {
+                                alert("Foto Berhasil Diperbarui!");
+                            });
+                        });
                     });
                 };
             };
