@@ -3,87 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - Pondok Pemulihan Papua</title>
+    <title>Login - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; flex-direction: column; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .login-box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 380px; text-align: center; }
         
-        .login-box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 380px; text-align: center; box-sizing: border-box; }
+        /* CSS KHUSUS UNTUK TEKS BARU */
+        .header-section { margin-bottom: 25px; }
+        .logo-main { width: 90px; height: auto; margin-bottom: 15px; }
         
-        /* Gaya Teks Header Baru */
-        .logo-main { width: 80px; height: auto; margin-bottom: 10px; }
-        .title-org { margin: 5px 0; font-size: 18px; color: #333; font-weight: bold; text-transform: uppercase; }
-        .title-system { 
-            margin: 5px 0; font-size: 16px; color: #FFD700; font-weight: bold;
+        #text-org { margin: 5px 0; font-size: 20px; color: #333; font-weight: bold; text-transform: uppercase; display: block; }
+        #text-system { 
+            margin: 8px 0; font-size: 18px; color: #FFD700; font-weight: bold; display: block;
             text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; 
         }
-        .title-status { margin: 5px 0 20px 0; font-size: 14px; color: #666; font-weight: normal; }
+        #text-status { margin: 10px 0; font-size: 16px; color: #555; font-weight: normal; display: block; }
 
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
-        
-        .pass-wrapper { position: relative; width: 100%; }
-        .pass-wrapper input { padding-right: 40px; }
-        .pass-wrapper i { position: absolute; right: 12px; top: 22px; cursor: pointer; color: #888; font-size: 16px; }
-
-        .btn-red { background: #ff0000; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
-        .footer-links { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
-        .footer-links a { color: #007bff; text-decoration: none; font-weight: bold; font-size: 14px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn-blue { background: #007bff; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        .footer-links { margin-top: 20px; font-size: 14px; }
+        .footer-links a { color: #007bff; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="login-box">
-    <img src="logo_ppp.png" alt="Logo" class="logo-main">
-    
-    <h2 class="title-org">PONDOK PEMULIHAN PAPUA</h2>
-    
-    <h3 class="title-system">Sistem Informasi Komsel JC</h3>
-    
-    <h4 class="title-status">Login Anggota Komsel</h4>
-
-    <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 20px;">
-    
-    <h2 style="font-size: 16px; color: #333; margin-bottom: 15px;">MASUK ADMINISTRATOR</h2>
-    
-    <input type="email" id="adminEmail" placeholder="Email Admin">
-    
-    <div class="pass-wrapper">
-        <input type="password" id="adminPass" placeholder="Password Admin">
-        <i class="fa-solid fa-eye" id="toggleAdminPass" onclick="togglePass()"></i>
+    <div class="header-section">
+        <img src="logo_ppp.png" alt="Logo" class="logo-main">
+        <span id="text-org">PONDOK PEMULIHAN PAPUA</span>
+        <span id="text-system">Sistem Informasi Komsel JC</span>
+        <span id="text-status">Login Anggota Komsel</span>
     </div>
+
+    <input type="email" id="email" placeholder="Email Anggota">
+    <input type="password" id="pass" placeholder="Password">
     
-    <button class="btn-red" onclick="checkAdmin()">MASUK SEKARANG</button>
+    <button class="btn-blue">MASUK</button>
     
     <div class="footer-links">
-        <a href="index.html"><i class="fa-solid fa-arrow-left"></i> Kembali ke login page</a>
+        <p>Belum punya akun? <a href="#">Daftar Sekarang</a></p>
+        <a href="login_admin.html" style="color: #888; font-weight: normal;">Masuk sebagai Admin</a>
     </div>
 </div>
-
-<script>
-    function togglePass() {
-        const pInput = document.getElementById('adminPass');
-        const pIcon = document.getElementById('toggleAdminPass');
-        if (pInput.type === "password") {
-            pInput.type = "text";
-            pIcon.classList.replace('fa-eye', 'fa-eye-slash');
-        } else {
-            pInput.type = "password";
-            pIcon.classList.replace('fa-eye-slash', 'fa-eye');
-        }
-    }
-
-    function checkAdmin() {
-        const email = document.getElementById('adminEmail').value;
-        const pass = document.getElementById('adminPass').value;
-
-        if (email === "admin@pondok.com" && pass === "papua123") {
-            alert("Akses Administrator Diterima!");
-            window.location.href = "admin.html";
-        } else {
-            alert("Email atau Password Admin Salah!");
-        }
-    }
-</script>
 
 </body>
 </html>
