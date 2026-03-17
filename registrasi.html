@@ -114,15 +114,14 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         
-        let fotoData = ""; // Variabel penampung hasil konversi foto
+        let fotoData = ""; 
 
-        // 1. FUNGSI PREVIEW & KONVERSI BASE64
         function previewFoto(input) {
             const file = input.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    fotoData = e.target.result; // Teks kode foto
+                    fotoData = e.target.result;
                     document.getElementById('img-prev').src = fotoData;
                     document.getElementById('img-prev').style.display = "block";
                     document.getElementById('icon-user').style.display = "none";
@@ -131,7 +130,6 @@
             }
         }
 
-        // 2. GENERATE NOMOR KOMSEL OTOMATIS
         async function generateNK() {
             const jc = document.getElementById('reg_jc').value;
             if (!jc) return;
@@ -140,7 +138,6 @@
             document.getElementById('reg_nk').value = `NK-PPP-${urutan}-${jc}-2026`;
         }
 
-        // 3. PROSES SIMPAN KE FIRESTORE
         async function prosesDaftar(e) {
             e.preventDefault();
             if (!fotoData) { alert("Foto profil wajib diunggah!"); return; }
@@ -150,6 +147,7 @@
             btn.disabled = true;
 
             try {
+                // SCRIPT OTOMATIS TANGGAL & JAM SEWAKTU SIMPAN
                 await db.collection("users").add({
                     nama: document.getElementById('reg_nama').value,
                     email: document.getElementById('reg_email').value,
@@ -160,8 +158,8 @@
                     komsel: document.getElementById('reg_jc').value,
                     jabatan: document.getElementById('reg_jabatan').value,
                     nomor_komsel: document.getElementById('reg_nk').value,
-                    fotoUrl: fotoData, // FOTO DISIMPAN SEBAGAI BASE64
-                    tanggal_daftar: new Date().toISOString()
+                    fotoUrl: fotoData,
+                    tanggal_daftar: firebase.firestore.FieldValue.serverTimestamp() // Otomatis mencatat tanggal & jam server
                 });
 
                 alert("Selamat! Pendaftaran Berhasil.");
