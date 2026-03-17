@@ -13,7 +13,8 @@
         .btn-back:hover { background: #007bff !important; transform: translateX(-5px); }
         .header-section { display: flex; align-items: center; gap: 10px; border-bottom: 3px solid #ff0000; padding-bottom: 15px; margin-bottom: 25px; font-size: 24px; font-weight: bold; }
         .toolbar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
-        .btn-tool { border: none; padding: 10px 18px; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .btn-tool { border: none; padding: 10px 18px; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn-tool:active { transform: scale(0.95); }
         #btnRefresh { background: #00e676; }
         #btnEdit { background: #ffa000; }
         #btnHapus { background: #37474f; }
@@ -30,11 +31,11 @@
             position: sticky; 
             left: 0; 
             z-index: 5; 
-            background: white; 
+            background: #f9f9f9; 
             width: 40px; 
             text-align: center;
         }
-        thead th:first-child { background: #ff0000; }
+        thead th:first-child { background: #d32f2f; }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center; }
         .modal-content { background: white; width: 90%; max-width: 500px; border-radius: 15px; overflow: hidden; animation: slideDown 0.3s ease; }
@@ -56,21 +57,21 @@
         <img src="logo_ppp.png" alt="Logo" style="width: 100px; margin-bottom: 10px;">
         <h2 style="margin: 5px 0; font-size: 20px; color: #333; text-transform: uppercase;">PONDOK PEMULIHAN PAPUA</h2>
         <h3 style="margin: 5px 0; font-size: 18px; color: #FFD700; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; font-weight: bold;">Sistem Informasi Komsel JC</h3>
-        <h2 style="margin-top: 20px; font-size: 18px; color: #333; font-weight: bold;">MASUK ADMINISTRATOR</h2>
+        <h2 style="margin-top: 20px; font-size: 18px; color: #333; font-weight: bold;">PANEL ADMINISTRATOR</h2>
     </div>
 
     <div class="navigation-top">
         <a href="index.html" class="btn-back"><i class="fa-solid fa-circle-arrow-left"></i> KEMBALI KE LOGIN</a>
     </div>
 
-    <div class="header-section"><i class="fa-solid fa-database"></i> Database Administrator</div>
+    <div class="header-section"><i class="fa-solid fa-database"></i> Database Anggota</div>
 
     <div class="toolbar">
-        <button id="btnRefresh" class="btn-tool" onclick="muatDataUser()"><i class="fa-solid fa-rotate"></i> Refresh Data</button>
-        <button id="btnEdit" class="btn-tool" onclick="bukaModeEdit()"><i class="fa-solid fa-pen-to-square"></i> Mode Edit</button>
-        <button id="btnHapus" class="btn-tool" onclick="hapusTerpilih()"><i class="fa-solid fa-trash"></i> Hapus Terpilih</button>
+        <button id="btnRefresh" class="btn-tool" onclick="muatDataUser()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+        <button id="btnEdit" class="btn-tool" onclick="bukaModeEdit()"><i class="fa-solid fa-pen-to-square"></i> Edit Data</button>
+        <button id="btnHapus" class="btn-tool" onclick="hapusTerpilih()"><i class="fa-solid fa-trash"></i> Hapus</button>
         <div class="search-group">
-            <input type="text" id="kotakCari" class="search-input" placeholder="Cari Nama, Email, atau No HP..." onkeyup="jalankanCari()">
+            <input type="text" id="kotakCari" class="search-input" placeholder="Cari Nama atau Email..." onkeyup="jalankanCari()">
             <button class="btn-cari-red"><i class="fa-solid fa-magnifying-glass"></i></button>
         </div>
     </div>
@@ -92,7 +93,7 @@
                 </tr>
             </thead>
             <tbody id="badanTabel">
-                <tr><td colspan="10" style="text-align:center; padding:20px;">Memuat data dari Firestore...</td></tr>
+                <tr><td colspan="10" style="text-align:center; padding:20px;">Menghubungkan ke database...</td></tr>
             </tbody>
         </table>
     </div>
@@ -130,7 +131,7 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn-save" onclick="simpanDataUpdate()">SINKRONKAN DATA</button>
+            <button class="btn-save" onclick="simpanDataUpdate()">SIMPAN PERUBAHAN</button>
             <button class="btn-cancel" onclick="tutupModal()">BATAL</button>
         </div>
     </div>
@@ -153,10 +154,12 @@
 
     function muatDataUser() {
         const badanTabel = document.getElementById('badanTabel');
+        badanTabel.innerHTML = `<tr><td colspan="10" style="text-align:center;">Memuat data...</td></tr>`;
+        
         db.collection("users").get().then((querySnapshot) => {
             badanTabel.innerHTML = "";
             if (querySnapshot.empty) {
-                badanTabel.innerHTML = `<tr><td colspan="10" style="text-align:center;">Tidak ada data ditemukan.</td></tr>`;
+                badanTabel.innerHTML = `<tr><td colspan="10" style="text-align:center;">Tidak ada data anggota.</td></tr>`;
                 return;
             }
             querySnapshot.forEach((doc) => {
@@ -176,14 +179,12 @@
                     </tr>`;
                 badanTabel.innerHTML += baris;
             });
-        }).catch(err => {
-            alert("🚨 GAGAL MUAT DATA: " + err.message);
-        });
+        }).catch(err => alert("Gagal muat data: " + err.message));
     }
 
     function bukaModeEdit() {
         const terpilih = document.querySelectorAll('.cek-baris:checked');
-        if (terpilih.length !== 1) return alert("Pilih satu data melalui checkbox untuk diedit!");
+        if (terpilih.length !== 1) return alert("Silakan centang satu nama untuk diedit!");
 
         const id = terpilih[0].closest('tr').getAttribute('data-id');
         db.collection("users").doc(id).get().then((doc) => {
@@ -217,17 +218,17 @@
         };
 
         db.collection("users").doc(id).update(dataBaru).then(() => {
-            alert("💾 DATA TERSIMPAN: Perubahan berhasil disinkronkan!");
+            alert("✅ BERHASIL: Data anggota telah diperbarui.");
             tutupModal();
             muatDataUser();
-        }).catch(err => alert("❌ GAGAL UPDATE: " + err));
+        }).catch(err => alert("❌ GAGAL: " + err.message));
     }
 
     function hapusTerpilih() {
         const terpilih = document.querySelectorAll('.cek-baris:checked');
         if (terpilih.length === 0) return alert("Pilih minimal satu data untuk dihapus!");
         
-        if (!confirm("⚠️ PERINGATAN: Yakin ingin menghapus data yang dipilih dari database?")) return;
+        if (!confirm("⚠️ PERHATIAN: Data yang dihapus tidak bisa dikembalikan. Lanjutkan?")) return;
 
         const batch = db.batch();
         terpilih.forEach(cb => {
@@ -236,9 +237,9 @@
         });
 
         batch.commit().then(() => {
-            alert("🗑️ DATA TERHAPUS: Database telah diperbarui!");
+            alert("🗑️ TERHAPUS: Data berhasil dibersihkan dari database.");
             muatDataUser();
-        }).catch(err => alert("❌ GAGAL HAPUS: " + err));
+        }).catch(err => alert("❌ GAGAL: " + err.message));
     }
 
     function tutupModal() { document.getElementById('editModal').style.display = 'none'; }
