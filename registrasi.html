@@ -15,11 +15,10 @@
         .form-group { margin-bottom: 15px; position: relative; }
         label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; color: #555; }
         input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; outline: none; }
+        input:readonly { background-color: #e9ecef; cursor: not-allowed; }
         
-        /* Tombol Kembali */
         .btn-back { position: absolute; top: 20px; left: 20px; text-decoration: none; color: #333; font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
 
-        /* Style Simbol Mata */
         .toggle-password { 
             position: absolute; 
             right: 12px; 
@@ -46,7 +45,7 @@
         <form id="regForm">
             <div class="form-group">
                 <label>Nomor Komsel (NK)</label>
-                <input type="text" id="reg_nk" placeholder="Contoh: NK-PPP-001-JC1" required>
+                <input type="text" id="reg_nk" placeholder="Pilih JC untuk generate NK..." readonly>
             </div>
 
             <div class="form-group">
@@ -98,7 +97,7 @@
 
             <div class="form-group">
                 <label>Komsel JC</label>
-                <select id="reg_komsel">
+                <select id="reg_komsel" onchange="generateNK()" required>
                     <option value="">-- Pilih Lokasi JC --</option>
                     <option value="JC1">JC 1</option>
                     <option value="JC2">JC 2</option>
@@ -115,10 +114,23 @@
     </div>
 
     <script>
+        // Fungsi generate NK otomatis berdasarkan pilihan JC
+        function generateNK() {
+            const jcLocation = document.getElementById('reg_komsel').value;
+            const nkInput = document.getElementById('reg_nk');
+            
+            if (jcLocation) {
+                // Simulasi nomor urut pendaftar (nomor urut ini nantinya disesuaikan dengan total data di DB)
+                const nomorUrut = "001"; 
+                nkInput.value = `NK-PPP-${nomorUrut}-${jcLocation}-2026`;
+            } else {
+                nkInput.value = "";
+            }
+        }
+
         function togglePassReg() {
             const passInput = document.getElementById('reg_password');
             const eyeIcon = document.getElementById('eyeIconReg');
-
             if (passInput.type === 'password') {
                 passInput.type = 'text';
                 eyeIcon.classList.replace('fa-eye', 'fa-eye-slash');
@@ -130,7 +142,7 @@
 
         document.getElementById('regForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            console.log("Proses registrasi...");
+            console.log("Proses registrasi dengan NK: " + document.getElementById('reg_nk').value);
         });
     </script>
 </body>
