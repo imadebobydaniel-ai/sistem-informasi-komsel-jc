@@ -108,30 +108,39 @@
             document.getElementById('reg_nk').value = `NK-PPP-${urutan}-${jcVal}-2026`;
         }
 
-        async function prosesDaftar(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btnSubmit');
-            const nkFinal = document.getElementById('reg_nk').value;
-            btn.innerText = "Sinkronisasi...";
-            btn.disabled = true;
+       async function prosesDaftar(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSubmit');
+    const nkFinal = document.getElementById('reg_nk').value;
+    const email = document.getElementById('reg_email').value; // Ambil email pendaftar
+    btn.innerText = "Sinkronisasi...";
+    btn.disabled = true;
 
-            try {
-                await db.collection("users").add({
-                    nama: document.getElementById('reg_nama').value,
-                    email: document.getElementById('reg_email').value,
-                    no_hp: document.getElementById('reg_hp').value,
-                    password: document.getElementById('reg_pass').value,
-                    alamat: document.getElementById('reg_alamat').value,
-                    jabatan: document.getElementById('reg_jabatan').value,
-                    komsel: document.getElementById('reg_jc').value,
-                    gol_darah: document.getElementById('reg_goldar').value,
-                    nomor_komsel: nkFinal, // DISIMPAN AGAR MUNCUL DI TABEL ADMIN
-                    tanggal_daftar: new Date().toISOString()
-                });
-                alert("BERHASIL! NK: " + nkFinal);
-                window.location.href = "index.html";
-            } catch (err) { alert("Error: " + err.message); btn.disabled = false; btn.innerText = "DAFTAR SEKARANG"; }
-        }
+    try {
+        await db.collection("users").add({
+            nama: document.getElementById('reg_nama').value,
+            email: email,
+            no_hp: document.getElementById('reg_hp').value,
+            password: document.getElementById('reg_pass').value,
+            alamat: document.getElementById('reg_alamat').value,
+            jabatan: document.getElementById('reg_jabatan').value,
+            komsel: document.getElementById('reg_jc').value,
+            gol_darah: document.getElementById('reg_goldar').value,
+            nomor_komsel: nkFinal, 
+            tanggal_daftar: new Date().toISOString()
+        });
+
+        // KUNCI UTAMA: Simpan email ke memori agar Main Menu tidak melempar balik ke login
+        localStorage.setItem("userEmail", email); 
+
+        alert("BERHASIL! NK: " + nkFinal);
+        window.location.href = "mainmenu.html"; // Langsung masuk ke Main Menu
+    } catch (err) { 
+        alert("Error: " + err.message); 
+        btn.disabled = false; 
+        btn.innerText = "DAFTAR SEKARANG"; 
+    }
+}
     </script>
 </body>
 </html>
