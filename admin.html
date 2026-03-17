@@ -10,12 +10,10 @@
         .admin-box { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 1200px; margin: auto; }
         .header-panel { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
         .btn-back { background: #333; color: white; padding: 10px 15px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: bold; }
-        
         table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; font-size: 14px; }
         table th, table td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
         table th { background-color: #f8f9fa; color: #495057; }
         .user-img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #ddd; }
-        
         .action-btns button { border: none; background: none; cursor: pointer; font-size: 18px; margin-right: 8px; }
         .edit-btn { color: #007bff; }
         .delete-btn { color: #dc3545; }
@@ -27,13 +25,9 @@
         .form-edit-group { margin-bottom: 15px; }
         .form-edit-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
         .form-edit-group input, .form-edit-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        
-        /* FOTO PROFILE STYLING */
         .profile-upload-area { text-align: center; margin-bottom: 20px; position: relative; }
         #preview-img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #27ae60; margin-bottom: 10px; }
         .upload-label { background: #f8f9fa; border: 1px dashed #ccc; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; display: inline-block; }
-        .upload-label:hover { background: #e9ecef; }
-
         .btn-save { width: 100%; padding: 12px; background: #27ae60; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; }
         .close-modal { position: absolute; right: 20px; top: 20px; font-size: 24px; cursor: pointer; color: #aaa; }
     </style>
@@ -73,16 +67,12 @@
     <div class="modal-content">
         <span class="close-modal" onclick="closeEditModal()">&times;</span>
         <h3 style="margin-top:0;"><i class="fa-solid fa-user-pen"></i> Edit Data Anggota</h3>
-        
         <div class="profile-upload-area">
             <img id="preview-img" src="https://via.placeholder.com/100" alt="Profile">
             <br>
-            <label class="upload-label" for="file-input">
-                <i class="fa-solid fa-camera"></i> Ganti Foto Profil
-            </label>
+            <label class="upload-label" for="file-input"><i class="fa-solid fa-camera"></i> Ganti Foto Profil</label>
             <input type="file" id="file-input" style="display:none;" accept="image/*" onchange="previewFile()">
         </div>
-
         <input type="hidden" id="edit-id">
         <div class="form-edit-group"><label>Nama Lengkap</label><input type="text" id="edit-nama"></div>
         <div class="form-edit-group"><label>Nomor Komsel (NK)</label><input type="text" id="edit-nk"></div>
@@ -120,11 +110,11 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    let base64Image = ""; // Variabel untuk menyimpan data foto
+    let base64Image = "";
 
     async function loadData() {
         const list = document.getElementById('user-list');
-        list.innerHTML = '<tr><td colspan="8" style="text-align:center;">Memuat data...</td></tr>';
+        list.innerHTML = '<tr><td colspan="9" style="text-align:center;">Memuat data...</td></tr>';
         const snapshot = await db.collection("users").orderBy("tanggal_daftar", "desc").get();
         list.innerHTML = '';
         snapshot.forEach(doc => {
@@ -138,6 +128,7 @@
                     <td>${d.jabatan || '-'}</td>
                     <td style="color:red; font-weight:bold;">${d.gol_darah || '-'}</td>
                     <td>${d.no_hp}</td>
+                    <td>${d.alamat || '-'}</td>
                     <td class="action-btns">
                         <button class="edit-btn" onclick="openEditModal('${doc.id}')"><i class="fa-solid fa-pen-to-square"></i></button>
                         <button class="delete-btn" onclick="hapusSatu('${doc.id}')"><i class="fa-solid fa-trash"></i></button>
@@ -146,13 +137,12 @@
         });
     }
 
-    // FUNGSI PREVIEW & KONVERSI FOTO
     function previewFile() {
         const file = document.getElementById('file-input').files[0];
         const reader = new FileReader();
         reader.onloadend = function() {
             document.getElementById('preview-img').src = reader.result;
-            base64Image = reader.result; // Simpan string base64
+            base64Image = reader.result;
         }
         if (file) { reader.readAsDataURL(file); }
     }
@@ -168,32 +158,9 @@
         document.getElementById('edit-wa').value = data.no_hp || "";
         document.getElementById('edit-alamat').value = data.alamat || "";
         document.getElementById('preview-img').src = data.fotoUrl || 'https://via.placeholder.com/100';
-        base64Image = data.fotoUrl || ""; // Reset dengan foto lama
+        base64Image = data.fotoUrl || "";
         document.getElementById('editModal').style.display = "block";
     }
-    async function loadData() {
-    const list = document.getElementById('user-list');
-    list.innerHTML = '<tr><td colspan="9" style="text-align:center;">Memuat data...</td></tr>';
-    const snapshot = await db.collection("users").orderBy("tanggal_daftar", "desc").get();
-    list.innerHTML = '';
-    snapshot.forEach(doc => {
-        const d = doc.data();
-        list.innerHTML += `
-            <tr>
-                <td><input type="checkbox" class="check-item" value="${doc.id}"></td>
-                <td><img src="${d.fotoUrl || 'https://via.placeholder.com/50'}" class="user-img"></td>
-                <td><span class="nk-badge">${d.nomor_komsel || '-'}</span></td>
-                <td><strong>${d.nama}</strong><br><small>${d.email}</small></td>
-                <td>${d.jabatan || '-'}</td>
-                <td style="color:red; font-weight:bold;">${d.gol_darah || '-'}</td>
-                <td>${d.no_hp}</td>
-                <td>${d.alamat || '-'}</td> <td class="action-btns">
-                    <button class="edit-btn" onclick="openEditModal('${doc.id}')"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button class="delete-btn" onclick="hapusSatu('${doc.id}')"><i class="fa-solid fa-trash"></i></button>
-                </td>
-            </tr>`;
-    });
-}
 
     function closeEditModal() { document.getElementById('editModal').style.display = "none"; }
 
@@ -211,7 +178,7 @@
                 gol_darah: document.getElementById('edit-goldar').value,
                 no_hp: document.getElementById('edit-wa').value,
                 alamat: document.getElementById('edit-alamat').value,
-                fotoUrl: base64Image // Simpan foto baru/lama
+                fotoUrl: base64Image
             });
             alert("Data & Foto Berhasil Diperbarui!");
             closeEditModal();
