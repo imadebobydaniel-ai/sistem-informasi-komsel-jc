@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Administrator - PPP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #1a1a1a; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .login-card { background: #ffffff; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 400px; box-sizing: border-box; border-top: 5px solid #ff0000; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header i { font-size: 50px; color: #ff0000; margin-bottom: 10px; }
+        .header h2 { margin: 0; color: #333; font-size: 22px; }
+        .header p { color: #666; font-size: 14px; margin-top: 5px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #444; }
+        .form-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; outline: none; }
+        .form-group input:focus { border-color: #ff0000; }
+        .btn-login { width: 100%; padding: 14px; background-color: #ff0000; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-login:hover { background-color: #cc0000; }
+        .footer-link { text-align: center; margin-top: 20px; }
+        .footer-link a { color: #666; text-decoration: none; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="header">
+            <i class="fa-solid fa-user-shield"></i>
+            <h2>ADMIN PANEL</h2>
+            <p>Pondok Pemulihan Papua</p>
+        </div>
+
+        <form id="adminLoginForm" onsubmit="loginAdmin(event)">
+            <div class="form-group">
+                <label>Username Admin</label>
+                <input type="text" id="admin_user" required placeholder="Masukkan username">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="admin_pass" required placeholder="Masukkan password">
+            </div>
+            <button type="submit" id="btnLogin" class="btn-login">MASUK SISTEM</button>
+        </form>
+
+        <div class="footer-link">
+            <a href="index.html"><i class="fa-solid fa-arrow-left"></i> Kembali ke Login User</a>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+            authDomain: "boby-apps-project.firebaseapp.com",
+            projectId: "boby-apps-project",
+            storageBucket: "boby-apps-project.appspot.com",
+            messagingSenderId: "125984859692",
+            appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        async function loginAdmin(e) {
+            e.preventDefault();
+            const user = document.getElementById('admin_user').value;
+            const pass = document.getElementById('admin_pass').value;
+            const btn = document.getElementById('btnLogin');
+
+            btn.innerText = "Verifikasi...";
+            btn.disabled = true;
+
+            try {
+                // Mencari di koleksi khusus 'admins'
+                const snap = await db.collection("admins")
+                    .where("username", "==", user)
+                    .where("password", "==", pass)
+                    .get();
+
+                if (!snap.empty) {
+                    alert("Login Admin Berhasil!");
+                    localStorage.setItem("adminStatus", "loggedIn");
+                    window.location.href = "admin_dashboard.html";
+                } else {
+                    alert("Username atau Password Admin Salah!");
+                    btn.innerText = "MASUK SISTEM";
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                alert("Error: " + err.message);
+                btn.innerText = "MASUK SISTEM";
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
