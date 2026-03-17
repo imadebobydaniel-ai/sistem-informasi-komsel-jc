@@ -11,22 +11,32 @@
         .header-panel { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
         .btn-back { background: #333; color: white; padding: 10px 15px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: bold; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; font-size: 14px; }
         table th, table td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
-        table th { background-color: #f8f9fa; font-weight: bold; color: #495057; }
+        table th { background-color: #f8f9fa; color: #495057; }
         .user-img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #ddd; }
         
-        .action-btns button { border: none; background: none; cursor: pointer; font-size: 16px; margin-right: 8px; }
+        .action-btns button { border: none; background: none; cursor: pointer; font-size: 18px; margin-right: 8px; transition: 0.2s; }
         .edit-btn { color: #007bff; }
         .delete-btn { color: #dc3545; }
         .nk-badge { background: #e7f3ff; color: #007bff; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; }
+
+        /* MODAL POPUP STYLE */
+        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); overflow-y: auto; }
+        .modal-content { background: white; margin: 5% auto; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; position: relative; }
+        .modal-header { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+        .form-edit-group { margin-bottom: 15px; }
+        .form-edit-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        .form-edit-group input, .form-edit-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .btn-save { width: 100%; padding: 12px; background: #27ae60; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .close-modal { position: absolute; right: 20px; top: 20px; font-size: 24px; cursor: pointer; color: #aaa; }
     </style>
 </head>
 <body>
 
 <div class="admin-box">
     <div class="header-panel">
-        <h2 style="margin:0;"><i class="fa-solid fa-users-viewfinder"></i> Database Anggota PPP</h2>
+        <h2 style="margin:0;"><i class="fa-solid fa-users-viewfinder"></i> Database Anggota Komsel JC</h2>
         <a href="index.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i> KEMBALI KE LOGIN</a>
     </div>
 
@@ -52,9 +62,52 @@
                 <th>Aksi</th>
             </tr>
         </thead>
-        <tbody id="user-list">
-            </tbody>
+        <tbody id="user-list"></tbody>
     </table>
+</div>
+
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeEditModal()">&times;</span>
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-user-pen"></i> Edit Data Anggota</h3>
+        </div>
+        <input type="hidden" id="edit-id">
+        <div class="form-edit-group">
+            <label>Nama Lengkap</label>
+            <input type="text" id="edit-nama">
+        </div>
+        <div class="form-edit-group">
+            <label>Nomor Komsel (NK)</label>
+            <input type="text" id="edit-nk">
+        </div>
+        <div class="form-edit-group">
+            <label>Jabatan</label>
+            <select id="edit-jabatan">
+                <option value="Anggota Komsel">Anggota Komsel</option>
+                <option value="Ketua Komsel">Ketua Komsel</option>
+                <option value="Pengurus">Pengurus</option>
+            </select>
+        </div>
+        <div class="form-edit-group">
+            <label>Golongan Darah</label>
+            <select id="edit-goldar">
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="AB">AB</option>
+                <option value="O">O</option>
+            </select>
+        </div>
+        <div class="form-edit-group">
+            <label>Nomor WhatsApp</label>
+            <input type="text" id="edit-wa">
+        </div>
+        <div class="form-edit-group">
+            <label>Alamat Lengkap</label>
+            <input type="text" id="edit-alamat">
+        </div>
+        <button class="btn-save" onclick="updateData()">SIMPAN PERUBAHAN</button>
+    </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -72,79 +125,83 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // 1. FUNGSI LOAD DATA ANGGOTA
     async function loadData() {
         const list = document.getElementById('user-list');
-        list.innerHTML = '<tr><td colspan="8" style="text-align:center;">Sedang mengambil data anggota...</td></tr>';
-        
-        try {
-            const snapshot = await db.collection("users").orderBy("tanggal_daftar", "desc").get();
-            list.innerHTML = '';
-            
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                const docId = doc.id;
-                
-                list.innerHTML += `
-                    <tr>
-                        <td><input type="checkbox" class="check-item" value="${docId}"></td>
-                        <td><img src="${data.fotoUrl || 'https://via.placeholder.com/50'}" class="user-img"></td>
-                        <td><span class="nk-badge">${data.nomor_komsel || '-'}</span></td>
-                        <td><strong>${data.nama}</strong><br><span style="font-size:11px; color:#666;">${data.email}</span></td>
-                        <td>${data.jabatan || 'Anggota'}</td>
-                        <td><span style="font-weight:bold; color:#d63031;">${data.gol_darah || '-'}</span></td>
-                        <td><a href="https://wa.me/${data.no_hp}" target="_blank" style="text-decoration:none; color:#27ae60; font-weight:bold;">${data.no_hp}</a></td>
-                        <td class="action-btns">
-                            <button class="edit-btn" onclick="editData('${docId}')"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button class="delete-btn" onclick="hapusSatu('${docId}')"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    </tr>
-                `;
-            });
-        } catch (error) {
-            list.innerHTML = `<tr><td colspan="8" style="color:red;">Gagal: ${error.message}</td></tr>`;
-        }
+        list.innerHTML = '<tr><td colspan="8" style="text-align:center;">Memuat data...</td></tr>';
+        const snapshot = await db.collection("users").orderBy("tanggal_daftar", "desc").get();
+        list.innerHTML = '';
+        snapshot.forEach(doc => {
+            const d = doc.data();
+            list.innerHTML += `
+                <tr>
+                    <td><input type="checkbox" class="check-item" value="${doc.id}"></td>
+                    <td><img src="${d.fotoUrl || 'https://via.placeholder.com/50'}" class="user-img"></td>
+                    <td><span class="nk-badge">${d.nomor_komsel || '-'}</span></td>
+                    <td><strong>${d.nama}</strong><br><small>${d.email}</small></td>
+                    <td>${d.jabatan || '-'}</td>
+                    <td style="color:red; font-weight:bold;">${d.gol_darah || d.gol_darah || d.gol_darah || '-'}</td>
+                    <td>${d.no_hp}</td>
+                    <td class="action-btns">
+                        <button class="edit-btn" onclick="openEditModal('${doc.id}')"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="delete-btn" onclick="hapusSatu('${doc.id}')"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>`;
+        });
     }
 
-    // 2. FUNGSI HAPUS SATUAN
+    // FUNGSI POPUP EDIT
+    async function openEditModal(id) {
+        const doc = await db.collection("users").doc(id).get();
+        const data = doc.data();
+        document.getElementById('edit-id').value = id;
+        document.getElementById('edit-nama').value = data.nama;
+        document.getElementById('edit-nk').value = data.nomor_komsel;
+        document.getElementById('edit-jabatan').value = data.jabatan;
+        document.getElementById('edit-goldar').value = data.gol_darah;
+        document.getElementById('edit-wa').value = data.no_hp;
+        document.getElementById('edit-alamat').value = data.alamat;
+        document.getElementById('editModal').style.display = "block";
+    }
+
+    function closeEditModal() { document.getElementById('editModal').style.display = "none"; }
+
+    async function updateData() {
+        const id = document.getElementById('edit-id').value;
+        await db.collection("users").doc(id).update({
+            nama: document.getElementById('edit-nama').value,
+            nomor_komsel: document.getElementById('edit-nk').value,
+            jabatan: document.getElementById('edit-jabatan').value,
+            gol_darah: document.getElementById('edit-goldar').value,
+            no_hp: document.getElementById('edit-wa').value,
+            alamat: document.getElementById('edit-alamat').value
+        });
+        alert("Data Berhasil Diperbarui!");
+        closeEditModal();
+        loadData();
+    }
+
     async function hapusSatu(id) {
-        if(confirm("Hapus data anggota ini secara permanen?")) {
+        if(confirm("Hapus data ini?")) {
             await db.collection("users").doc(id).delete();
-            alert("Data berhasil dihapus!");
             loadData();
         }
     }
 
-    // 3. FUNGSI CHECKBOX SEMUA
     function toggleAll() {
         const master = document.getElementById('selectAll').checked;
-        const items = document.querySelectorAll('.check-item');
-        items.forEach(i => i.checked = master);
+        document.querySelectorAll('.check-item').forEach(i => i.checked = master);
     }
 
-    // 4. FUNGSI HAPUS TERPILIH (MASSAL)
     async function hapusTerpilih() {
         const checked = document.querySelectorAll('.check-item:checked');
-        if(checked.length === 0) return alert("Pilih minimal satu data!");
-        
-        if(confirm(`Yakin ingin menghapus ${checked.length} data terpilih?`)) {
-            for(let item of checked) {
-                await db.collection("users").doc(item.value).delete();
-            }
-            alert("Semua data terpilih telah dihapus.");
+        if(checked.length === 0) return alert("Pilih data dulu!");
+        if(confirm("Hapus " + checked.length + " data?")) {
+            for(let i of checked) { await db.collection("users").doc(i.value).delete(); }
             loadData();
         }
     }
 
-    // 5. FUNGSI EDIT
-    function editData(id) {
-        // Logika edit bisa diarahkan ke file profil.html atau modal box
-        alert("Fitur Edit untuk ID " + id + " sedang disiapkan.");
-    }
-
-    // Jalankan saat pertama kali buka
     loadData();
 </script>
-
 </body>
 </html>
