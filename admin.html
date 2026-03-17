@@ -14,7 +14,6 @@
         .header-section { display: flex; align-items: center; gap: 10px; border-bottom: 3px solid #ff0000; padding-bottom: 15px; margin-bottom: 25px; font-size: 24px; font-weight: bold; }
         .toolbar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
         .btn-tool { border: none; padding: 10px 18px; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
-        .btn-tool:active { transform: scale(0.95); }
         #btnRefresh { background: #00e676; }
         #btnEdit { background: #ffa000; }
         #btnHapus { background: #37474f; }
@@ -27,15 +26,7 @@
         thead { background: #ff0000; color: white; position: sticky; top: 0; z-index: 10; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; font-size: 13px; white-space: nowrap; }
         
-        th:first-child, td:first-child { 
-            position: sticky; 
-            left: 0; 
-            z-index: 5; 
-            background: #f9f9f9; 
-            width: 40px; 
-            text-align: center;
-        }
-        thead th:first-child { background: #d32f2f; }
+        th:first-child, td:first-child { position: sticky; left: 0; z-index: 5; background: #f9f9f9; width: 40px; text-align: center; }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center; }
         .modal-content { background: white; width: 90%; max-width: 500px; border-radius: 15px; overflow: hidden; animation: slideDown 0.3s ease; }
@@ -45,6 +36,7 @@
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px; color: #555; }
         .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        .nk-lock-info { background: #fff3cd; padding: 10px; border-radius: 6px; font-size: 11px; color: #856404; margin-bottom: 15px; border-left: 4px solid #ffeeba; }
         .modal-footer { padding: 15px; display: flex; gap: 10px; border-top: 1px solid #eee; }
         .btn-save { flex: 1; background: #28a745; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-cancel { flex: 1; background: #dc3545; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
@@ -52,7 +44,13 @@
 </head>
 <body>
 
-
+<div class="admin-container">
+    <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 20px;">
+        <img src="logo_ppp.png" alt="Logo" style="width: 100px; margin-bottom: 10px;">
+        <h2 style="margin: 5px 0; font-size: 20px; color: #333; text-transform: uppercase;">PONDOK PEMULIHAN PAPUA</h2>
+        <h3 style="margin: 5px 0; font-size: 18px; color: #FFD700; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; font-weight: bold;">Sistem Informasi Komsel JC</h3>
+        <h2 style="margin-top: 20px; font-size: 18px; color: #333; font-weight: bold;">PANEL ADMINISTRATOR</h2>
+    </div>
 
     <div class="navigation-top">
         <a href="index.html" class="btn-back"><i class="fa-solid fa-circle-arrow-left"></i> KEMBALI KE LOGIN</a>
@@ -83,7 +81,7 @@
                     <th>Jabatan</th>
                     <th>JC</th>
                     <th>Gol. Darah</th>
-                    <th>Nomor Komsel (NK)</th>
+                    <th style="background: #000; color: #fff;">Nomor Komsel (NK)</th>
                 </tr>
             </thead>
             <tbody id="badanTabel">
@@ -97,6 +95,10 @@
     <div class="modal-content">
         <div class="modal-header">SINKRONISASI DATA ANGGOTA</div>
         <div class="modal-body">
+            <div class="nk-lock-info">
+                <i class="fa-solid fa-lock"></i> <strong>SISTEM KEAMANAN:</strong> Nomor Komsel (NK) bersifat permanen dan tidak dapat diubah untuk menjaga integritas database.
+            </div>
+
             <input type="hidden" id="edit_id">
             <div class="form-group"><label>Nama Lengkap</label><input type="text" id="edit_nama"></div>
             <div class="form-group"><label>Email</label><input type="email" id="edit_email"></div>
@@ -135,6 +137,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
+    // Konfigurasi Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -152,10 +155,6 @@
         
         db.collection("users").get().then((querySnapshot) => {
             badanTabel.innerHTML = "";
-            if (querySnapshot.empty) {
-                badanTabel.innerHTML = `<tr><td colspan="10" style="text-align:center;">Tidak ada data anggota.</td></tr>`;
-                return;
-            }
             querySnapshot.forEach((doc) => {
                 let user = doc.data();
                 let baris = `
@@ -169,7 +168,7 @@
                         <td>${user.jabatan || '-'}</td>
                         <td>JC ${user.komsel || '-'}</td>
                         <td>${user.gol_darah || '-'}</td>
-                        <td style="font-weight:bold; color:blue;">${user.nomor_komsel || '-'}</td>
+                        <td style="font-weight:bold; color:blue; background:#f0f8ff;">${user.nomor_komsel || '-'}</td>
                     </tr>`;
                 badanTabel.innerHTML += baris;
             });
@@ -178,7 +177,7 @@
 
     function bukaModeEdit() {
         const terpilih = document.querySelectorAll('.cek-baris:checked');
-        if (terpilih.length !== 1) return alert("Silakan centang satu nama untuk diedit!");
+        if (terpilih.length !== 1) return alert("Pilih satu data untuk diedit!");
 
         const id = terpilih[0].closest('tr').getAttribute('data-id');
         db.collection("users").doc(id).get().then((doc) => {
@@ -200,6 +199,7 @@
 
     function simpanDataUpdate() {
         const id = document.getElementById('edit_id').value;
+        // NK (nomor_komsel) TIDAK dimasukkan di sini agar tidak berubah
         const dataBaru = {
             nama: document.getElementById('edit_nama').value,
             email: document.getElementById('edit_email').value,
@@ -212,7 +212,7 @@
         };
 
         db.collection("users").doc(id).update(dataBaru).then(() => {
-            alert("✅ BERHASIL: Data anggota telah diperbarui.");
+            alert("✅ UPDATE BERHASIL!");
             tutupModal();
             muatDataUser();
         }).catch(err => alert("❌ GAGAL: " + err.message));
@@ -220,9 +220,8 @@
 
     function hapusTerpilih() {
         const terpilih = document.querySelectorAll('.cek-baris:checked');
-        if (terpilih.length === 0) return alert("Pilih minimal satu data untuk dihapus!");
-        
-        if (!confirm("⚠️ PERHATIAN: Data yang dihapus tidak bisa dikembalikan. Lanjutkan?")) return;
+        if (terpilih.length === 0) return alert("Pilih data untuk dihapus!");
+        if (!confirm("Hapus data yang dipilih secara permanen?")) return;
 
         const batch = db.batch();
         terpilih.forEach(cb => {
@@ -231,9 +230,9 @@
         });
 
         batch.commit().then(() => {
-            alert("🗑️ TERHAPUS: Data berhasil dibersihkan dari database.");
+            alert("🗑️ DATA TERHAPUS!");
             muatDataUser();
-        }).catch(err => alert("❌ GAGAL: " + err.message));
+        }).catch(err => alert("Gagal hapus: " + err.message));
     }
 
     function tutupModal() { document.getElementById('editModal').style.display = 'none'; }
