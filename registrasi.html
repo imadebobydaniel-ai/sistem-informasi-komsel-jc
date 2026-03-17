@@ -8,15 +8,16 @@
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         
-        /* TOMBOL KEMBALI KE LOGIN (SESUAI GAMBAR) */
-        .nav-container { width: 100%; max-width: 450px; margin-bottom: 20px; text-align: left; }
+        /* TOMBOL KEMBALI KE LOGIN (SESUAI GAMBAR ASLI) */
+        .nav-header { width: 100%; max-width: 450px; display: flex; justify-content: flex-start; margin-bottom: 20px; }
         .btn-back { 
             background: #222; color: #fff; border: 2px solid #007bff; 
-            padding: 10px 20px; border-radius: 50px; cursor: pointer; 
+            padding: 10px 22px; border-radius: 50px; cursor: pointer; 
             text-decoration: none; font-size: 14px; font-weight: bold; 
             display: inline-flex; align-items: center; gap: 10px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: 0.3s;
         }
+        .btn-back:hover { background: #007bff; transform: scale(1.05); }
 
         .reg-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 450px; box-sizing: border-box; }
         .header { text-align: center; margin-bottom: 25px; }
@@ -28,15 +29,18 @@
         .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #444; }
         .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
         
-        .btn-submit { width: 100%; padding: 14px; background-color: #007bff; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-submit { width: 100%; padding: 14px; background-color: #007bff; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .btn-submit:hover { background-color: #0056b3; }
         .footer-text { text-align: center; margin-top: 20px; font-size: 13px; }
         .footer-text a { color: #007bff; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="nav-container">
-        <a href="index.html" class="btn-back"><i class="fa-solid fa-circle-arrow-left"></i> KEMBALI KE LOGIN</a>
+    <div class="nav-header">
+        <a href="index.html" class="btn-back">
+            <i class="fa-solid fa-circle-arrow-left"></i> KEMBALI KE LOGIN
+        </a>
     </div>
 
     <div class="reg-card">
@@ -59,6 +63,7 @@
                     <option value="">-- Pilih Jabatan --</option>
                     <option value="Anggota Komsel">Anggota Komsel</option>
                     <option value="Ketua Komsel">Ketua Komsel</option>
+                    <option value="Wakil Ketua Komsel">Wakil Ketua Komsel</option>
                 </select>
             </div>
 
@@ -103,28 +108,28 @@
         async function prosesDaftar(e) {
             e.preventDefault();
             const btn = document.getElementById('btnSubmit');
-            btn.innerText = "Memproses...";
+            btn.innerText = "Mendaftarkan...";
             btn.disabled = true;
 
             const email = document.getElementById('reg_email').value.trim();
             const hp = document.getElementById('reg_hp').value.trim();
 
             try {
-                // 1. Cek Duplikat
-                const snapshotEmail = await db.collection("users").where("email", "==", email).get();
-                if (!snapshotEmail.empty) { alert("❌ Email sudah terdaftar!"); return resetBtn(); }
+                // 1. Validasi Duplikat
+                const snapEmail = await db.collection("users").where("email", "==", email).get();
+                if (!snapEmail.empty) { alert("❌ Gagal: Email sudah terdaftar!"); return resetBtn(); }
 
-                const snapshotHp = await db.collection("users").where("no_hp", "==", hp).get();
-                if (!snapshotHp.empty) { alert("❌ Nomor anda sudah pernah didaftarkan pada sistem!"); return resetBtn(); }
+                const snapHp = await db.collection("users").where("no_hp", "==", hp).get();
+                if (!snapHp.empty) { alert("❌ Gagal: Nomor HP sudah terdaftar!"); return resetBtn(); }
 
-                // 2. NOMOR KOMSEL (NK) OTOMATIS
+                // 2. GENERATE NOMOR KOMSEL (NK) OTOMATIS
                 const jc = document.getElementById('reg_jc').value;
-                const total = await db.collection("users").get();
-                const urutan = String(total.size + 1).padStart(3, '0');
+                const totalDoc = await db.collection("users").get();
+                const urutan = String(totalDoc.size + 1).padStart(3, '0');
                 const tahun = new Date().getFullYear();
-                const nk = `NK-PPP-${urutan}-JC${jc}-${tahun}`;
+                const nk_otomatis = `NK-PPP-${urutan}-JC${jc}-${tahun}`;
 
-                // 3. Simpan
+                // 3. Simpan ke Firebase
                 await db.collection("users").add({
                     nama: document.getElementById('reg_nama').value,
                     email: email,
@@ -134,11 +139,11 @@
                     jabatan: document.getElementById('reg_jabatan').value,
                     komsel: jc,
                     gol_darah: document.getElementById('reg_goldar').value,
-                    nomor_komsel: nk, // NK Tersimpan Otomatis
+                    nomor_komsel: nk_otomatis, // Disimpan otomatis agar muncul di Admin
                     tanggal_daftar: new Date().toISOString()
                 });
 
-                alert("✅ BERHASIL!\nNK Anda: " + nk);
+                alert("✅ PENDAFTARAN BERHASIL!\nNomor Komsel Anda: " + nk_otomatis);
                 window.location.href = "index.html";
 
             } catch (err) { alert("🚨 Error: " + err.message); resetBtn(); }
