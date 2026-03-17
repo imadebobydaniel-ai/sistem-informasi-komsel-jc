@@ -6,17 +6,16 @@
     <title>Admin Login - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .login-box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 340px; text-align: center; box-sizing: border-box; }
         .logo-container { margin-bottom: 10px; }
         .logo-container img { width: 100px; height: auto; }
-        h2 { font-weight: bold; font-size: 18px; color: #333; margin-bottom: 20px; text-transform: uppercase; }
+        h2.admin-title { font-weight: bold; font-size: 18px; color: #333; margin-bottom: 20px; text-transform: uppercase; }
         
         input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
         
-        /* CSS KHUSUS UNTUK MEMPOSISIKAN IKON MATA */
         .pass-wrapper { position: relative; width: 100%; }
-        .pass-wrapper input { padding-right: 40px; } /* Beri ruang di kanan agar input tidak tertutup ikon */
+        .pass-wrapper input { padding-right: 40px; }
         .pass-wrapper i { position: absolute; right: 12px; top: 22px; cursor: pointer; color: #888; font-size: 16px; transition: 0.2s; }
         .pass-wrapper i:hover { color: #333; }
 
@@ -27,12 +26,13 @@
     </style>
 </head>
 <body>
+
 <div style="text-align: center; margin-bottom: 20px;">
     <img src="logo_ppp.png" alt="Logo" style="width: 100px; margin-bottom: 10px;">
     
-    <h2 style="margin: 5px 0; font-size: 20px; color: #333;">PONDOK PEMULIHAN PAPUA</h2>
+    <h2 style="margin: 5px 0; font-size: 20px; color: #333; text-transform: none;">PONDOK PEMULIHAN PAPUA</h2>
     
-    <h3 style="margin: 5px 0; font-size: 18px; color: #FFD700; -webkit-text-stroke: 1px black; font-weight: bold;">
+    <h3 style="margin: 5px 0; font-size: 18px; color: #FFD700; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; font-weight: bold;">
         Sistem Informasi Komsel JC
     </h3>
     
@@ -40,12 +40,13 @@
         Login Anggota Komsel
     </h4>
 </div>
+
 <div class="login-box">
     <div class="logo-container">
         <img src="logo_pondok.png" alt="Logo">
     </div>
     
-    <h2>MASUK ADMINISTRATOR</h2>
+    <h2 class="admin-title">MASUK ADMINISTRATOR</h2>
     
     <input type="email" id="adminEmail" placeholder="Email Admin">
     
@@ -62,18 +63,15 @@
 </div>
 
 <script>
-    // Fungsi khusus untuk toggle password
     function togglePass() {
         const pInput = document.getElementById('adminPass');
         const pIcon = document.getElementById('toggleAdminPass');
         
         if (pInput.type === "password") {
             pInput.type = "text";
-            // Ganti ikon jadi mata dicoret
             pIcon.classList.replace('fa-eye', 'fa-eye-slash');
         } else {
             pInput.type = "password";
-            // Ganti balik jadi ikon mata biasa
             pIcon.classList.replace('fa-eye-slash', 'fa-eye');
         }
     }
@@ -82,7 +80,6 @@
         const email = document.getElementById('adminEmail').value;
         const pass = document.getElementById('adminPass').value;
 
-        // Validasi Email & Password Admin (Tidak diubah sesuai perintah)
         if (email === "admin@pondok.com" && pass === "papua123") {
             alert("Akses Administrator Diterima!");
             window.location.href = "admin.html";
