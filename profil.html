@@ -7,17 +7,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .profile-container { background: white; width: 100%; max-width: 400px; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .profile-container { background: white; width: 100%; max-width: 400px; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding-bottom: 20px; }
         .profile-header { background: #007bff; color: white; padding: 20px; text-align: center; font-weight: bold; font-size: 18px; }
         .photo-section { text-align: center; padding: 30px 0; position: relative; }
         .photo-circle { width: 150px; height: 150px; border-radius: 50%; border: 4px solid #00ff88; margin: 0 auto; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #eee; cursor: pointer; }
         .photo-circle img { width: 100%; height: 100%; object-fit: cover; }
         .edit-icon { position: absolute; bottom: 35px; right: 135px; background: #007bff; color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; cursor: pointer; }
-        .info-section { padding: 0 25px 25px; }
+        .info-section { padding: 0 25px 20px; }
         .input-group { margin-bottom: 15px; }
         .input-group label { font-size: 11px; font-weight: bold; color: #888; text-transform: uppercase; display: block; margin-bottom: 5px; }
         .input-group input, .input-group select { width: 100%; border: none; border-bottom: 1px solid #ddd; padding: 8px 0; font-size: 15px; color: #333; outline: none; background: transparent; }
-        .btn-save { width: calc(100% - 50px); margin: 0 25px 25px; background: #007bff; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-save { width: calc(100% - 50px); margin: 0 25px 10px; background: #007bff; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-back { width: calc(100% - 50px); margin: 0 25px; background: #333; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; display: block; text-align: center; text-decoration: none; font-size: 14px; }
         #fileInput { display: none; }
     </style>
 </head>
@@ -39,7 +40,7 @@
     <div class="info-section">
         <div class="input-group">
             <label>Nama Lengkap</label>
-            <input type="text" id="prof-nama" placeholder="Masukkan Nama">
+            <input type="text" id="prof-nama">
         </div>
         <div class="input-group">
             <label>Jabatan / Peran</label>
@@ -54,7 +55,7 @@
         </div>
         <div class="input-group">
             <label>Nomor HP (WhatsApp)</label>
-            <input type="text" id="prof-hp" placeholder="0812...">
+            <input type="text" id="prof-hp">
         </div>
         <div class="input-group">
             <label>Lokasi Komsel JC</label>
@@ -62,11 +63,14 @@
                 <option value="JC 1">JC 1</option>
                 <option value="JC 2">JC 2</option>
                 <option value="JC 3">JC 3</option>
+                <option value="JC 4">JC 4</option>
+                <option value="JC 5">JC 5</option>
             </select>
         </div>
         <div class="input-group">
             <label>Golongan Darah</label>
             <select id="prof-goldar">
+                <option value="- Pilih -">- Pilih -</option>
                 <option value="A">A</option>
                 <option value="B">B</option>
                 <option value="AB">AB</option>
@@ -76,6 +80,7 @@
     </div>
 
     <button class="btn-save" onclick="updateProfil()">SIMPAN PERUBAHAN</button>
+    <a href="menu.html" class="btn-back">KEMBALI KE MENU</a>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -96,8 +101,7 @@
     const storage = firebase.storage();
     const userEmail = localStorage.getItem("userEmail");
 
-    // 1. OTOMATIS AMBIL DATA DARI FIREBASE
-    async function loadData() {
+    async function loadProfileData() {
         if (!userEmail) { window.location.href = "index.html"; return; }
         
         const snapshot = await db.collection("users").where("email", "==", userEmail).get();
@@ -106,47 +110,50 @@
             document.getElementById('prof-nama').value = data.nama || "";
             document.getElementById('prof-email').value = data.email || "";
             document.getElementById('prof-hp').value = data.no_hp || "";
-            document.getElementById('prof-jabatan').value = data.jabatan || "Anggota Komsel";
-            document.getElementById('prof-jc').value = data.komsel || "JC 1";
-            document.getElementById('prof-goldar').value = data.goldar || "A";
+            
+            // Otomatisasi Dropdown dari Database
+            if (data.jabatan) document.getElementById('prof-jabatan').value = data.jabatan;
+            if (data.komsel) document.getElementById('prof-jc').value = data.komsel;
+            if (data.goldar) document.getElementById('prof-goldar').value = data.goldar;
+            
             if (data.fotoUrl) {
                 document.getElementById('profile-img').src = data.fotoUrl;
             }
         }
     }
 
-    // 2. FUNGSI UPLOAD FOTO
     async function handleImageUpload(input) {
         const file = input.files[0];
         if (!file) return;
 
         const storageRef = storage.ref('profil_foto/' + userEmail);
-        await storageRef.put(file);
-        const downloadURL = await storageRef.getDownloadURL();
-        
-        document.getElementById('profile-img').src = downloadURL;
-        alert("Foto berhasil diunggah! Klik Simpan Perubahan untuk mengupdate data.");
+        try {
+            await storageRef.put(file);
+            const downloadURL = await storageRef.getDownloadURL();
+            document.getElementById('profile-img').src = downloadURL;
+            alert("Foto berhasil diproses! Klik Simpan Perubahan.");
+        } catch (e) { alert("Gagal upload: " + e.message); }
     }
 
-    // 3. SIMPAN PERUBAHAN
     async function updateProfil() {
         const snapshot = await db.collection("users").where("email", "==", userEmail).get();
         if (!snapshot.empty) {
             const docId = snapshot.docs[0].id;
-            await db.collection("users").doc(docId).update({
-                nama: document.getElementById('prof-nama').value,
-                no_hp: document.getElementById('prof-hp').value,
-                jabatan: document.getElementById('prof-jabatan').value,
-                komsel: document.getElementById('prof-jc').value,
-                goldar: document.getElementById('prof-goldar').value,
-                fotoUrl: document.getElementById('profile-img').src
-            });
-            alert("Data berhasil diperbarui!");
+            try {
+                await db.collection("users").doc(docId).update({
+                    nama: document.getElementById('prof-nama').value,
+                    no_hp: document.getElementById('prof-hp').value,
+                    jabatan: document.getElementById('prof-jabatan').value,
+                    komsel: document.getElementById('prof-jc').value,
+                    goldar: document.getElementById('prof-goldar').value,
+                    fotoUrl: document.getElementById('profile-img').src
+                });
+                alert("Data berhasil diperbarui!");
+            } catch (e) { alert("Gagal update: " + e.message); }
         }
     }
 
-    loadData();
+    loadProfileData();
 </script>
-
 </body>
 </html>
