@@ -30,36 +30,13 @@
     
     <a href="registrasi.html" class="reg-link">Belum punya akun? Daftar Sekarang</a>
     
-    <a href="login_admin.html" class="admin-link">Masuk sebagai Admin</a>
+    <a href="login.html" class="admin-link">Masuk sebagai Admin</a>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    // Masukkan ke dalam fungsi loginUser()
-db.collection("users").where("email", "==", email).get()
-.then((querySnapshot) => {
-    if (querySnapshot.empty) {
-        alert("❌ LOGIN GAGAL: Email tidak terdaftar di database!"); // Popup email salah
-    } else {
-        let userDitemukan = false;
-        querySnapshot.forEach((doc) => {
-            if (doc.data().password === pass) {
-                userDitemukan = true;
-                alert("✅ LOGIN BERHASIL! Selamat datang " + doc.data().nama); // Popup login sukses
-                window.location.href = "menu.html";
-            }
-        });
-        if (!userDitemukan) {
-            alert("⚠️ PASSWORD SALAH: Silakan periksa kembali kata sandi Anda!"); // Popup password salah
-        }
-    }
-})
-.catch((error) => {
-    alert("🚨 KENDALA SISTEM: " + error.message); // Popup gangguan koneksi/server
-});
-    // Konfigurasi Firebase Abang
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -76,31 +53,39 @@ db.collection("users").where("email", "==", email).get()
         const pass = document.getElementById('userPass').value;
 
         if (email === "" || pass === "") {
-            return alert("Email dan Password harus diisi!");
+            return alert("⚠️ PERINGATAN: Email dan Password harus diisi!");
         }
 
-        // Cek data di koleksi 'users'
-        db.collection("users").where("email", "==", email).where("password", "==", pass).get()
+        // Cek email dulu di database
+        db.collection("users").where("email", "==", email).get()
         .then((querySnapshot) => {
-            if (!querySnapshot.empty) {
+            if (querySnapshot.empty) {
+                // POPUP UNTUK HP: Email tidak ada
+                alert("❌ LOGIN GAGAL: Email tidak terdaftar di database Pondok!");
+            } else {
+                let berhasil = false;
                 querySnapshot.forEach((doc) => {
                     const user = doc.data();
-                    // Simpan data ke session sementara
-                    localStorage.setItem('email_login', user.email);
-                    localStorage.setItem('nama_login', user.nama);
-                    localStorage.setItem('jc_login', user.komsel);
-
-                    alert("Selamat Datang, " + user.nama);
-                    
-                    // SINKRONISASI: Mengarah ke menu.html sesuai daftar file
-                    window.location.href = "menu.html"; 
+                    if (user.password === pass) {
+                        berhasil = true;
+                        localStorage.setItem('email_login', user.email);
+                        localStorage.setItem('nama_login', user.nama);
+                        
+                        // POPUP UNTUK HP: Berhasil
+                        alert("✅ LOGIN BERHASIL! Selamat Datang, " + user.nama);
+                        window.location.href = "menu.html"; 
+                    }
                 });
-            } else {
-                alert("Email atau Password salah!");
+
+                if (!berhasil) {
+                    // POPUP UNTUK HP: Password salah
+                    alert("⚠️ PASSWORD SALAH: Silakan periksa kembali kata sandi Anda!");
+                }
             }
         })
         .catch((error) => {
-            console.error("Error login: ", error);
+            // POPUP UNTUK HP: Gangguan Sistem
+            alert("🚨 KENDALA SISTEM: " + error.message);
         });
     }
 </script>
