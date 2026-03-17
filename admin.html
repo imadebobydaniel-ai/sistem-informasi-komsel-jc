@@ -143,6 +143,20 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
+// Saat Berhasil Update
+db.collection("users").doc(id).update(dataBaru).then(() => {
+    alert("💾 DATA TERSIMPAN: Perubahan data anggota berhasil disinkronkan!"); 
+    tutupModal();
+    muatDataUser();
+});
+
+// Saat Berhasil Hapus
+batch.commit().then(() => {
+    alert("🗑️ DATA TERHAPUS: Data anggota telah dibersihkan dari database!");
+    muatDataUser();
+});
+
+    
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
