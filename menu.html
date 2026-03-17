@@ -8,7 +8,7 @@
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; }
         
-        /* Header Baru Sesuai Instruksi */
+        /* Header Responsif */
         header { 
             display: flex; 
             justify-content: space-between; 
@@ -16,43 +16,63 @@
             padding: 10px 20px; 
             background: white; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
-            position: relative; 
+            position: relative;
+            min-height: 50px;
         }
 
         #display-tanggal { 
             font-weight: bold; 
             color: #007bff; 
-            font-size: 14px; 
-            min-width: 200px; 
+            font-size: 13px; 
+            flex: 1;
+            white-space: nowrap;
         }
 
         .center-title { 
             position: absolute; 
             left: 50%; 
             transform: translateX(-50%); 
-            text-align: center; 
-            width: 100%;
-            pointer-events: none; /* Agar tidak menghalangi klik di area lain */
+            text-align: center;
+            white-space: nowrap;
+            width: auto;
         }
 
         .center-title h2 { 
             margin: 0; 
-            font-size: 16px; 
+            font-size: 14px; 
             color: #333; 
             text-transform: uppercase; 
-            letter-spacing: 1px; 
+            letter-spacing: 0.5px; 
         }
 
-        .setting-area { 
-            min-width: 200px; 
-            text-align: right; 
-            z-index: 2;
+        .right-area { 
+            display: flex; 
+            align-items: center; 
+            justify-content: flex-end; 
+            gap: 10px; 
+            flex: 1;
+        }
+
+        #digital-clock { 
+            font-weight: bold; 
+            color: #ff0000; 
+            font-size: 13px; 
+            white-space: nowrap;
         }
 
         .setting-icon { 
             color: #555; 
-            font-size: 20px; 
+            font-size: 18px; 
             text-decoration: none; 
+        }
+
+        /* Penyesuaian Ukuran HP */
+        @media (max-width: 480px) {
+            header { padding: 8px 10px; }
+            #display-tanggal, #digital-clock, .center-title h2 { 
+                font-size: 10px; 
+            }
+            .right-area { gap: 5px; }
         }
         
         .container { padding: 20px; max-width: 450px; margin: auto; text-align: center; }
@@ -72,18 +92,19 @@
 </head>
 <body>
 
-    <header style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: relative;">
-    <div id="display-tanggal" style="font-weight: bold; color: #007bff; font-size: 14px; min-width: 200px;"></div>
+    <header>
+        <div id="display-tanggal"></div>
 
-    <div style="position: absolute; left: 50%; transform: translateX(-50%); text-align: center;">
-        <h2 style="margin: 0; font-size: 16px; color: #333; text-transform: uppercase; letter-spacing: 1px;">PONDOK PEMULIHAN PAPUA</h2>
-    </div>
+        <div class="center-title">
+            <h2>PONDOK PEMULIHAN PAPUA</h2>
+        </div>
 
-    <div style="min-width: 200px; text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 15px;">
-        <div id="digital-clock" style="font-weight: bold; color: #ff0000; font-size: 14px;">00:00:00 WIT</div>
-        <a href="setting.html" style="color: #555; text-decoration: none;"><i class="fa-solid fa-gear" style="font-size: 20px;"></i></a>
-    </div>
-</header>
+        <div class="right-area">
+            <div id="digital-clock">00:00:00 WIT</div>
+            <a href="setting.html" class="setting-icon"><i class="fa-solid fa-gear"></i></a>
+        </div>
+    </header>
+
     <div class="container">
         <h3 class="org-title">Menu Utama</h3>
         
@@ -108,27 +129,38 @@
     </div>
 
     <script>
-        // Fungsi Tanggal Otomatis (Hari, Tanggal Bulan Tahun)
-       function updateWaktu() {
-        const now = new Date();
-        
-        // 1. Update Tanggal (Kiri)
-        const opsiTanggal = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
-        document.getElementById('display-tanggal').innerText = now.toLocaleDateString('id-ID', opsiTanggal);
+        // Fungsi Update Tanggal dan Jam secara Real-time
+        function updateWaktu() {
+            const now = new Date();
+            
+            // Update Tanggal (Kiri)
+            const opsiTanggal = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
+            document.getElementById('display-tanggal').innerText = now.toLocaleDateString('id-ID', opsiTanggal);
 
-        // 2. Update Jam Digital (Kanan - Samping Setting)
-        const jam = String(now.getHours()).padStart(2, '0');
-        const menit = String(now.getMinutes()).padStart(2, '0');
-        const detik = String(now.getSeconds()).padStart(2, '0');
-        document.getElementById('digital-clock').innerText = `${jam}:${menit}:${detik} WIT`;
-    }
+            // Update Jam (Kanan)
+            const jam = String(now.getHours()).padStart(2, '0');
+            const menit = String(now.getMinutes()).padStart(2, '0');
+            const detik = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('digital-clock').innerText = `${jam}:${menit}:${detik} WIT`;
+        }
 
-    // Jalankan setiap 1 detik agar jam berdetak
-    setInterval(updateWaktu, 1000);
-    updateWaktu(); // Jalankan langsung saat halaman dimuat
-</script>
+        // Ambil data User dari LocalStorage
+        function loadUserData() {
+            const nama = localStorage.getItem("userName");
+            const komsel = localStorage.getItem("userKomsel");
 
-      
+            if (nama) {
+                document.getElementById('disp_nama').innerText = nama;
+                document.getElementById('disp_komsel').innerText = "KOMSEL " + (komsel || "");
+            } else {
+                window.location.href = "index.html";
+            }
+        }
+
+        // Jalankan sistem
+        setInterval(updateWaktu, 1000);
+        updateWaktu();
+        loadUserData();
     </script>
 </body>
 </html>
