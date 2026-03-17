@@ -3,155 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profil Saya - Pondok Pemulihan Papua</title>
+    <title>Profil - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; padding: 20px; margin: 0; }
-        .profile-card { background: white; width: 100%; max-width: 400px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
-        .header { background: #007bff; color: white; padding: 20px; text-align: center; font-weight: bold; font-size: 18px; }
-        .photo-section { text-align: center; padding: 30px 20px; position: relative; }
-        .profile-img { width: 120px; height: 120px; border-radius: 50%; border: 5px solid #00e676; object-fit: cover; background: #eee; }
-        .progress-circle { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 2px 10px; border-radius: 10px; font-size: 12px; font-weight: bold; }
-        
-        .form-body { padding: 0 25px 25px; }
-        .input-group { margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .input-group label { display: block; font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; }
-        .input-group input, .input-group select { width: 100%; border: none; padding: 8px 0; font-size: 15px; font-weight: 500; outline: none; background: transparent; }
-        
-        .btn-save { width: 100%; background: #007bff; color: white; border: none; padding: 15px; border-radius: 50px; font-weight: bold; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-menu { width: 100%; background: white; color: #007bff; border: 2px solid #007bff; padding: 12px; border-radius: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; text-decoration: none; display: flex; align-items: center; justify-content: center; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .profile-container { background: white; width: 100%; max-width: 400px; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .profile-header { background: #007bff; color: white; padding: 20px; text-align: center; font-weight: bold; font-size: 18px; }
+        .photo-section { text-align: center; padding: 30px 0; position: relative; }
+        .photo-circle { width: 150px; height: 150px; border-radius: 50%; border: 4px solid #00ff88; margin: 0 auto; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #eee; cursor: pointer; }
+        .photo-circle img { width: 100%; height: 100%; object-fit: cover; }
+        .edit-icon { position: absolute; bottom: 35px; right: 135px; background: #007bff; color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; cursor: pointer; }
+        .info-section { padding: 0 25px 25px; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { font-size: 11px; font-weight: bold; color: #888; text-transform: uppercase; display: block; margin-bottom: 5px; }
+        .input-group input, .input-group select { width: 100%; border: none; border-bottom: 1px solid #ddd; padding: 8px 0; font-size: 15px; color: #333; outline: none; background: transparent; }
+        .btn-save { width: calc(100% - 50px); margin: 0 25px 25px; background: #007bff; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        #fileInput { display: none; }
     </style>
 </head>
 <body>
 
-<div class="profile-card">
-    <div class="header">Biodata & Kelengkapan Profil</div>
+<div class="profile-container">
+    <div class="profile-header">Biodata & Kelengkapan Profil</div>
     
     <div class="photo-section">
-    <div style="position: relative; display: inline-block;">
-        <img src="https://via.placeholder.com/150" id="display_foto" class="profile-img">
-        
-        <label for="input_file" style="position: absolute; bottom: 5px; right: 5px; background: #007bff; color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 3px solid white;">
-            <i class="fa-solid fa-pencil"></i>
-        </label>
-        
-        <input type="file" id="input_file" style="display: none;" onchange="uploadFotoKeFirebase()">
+        <div class="photo-circle" onclick="document.getElementById('fileInput').click()">
+            <img id="profile-img" src="https://via.placeholder.com/150" alt="Foto Profil">
+        </div>
+        <div class="edit-icon" onclick="document.getElementById('fileInput').click()">
+            <i class="fa-solid fa-pen"></i>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" onchange="handleImageUpload(this)">
     </div>
-</div>
 
-    <div class="form-body">
-        <input type="hidden" id="user_doc_id">
-        
+    <div class="info-section">
         <div class="input-group">
             <label>Nama Lengkap</label>
-            <input type="text" id="p_nama" placeholder="Masukkan Nama">
+            <input type="text" id="prof-nama" placeholder="Masukkan Nama">
         </div>
-
         <div class="input-group">
             <label>Jabatan / Peran</label>
-            <select id="p_jabatan">
+            <select id="prof-jabatan">
                 <option value="Anggota Komsel">Anggota Komsel</option>
                 <option value="Ketua Komsel">Ketua Komsel</option>
-                <option value="Wakil ketua Komsel">Wakil ketua Komsel</option>
             </select>
         </div>
-
         <div class="input-group">
             <label>Email Aktif</label>
-            <input type="email" id="p_email" placeholder="nama@email.com">
+            <input type="email" id="prof-email" readonly>
         </div>
-
         <div class="input-group">
             <label>Nomor HP (WhatsApp)</label>
-            <input type="number" id="p_hp" placeholder="0812...">
+            <input type="text" id="prof-hp" placeholder="0812...">
         </div>
-
         <div class="input-group">
             <label>Lokasi Komsel JC</label>
-            <select id="p_jc">
+            <select id="prof-jc">
                 <option value="JC 1">JC 1</option>
                 <option value="JC 2">JC 2</option>
                 <option value="JC 3">JC 3</option>
-                <option value="JC 4">JC 4</option>
-                <option value="JC 5">JC 5</option>
             </select>
         </div>
-
         <div class="input-group">
             <label>Golongan Darah</label>
-            <select id="p_goldar">
+            <select id="prof-goldar">
                 <option value="A">A</option>
                 <option value="B">B</option>
                 <option value="AB">AB</option>
                 <option value="O">O</option>
             </select>
         </div>
-
-        <button class="btn-save" onclick="updateProfil()">
-            <i class="fa-solid fa-circle-check"></i> SIMPAN PERUBAHAN
-        </button>
-
-       <a href="menu.html" class="btn-menu">← Kembali ke Menu</a>
     </div>
+
+    <button class="btn-save" onclick="updateProfil()">SIMPAN PERUBAHAN</button>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
 <script>
-  // 1. Konfigurasi Firebase Abang (Sesuaikan dengan milik Abang)
-  const firebaseConfig = {
-    apiKey: "AIzaSy...",
-    authDomain: "laporan-pembacaan-alkitab.firebaseapp.com",
-    databaseURL: "https://laporan-pembacaan-alkitab-default-rtdb.firebaseio.com",
-    projectId: "laporan-pembacaan-alkitab",
-    storageBucket: "laporan-pembacaan-alkitab.appspot.com",
-    messagingSenderId: "...",
-    appId: "..."
-  };
+    const firebaseConfig = {
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+        authDomain: "boby-apps-project.firebaseapp.com",
+        projectId: "boby-apps-project",
+        storageBucket: "boby-apps-project.appspot.com",
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+    const userEmail = localStorage.getItem("userEmail");
 
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+    // 1. OTOMATIS AMBIL DATA DARI FIREBASE
+    async function loadData() {
+        if (!userEmail) { window.location.href = "index.html"; return; }
+        
+        const snapshot = await db.collection("users").where("email", "==", userEmail).get();
+        if (!snapshot.empty) {
+            const data = snapshot.docs[0].data();
+            document.getElementById('prof-nama').value = data.nama || "";
+            document.getElementById('prof-email').value = data.email || "";
+            document.getElementById('prof-hp').value = data.no_hp || "";
+            document.getElementById('prof-jabatan').value = data.jabatan || "Anggota Komsel";
+            document.getElementById('prof-jc').value = data.komsel || "JC 1";
+            document.getElementById('prof-goldar').value = data.goldar || "A";
+            if (data.fotoUrl) {
+                document.getElementById('profile-img').src = data.fotoUrl;
+            }
+        }
+    }
 
-  // 2. Fungsi Ambil Data Otomatis
-  function loadUserProfile() {
-      // Ambil email dari localStorage yang kita set saat login tadi
-      const userEmail = localStorage.getItem('email_login');
-      
-      if (!userEmail) {
-          alert("Sesi berakhir, silakan login kembali.");
-          window.location.href = "index.html";
-          return;
-      }
+    // 2. FUNGSI UPLOAD FOTO
+    async function handleImageUpload(input) {
+        const file = input.files[0];
+        if (!file) return;
 
-      // Format email agar bisa jadi ID (hapus titik karena Firebase dilarang pakai titik di Key)
-      const userKey = userEmail.replace(/\./g, ',');
+        const storageRef = storage.ref('profil_foto/' + userEmail);
+        await storageRef.put(file);
+        const downloadURL = await storageRef.getDownloadURL();
+        
+        document.getElementById('profile-img').src = downloadURL;
+        alert("Foto berhasil diunggah! Klik Simpan Perubahan untuk mengupdate data.");
+    }
 
-      // Ambil data dari tabel 'users'
-      db.ref('users/' + userKey).once('value').then((snapshot) => {
-          const data = snapshot.val();
-          if (data) {
-              // Isi ke form secara otomatis
-              document.getElementById('namaLengkap').value = data.nama || "";
-              document.getElementById('jabatan').value = data.jabatan || "Anggota Komsel";
-              document.getElementById('emailAktif').value = data.email || userEmail;
-              document.getElementById('nomorWa').value = data.whatsapp || "";
-              document.getElementById('lokasiJc').value = data.jc || "JC 1";
-              document.getElementById('golDarah').value = data.golonganDarah || "A";
-              
-              // Jika ada foto, tampilkan
-              if (data.fotoUrl) {
-                  document.getElementById('fotoProfil').src = data.fotoUrl;
-              }
-          }
-      }).catch((error) => {
-          console.error("Gagal ambil data:", error);
-      });
-  }
+    // 3. SIMPAN PERUBAHAN
+    async function updateProfil() {
+        const snapshot = await db.collection("users").where("email", "==", userEmail).get();
+        if (!snapshot.empty) {
+            const docId = snapshot.docs[0].id;
+            await db.collection("users").doc(docId).update({
+                nama: document.getElementById('prof-nama').value,
+                no_hp: document.getElementById('prof-hp').value,
+                jabatan: document.getElementById('prof-jabatan').value,
+                komsel: document.getElementById('prof-jc').value,
+                goldar: document.getElementById('prof-goldar').value,
+                fotoUrl: document.getElementById('profile-img').src
+            });
+            alert("Data berhasil diperbarui!");
+        }
+    }
 
-  // Jalankan fungsi saat halaman dibuka
-  window.onload = loadUserProfile;
+    loadData();
 </script>
+
 </body>
 </html>
