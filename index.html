@@ -28,15 +28,16 @@
     <input type="password" id="userPass" placeholder="Password">
     <button class="btn-login" onclick="loginUser()">MASUK</button>
     
-   <a href="login_admin.html" class="admin-link">Masuk sebagai Admin</a>
-
-<a href="login.html" class="admin-link">Masuk sebagai Admin</a>
+    <a href="registrasi.html" class="reg-link">Belum punya akun? Daftar Sekarang</a>
+    
+    <a href="login.html" class="admin-link">Masuk sebagai Admin</a>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
+    // Konfigurasi Database Firebase Abang
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -56,35 +57,32 @@
             return alert("⚠️ PERINGATAN: Email dan Password harus diisi!");
         }
 
-        // Cek email dulu di database
+        // Cari data anggota di Firestore
         db.collection("users").where("email", "==", email).get()
         .then((querySnapshot) => {
             if (querySnapshot.empty) {
-                // POPUP UNTUK HP: Email tidak ada
-                alert("❌ LOGIN GAGAL: Email tidak terdaftar di database Pondok!");
+                alert("❌ LOGIN GAGAL: Email tidak terdaftar di database!");
             } else {
-                let berhasil = false;
+                let loginSukses = false;
                 querySnapshot.forEach((doc) => {
-                    const user = doc.data();
-                    if (user.password === pass) {
-                        berhasil = true;
-                        localStorage.setItem('email_login', user.email);
-                        localStorage.setItem('nama_login', user.nama);
+                    const data = doc.data();
+                    if (data.password === pass) {
+                        loginSukses = true;
+                        localStorage.setItem('email_login', data.email);
+                        localStorage.setItem('nama_login', data.nama);
                         
-                        // POPUP UNTUK HP: Berhasil
-                        alert("✅ LOGIN BERHASIL! Selamat Datang, " + user.nama);
+                        alert("✅ LOGIN BERHASIL! Selamat Datang, " + data.nama);
+                        // Arahkan ke menu utama sesuai daftar file
                         window.location.href = "menu.html"; 
                     }
                 });
 
-                if (!berhasil) {
-                    // POPUP UNTUK HP: Password salah
+                if (!loginSukses) {
                     alert("⚠️ PASSWORD SALAH: Silakan periksa kembali kata sandi Anda!");
                 }
             }
         })
         .catch((error) => {
-            // POPUP UNTUK HP: Gangguan Sistem
             alert("🚨 KENDALA SISTEM: " + error.message);
         });
     }
