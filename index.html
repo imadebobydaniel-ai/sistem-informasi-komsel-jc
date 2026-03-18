@@ -46,53 +46,54 @@
         <a href="login_admin.html" class="admin-link">Masuk sebagai Admin</a>
     </div>
 
-   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
-        authDomain: "boby-apps-project.firebaseapp.com",
-        projectId: "boby-apps-project",
-        storageBucket: "boby-apps-project.firebasestorage.app",
-        messagingSenderId: "125984859692",
-        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+            authDomain: "boby-apps-project.firebaseapp.com",
+            projectId: "boby-apps-project",
+            storageBucket: "boby-apps-project.firebasestorage.app",
+            messagingSenderId: "125984859692",
+            appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-    // Mengambil email dari localStorage yang disimpan saat login
-    const userEmail = localStorage.getItem("userEmail");
+        function togglePassLogin() {
+            const passInput = document.getElementById('pass');
+            const eyeIcon = document.getElementById('eyeIconLogin');
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                eyeIcon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                passInput.type = 'password';
+                eyeIcon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
 
-    if (!userEmail) {
-        window.location.replace("index.html");
-    } else {
-        // Fungsi OnSnapshot untuk pembaruan data real-time dari Firebase
-        db.collection("users").where("email", "==", userEmail)
-            .onSnapshot((querySnapshot) => {
-                if (!querySnapshot.empty) {
-                    const data = querySnapshot.docs[0].data();
-                    
-                    // Update Foto Profil
-                    if (data.fotoUrl) {
-                        document.querySelector(".profile-pic").src = data.fotoUrl;
-                    }
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('pass').value;
 
-                    // Update Biodata sesuai ID elemen di profil.html
-                    document.getElementById("nomor_komsel").innerText = data.nomor_komsel || "-";
-                    document.getElementById("nama_lengkap").innerText = data.nama || "Memuat data...";
-                    document.getElementById("jabatan").innerText = data.jabatan || "-";
-                    document.getElementById("email_aktif").innerText = data.email || "-";
-                    document.getElementById("no_hp").innerText = data.no_hp || "-";
-                    document.getElementById("lokasi_komsel").innerText = "JC " + (data.komsel || "-");
-                    document.getElementById("gol_darah").innerText = data.gol_darah || "-";
-                    document.getElementById("alamat").innerText = data.alamat || "-";
+            try {
+                const snapshot = await db.collection("users")
+                    .where("email", "==", email)
+                    .where("password", "==", password)
+                    .get();
+
+                if (!snapshot.empty) {
+                    localStorage.setItem("userEmail", email);
+                    window.location.replace("menu.html");
+                } else {
+                    alert("Email atau Password Salah!");
                 }
-            }, (error) => {
-                console.error("Error fetching real-time data: ", error);
-            });
-    }
-</script>
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        });
     </script>
 </body>
 </html>
