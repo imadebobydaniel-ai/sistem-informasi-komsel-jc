@@ -119,12 +119,11 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    // PENTING: Ambil ID dari memori
     const editID = localStorage.getItem("editMemberID");
 
     window.onload = async function() {
         if (!editID) {
-            alert("Tidak ada data yang dipilih! Klik tombol edit di Tabel Admin.");
+            alert("Tidak ada data yang dipilih!");
             window.location.href = 'admin.html';
             return;
         }
@@ -133,7 +132,6 @@
             const doc = await db.collection("users").doc(editID).get();
             if (doc.exists) {
                 const data = doc.data();
-                // Mengisi otomatis semua kolom form
                 document.getElementById("nk").value = data.nk || "-";
                 document.getElementById("namaLengkap").value = data.namaLengkap || "";
                 document.getElementById("email").value = data.email || "";
@@ -144,10 +142,11 @@
                 document.getElementById("jabatan").value = data.jabatan || "";
                 document.getElementById("komsel").value = data.komsel || "";
             }
-        } catch (e) { alert("Gagal memuat data: " + e.message); }
+        } catch (e) {
+            console.error("Gagal memuat data:", e);
+        }
     };
 
-    // Fungsi Ikon Mata
     document.getElementById('eyeIcon').addEventListener('click', function() {
         const passInput = document.getElementById('password');
         const type = passInput.getAttribute('type') === 'password' ? 'text' : 'password';
@@ -171,15 +170,9 @@
         try {
             await db.collection("users").doc(editID).update(userData);
             document.getElementById('blocking-message').style.display = 'flex';
-        } catch (error) { alert("Gagal update: " + error.message); }
-        // PASTIKAN FUNGSI INI ADA DI FILE admin.html ANDA
-function editMember(id) {
-    // 1. Simpan ID ke memori sementara (localStorage)
-    localStorage.setItem("editMemberID", id);
-    
-    // 2. Pindah ke halaman edit (sesuaikan nama filenya, misal: edit_anggota.html)
-    window.location.href = 'edit_anggota.html'; 
-}
+        } catch (error) {
+            alert("Error: " + error.message);
+        }
     }
 
     function redirectBack() {
