@@ -11,15 +11,11 @@
         .logo { width: 80px; margin-bottom: 20px; }
         h2 { margin: 10px 0; font-size: 20px; color: #333; }
         h3 { color: #ffcc00; margin-bottom: 20px; font-size: 18px; text-shadow: 1px 1px 2px #000; }
-        
         form { text-align: left; }
         .form-group { margin-bottom: 20px; position: relative; }
         input { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; outline: none; }
-        
         .toggle-password { position: absolute; right: 15px; top: 12px; cursor: pointer; color: #999; }
-
         .btn-login { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        
         .footer-links { margin-top: 25px; font-size: 14px; color: #666; }
         .footer-links a { color: #007bff; text-decoration: none; font-weight: bold; }
         .admin-link { display: block; margin-top: 15px; color: #666; text-decoration: none; font-size: 13px; }
@@ -35,10 +31,10 @@
 
         <form id="loginForm">
             <div class="form-group">
-                <input type="email" id="login_email" placeholder="Email Anggota" required>
+                <input type="email" id="email" placeholder="Email Anggota" required>
             </div>
             <div class="form-group">
-                <input type="password" id="login_password" placeholder="Password" required>
+                <input type="password" id="pass" placeholder="Password" required>
                 <i class="fa-solid fa-eye toggle-password" id="eyeIconLogin" onclick="togglePassLogin()"></i>
             </div>
             <button type="submit" class="btn-login">MASUK</button>
@@ -47,13 +43,27 @@
         <div class="footer-links">
             Belum punya akun? <a href="registrasi.html">Daftar Sekarang</a>
         </div>
-        
         <a href="login_admin.html" class="admin-link">Masuk sebagai Admin</a>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
     <script>
+        // Config Firebase Anda
+        const firebaseConfig = {
+            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+            authDomain: "boby-apps-project.firebaseapp.com",
+            projectId: "boby-apps-project",
+            storageBucket: "boby-apps-project.firebasestorage.app",
+            messagingSenderId: "125984859692",
+            appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
         function togglePassLogin() {
-            const passInput = document.getElementById('login_password');
+            const passInput = document.getElementById('pass');
             const eyeIcon = document.getElementById('eyeIconLogin');
             if (passInput.type === 'password') {
                 passInput.type = 'text';
@@ -64,15 +74,31 @@
             }
         }
 
-        // Script navigasi utama
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        // Handle Login dengan Firebase + localStorage agar tidak mental
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const email = document.getElementById('login_email').value;
-            const password = document.getElementById('login_password').value;
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('pass').value;
 
-            if (email && password) {
-                // Berpindah ke menu.html sesuai daftar file di repositori
-                window.location.replace("menu.html"); 
+            try {
+                const snapshot = await db.collection("users")
+                    .where("email", "==", email)
+                    .where("password", "==", pass)
+                    .get();
+
+                if (!snapshot.empty) {
+                    const user = snapshot.docs[0].data();
+                    // SIMPAN DATA KE STORAGE (Sangat Penting agar menu.html tidak me-reject Anda)
+                    localStorage.setItem("userEmail", email);
+                    localStorage.setItem("userName", user.nama);
+                    
+                    // Navigasi Permanen
+                    window.location.replace("menu.html");
+                } else {
+                    alert("Email atau Password Salah!");
+                }
+            } catch (error) {
+                alert("Terjadi kesalahan: " + error.message);
             }
         });
     </script>
