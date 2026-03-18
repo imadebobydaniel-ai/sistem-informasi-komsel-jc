@@ -11,18 +11,18 @@
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 20px; }
         h3 { color: #333; text-align: center; margin-bottom: 20px; text-transform: uppercase; font-size: 16px; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
         
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        .form-group select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; outline: none; }
+
         .stat-section { margin-bottom: 25px; }
         .stat-label { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; color: #555; margin-bottom: 8px; }
         .stat-label span:last-child { color: #007bff; }
 
-        /* Progress Bar Style */
         .progress-container { background: #eee; border-radius: 10px; height: 12px; width: 100%; overflow: hidden; position: relative; }
-        .progress-bar { height: 100%; border-radius: 10px; transition: width 1s ease-in-out; }
-        
-        /* Warna Dinamis */
+        .progress-bar { height: 100%; border-radius: 10px; transition: width 0.5s ease-in-out; }
         .bg-alkitab { background: linear-gradient(90deg, #007bff, #00c6ff); }
         .bg-kehadiran { background: linear-gradient(90deg, #28a745, #a8e063); }
-        .bg-darah { background: linear-gradient(90deg, #dc3545, #ff6b6b); }
 
         .blood-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
         .blood-box { background: #fff5f5; border: 1px solid #ffcccc; padding: 10px; border-radius: 12px; text-align: center; }
@@ -38,13 +38,24 @@
     <div class="card">
         <h3><i class="fa-solid fa-chart-pie"></i> Capaian Baca Alkitab</h3>
         
+        <div class="form-group">
+            <label>Pilih Komsel</label>
+            <select id="select-komsel" onchange="updateStatistikKomsel()">
+                <option value="JC 1">JC 1</option>
+                <option value="JC 2">JC 2</option>
+                <option value="JC 3">JC 3</option>
+                <option value="JC 4">JC 4</option>
+                <option value="JC 5">JC 5</option>
+            </select>
+        </div>
+
         <div class="stat-section">
             <div class="stat-label">
-                <span>Komsel Anda (Bulan Ini)</span>
-                <span id="pct-alkitab-user">0%</span>
+                <span id="label-komsel">Capaian JC 1</span>
+                <span id="pct-alkitab-komsel">0%</span>
             </div>
             <div class="progress-container">
-                <div id="bar-alkitab-user" class="progress-bar bg-alkitab" style="width: 0%"></div>
+                <div id="bar-alkitab-komsel" class="progress-bar bg-alkitab" style="width: 0%"></div>
             </div>
         </div>
 
@@ -104,49 +115,44 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    async function loadStatistik() {
-        const userEmail = localStorage.getItem("userEmail");
-        const currentMonth = new Date().getMonth() + 1;
+    const currentMonth = new Date().getMonth() + 1;
+    const totalDays = new Date(new Date().getFullYear(), currentMonth, 0).getDate();
 
-        // 1. STATISTIK ALKITAB (Contoh hitung berdasarkan jumlah hari dalam bulan ini)
-        const totalDays = new Date(new Date().getFullYear(), currentMonth, 0).getDate();
-        
-        const snapAlkitab = await db.collection("laporan_bacaan")
-            .where("email", "==", userEmail)
+    async function updateStatistikKomsel() {
+        const selectedJC = document.getElementById('select-komsel').value;
+        document.getElementById('label-komsel').innerText = "Capaian " + selectedJC;
+
+        // Hitung total jemaat di komsel tersebut
+        const snapUsers = await db.collection("users").where("komsel", "==", selectedJC.replace("JC ", "")).get();
+        const totalJemaat = snapUsers.size || 1; // Hindari pembagian dengan nol
+
+        // Ambil laporan bacaan bulan ini untuk komsel tersebut
+        const snapLaporan = await db.collection("laporan_bacaan")
+            .where("komsel", "==", selectedJC.replace("JC ", ""))
             .where("bulan", "==", currentMonth).get();
         
-        const countLapor = snapAlkitab.size;
-        const pctUser = Math.min((countLapor / totalDays) * 100, 100).toFixed(1);
+        const countLapor = snapLaporan.size;
+        const targetLaporan = totalJemaat * totalDays;
+        const pctKomsel = Math.min((countLapor / targetLaporan) * 100, 100).toFixed(1);
         
-        document.getElementById('pct-alkitab-user').innerText = pctUser + "%";
-        document.getElementById('bar-alkitab-user').style.width = pctUser + "%";
+        document.getElementById('pct-alkitab-komsel').innerText = pctKomsel + "%";
+        document.getElementById('bar-alkitab-komsel').style.width = pctKomsel + "%";
+    }
 
-        // Alkitab Global (Asumsi target adalah total user * hari)
+    async function loadGlobalData() {
+        // Alkitab Global
         const snapGlobal = await db.collection("laporan_bacaan")
             .where("bulan", "==", currentMonth).get();
-        const pctGlobal = Math.min((snapGlobal.size / (50 * totalDays)) * 100, 100).toFixed(1); // 50 adalah estimasi total jemaat
+        const totalUserSnap = await db.collection("users").get();
+        const globalTarget = totalUserSnap.size * totalDays;
+        const pctGlobal = globalTarget > 0 ? Math.min((snapGlobal.size / globalTarget) * 100, 100).toFixed(1) : 0;
+        
         document.getElementById('pct-alkitab-global').innerText = pctGlobal + "%";
         document.getElementById('bar-alkitab-global').style.width = pctGlobal + "%";
 
-        // 2. STATISTIK KEHADIRAN
-        const snapHadir = await db.collection("kehadiran")
-            .where("email", "==", userEmail).get();
-        let hadir = 0; let absen = 0;
-        snapHadir.forEach(doc => {
-            if(doc.data().status === "Hadir") hadir++; else absen++;
-        });
-        const totalKehadiran = hadir + absen;
-        const pctHadir = totalKehadiran > 0 ? ((hadir / totalKehadiran) * 100).toFixed(1) : 0;
-        
-        document.getElementById('pct-hadir').innerText = pctHadir + "%";
-        document.getElementById('bar-hadir').style.width = pctHadir + "%";
-        document.getElementById('count-hadir').innerText = "Hadir: " + hadir;
-        document.getElementById('count-absen').innerText = "Tidak Hadir: " + absen;
-
-        // 3. GOLONGAN DARAH
-        const snapUsers = await db.collection("users").get();
+        // Golongan Darah
         let darah = { A: 0, B: 0, AB: 0, O: 0 };
-        snapUsers.forEach(doc => {
+        totalUserSnap.forEach(doc => {
             const gd = doc.data().golongan_darah;
             if(darah.hasOwnProperty(gd)) darah[gd]++;
         });
@@ -156,7 +162,9 @@
         document.getElementById('goldar-o').innerText = darah.O;
     }
 
-    loadStatistik();
+    // Inisialisasi
+    updateStatistikKomsel();
+    loadGlobalData();
 </script>
 </body>
 </html>
