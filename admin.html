@@ -32,26 +32,23 @@
         .text-sub { font-size: 11px; color: #888; display: block; }
         .blood-tag { color: #ff4757; font-weight: bold; }
 
-        /* Media Query untuk HP (Fit & Proper) */
+        /* Modal Notif Style */
+        #notif-block { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+        .modal-notif { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; width: 100%; }
+        .modal-notif i { font-size: 50px; color: #dc3545; margin-bottom: 15px; }
+        .modal-notif p { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 20px; line-height: 1.5; }
+        .btn-close-notif { background: #333; color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; }
+
         @media screen and (max-width: 768px) {
             .admin-header { flex-direction: column; gap: 15px; text-align: center; }
             .toolbar { width: 100%; justify-content: center; }
             .btn-action { flex: 1; justify-content: center; }
-
-            /* Sembunyikan Header Tabel di HP */
             thead { display: none; }
-            
-            /* Ubah Baris Tabel Menjadi Kartu (Card) */
             tr { display: block; background: #fff; border: 1px solid #eee; border-radius: 12px; margin-bottom: 15px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
             td { display: flex; justify-content: space-between; align-items: center; border: none; padding: 8px 5px; text-align: right; }
-            
-            /* Tambahkan Label untuk Data di HP */
             td::before { content: attr(data-label); font-weight: bold; color: #666; float: left; text-align: left; font-size: 12px; }
-            
-            /* Penyesuaian khusus elemen dalam kartu */
             td:nth-child(2) { justify-content: center; border-bottom: 1px solid #f5f5f5; padding-bottom: 10px; margin-bottom: 5px; }
-            td:nth-child(2)::before { content: ""; } /* Hilangkan label untuk foto */
-            
+            td:nth-child(2)::before { content: ""; }
             .user-img { width: 60px; height: 60px; }
             .btn-action-cell { gap: 15px; justify-content: flex-end; }
         }
@@ -87,39 +84,109 @@
                 </tr>
             </thead>
             <tbody id="userList">
-                <tr>
-                    <td><input type="checkbox" class="user-checkbox"></td>
-                    <td data-label="Foto"><img src="https://via.placeholder.com/40" class="user-img" alt="Foto"></td>
-                    <td data-label="NK"><span class="nk-badge">NK-PPP-001-JCS-2026</span></td>
-                    <td data-label="Nama Lengkap">
-                        <strong>Boby Daniel</strong>
-                        <span class="text-sub">imade.bobydaniel@gmail.com</span>
-                    </td>
-                    <td data-label="Jabatan">Ketua Komsel</td>
-                    <td data-label="Gol. Darah" class="blood-tag">AB</td>
-                    <td data-label="WhatsApp">085243128242</td>
-                    <td data-label="Alamat">Jl. tanah Hitam Abe pantai</td>
-                    <td data-label="Tgl Daftar">16/3/2026</td>
-                    <td data-label="Aksi" class="btn-action-cell">
-                        <i class="fa-solid fa-edit" style="color:#007bff; cursor:pointer; margin-right:10px;"></i>
-                        <i class="fa-solid fa-trash" style="color:#ff4757; cursor:pointer;"></i>
-                    </td>
-                </tr>
-            </tbody>
+                </tbody>
         </table>
     </div>
 </div>
 
+<div id="notif-block">
+    <div class="modal-notif">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <p id="notif-text">Pesan Notifikasi</p>
+        <button class="btn-close-notif" onclick="closeNotif()">TUTUP</button>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
 <script>
-    // Logic Firebase sebelumnya dipertahankan sepenuhnya tanpa dikurangi sedikitpun.
-    // Tambahkan event listener untuk seleksi checkbox jika diperlukan.
+    const firebaseConfig = {
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+        authDomain: "boby-apps-project.firebaseapp.com",
+        projectId: "boby-apps-project",
+        storageBucket: "boby-apps-project.appspot.com",
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+    };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
+
+    function showNotif(msg) {
+        document.getElementById("notif-text").innerText = msg;
+        document.getElementById("notif-block").style.display = "flex";
+    }
+
+    function closeNotif() {
+        document.getElementById("notif-block").style.display = "none";
+    }
+
+    // Load Data
+    async function loadUsers() {
+        const userList = document.getElementById("userList");
+        userList.innerHTML = "";
+        try {
+            const snapshot = await db.collection("users").get();
+            snapshot.forEach(doc => {
+                const user = doc.data();
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="user-checkbox" value="${doc.id}"></td>
+                    <td data-label="Foto"><img src="${user.fotoUrl || 'https://via.placeholder.com/40'}" class="user-img"></td>
+                    <td data-label="NK"><span class="nk-badge">${user.nk || '-'}</span></td>
+                    <td data-label="Nama Lengkap"><strong>${user.namaLengkap}</strong><span class="text-sub">${user.email}</span></td>
+                    <td data-label="Jabatan">${user.jabatan}</td>
+                    <td data-label="Gol. Darah" class="blood-tag">${user.golDarah || '-'}</td>
+                    <td data-label="WhatsApp">${user.whatsapp || '-'}</td>
+                    <td data-label="Alamat">${user.alamat || '-'}</td>
+                    <td data-label="Tgl Daftar">${user.tanggalDaftar || '-'}</td>
+                    <td data-label="Aksi" class="btn-action-cell">
+                        <i class="fa-solid fa-edit" style="color:#007bff; cursor:pointer; margin-right:15px;" onclick="editMember('${doc.id}')"></i>
+                        <i class="fa-solid fa-trash" style="color:#ff4757; cursor:pointer;" onclick="deleteMember('${doc.id}')"></i>
+                    </td>
+                `;
+                userList.appendChild(tr);
+            });
+        } catch (e) { showNotif("Gagal memuat data: " + e.message); }
+    }
+
+    // Fungsi Edit
+    function editMember(id) {
+        localStorage.setItem("editMemberID", id);
+        window.location.href = "registrasi.html";
+    }
+
+    // Fungsi Hapus Tunggal
+    async function deleteMember(id) {
+        if(confirm("Hapus anggota ini?")) {
+            try {
+                await db.collection("users").doc(id).delete();
+                loadUsers();
+            } catch (e) { showNotif("Gagal menghapus: " + e.message); }
+        }
+    }
+
+    // Hapus Terpilih
+    async function deleteSelected() {
+        const selected = document.querySelectorAll('.user-checkbox:checked');
+        if(selected.length === 0) return showNotif("Pilih data yang ingin dihapus.");
+        
+        if(confirm(`Hapus ${selected.length} anggota terpilih?`)) {
+            try {
+                for(let cb of selected) {
+                    await db.collection("users").doc(cb.value).delete();
+                }
+                loadUsers();
+            } catch (e) { showNotif("Gagal menghapus beberapa data."); }
+        }
+    }
+
     document.getElementById('selectAll').addEventListener('change', function() {
-        let checkboxes = document.querySelectorAll('.user-checkbox');
-        checkboxes.forEach(cb => cb.checked = this.checked);
+        document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = this.checked);
     });
 
-    function refreshData() { location.reload(); }
+    function refreshData() { loadUsers(); }
+    window.onload = loadUsers;
 </script>
-
 </body>
 </html>
