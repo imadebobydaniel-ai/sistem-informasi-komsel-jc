@@ -21,9 +21,16 @@
 
         .btn-selesai { width: 100%; background: #28a745; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; }
         .btn-selesai:disabled { background: #ccc; cursor: not-allowed; }
-        .btn-selesai:hover:not(:disabled) { background: #218838; }
 
         .btn-back { display: inline-block; margin-top: 20px; text-decoration: none; color: #007bff; font-weight: bold; font-size: 14px; }
+
+        /* MODAL BLOCKING STYLE */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+        .modal-box { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 400px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .modal-box i { font-size: 50px; margin-bottom: 15px; }
+        .modal-box h2 { margin: 0 0 10px 0; font-size: 20px; }
+        .modal-box p { color: #666; margin-bottom: 20px; line-height: 1.5; }
+        .modal-btn { background: #007bff; color: white; border: none; padding: 12px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; }
     </style>
 </head>
 <body>
@@ -61,6 +68,15 @@
     <a href="menu.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Kembali ke Menu</a>
 </div>
 
+<div id="customModal" class="modal-overlay">
+    <div class="modal-box">
+        <i id="modalIcon"></i>
+        <h2 id="modalTitle">Judul</h2>
+        <p id="modalMsg">Pesan laporan Anda.</p>
+        <button class="modal-btn" id="modalAction" onclick="closeModal()">OK</button>
+    </div>
+</div>
+
 <audio id="alarm-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -82,6 +98,40 @@
     const today = new Date();
     const dateKey = today.toISOString().split('T')[0];
 
+    // Fungsi Panggil Modal
+    function showModal(title, msg, type, redirect = false) {
+        const modal = document.getElementById('customModal');
+        const icon = document.getElementById('modalIcon');
+        const actionBtn = document.getElementById('modalAction');
+
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('modalMsg').innerText = msg;
+
+        // Atur warna berdasarkan tipe
+        if (type === 'success') {
+            icon.className = "fa-solid fa-circle-check";
+            icon.style.color = "#28a745";
+        } else if (type === 'warning') {
+            icon.className = "fa-solid fa-triangle-exclamation";
+            icon.style.color = "#ffc107";
+        } else if (type === 'error') {
+            icon.className = "fa-solid fa-circle-xmark";
+            icon.style.color = "#dc3545";
+        }
+
+        modal.style.display = "flex";
+
+        if (redirect) {
+            actionBtn.onclick = function() { window.location.href = "menu.html"; };
+        } else {
+            actionBtn.onclick = closeModal;
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('customModal').style.display = "none";
+    }
+
     function initHalaman() {
         const opsi = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
         document.getElementById('tgl-sekarang').innerText = today.toLocaleDateString('id-ID', opsi);
@@ -99,7 +149,7 @@
         if (sekarang.getHours() === 21 && sekarang.getMinutes() === 30) {
             const sound = document.getElementById('alarm-sound');
             sound.play().catch(() => {});
-            alert("PENGINGAT: Segera kirim laporan bacaan Alkitab Anda sebelum batas waktu 22:30!");
+            showModal("WAKTU PELAPORAN", "Segera kirim laporan bacaan Alkitab Anda sebelum batas waktu 22:30!", "warning");
         }
     }
     setInterval(cekAlarm, 60000);
@@ -123,7 +173,7 @@
 
         // 1. Validasi Jam (Maks 22:30)
         if (jam > 22 || (jam === 22 && menit > 30)) {
-            alert("Maaf Laporan anda melewati jam yang ditentukan.");
+            showModal("AKSES DITOLAK", "Maaf Laporan anda melewati jam yang ditentukan.", "error");
             return;
         }
 
@@ -131,19 +181,16 @@
         btnSubmit.disabled = true;
 
         try {
-            // 2. Cek apakah sudah pernah melapor hari ini
             const cekLaporan = await db.collection("laporan_bacaan")
                 .where("email", "==", userEmail)
                 .where("tanggal", "==", dateKey)
                 .get();
 
             if (!cekLaporan.empty) {
-                alert("anda tadi sudah melakukan pelaporan");
-                window.location.href = "menu.html";
+                showModal("INFO", "anda tadi sudah melakukan pelaporan", "warning", true);
                 return;
             }
 
-            // 3. Jika belum, simpan data baru
             btnSubmit.innerText = "Mengirim...";
             await db.collection("laporan_bacaan").add({
                 email: userEmail,
@@ -155,11 +202,10 @@
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            alert("Terimakasih untuk laporan anda");
-            window.location.href = "menu.html";
+            showModal("BERHASIL", "Terimakasih untuk laporan anda", "success", true);
 
         } catch (error) {
-            alert("Gagal mengirim laporan.");
+            showModal("GAGAL", "Gagal mengirim laporan. Coba lagi.", "error");
             btnSubmit.innerText = "KIRIM LAPORAN SEKARANG";
             btnSubmit.disabled = false;
         }
