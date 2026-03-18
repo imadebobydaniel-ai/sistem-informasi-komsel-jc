@@ -10,29 +10,24 @@
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 10px; }
         .admin-container { max-width: 1000px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         
-        /* Header & Navigasi */
         .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
         .admin-header h2 { font-size: 18px; margin: 0; color: #333; }
         .btn-menu { text-decoration: none; font-size: 12px; background: #333; color: white; padding: 8px 12px; border-radius: 8px; font-weight: bold; }
 
-        /* Toolbar Tombol */
         .toolbar { display: flex; gap: 10px; margin-bottom: 15px; }
         .btn-action { border: none; padding: 10px 15px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; color: white; display: flex; align-items: center; gap: 5px; }
         .btn-delete { background: #ff4757; }
         .btn-refresh { background: #007bff; }
 
-        /* Pengaturan Tabel Responsif (Mobile Friendly) */
         .table-responsive { width: 100%; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
         th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6; color: #666; }
         td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
         
         .user-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #eee; }
-        .nk-badge { background: #e3f2fd; color: #007bff; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 11px; }
         .text-sub { font-size: 11px; color: #888; display: block; }
         .blood-tag { color: #ff4757; font-weight: bold; }
 
-        /* Modal Notif Style */
         #notif-block { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
         .modal-notif { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; width: 100%; }
         .modal-notif i { font-size: 50px; color: #dc3545; margin-bottom: 15px; }
@@ -41,16 +36,12 @@
 
         @media screen and (max-width: 768px) {
             .admin-header { flex-direction: column; gap: 15px; text-align: center; }
-            .toolbar { width: 100%; justify-content: center; }
-            .btn-action { flex: 1; justify-content: center; }
             thead { display: none; }
-            tr { display: block; background: #fff; border: 1px solid #eee; border-radius: 12px; margin-bottom: 15px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+            tr { display: block; background: #fff; border: 1px solid #eee; border-radius: 12px; margin-bottom: 15px; padding: 10px; }
             td { display: flex; justify-content: space-between; align-items: center; border: none; padding: 8px 5px; text-align: right; }
             td::before { content: attr(data-label); font-weight: bold; color: #666; float: left; text-align: left; font-size: 12px; }
-            td:nth-child(2) { justify-content: center; border-bottom: 1px solid #f5f5f5; padding-bottom: 10px; margin-bottom: 5px; }
+            td:nth-child(2) { justify-content: center; }
             td:nth-child(2)::before { content: ""; }
-            .user-img { width: 60px; height: 60px; }
-            .btn-action-cell { gap: 15px; justify-content: flex-end; }
         }
     </style>
 </head>
@@ -73,7 +64,6 @@
                 <tr>
                     <th style="width: 30px;"><input type="checkbox" id="selectAll"></th>
                     <th>Foto</th>
-                    <th>NK</th>
                     <th>Nama Lengkap</th>
                     <th>Jabatan</th>
                     <th>Gol. Darah</th>
@@ -83,8 +73,7 @@
                     <th>Aksi</th>
                 </tr>
             </thead>
-            <tbody id="userList">
-                </tbody>
+            <tbody id="userList"></tbody>
         </table>
     </div>
 </div>
@@ -92,7 +81,7 @@
 <div id="notif-block">
     <div class="modal-notif">
         <i class="fa-solid fa-circle-exclamation"></i>
-        <p id="notif-text">Pesan Notifikasi</p>
+        <p id="notif-text"></p>
         <button class="btn-close-notif" onclick="closeNotif()">TUTUP</button>
     </div>
 </div>
@@ -117,11 +106,8 @@
         document.getElementById("notif-block").style.display = "flex";
     }
 
-    function closeNotif() {
-        document.getElementById("notif-block").style.display = "none";
-    }
+    function closeNotif() { document.getElementById("notif-block").style.display = "none"; }
 
-    // Load Data
     async function loadUsers() {
         const userList = document.getElementById("userList");
         userList.innerHTML = "";
@@ -133,7 +119,6 @@
                 tr.innerHTML = `
                     <td><input type="checkbox" class="user-checkbox" value="${doc.id}"></td>
                     <td data-label="Foto"><img src="${user.fotoUrl || 'https://via.placeholder.com/40'}" class="user-img"></td>
-                    <td data-label="NK"><span class="nk-badge">${user.nk || '-'}</span></td>
                     <td data-label="Nama Lengkap"><strong>${user.namaLengkap}</strong><span class="text-sub">${user.email}</span></td>
                     <td data-label="Jabatan">${user.jabatan}</td>
                     <td data-label="Gol. Darah" class="blood-tag">${user.golDarah || '-'}</td>
@@ -150,13 +135,11 @@
         } catch (e) { showNotif("Gagal memuat data: " + e.message); }
     }
 
-    // Fungsi Edit
     function editMember(id) {
         localStorage.setItem("editMemberID", id);
         window.location.href = "registrasi.html";
     }
 
-    // Fungsi Hapus Tunggal
     async function deleteMember(id) {
         if(confirm("Hapus anggota ini?")) {
             try {
@@ -166,18 +149,14 @@
         }
     }
 
-    // Hapus Terpilih
     async function deleteSelected() {
         const selected = document.querySelectorAll('.user-checkbox:checked');
         if(selected.length === 0) return showNotif("Pilih data yang ingin dihapus.");
-        
-        if(confirm(`Hapus ${selected.length} anggota terpilih?`)) {
+        if(confirm(`Hapus ${selected.length} data terpilih?`)) {
             try {
-                for(let cb of selected) {
-                    await db.collection("users").doc(cb.value).delete();
-                }
+                for(let cb of selected) { await db.collection("users").doc(cb.value).delete(); }
                 loadUsers();
-            } catch (e) { showNotif("Gagal menghapus beberapa data."); }
+            } catch (e) { showNotif("Gagal menghapus data."); }
         }
     }
 
