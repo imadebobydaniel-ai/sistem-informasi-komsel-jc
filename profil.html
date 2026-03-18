@@ -147,6 +147,25 @@
             alert("Gagal upload: " + error.message);
             document.getElementById('view-foto').style.opacity = "1";
         }
+        // Fungsi Sinkronisasi Profil
+async function sinkronkanProfil() {
+    const userEmail = localStorage.getItem("userEmail");
+    if (!userEmail) return;
+
+    const userDoc = await db.collection("users").doc(userEmail).get();
+    
+    if (userDoc.exists) {
+        const data = userDoc.data();
+        document.getElementById("prof-nama").innerText = data.nama_lengkap;
+        document.getElementById("prof-komsel").innerText = "JC " + data.komsel;
+        document.getElementById("prof-darah").innerText = data.golongan_darah;
+        document.getElementById("prof-status").innerText = data.status || "Anggota";
+        // Foto profil jika ada
+        if (data.foto_url) {
+            document.getElementById("img-profil").src = data.foto_url;
+        }
+    }
+}
     }
 </script>
 </body>
