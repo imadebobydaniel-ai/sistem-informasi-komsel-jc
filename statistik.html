@@ -6,103 +6,57 @@
     <title>Statistik - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; padding-bottom: 80px; }
-        .container { max-width: 450px; margin: auto; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 25px; text-align: center; }
-        
-        h3 { margin-top: 0; color: #333; font-size: 16px; text-transform: uppercase; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 15px; }
-        
-        /* Dropdown Periode */
-        .filter-periode { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; font-size: 13px; font-weight: bold; background: #f9f9f9; }
-
-        .percentage { font-size: 48px; font-weight: 800; color: #007bff; margin: 10px 0; }
-        .progress-container { background: #eee; border-radius: 20px; height: 15px; width: 100%; overflow: hidden; margin-bottom: 15px; }
-        .progress-bar { background: #007bff; height: 100%; width: 0%; transition: width 0.5s; }
-        
-        /* Tabel Statistik */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-        th { background-color: #007bff; color: white; text-transform: uppercase; }
-        .blood-type { font-weight: bold; color: #dc3545; font-size: 18px; }
-
-        .btn-back { 
-            display: flex; align-items: center; justify-content: center; text-decoration: none; 
-            color: white; font-weight: bold; padding: 15px; background: #007bff; 
-            border-radius: 15px; position: fixed; bottom: 20px; left: 20px; right: 20px; z-index: 1000;
-        }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+        .stats-container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn-back { text-decoration: none; color: #333; font-weight: bold; font-size: 14px; }
+        .card { background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 5px solid #007bff; }
+        .card h4 { margin: 0 0 10px 0; color: #555; font-size: 14px; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .stat-item { background: white; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #ddd; }
+        .stat-item span { display: block; font-size: 18px; font-weight: bold; color: #333; }
+        .stat-item label { font-size: 11px; color: #777; }
+        select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="card">
-        <h3><i class="fa-solid fa-book-bible"></i> CAPAIAN ALKITAB</h3>
-        <select id="periode-alkitab" class="filter-periode" onchange="updateAlkitab()">
-            <option value="1">Periode 1 Bulan</option>
-            <option value="2">Periode 2 Bulan</option>
-            <option value="3">Periode 3 Bulan</option>
-            <option value="4">Periode 4 Bulan</option>
-            <option value="5">Periode 5 Bulan</option>
-            <option value="6">Periode 6 Bulan</option>
-        </select>
-        <div class="percentage" id="pct-alkitab">0%</div>
-        <div class="progress-container">
-            <div class="progress-bar" id="bar-alkitab"></div>
-        </div>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>Target</th>
-                    <th>Capaian</th>
-                    <th>Pertumbuhan</th>
-                </tr>
-            </thead>
-            <tbody id="table-alkitab">
-                <tr>
-                    <td id="target-alkitab">-</td>
-                    <td id="real-alkitab">-</td>
-                    <td id="grow-alkitab">-</td>
-                </tr>
-            </tbody>
-        </table>
+<div class="stats-container">
+    <div class="header">
+        <a href="menu.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Kembali</a>
+        <h3 style="margin:0;">Statistik Anggota</h3>
     </div>
 
+    <label>Pilih Komsel:</label>
+    <select id="select-komsel" onchange="loadStatistik(this.value)">
+        <option value="5">JC 5 (Jayapura)</option>
+        <option value="1">JC 1</option>
+        <option value="2">JC 2</option>
+        <option value="3">JC 3</option>
+        <option value="4">JC 4</option>
+    </select>
+
     <div class="card">
-        <h3><i class="fa-solid fa-users"></i> KEHADIRAN KOMSEL</h3>
-        <select id="periode-hadir" class="filter-periode" onchange="updateHadir()">
-            <option value="1">Periode 1 Bulan</option>
-            <option value="2">Periode 2 Bulan</option>
-            <option value="3">Periode 3 Bulan</option>
-            <option value="4">Periode 4 Bulan</option>
-            <option value="5">Periode 5 Bulan</option>
-            <option value="6">Periode 6 Bulan</option>
-        </select>
-        <div class="percentage" id="pct-hadir" style="color: #28a745;">0%</div>
-        <div class="progress-container">
-            <div class="progress-bar" id="bar-hadir" style="background: #28a745;"></div>
+        <h4><i class="fa-solid fa-droplet" style="color:red;"></i> Distribusi Golongan Darah</h4>
+        <div class="stat-grid">
+            <div class="stat-item">
+                <span id="count-a">0</span>
+                <label>Golongan A</label>
+            </div>
+            <div class="stat-item">
+                <span id="count-b">0</span>
+                <label>Golongan B</label>
+            </div>
+            <div class="stat-item">
+                <span id="count-ab">0</span>
+                <label>Golongan AB</label>
+            </div>
+            <div class="stat-item">
+                <span id="count-o">0</span>
+                <label>Golongan O</label>
+            </div>
         </div>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>Total Anggota</th>
-                    <th>Hadir</th>
-                    <th>Gol. Darah</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td id="total-anggota">-</td>
-                    <td id="total-hadir">-</td>
-                    <td class="blood-type" id="user-blood">-</td>
-                </tr>
-            </tbody>
-        </table>
-        <p style="font-size: 12px; color: #666; margin-top: 10px;" id="lbl-jc">JC --</p>
     </div>
-
-    <a href="menu.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i> &nbsp; KEMBALI KE MENU UTAMA</a>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -120,43 +74,32 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    async function initStatistik() {
-        const email = localStorage.getItem("userEmail");
-        const userSnap = await db.collection("users").where("email", "==", email).get();
-        
-        if (!userSnap.empty) {
-            const userData = userSnap.docs[0].data();
-            const jc = userData.komsel;
-            document.getElementById('lbl-jc').innerText = "DATA STATISTIK JC " + jc;
-            document.getElementById('user-blood').innerText = userData.golongan_darah || "-";
+    function loadStatistik(komselId) {
+        // Menggunakan onSnapshot agar real-time
+        db.collection("users").where("komsel", "==", komselId.toString())
+        .onSnapshot((querySnapshot) => {
+            let counts = { A: 0, B: 0, AB: 0, O: 0 };
+            
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                // Normalisasi field ke uppercase untuk menghindari error penulisan 'ab' atau 'AB'
+                const goldar = data.gol_darah ? data.gol_darah.toUpperCase() : null;
+                
+                if (goldar && counts.hasOwnProperty(goldar)) {
+                    counts[goldar]++;
+                }
+            });
 
-            // Ambil jumlah anggota JC
-            const allUsers = await db.collection("users").where("komsel", "==", jc).get();
-            document.getElementById('total-anggota').innerText = allUsers.size + " Orang";
-
-            updateAlkitab();
-            updateHadir();
-        }
+            // Update DOM
+            document.getElementById('count-a').innerText = counts.A;
+            document.getElementById('count-b').innerText = counts.B;
+            document.getElementById('count-ab').innerText = counts.AB;
+            document.getElementById('count-o').innerText = counts.O;
+        });
     }
 
-    async function updateAlkitab() {
-        // Logika penghitungan tetap dipertahankan sesuai sistem asli Anda
-        // Nilai di bawah adalah placeholder untuk tampilan struktur tabel
-        document.getElementById('target-alkitab').innerText = "100%";
-        document.getElementById('real-alkitab').innerText = "85%";
-        document.getElementById('grow-alkitab').innerText = "+5%";
-        document.getElementById('pct-alkitab').innerText = "85%";
-        document.getElementById('bar-alkitab').style.width = "85%";
-    }
-
-    async function updateHadir() {
-        // Logika penghitungan tetap dipertahankan sesuai sistem asli Anda
-        document.getElementById('total-hadir').innerText = "12 Kali";
-        document.getElementById('pct-hadir').innerText = "92%";
-        document.getElementById('bar-hadir').style.width = "92%";
-    }
-
-    window.onload = initStatistik;
+    // Load default JC 5 saat pertama buka
+    loadStatistik("5");
 </script>
 </body>
 </html>
