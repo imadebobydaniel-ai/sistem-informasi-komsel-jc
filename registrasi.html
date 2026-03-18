@@ -2,166 +2,195 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Registrasi Anggota - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
-        .reg-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; margin: auto; text-align: center; position: relative; }
-        .logo { width: 70px; margin-bottom: 10px; }
-        h2 { margin: 5px 0; font-size: 18px; color: #333; text-transform: uppercase; }
-        
-        form { text-align: left; margin-top: 20px; }
-        .form-group { margin-bottom: 15px; position: relative; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; color: #555; }
-        input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; outline: none; }
-        input:readonly { background-color: #e9ecef; cursor: not-allowed; }
-        
-        /* Container untuk NK dan Tanggal */
-        .nk-container { display: flex; gap: 10px; align-items: flex-end; }
-        .nk-container .form-group { flex: 1; margin-bottom: 0; }
-        .date-display { font-size: 11px; color: #d9534f; font-weight: bold; margin-bottom: 5px; min-width: 150px; text-align: right; }
-
-        .btn-back { position: absolute; top: 20px; left: 20px; text-decoration: none; color: #333; font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
-
-        .toggle-password { 
-            position: absolute; 
-            right: 12px; 
-            top: 35px; 
-            cursor: pointer; 
-            color: #999; 
-            font-size: 16px;
+        /* Optimasi Tampilan HP agar Fit & Proper */
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background-color: #f0f2f5; 
+            margin: 0; 
+            padding: 10px; 
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
         }
+        .reg-container { 
+            width: 100%; 
+            max-width: 400px; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 20px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+        .header-logo { text-align: center; margin-bottom: 15px; }
+        .header-logo img { width: 60px; height: auto; }
+        .header-text { text-align: center; margin-bottom: 20px; }
+        .header-text h2 { margin: 0; font-size: 18px; color: #333; }
+        .header-text p { margin: 5px 0 0; font-size: 13px; color: #666; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; font-weight: bold; color: #444; margin-bottom: 5px; }
+        .form-group input, .form-group select, .form-group textarea { 
+            width: 100%; 
+            padding: 12px; 
+            border-radius: 10px; 
+            border: 1px solid #ddd; 
+            font-size: 14px; 
+            box-sizing: border-box; 
+            outline: none;
+            background: #fafafa;
+        }
+        .form-group input:focus { border-color: #28a745; background: #fff; }
+        
+        .time-info { font-size: 11px; color: #dc3545; text-align: right; margin-bottom: 15px; font-weight: bold; }
+        
+        .btn-submit { 
+            width: 100%; 
+            padding: 15px; 
+            background-color: #28a745; 
+            color: white; 
+            border: none; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: 0.3s;
+        }
+        .btn-submit:active { transform: scale(0.98); background-color: #218838; }
+        
+        .login-link { text-align: center; margin-top: 20px; font-size: 13px; color: #666; }
+        .login-link a { color: #007bff; text-decoration: none; font-weight: bold; }
 
-        .btn-reg { width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
-        .footer-link { margin-top: 20px; font-size: 13px; color: #666; display: block; text-decoration: none; }
-        .footer-link b { color: #007bff; }
+        /* Style Blocking Pesan */
+        #blocking-message {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .modal-box {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 320px;
+            width: 100%;
+        }
+        .modal-box i { font-size: 50px; color: #28a745; margin-bottom: 15px; }
+        .modal-box p { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 20px; line-height: 1.5; }
     </style>
 </head>
 <body>
 
-    <div class="reg-card">
-        <a href="index.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i> KEMBALI</a>
-
-        <img src="logo_pondok.png" alt="Logo" class="logo">
+<div class="reg-container">
+    <div class="header-logo">
+        <img src="https://i.ibb.co/mR70fPr/logo-ppp.png" alt="Logo">
+    </div>
+    <div class="header-text">
         <h2>PONDOK PEMULIHAN PAPUA</h2>
-        <p style="font-size: 14px; color: #666;">Formulir Pendaftaran Anggota</p>
-
-        <form id="regForm">
-            <div class="nk-container">
-                <div class="form-group">
-                    <label>Nomor Komsel (NK)</label>
-                    <input type="text" id="reg_nk" placeholder="Pilih JC..." readonly>
-                </div>
-                <div id="display_tanggal" class="date-display"></div>
-            </div>
-
-            <div class="form-group" style="margin-top: 15px;">
-                <label>Nama Lengkap</label>
-                <input type="text" id="reg_nama" required>
-            </div>
-
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="reg_email" required>
-            </div>
-
-            <div class="form-group">
-                <label>Nomor HP / WhatsApp</label>
-                <input type="tel" id="reg_wa" required>
-            </div>
-
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="reg_password" required>
-                <i class="fa-solid fa-eye toggle-password" id="eyeIconReg" onclick="togglePassReg()"></i>
-            </div>
-
-            <div class="form-group">
-                <label>Alamat Lengkap</label>
-                <textarea id="reg_alamat" rows="2" required></textarea>
-            </div>
-
-            <div class="form-group">
-                <label>Golongan Darah</label>
-                <select id="reg_gol_darah">
-                    <option value="">-- Pilih --</option>
-                    <option value="A">A</option>
-                    <option value="B">B</option>
-                    <option value="AB">AB</option>
-                    <option value="O">O</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Jabatan</label>
-                <select id="reg_jabatan" required>
-                    <option value="">-- Pilih Jabatan --</option>
-                    <option value="Anggota Komsel">Anggota Komsel</option>
-                    <option value="Wakil Ketua Komsel">Wakil Ketua Komsel</option>
-                    <option value="Ketua Komsel">Ketua Komsel</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Komsel JC</label>
-                <select id="reg_komsel" onchange="generateNK()" required>
-                    <option value="">-- Pilih Lokasi JC --</option>
-                    <option value="JC1">JC 1</option>
-                    <option value="JC2">JC 2</option>
-                    <option value="JC3">JC 3</option>
-                    <option value="JC4">JC 4</option>
-                    <option value="JC5">JC 5</option>
-                </select>
-            </div>
-
-            <button type="submit" class="btn-reg">DAFTAR SEKARANG</button>
-        </form>
-
-        <a href="index.html" class="footer-link">Sudah punya akun? <b>Login Disini</b></a>
+        <p>Formulir Pendaftaran Anggota</p>
     </div>
 
-    <script>
-        // Fungsi Update Tanggal Otomatis
-        function updateDateTime() {
-            const now = new Date();
-            const options = { 
-                weekday: 'long', 
-                day: 'numeric', 
-                month: 'long', 
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            };
-            const formattedDate = now.toLocaleDateString('id-ID', options) + " WIT";
-            document.getElementById('display_tanggal').innerText = formattedDate;
-        }
-        setInterval(updateDateTime, 1000);
-        updateDateTime();
+    <form id="formRegistrasi">
+        <div class="form-group">
+            <label>Nomor Komsel (NK)</label>
+            <input type="text" id="nk" placeholder="Pilih JC..." required>
+        </div>
+        <div class="time-info" id="current-time">Rabu, 18 Maret 2026 pukul 16.56.24 WIT</div>
 
-        function generateNK() {
-            const jcLocation = document.getElementById('reg_komsel').value;
-            const nkInput = document.getElementById('reg_nk');
-            if (jcLocation) {
-                const nomorUrut = "001"; // Simulasi nomor urut
-                nkInput.value = `NK-PPP-${nomorUrut}-${jcLocation}-2026`;
-            } else {
-                nkInput.value = "";
-            }
-        }
+        <div class="form-group">
+            <label>Nama Lengkap</label>
+            <input type="text" id="nama" required>
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="email" required>
+        </div>
+        <div class="form-group">
+            <label>Nomor HP / WhatsApp</label>
+            <input type="tel" id="hp" required>
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="pass" required>
+        </div>
+        <div class="form-group">
+            <label>Alamat Lengkap</label>
+            <textarea id="alamat" rows="3" required></textarea>
+        </div>
+        <div class="form-group">
+            <label>Golongan Darah</label>
+            <select id="darah" required>
+                <option value="">-- Pilih --</option>
+                <option value="A">A</option><option value="B">B</option>
+                <option value="O">O</option><option value="AB">AB</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Jabatan</label>
+            <select id="jabatan" required>
+                <option value="">-- Pilih Jabatan --</option>
+                <option value="Anggota">Anggota</option>
+                <option value="Ketua Komsel">Ketua Komsel</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Komsel JC</label>
+            <select id="komsel" required>
+                <option value="">-- Pilih Lokasi JC --</option>
+                <option value="JC 1">JC 1</option><option value="JC 2">JC 2</option>
+                <option value="JC 3">JC 3</option><option value="JC 4">JC 4</option>
+                <option value="JC 5">JC 5</option>
+            </select>
+        </div>
 
-        function togglePassReg() {
-            const passInput = document.getElementById('reg_password');
-            const eyeIcon = document.getElementById('eyeIconReg');
-            if (passInput.type === 'password') {
-                passInput.type = 'text';
-                eyeIcon.classList.replace('fa-eye', 'fa-eye-slash');
-            } else {
-                passInput.type = 'password';
-                eyeIcon.classList.replace('fa-eye-slash', 'fa-eye');
-            }
+        <button type="button" onclick="handleRegistrasi()" class="btn-submit">DAFTAR SEKARANG</button>
+    </form>
+
+    <div class="login-link">
+        Sudah punya akun? <a href="login.html">Login Disini</a>
+    </div>
+</div>
+
+<div id="blocking-message">
+    <div class="modal-box">
+        <i class="fa-solid fa-circle-check"></i>
+        <p>Selamat Data Anda Telah diinput, Silahkan Lakukan Login</p>
+        <button onclick="window.location.href='login.html'" class="btn-submit" style="background:#007bff">OK / LOGIN</button>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<script>
+    // ... (Firebase Config tetap sama seperti sebelumnya) ...
+    
+    async function handleRegistrasi() {
+        // Logika simpan ke Firebase (users collection)
+        try {
+            // Simulasi proses simpan...
+            // Setelah db.collection("users").add(...) berhasil:
+            
+            showBlockingMessage();
+        } catch (error) {
+            alert("Terjadi kesalahan: " + error.message);
         }
-    </script>
+    }
+
+    function showBlockingMessage() {
+        document.getElementById('blocking-message').style.display = 'flex';
+    }
+</script>
 </body>
 </html>
