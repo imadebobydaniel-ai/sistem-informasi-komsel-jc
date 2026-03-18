@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baca Alkitab - Pondok Pemulihan Papua</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+        .container { max-width: 450px; margin: auto; text-align: center; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        h3 { color: #333; text-transform: uppercase; margin-bottom: 15px; }
+        
+        .target-box { background: #e7f1ff; padding: 15px; border-radius: 15px; border: 1px solid #b3d7ff; margin-bottom: 20px; }
+        .target-box h4 { margin: 5px 0; color: #007bff; font-size: 18px; }
+        .target-box p { margin: 0; font-size: 13px; color: #555; }
+
+        .check-item { display: flex; align-items: center; background: #f9f9f9; padding: 12px; border-radius: 10px; margin-bottom: 10px; text-align: left; }
+        .check-item input { width: 20px; height: 20px; margin-right: 15px; cursor: pointer; }
+        .check-item label { font-weight: bold; color: #333; cursor: pointer; flex: 1; }
+
+        .btn-selesai { width: 100%; background: #28a745; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .btn-selesai:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-selesai:hover:not(:disabled) { background: #218838; }
+
+        .btn-back { display: inline-block; margin-top: 20px; text-decoration: none; color: #007bff; font-weight: bold; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <h3><i class="fa-solid fa-book-bible"></i> Target Hari Ini</h3>
+        <p id="tgl-sekarang" style="font-weight: bold; color: #007bff;"></p>
+        <hr>
+        
+        <div class="target-box">
+            <p>Pasal Utama:</p>
+            <h4 id="display-pasal">Matius 15 - 18</h4>
+        </div>
+
+        <div class="target-box" style="background: #fff4e5; border-color: #ffe5b3;">
+            <p>Pasal Hikmat:</p>
+            <h4 id="display-amsal">Amsal 18</h4>
+        </div>
+
+        <div id="checklist-area">
+            <div class="check-item">
+                <input type="checkbox" id="check-utama">
+                <label for="check-utama">Selesai Membaca 4 Pasal Utama</label>
+            </div>
+            <div class="check-item">
+                <input type="checkbox" id="check-amsal">
+                <label for="check-amsal">Selesai Membaca Pasal Amsal</label>
+            </div>
+        </div>
+
+        <button id="btn-submit" class="btn-selesai" onclick="kirimLaporan()" disabled>KIRIM LAPORAN SEKARANG</button>
+    </div>
+
+    <a href="menu.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Kembali ke Menu</a>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+        authDomain: "boby-apps-project.firebaseapp.com",
+        projectId: "boby-apps-project",
+        storageBucket: "boby-apps-project.appspot.com",
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const userEmail = localStorage.getItem("userEmail");
+    const today = new Date();
+    const dateKey = today.toISOString().split('T')[0]; // Format YYYY-MM-DD
+
+    // 1. Otomatisasi Tanggal & Pasal Amsal
+    function initHalaman() {
+        const opsi = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
+        document.getElementById('tgl-sekarang').innerText = today.toLocaleDateString('id-ID', opsi);
+        
+        // Amsal otomatis mengikuti tanggal (1-31)
+        document.getElementById('display-amsal').innerText = "Amsal " + today.getDate();
+    }
+
+    // 2. Logika Button (Aktif jika kedua checkbox dicentang)
+    const checkUtama = document.getElementById('check-utama');
+    const checkAmsal = document.getElementById('check-amsal');
+    const btnSubmit = document.getElementById('btn-submit');
+
+    function validateCheck() {
+        btnSubmit.disabled = !(checkUtama.checked && checkAmsal.checked);
+    }
+    checkUtama.addEventListener('change', validateCheck);
+    checkAmsal.addEventListener('change', validateCheck);
+
+    // 3. Simpan Laporan ke Firebase
+    async function kirimLaporan() {
+        if (!userEmail) return;
+
+        btnSubmit.innerText = "Mengirim...";
+        btnSubmit.disabled = true;
+
+        try {
+            await db.collection("laporan_bacaan").add({
+                email: userEmail,
+                tanggal: dateKey,
+                bulan: (today.getMonth() + 1),
+                tahun: today.getFullYear(),
+                pasal_utama: document.getElementById('display-pasal').innerText,
+                pasal_amsal: document.getElementById('display-amsal').innerText,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            alert("Luar biasa! Laporan pembacaan hari ini berhasil dikirim.");
+            window.location.href = "menu.html";
+        } catch (error) {
+            console.error(error);
+            alert("Gagal mengirim laporan. Coba lagi.");
+            btnSubmit.innerText = "KIRIM LAPORAN SEKARANG";
+            btnSubmit.disabled = false;
+        }
+    }
+
+    initHalaman();
+</script>
+</body>
+</html>
