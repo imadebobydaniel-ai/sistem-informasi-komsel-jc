@@ -36,12 +36,12 @@
         
         <div class="target-box">
             <p>Pasal Utama:</p>
-            <h4 id="display-pasal">Matius 15 - 18</h4>
+            <h4 id="display-pasal">Matius --</h4>
         </div>
 
         <div class="target-box" style="background: #fff4e5; border-color: #ffe5b3;">
             <p>Pasal Hikmat:</p>
-            <h4 id="display-amsal">Amsal 18</h4>
+            <h4 id="display-amsal">Amsal --</h4>
         </div>
 
         <div id="checklist-area">
@@ -61,6 +61,8 @@
     <a href="menu.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Kembali ke Menu</a>
 </div>
 
+<audio id="alarm-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
@@ -78,18 +80,35 @@
 
     const userEmail = localStorage.getItem("userEmail");
     const today = new Date();
-    const dateKey = today.toISOString().split('T')[0]; // Format YYYY-MM-DD
 
-    // 1. Otomatisasi Tanggal & Pasal Amsal
+    // 1. Otomatisasi Pasal & Tanggal (Ganti setiap jam 12 malam)
     function initHalaman() {
         const opsi = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
         document.getElementById('tgl-sekarang').innerText = today.toLocaleDateString('id-ID', opsi);
         
-        // Amsal otomatis mengikuti tanggal (1-31)
+        // Amsal otomatis sesuai tanggal
         document.getElementById('display-amsal').innerText = "Amsal " + today.getDate();
+
+        // Logika Matius (Start 18 Maret 2026 = Matius 15-18)
+        const tglMulai = new Date("2026-03-18");
+        const selisihHari = Math.floor((today - tglMulai) / (1000 * 60 * 60 * 24));
+        const startPasal = 15 + (selisihHari * 4);
+        const endPasal = startPasal + 3;
+        document.getElementById('display-pasal').innerText = "Matius " + startPasal + " - " + endPasal;
     }
 
-    // 2. Logika Button (Aktif jika kedua checkbox dicentang)
+    // 2. Fitur Alarm & Pengingat (21:30 WIT)
+    function cekAlarm() {
+        const sekarang = new Date();
+        if (sekarang.getHours() === 21 && sekarang.getMinutes() === 30) {
+            const sound = document.getElementById('alarm-sound');
+            sound.play().catch(() => console.log("Audio play blocked"));
+            alert("PENGINGAT: Segera kirim laporan bacaan Alkitab Anda sebelum batas waktu 22:30!");
+        }
+    }
+    setInterval(cekAlarm, 60000);
+
+    // 3. Logika Button Checklist
     const checkUtama = document.getElementById('check-utama');
     const checkAmsal = document.getElementById('check-amsal');
     const btnSubmit = document.getElementById('btn-submit');
@@ -100,9 +119,19 @@
     checkUtama.addEventListener('change', validateCheck);
     checkAmsal.addEventListener('change', validateCheck);
 
-    // 3. Simpan Laporan ke Firebase
+    // 4. Simpan Laporan dengan Batasan Waktu 22:30
     async function kirimLaporan() {
         if (!userEmail) return;
+
+        const sekarang = new Date();
+        const jam = sekarang.getHours();
+        const menit = sekarang.getMinutes();
+
+        // Batasan Jam 10:30 Malam (22:30)
+        if (jam > 22 || (jam === 22 && menit > 30)) {
+            alert("Maaf Laporan anda melewati jam yang ditentukan.");
+            return;
+        }
 
         btnSubmit.innerText = "Mengirim...";
         btnSubmit.disabled = true;
@@ -110,9 +139,9 @@
         try {
             await db.collection("laporan_bacaan").add({
                 email: userEmail,
-                tanggal: dateKey,
-                bulan: (today.getMonth() + 1),
-                tahun: today.getFullYear(),
+                tanggal: sekarang.toISOString().split('T')[0],
+                bulan: (sekarang.getMonth() + 1),
+                tahun: sekarang.getFullYear(),
                 pasal_utama: document.getElementById('display-pasal').innerText,
                 pasal_amsal: document.getElementById('display-amsal').innerText,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -121,14 +150,14 @@
             alert("Luar biasa! Laporan pembacaan hari ini berhasil dikirim.");
             window.location.href = "menu.html";
         } catch (error) {
-            console.error(error);
-            alert("Gagal mengirim laporan. Coba lagi.");
+            alert("Gagal mengirim laporan.");
             btnSubmit.innerText = "KIRIM LAPORAN SEKARANG";
             btnSubmit.disabled = false;
         }
     }
 
     initHalaman();
+    cekAlarm();
 </script>
 </body>
 </html>
