@@ -23,7 +23,7 @@
         .btn-kirim { background-color: #333; color: white; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .btn-batal { background-color: #bbb; color: white; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
-        .btn-home { display: inline-block; margin-top: 25px; color: #007bff; text-decoration: none; font-size: 14px; font-weight: bold; }
+        .btn-home { display: inline-block; margin-top: 25px; color: #007bff; text-decoration: none; font-size: 14px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -58,6 +58,8 @@
 <script>
     function pilihHadir() {
         alert("Kehadiran dicatat.");
+        // Anda bisa menambahkan navigasi otomatis setelah sukses
+        // window.location.href = "menu.html";
     }
 
     function tampilAlasan() {
@@ -67,11 +69,8 @@
     }
 
     function batalProses() {
-        // Mengosongkan tulisan
         document.getElementById('keterangan').value = "";
-        // Menyembunyikan form alasan
         document.getElementById('boxAlasan').style.display = 'none';
-        // Mengembalikan tampilan default
         document.getElementById('btnHadir').style.display = 'flex';
         document.getElementById('btnTidakHadir').style.display = 'flex';
     }
@@ -81,6 +80,8 @@
         if(teks !== "") {
             alert("Keterangan dikirim.");
             batalProses();
+        } else {
+            alert("Silakan isi alasan terlebih dahulu.");
         }
     }
 </script>
