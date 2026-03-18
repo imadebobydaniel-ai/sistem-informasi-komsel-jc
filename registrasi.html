@@ -24,6 +24,10 @@
         .modal-box { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; width: 100%; }
         .modal-box i { font-size: 50px; color: #28a745; margin-bottom: 15px; }
         .modal-box p { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 20px; }
+        
+        /* Style tambahan hanya untuk posisi ikon mata */
+        .password-container { position: relative; }
+        .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666; }
     </style>
 </head>
 <body>
@@ -52,7 +56,10 @@
         </div>
         <div class="form-group">
             <label>Password</label>
-            <input type="password" id="pass" required>
+            <div class="password-container">
+                <input type="password" id="pass" required>
+                <i class="fa-solid fa-eye toggle-password" id="eyeIcon"></i>
+            </div>
         </div>
         <div class="form-group">
             <label>Alamat Lengkap</label>
@@ -112,8 +119,18 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    // Membersihkan sisa perintah edit jika ada, agar tidak mengganggu registrasi
     localStorage.removeItem("editMemberID");
+
+    // Perintah tambahan untuk fungsi ikon mata
+    const eyeIcon = document.getElementById('eyeIcon');
+    const passwordInput = document.getElementById('pass');
+
+    eyeIcon.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
 
     async function handleRegistrasi() {
         const userData = {
