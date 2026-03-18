@@ -80,16 +80,13 @@
 
     const userEmail = localStorage.getItem("userEmail");
     const today = new Date();
+    const dateKey = today.toISOString().split('T')[0];
 
-    // 1. Otomatisasi Pasal & Tanggal (Ganti setiap jam 12 malam)
     function initHalaman() {
         const opsi = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
         document.getElementById('tgl-sekarang').innerText = today.toLocaleDateString('id-ID', opsi);
-        
-        // Amsal otomatis sesuai tanggal
         document.getElementById('display-amsal').innerText = "Amsal " + today.getDate();
 
-        // Logika Matius (Start 18 Maret 2026 = Matius 15-18)
         const tglMulai = new Date("2026-03-18");
         const selisihHari = Math.floor((today - tglMulai) / (1000 * 60 * 60 * 24));
         const startPasal = 15 + (selisihHari * 4);
@@ -97,18 +94,16 @@
         document.getElementById('display-pasal').innerText = "Matius " + startPasal + " - " + endPasal;
     }
 
-    // 2. Fitur Alarm & Pengingat (21:30 WIT)
     function cekAlarm() {
         const sekarang = new Date();
         if (sekarang.getHours() === 21 && sekarang.getMinutes() === 30) {
             const sound = document.getElementById('alarm-sound');
-            sound.play().catch(() => console.log("Audio play blocked"));
+            sound.play().catch(() => {});
             alert("PENGINGAT: Segera kirim laporan bacaan Alkitab Anda sebelum batas waktu 22:30!");
         }
     }
     setInterval(cekAlarm, 60000);
 
-    // 3. Logika Button Checklist
     const checkUtama = document.getElementById('check-utama');
     const checkAmsal = document.getElementById('check-amsal');
     const btnSubmit = document.getElementById('btn-submit');
@@ -119,7 +114,6 @@
     checkUtama.addEventListener('change', validateCheck);
     checkAmsal.addEventListener('change', validateCheck);
 
-    // 4. Simpan Laporan dengan Batasan Waktu 22:30
     async function kirimLaporan() {
         if (!userEmail) return;
 
@@ -127,19 +121,33 @@
         const jam = sekarang.getHours();
         const menit = sekarang.getMinutes();
 
-        // Batasan Jam 10:30 Malam (22:30)
+        // 1. Validasi Jam (Maks 22:30)
         if (jam > 22 || (jam === 22 && menit > 30)) {
             alert("Maaf Laporan anda melewati jam yang ditentukan.");
             return;
         }
 
-        btnSubmit.innerText = "Mengirim...";
+        btnSubmit.innerText = "Mengecek...";
         btnSubmit.disabled = true;
 
         try {
+            // 2. Cek apakah sudah pernah melapor hari ini
+            const cekLaporan = await db.collection("laporan_bacaan")
+                .where("email", "==", userEmail)
+                .where("tanggal", "==", dateKey)
+                .get();
+
+            if (!cekLaporan.empty) {
+                alert("anda tadi sudah melakukan pelaporan");
+                window.location.href = "menu.html";
+                return;
+            }
+
+            // 3. Jika belum, simpan data baru
+            btnSubmit.innerText = "Mengirim...";
             await db.collection("laporan_bacaan").add({
                 email: userEmail,
-                tanggal: sekarang.toISOString().split('T')[0],
+                tanggal: dateKey,
                 bulan: (sekarang.getMonth() + 1),
                 tahun: sekarang.getFullYear(),
                 pasal_utama: document.getElementById('display-pasal').innerText,
@@ -147,8 +155,9 @@
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            alert("Luar biasa! Laporan pembacaan hari ini berhasil dikirim.");
+            alert("Terimakasih untuk laporan anda");
             window.location.href = "menu.html";
+
         } catch (error) {
             alert("Gagal mengirim laporan.");
             btnSubmit.innerText = "KIRIM LAPORAN SEKARANG";
