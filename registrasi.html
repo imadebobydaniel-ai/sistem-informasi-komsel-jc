@@ -6,102 +6,25 @@
     <title>Registrasi Anggota - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Optimasi Tampilan HP agar Fit & Proper */
-        body { 
-            font-family: 'Segoe UI', Arial, sans-serif; 
-            background-color: #f0f2f5; 
-            margin: 0; 
-            padding: 10px; 
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-        }
-        .reg-container { 
-            width: 100%; 
-            max-width: 400px; 
-            background: white; 
-            padding: 20px; 
-            border-radius: 20px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin-top: 10px;
-            margin-bottom: 20px;
-        }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 10px; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
+        .reg-container { width: 100%; max-width: 400px; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 10px; margin-bottom: 20px; }
         .header-logo { text-align: center; margin-bottom: 15px; }
         .header-logo img { width: 60px; height: auto; }
         .header-text { text-align: center; margin-bottom: 20px; }
         .header-text h2 { margin: 0; font-size: 18px; color: #333; }
         .header-text p { margin: 5px 0 0; font-size: 13px; color: #666; }
-        
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-size: 12px; font-weight: bold; color: #444; margin-bottom: 5px; }
-        .form-group input, .form-group select, .form-group textarea { 
-            width: 100%; 
-            padding: 12px; 
-            border-radius: 10px; 
-            border: 1px solid #ddd; 
-            font-size: 14px; 
-            box-sizing: border-box; 
-            outline: none;
-            background: #fafafa;
-        }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box; outline: none; background: #fafafa; }
         .form-group input:focus { border-color: #28a745; background: #fff; }
-        
         .time-info { font-size: 11px; color: #dc3545; text-align: right; margin-bottom: 15px; font-weight: bold; }
-        
-        .btn-submit { 
-            width: 100%; 
-            padding: 15px; 
-            background-color: #28a745; 
-            color: white; 
-            border: none; 
-            border-radius: 12px; 
-            font-size: 16px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            transition: 0.3s;
-        }
+        .btn-submit { width: 100%; padding: 15px; background-color: #28a745; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
         .btn-submit:active { transform: scale(0.98); background-color: #218838; }
-        
+        .btn-back-login { display: block; text-align: center; margin-top: 15px; text-decoration: none; color: #666; font-size: 14px; font-weight: bold; padding: 10px; border: 1px solid #ddd; border-radius: 10px; }
         .login-link { text-align: center; margin-top: 20px; font-size: 13px; color: #666; }
         .login-link a { color: #007bff; text-decoration: none; font-weight: bold; }
-
-        /* Tombol Kembali khusus */
-        .btn-back-login {
-            display: block;
-            text-align: center;
-            margin-top: 15px;
-            text-decoration: none;
-            color: #666;
-            font-size: 14px;
-            font-weight: bold;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            transition: 0.2s;
-        }
-        .btn-back-login:active { background-color: #f0f0f0; }
-
-        /* Style Blocking Pesan */
-        #blocking-message {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        .modal-box {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            text-align: center;
-            max-width: 320px;
-            width: 100%;
-        }
+        #blocking-message { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+        .modal-box { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; width: 100%; }
         .modal-box i { font-size: 50px; color: #28a745; margin-bottom: 15px; }
         .modal-box p { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 20px; line-height: 1.5; }
     </style>
@@ -109,18 +32,16 @@
 <body>
 
 <div class="reg-container">
-    <div class="header-logo">
-        <img src="logo_pondok.png" alt="Logo">
-    </div>
+    <div class="header-logo"><img src="logo_pondok.png" alt="Logo"></div>
     <div class="header-text">
-        <h2>PONDOK PEMULIHAN PAPUA</h2>
-        <p>Formulir Pendaftaran Anggota</p>
+        <h2 id="form-title">PONDOK PEMULIHAN PAPUA</h2>
+        <p id="form-subtitle">Formulir Pendaftaran Anggota</p>
     </div>
 
     <form id="formRegistrasi">
-        <div class="form-group">
+        <div class="form-group" id="nk-container" style="display: none;">
             <label>Nomor Komsel (NK)</label>
-            <input type="text" id="nk" placeholder="Pilih JC..." required>
+            <input type="text" id="nk" readonly>
         </div>
         <div class="time-info" id="current-time">Rabu, 18 Maret 2026 pukul 16.56.24 WIT</div>
 
@@ -130,84 +51,4 @@
         </div>
         <div class="form-group">
             <label>Email</label>
-            <input type="email" id="email" required>
-        </div>
-        <div class="form-group">
-            <label>Nomor HP / WhatsApp</label>
-            <input type="tel" id="hp" required>
-        </div>
-        <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="pass" required>
-        </div>
-        <div class="form-group">
-            <label>Alamat Lengkap</label>
-            <textarea id="alamat" rows="3" required></textarea>
-        </div>
-        <div class="form-group">
-            <label>Golongan Darah</label>
-            <select id="darah" required>
-                <option value="">-- Pilih --</option>
-                <option value="A">A</option><option value="B">B</option>
-                <option value="O">O</option><option value="AB">AB</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Jabatan</label>
-            <select id="jabatan" required>
-                <option value="">-- Pilih Jabatan --</option>
-                <option value="Anggota">Anggota</option>
-                <option value="Ketua Komsel">Ketua Komsel</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Komsel JC</label>
-            <select id="komsel" required>
-                <option value="">-- Pilih Lokasi JC --</option>
-                <option value="JC 1">JC 1</option><option value="JC 2">JC 2</option>
-                <option value="JC 3">JC 3</option><option value="JC 4">JC 4</option>
-                <option value="JC 5">JC 5</option>
-            </select>
-        </div>
-
-        <button type="button" onclick="handleRegistrasi()" class="btn-submit">DAFTAR SEKARANG</button>
-        
-        <a href="login.html" class="btn-back-login">
-            <i class="fa-solid fa-arrow-left"></i> Kembali ke Login Page
-        </a>
-    </form>
-
-    <div class="login-link">
-        Sudah punya akun? <a href="login.html">Login Disini</a>
-    </div>
-</div>
-
-<div id="blocking-message">
-    <div class="modal-box">
-        <i class="fa-solid fa-circle-check"></i>
-        <p>Selamat Data Anda Telah diinput, Silahkan Lakukan Login</p>
-        <button onclick="window.location.href='login.html'" class="btn-submit" style="background:#007bff">OK / LOGIN</button>
-    </div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
-<script>
-    // ... (Firebase Initialize tetap sama sesuai sistem Anda sebelumnya) ...
-    
-    async function handleRegistrasi() {
-        try {
-            // Simulasi proses simpan atau panggil fungsi DB Anda di sini
-            showBlockingMessage();
-        } catch (error) {
-            alert("Terjadi kesalahan: " + error.message);
-        }
-    }
-
-    function showBlockingMessage() {
-        document.getElementById('blocking-message').style.display = 'flex';
-    }
-</script>
-</body>
-</html>
+            <input
