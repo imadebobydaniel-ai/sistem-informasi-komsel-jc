@@ -48,6 +48,7 @@
             <button class="btn-kirim" onclick="kirimAlasan()">Kirim</button>
             <button class="btn-batal" onclick="batalProses()">Batal</button>
         </div>
+        
     </div>
 
     <a href="menu.html" class="btn-home">
@@ -83,8 +84,123 @@
         } else {
             alert("Silakan isi alasan terlebih dahulu.");
         }
+        // Fungsi untuk mendapatkan alamat dari koordinat (Reverse Geocoding)
+async function getAlamat(lat, lon) {
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
+        const data = await response.json();
+        return data.display_name; // Mengembalikan alamat lengkap
+    } catch (error) {
+        return "Alamat tidak ditemukan";
+    }
+}
+
+// Fungsi utama saat tombol "SAYA HADIR" ditekan
+async function laporKehadiran() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            // 1. Ambil Alamat
+            const alamatLengkap = await getAlamat(lat, lon);
+
+            // 2. Tampilkan Modal/Pesan
+            alert(`Kehadiran anda tercatat dengan lokasi alamat: ${alamatLengkap}`);
+
+            // 3. Simpan ke Firebase
+            const dataKehadiran = {
+                nama: "Boby Daniel", // Ambil dari profil
+                komsel: "JC 5",      // Ambil dari profil
+                status: "Hadir",
+                alamat_hadir: alamatLengkap,
+                waktu: new Date().toISOString()
+            };
+
+            // Simpan ke Firestore (Contoh)
+            // db.collection("kehadiran").add(dataKehadiran);
+
+            console.log("Data terkirim ke database:", dataKehadiran);
+
+        }, (error) => {
+            alert("Gagal mengambil lokasi. Pastikan izin lokasi diaktifkan.");
+        });
+    } else {
+        alert("Browser Anda tidak mendukung fitur lokasi.");
+    }
+    // Fungsi untuk menutup modal
+function tutupModal() {
+    document.getElementById('modal-kehadiran').style.display = 'none';
+}
+
+// Fungsi Utama Lapor Hadir
+async function laporHadir() {
+    const userEmail = localStorage.getItem("userEmail");
+    if (!userEmail) return alert("Sesi berakhir, silakan login ulang.");
+
+    // Tampilkan loading jika perlu
+    console.log("Mencari lokasi...");
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            try {
+                // 1. Ambil Nama Jalan (Reverse Geocoding menggunakan Nominatim - Gratis)
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
+                const geoData = await response.json();
+                const alamatJalan = geoData.address.road || geoData.display_name.split(',')[0] || "Lokasi tidak dikenal";
+
+                // 2. Ambil Data Profil User dari Firestore
+                const userSnap = await db.collection("users").where("email", "==", userEmail).get();
+                if (userSnap.empty) return;
+                
+                const userData = userSnap.docs[0].data();
+                const nama = userData.nama || "Anonim";
+                const jc = userData.komsel || "-";
+
+                // 3. Simpan ke Database Firebase (Collection: kehadiran)
+                const dataSimpan = {
+                    nama: nama,
+                    komsel: jc,
+                    tanggal: firebase.firestore.FieldValue.serverTimestamp(),
+                    alamat_hadir: alamatJalan,
+                    koordinat: `${lat}, ${lon}`,
+                    status: "Hadir"
+                };
+
+                await db.collection("kehadiran").add(dataSimpan);
+
+                // 4. Tampilkan Notifikasi Blok Display
+                const modal = document.getElementById('modal-kehadiran');
+                const pesan = document.getElementById('pesan-lokasi');
+                
+                pesan.innerHTML = `Anda hadir di Komsel dengan<br><b>Alamat Jl: ${alamatJalan}</b>`;
+                modal.style.display = 'flex';
+
+            } catch (error) {
+                console.error(error);
+                alert("Gagal memproses lokasi atau database.");
+            }
+        }, (error) => {
+            alert("Harap aktifkan GPS/Izin Lokasi di HP Anda.");
+        });
+    } else {
+        alert("Browser Anda tidak mendukung deteksi lokasi.");
+    }
+}
+}
     }
 </script>
 
 </body>
+    <div id="modal-kehadiran" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center;">
+    <div style="background: white; padding: 25px; border-radius: 15px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.3);">
+        <i class="fa-solid fa-circle-check" style="color: #2ecc71; font-size: 50px; margin-bottom: 15px;"></i>
+        <h3 style="margin: 0 0 10px; color: #333;">Berhasil!</h3>
+        <p id="pesan-lokasi" style="font-size: 14px; color: #666; line-height: 1.5; margin-bottom: 20px;"></p>
+        <button onclick="tutupModal()" style="background: #007bff; color: white; border: none; padding: 10px 25px; border-radius: 8px; font-weight: bold; cursor: pointer;">OKE</button>
+    </div>
+</div>
 </html>
