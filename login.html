@@ -13,39 +13,15 @@
         #text-org { margin: 5px 0; font-size: 20px; color: #333; font-weight: bold; text-transform: uppercase; display: block; }
         #text-system { margin: 8px 0; font-size: 18px; color: #FFD700; font-weight: bold; display: block; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
         #text-status { margin: 10px 0; font-size: 16px; color: #555; font-weight: normal; display: block; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; outline: none; }
         .btn-blue { background: #007bff; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        .footer-links { margin-top: 20px; font-size: 14px; }
-        .footer-links a { color: #007bff; text-decoration: none; font-weight: bold; }
-
-        /* MODAL ERROR SYSTEM */
+        
         #error-block {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; padding: 20px;
         }
-        .error-card {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            text-align: center;
-            max-width: 320px;
-            width: 100%;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-        .error-card i { font-size: 60px; color: #dc3545; margin-bottom: 15px; }
-        .error-card h4 { margin: 10px 0; color: #333; font-size: 18px; }
-        .error-card p { color: #666; font-size: 14px; margin-bottom: 25px; line-height: 1.5; }
-        .btn-close-error {
-            background: #dc3545; color: white; border: none;
-            padding: 12px 0; width: 100%; border-radius: 10px;
-            font-weight: bold; cursor: pointer;
-        }
+        .error-card { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; width: 100%; }
+        .btn-close-error { background: #dc3545; color: white; border: none; padding: 12px 0; width: 100%; border-radius: 10px; font-weight: bold; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -60,20 +36,14 @@
 
     <input type="email" id="email" placeholder="Email Anggota">
     <input type="password" id="pass" placeholder="Password">
-    
     <button class="btn-blue" onclick="prosesLogin()">MASUK</button>
-    
-    <div class="footer-links">
-        <p>Belum punya akun? <a href="registrasi.html">Daftar Sekarang</a></p>
-        <a href="admin.html" style="color: #888; font-weight: normal;">Masuk sebagai Admin</a>
-    </div>
 </div>
 
 <div id="error-block">
     <div class="error-card">
-        <i class="fa-solid fa-circle-exclamation"></i>
+        <i class="fa-solid fa-circle-exclamation" style="font-size: 50px; color: #dc3545;"></i>
         <h4 id="error-title">Gagal Masuk</h4>
-        <p id="error-text">Terjadi kendala saat menghubungkan ke sistem.</p>
+        <p id="error-text">Terjadi kendala teknis.</p>
         <button class="btn-close-error" onclick="hideError()">COBA LAGI</button>
     </div>
 </div>
@@ -86,17 +56,19 @@
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
         projectId: "boby-apps-project",
-        storageBucket: "boby-apps-project.firebasestorage.app",
+        storageBucket: "boby-apps-project.appspot.com",
         messagingSenderId: "125984859692",
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
-    firebase.initializeApp(firebaseConfig);
+    
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.firestore();
 
-    // Fungsi Tampilkan Error
-    function showError(title, message) {
-        document.getElementById("error-title").innerText = title;
-        document.getElementById("error-text").innerText = message;
+    function showError(t, m) {
+        document.getElementById("error-title").innerText = t;
+        document.getElementById("error-text").innerText = m;
         document.getElementById("error-block").style.display = "flex";
     }
 
@@ -105,67 +77,38 @@
     }
 
     async function prosesLogin() {
-        const email = document.getElementById('email').value.trim();
-        const pass = document.getElementById('pass').value;
+        const emailInput = document.getElementById('email').value.trim();
+        const passInput = document.getElementById('pass').value;
 
-        if (!email || !pass) {
-            showError("Data Kosong", "Silakan isi email dan password.");
+        if(!emailInput || !passInput) {
+            showError("Data Kosong", "Isi email dan password.");
             return;
         }
 
         try {
-            const snapshot = await db.collection("users")
-                .where("email", "==", email)
-                .where("password", "==", pass)
-                .get();
+            // Gunakan satu Query saja untuk email
+            const snapshot = await db.collection("users").where("email", "==", emailInput).get();
 
-            if (!snapshot.empty) {
-                const user = snapshot.docs[0].data();
-                localStorage.setItem("userEmail", email);
-                localStorage.setItem("userName", user.nama);
-                // PENTING: Paksa jadi String agar sinkron dengan database
-                localStorage.setItem("userKomsel", String(user.komsel)); 
+            if (snapshot.empty) {
+                showError("User Tidak Ada", "Email tidak terdaftar.");
+                return;
+            }
+
+            const userDoc = snapshot.docs[0].data();
+
+            if (userDoc.password === passInput) {
+                // SIMPAN DATA KE STORAGE
+                localStorage.setItem("userEmail", emailInput);
+                localStorage.setItem("userName", userDoc.nama);
+                localStorage.setItem("userKomsel", String(userDoc.komsel));
+                
                 window.location.href = "menu.html";
             } else {
-                showError("Akses Ditolak", "Email atau Password salah.");
+                showError("Password Salah", "Periksa kembali password Anda.");
             }
-        } catch (e) { 
-            showError("Kendala Koneksi", "Gagal terhubung ke database.");
+        } catch (e) {
+            showError("Database Error", e.message);
         }
-    }
-
-    // Script Sinkronisasi Realtime (Ditempatkan di sini agar tersedia secara global)
-    function sinkronisasiRealtime() {
-        // Ambil JC dari localStorage, jika kosong default ke "5" (sesuai gambar DB Anda)
-        let jcRaw = localStorage.getItem("userKomsel") || "5";
-        const jcStr = String(jcRaw); // Pastikan bentuknya "5", bukan angka 5
-
-        const periode = parseInt(document.getElementById("filter-periode").value);
-        const batasWaktu = new Date();
-        batasWaktu.setMonth(batasWaktu.getMonth() - periode);
-        const tsBatas = firebase.firestore.Timestamp.fromDate(batasWaktu);
-
-        // Filter menggunakan jcStr yang sudah pasti teks
-        db.collection("kehadiran")
-            .where("komsel", "==", jcStr) 
-            .where("tanggal", ">=", tsBatas)
-            .onSnapshot(snap => {
-                if (snap.empty) {
-                    const hadirEl = document.getElementById("list-hadir");
-                    const izinEl = document.getElementById("list-izin");
-                    if(hadirEl) hadirEl.innerHTML = "Tidak ada data";
-                    if(izinEl) izinEl.innerHTML = "Tidak ada data";
-                    return;
-                }
-                
-                // Sisa kode pengolahan data Anda diletakkan di sini saat di halaman laporan
-                console.log("Data ditemukan untuk JC: " + jcStr);
-                
-            }, err => {
-                console.error("Firebase Error:", err);
-                const hadirEl = document.getElementById("list-hadir");
-                if(hadirEl) hadirEl.innerHTML = "Error ambil data";
-            });
     }
 </script>
 </body>
