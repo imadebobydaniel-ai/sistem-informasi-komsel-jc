@@ -14,6 +14,7 @@
         .search-box { position: relative; margin-bottom: 20px; width: 100%; max-width: 400px; }
         .search-box input { width: 100%; padding: 12px 40px 12px 15px; border: 1px solid #ddd; border-radius: 10px; outline: none; }
         .search-box i { position: absolute; right: 15px; top: 13px; color: #aaa; }
+        
 
         /* Table Styling */
         .table-responsive { overflow-x: auto; border-radius: 10px; border: 1px solid #eee; }
@@ -38,6 +39,30 @@
         .close-modal { position: absolute; right: 20px; top: 20px; font-size: 20px; cursor: pointer; color: #aaa; }
 
         #loading-state { text-align: center; padding: 40px; color: var(--primary); font-weight: bold; }
+        /* Update Modal agar bisa di-scroll */
+.modal { 
+    display: none; 
+    position: fixed; 
+    z-index: 100; 
+    left: 0; 
+    top: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0,0,0,0.5); 
+    overflow-y: auto; /* Tambahkan ini agar layar utama bisa scroll saat modal muncul */
+    padding: 20px 0;
+}
+
+.modal-content { 
+    background: white; 
+    margin: 20px auto; /* Beri jarak atas dan bawah */
+    padding: 25px; 
+    border-radius: 15px; 
+    width: 90%; 
+    max-width: 500px; 
+    position: relative;
+    box-shadow: 0 5px 30px rgba(0,0,0,0.3);
+}
     </style>
 </head>
 <body>
