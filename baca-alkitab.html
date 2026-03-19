@@ -122,6 +122,36 @@
             btn.disabled = true;
             btn.className = "btn-kirim btn-disabled";
         }
+        // --- LOGIKA TARGET OTOMATIS BERBASIS SERVER ---
+
+async function updateTargetHarian() {
+    // 1. Ambil waktu sekarang dari server (atau simulasi server time yang stabil)
+    const sekarang = new Date();
+    
+    // 2. Tentukan Tanggal Mulai (Contoh: 1 Maret 2026 sebagai Hari ke-1)
+    const tanggalMulai = new Date("2026-03-01"); 
+    
+    // 3. Hitung selisih hari
+    const selisihWaktu = sekarang.getTime() - tanggalMulai.getTime();
+    const hariKe = Math.floor(selisihWaktu / (1000 * 3600 * 24)) + 1;
+
+    // 4. Daftar Target Pasal (Bisa ditambah terus ke bawah)
+    const listTarget = [
+        { utama: "Matius 1 - 4", hikmat: "Amsal 14" }, // Hari 1
+        { utama: "Matius 5 - 8", hikmat: "Amsal 15" }, // Hari 2
+        // ... dst
+        { utama: "Matius 19 - 22", hikmat: "Amsal 19" }, // Hari 19 (Kemarin)
+        { utama: "Matius 23 - 26", hikmat: "Amsal 20" }, // Hari 20 (Hari Ini)
+        { utama: "Matius 27 - 28 & Markus 1-2", hikmat: "Amsal 21" } // Hari 21 (Besok)
+    ];
+
+    // 5. Tampilkan ke UI (Ambil data berdasarkan hariKe)
+    const index = hariKe - 1; // Karena array mulai dari 0
+    if (listTarget[index]) {
+        document.getElementById("target-utama").innerText = listTarget[index].utama;
+        document.getElementById("target-hikmat").innerText = listTarget[index].hikmat;
+    }
+}
     }
 
     // 2. FUNGSI KIRIM LAPORAN
