@@ -18,14 +18,15 @@
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box; outline: none; background: #fafafa; }
         .form-group input:focus { border-color: #007bff; background: #fff; }
         .form-group input[readonly] { background-color: #e9ecef; color: #495057; cursor: not-allowed; border: 1px solid #ccc; }
-        .btn-submit { width: 100%; padding: 15px; background-color: #007bff; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-bottom: 10px; }
+        .btn-submit { width: 100%; padding: 15px; background-color: #28a745; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-bottom: 10px; }
         .btn-back-admin { display: block; text-align: center; text-decoration: none; color: #666; font-size: 14px; font-weight: bold; padding: 10px; border: 1px solid #ddd; border-radius: 10px; }
         .password-container { position: relative; }
         .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666; }
         #blocking-message { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
         .modal-box { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; width: 100%; }
-        .modal-box i { font-size: 50px; color: #007bff; margin-bottom: 15px; }
+        .modal-box i { font-size: 50px; color: #28a745; margin-bottom: 15px; }
         .modal-box p { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 20px; }
+        #loading-overlay { text-align: center; padding: 20px; font-weight: bold; color: #007bff; }
     </style>
 </head>
 <body>
@@ -37,7 +38,9 @@
         <p>Perbarui profil anggota secara berkala</p>
     </div>
 
-    <form id="formEdit">
+    <div id="loading-overlay">Memuat Data Anggota...</div>
+
+    <form id="formEdit" style="display: none;">
         <div class="form-group">
             <label>Nomor Komsel (NK)</label>
             <input type="text" id="nk" readonly>
@@ -92,7 +95,7 @@
         </div>
 
         <button type="button" onclick="handleUpdate()" class="btn-submit">SIMPAN PERUBAHAN</button>
-        <a href="admin.html" class="btn-back-admin"><i class="fa-solid fa-arrow-left"></i> Kembali ke Data Admin</a>
+        <a href="admin.html" class="btn-back-admin">← Kembali ke Data Admin</a>
     </form>
 </div>
 
@@ -141,6 +144,9 @@
                 document.getElementById("golDarah").value = data.golDarah || "";
                 document.getElementById("jabatan").value = data.jabatan || "";
                 document.getElementById("komsel").value = data.komsel || "";
+                
+                document.getElementById("loading-overlay").style.display = "none";
+                document.getElementById("formEdit").style.display = "block";
             }
         } catch (e) {
             console.error("Gagal memuat data:", e);
