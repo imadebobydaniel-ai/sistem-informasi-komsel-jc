@@ -101,23 +101,29 @@
     if (!userEmail) {
         window.location.replace("index.html");
     } else {
-        // SINKRONISASI REAL-TIME
+        // SINKRONISASI REAL-TIME MENGGUNAKAN ONSNAPSHOT
         db.collection("users").where("email", "==", userEmail)
             .onSnapshot((querySnapshot) => {
                 if (!querySnapshot.empty) {
                     const data = querySnapshot.docs[0].data();
                     
-                    // Foto Profil
-                    if (data.fotoUrl) document.getElementById('view-foto').src = data.fotoUrl;
+                    // Update Foto Profil secara instan
+                    if (data.fotoUrl) {
+                        document.getElementById('view-foto').src = data.fotoUrl;
+                    }
 
-                    // Biodata (Sesuai ID di HTML)
+                    // Sinkronisasi data ke elemen HTML
                     document.getElementById("nomor_komsel").innerText = data.nomor_komsel || "-";
                     document.getElementById("nama_lengkap").innerText = data.nama || "-";
                     document.getElementById("jabatan").innerText = data.jabatan || "-";
                     document.getElementById("email_aktif").innerText = data.email || "-";
                     document.getElementById("no_hp").innerText = data.no_hp || "-";
-                    document.getElementById("gol_darah").innerText = data.gol_darah || "-";
                     document.getElementById("alamat").innerText = data.alamat || "-";
+                    
+                    // Pastikan membaca field 'golongan_darah' sesuai database
+                    document.getElementById("gol_darah").innerText = data.golongan_darah || "-";
+                    
+                    // Format tampilan JC
                     document.getElementById("lokasi_komsel").innerText = data.komsel ? "JC " + data.komsel : "-";
                 }
             });
@@ -128,7 +134,9 @@
         const file = input.files[0];
         if (!file || !userEmail) return;
 
-        document.getElementById('view-foto').style.opacity = "0.5";
+        const viewFoto = document.getElementById('view-foto');
+        viewFoto.style.opacity = "0.5";
+        
         const storageRef = storage.ref('users_photo/' + userEmail);
         
         try {
@@ -142,30 +150,11 @@
                 });
             }
             alert("Foto Berhasil Diperbarui!");
-            document.getElementById('view-foto').style.opacity = "1";
+            viewFoto.style.opacity = "1";
         } catch (error) {
             alert("Gagal upload: " + error.message);
-            document.getElementById('view-foto').style.opacity = "1";
+            viewFoto.style.opacity = "1";
         }
-        // Fungsi Sinkronisasi Profil
-async function sinkronkanProfil() {
-    const userEmail = localStorage.getItem("userEmail");
-    if (!userEmail) return;
-
-    const userDoc = await db.collection("users").doc(userEmail).get();
-    
-    if (userDoc.exists) {
-        const data = userDoc.data();
-        document.getElementById("prof-nama").innerText = data.nama_lengkap;
-        document.getElementById("prof-komsel").innerText = "JC " + data.komsel;
-        document.getElementById("prof-darah").innerText = data.golongan_darah;
-        document.getElementById("prof-status").innerText = data.status || "Anggota";
-        // Foto profil jika ada
-        if (data.foto_url) {
-            document.getElementById("img-profil").src = data.foto_url;
-        }
-    }
-}
     }
 </script>
 </body>
