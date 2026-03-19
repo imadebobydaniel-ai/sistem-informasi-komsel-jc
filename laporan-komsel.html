@@ -85,3 +85,165 @@
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
+        projectId: "boby-apps-project",
+        storageBucket: "boby-apps-project.appspot.com",
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let myChart;
+    let userJC = "";
+    let unsubKehadiran = null;
+    let unsubBacaan = null;
+
+    async function init() {
+        // Koreksi: Pastikan email menggunakan titik sesuai database (imade.bobydaniel)
+        let emailRaw = localStorage.getItem("userEmail") || "imade.bobydaniel@gmail.com";
+        const email = emailRaw.trim().toLowerCase();
+        
+        try {
+            const snap = await db.collection("users").where("email", "==", email).get();
+            if(!snap.empty) {
+                userJC = String(snap.docs[0].data().komsel);
+                document.getElementById("label-jc").innerText = "Laporan Khusus: JC " + userJC;
+                initChart();
+                sinkronisasiRealtime();
+            } else {
+                document.getElementById("label-jc").innerText = "Email tidak terdaftar!";
+                document.getElementById("label-jc").style.color = "red";
+            }
+        } catch (e) { 
+            console.error(e); 
+            document.getElementById("label-jc").innerText = "Gagal memuat data.";
+        }
+    }
+
+    function initChart() {
+        const ctx = document.getElementById('performaChart').getContext('2d');
+        if(myChart) myChart.destroy();
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Firman', 'Hadir', 'Izin'],
+                datasets: [{
+                    label: '% Capaian',
+                    data: [0, 0, 0],
+                    backgroundColor: ['#3182ce', '#38a169', '#e53e3e'],
+                    borderRadius: 8
+                }]
+            },
+            options: { 
+                maintainAspectRatio: false, 
+                scales: { y: { beginAtZero: true, max: 100 } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    function sinkronisasiRealtime() {
+        // 1. Putus koneksi lama agar data tidak bertumpuk
+        if (unsubKehadiran) unsubKehadiran();
+        if (unsubBacaan) unsubBacaan();
+
+        // 2. Reset tampilan visual secara instan
+        if(myChart) {
+            myChart.data.datasets[0].data = [0, 0, 0];
+            myChart.update();
+        }
+        document.getElementById("list-hadir").innerHTML = "Memuat...";
+        document.getElementById("list-izin").innerHTML = "Memuat...";
+        document.getElementById("list-alkitab").innerHTML = "Memuat...";
+
+        const periode = parseInt(document.getElementById("filter-periode").value);
+        const batasWaktu = new Date();
+        batasWaktu.setMonth(batasWaktu.getMonth() - periode);
+        const tsBatas = firebase.firestore.Timestamp.fromDate(batasWaktu);
+        const jcStr = String(userJC);
+
+        // 3. Ambil Data Kehadiran (Hadir & Izin)
+        unsubKehadiran = db.collection("kehadiran")
+            .where("komsel", "==", jcStr)
+            .where("tanggal", ">=", tsBatas)
+            .onSnapshot(snap => {
+                let h = 0, i = 0, htmlH = "", htmlI = "";
+                
+                if (snap.empty) {
+                    document.getElementById("list-hadir").innerHTML = "---";
+                    document.getElementById("list-izin").innerHTML = "---";
+                    myChart.data.datasets[0].data[1] = 0;
+                    myChart.data.datasets[0].data[2] = 0;
+                } else {
+                    snap.forEach(doc => {
+                        const d = doc.data();
+                        if(d.status === "Hadir") {
+                            h++; htmlH += `<div class="name-item">${d.nama}</div>`;
+                        } else {
+                            i++; htmlI += `<div class="name-item">${d.nama}<span class="reason">(${d.alasan || 'Izin'})</span></div>`;
+                        }
+                    });
+                    document.getElementById("list-hadir").innerHTML = htmlH || "---";
+                    document.getElementById("list-izin").innerHTML = htmlI || "---";
+                    
+                    const total = h + i;
+                    myChart.data.datasets[0].data[1] = Math.round((h/total)*100);
+                    myChart.data.datasets[0].data[2] = Math.round((i/total)*100);
+                }
+                myChart.update();
+            });
+
+        // 4. Ambil Data Bacaan Alkitab (Firman)
+        unsubBacaan = db.collection("laporan_bacaan")
+            .where("komsel", "==", jcStr)
+            .where("tanggal", ">=", tsBatas)
+            .onSnapshot(snap => {
+                if (snap.empty) {
+                    document.getElementById("list-alkitab").innerHTML = "---";
+                    myChart.data.datasets[0].data[0] = 0;
+                } else {
+                    let htmlA = "";
+                    const names = new Set();
+                    snap.forEach(doc => { names.add(doc.data().nama); });
+                    names.forEach(n => { htmlA += `<div class="name-item">${n}</div>`; });
+                    document.getElementById("list-alkitab").innerHTML = htmlA || "---";
+                    
+                    // Target progresif: 10 bacaan per minggu x 4 minggu x jumlah bulan
+                    const target = 10 * (periode * 4); 
+                    myChart.data.datasets[0].data[0] = Math.min(Math.round((snap.size/target)*100), 100);
+                }
+                myChart.update();
+            });
+    }
+
+    async function validateAndExport() {
+        const pass = document.getElementById("pks-password").value;
+        if(!pass) { alert("Masukkan password PKS!"); return; }
+        try {
+            const check = await db.collection("users")
+                .where("komsel", "==", userJC)
+                .where("jabatan", "==", "Ketua Komsel")
+                .where("password", "==", pass)
+                .get();
+                
+            if(!check.empty) {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                doc.setFontSize(18);
+                doc.text(`LAPORAN KOMSEL JC ${userJC}`, 20, 20);
+                doc.setFontSize(12);
+                doc.text(`Periode: ${document.getElementById("filter-periode").options[document.getElementById("filter-periode").selectedIndex].text}`, 20, 30);
+                doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 20, 40);
+                doc.save(`Laporan_JC${userJC}.pdf`);
+            } else { 
+                alert("Password Salah atau Anda bukan Ketua Komsel!"); 
+            }
+        } catch (e) { 
+            alert("Error: " + e.message); 
+        }
+    }
+
+    window.onload = init;
+</script>
+</body>
+</html>
