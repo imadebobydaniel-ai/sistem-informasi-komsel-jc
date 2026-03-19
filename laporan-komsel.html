@@ -2,80 +2,50 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Laporan Komsel - Pondok Pemulihan Papua</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 15px; padding-bottom: 80px; }
-        .container { max-width: 600px; margin: auto; }
-        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 15px; }
-        h3 { border-bottom: 2px solid #007bff; padding-bottom: 10px; font-size: 14px; text-transform: uppercase; margin-top: 0; color: #333; }
-        select, input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box; outline: none; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .login-box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 380px; text-align: center; }
+        .header-section { margin-bottom: 25px; }
+        .logo-main { width: 90px; height: auto; margin-bottom: 15px; }
+        #text-org { margin: 5px 0; font-size: 20px; color: #333; font-weight: bold; text-transform: uppercase; display: block; }
+        #text-system { margin: 8px 0; font-size: 18px; color: #FFD700; font-weight: bold; display: block; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+        #text-status { margin: 10px 0; font-size: 16px; color: #555; font-weight: normal; display: block; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; outline: none; }
+        .btn-blue { background: #007bff; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
         
-        /* Layout Grid Nama */
-        .realtime-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        .status-col { padding: 10px; border-radius: 12px; font-size: 11px; min-height: 120px; border: 1px solid #eee; }
-        .col-hadir { background: #f0fff4; border-color: #c6f6d5; }
-        .col-izin { background: #fff5f5; border-color: #fed7d7; }
-        .col-alkitab { background: #ebf8ff; border-color: #bee3f8; }
-        
-        .status-title { font-weight: bold; margin-bottom: 8px; display: block; font-size: 11px; text-align: center; }
-        .name-list { line-height: 1.4; color: #444; }
-        .name-item { border-bottom: 1px solid rgba(0,0,0,0.05); padding: 4px 0; font-size: 10px; }
-        .reason { color: #c53030; font-style: italic; font-size: 9px; display: block; }
-
-        .chart-container { position: relative; height: 250px; margin-bottom: 20px; width: 100%; }
-        .btn-export { background: #28a745; color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-back { position: fixed; bottom: 20px; left: 20px; right: 20px; background: #007bff; color: white; text-align: center; padding: 15px; border-radius: 15px; text-decoration: none; font-weight: bold; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        #error-block {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; padding: 20px;
+        }
+        .error-card { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; width: 100%; }
+        .btn-close-error { background: #dc3545; color: white; border: none; padding: 12px 0; width: 100%; border-radius: 10px; font-weight: bold; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="card">
-        <h3><i class="fa-solid fa-calendar-check"></i> Periode Laporan</h3>
-        <select id="filter-periode" onchange="sinkronisasiRealtime()">
-            <option value="1">1 Bulan Terakhir</option>
-            <option value="2">2 Bulan Terakhir</option>
-            <option value="3">3 Bulan Terakhir</option>
-            <option value="6">6 Bulan Terakhir</option>
-        </select>
-        <p id="label-jc" style="color:#007bff; font-weight:bold; margin-top: 10px;">Menghubungkan Database...</p>
+<div class="login-box">
+    <div class="header-section">
+        <img src="logo_pondok.png" alt="Logo" class="logo-main">
+        <span id="text-org">PONDOK PEMULIHAN PAPUA</span>
+        <span id="text-system">Sistem Informasi Komsel JC</span>
+        <span id="text-status">Login Anggota Komsel</span>
     </div>
 
-    <div class="card">
-        <h3><i class="fa-solid fa-chart-simple"></i> Performa Real-Time</h3>
-        <div class="chart-container">
-            <canvas id="performaChart"></canvas>
-        </div>
+    <input type="email" id="email" placeholder="Email Anggota">
+    <input type="password" id="pass" placeholder="Password">
+    <button class="btn-blue" onclick="prosesLogin()">MASUK</button>
+</div>
 
-        <div class="realtime-grid">
-            <div class="status-col col-hadir">
-                <span class="status-title" style="color: #2f855a;"><i class="fa-solid fa-check"></i> HADIR</span>
-                <div id="list-hadir" class="name-list">Memuat...</div>
-            </div>
-            <div class="status-col col-izin">
-                <span class="status-title" style="color: #c53030;"><i class="fa-solid fa-clock"></i> IZIN</span>
-                <div id="list-izin" class="name-list">Memuat...</div>
-            </div>
-            <div class="status-col col-alkitab">
-                <span class="status-title" style="color: #2b6cb0;"><i class="fa-solid fa-book"></i> FIRMAN</span>
-                <div id="list-alkitab" class="name-list">Memuat...</div>
-            </div>
-        </div>
+<div id="error-block">
+    <div class="error-card">
+        <i class="fa-solid fa-circle-exclamation" style="font-size: 50px; color: #dc3545;"></i>
+        <h4 id="error-title">Gagal Masuk</h4>
+        <p id="error-text">Terjadi kendala teknis.</p>
+        <button class="btn-close-error" onclick="hideError()">COBA LAGI</button>
     </div>
-
-    <div class="card" style="background: #fff3cd;">
-        <h3 style="border-color: #856404; color: #856404;"><i class="fa-solid fa-shield-halved"></i> Verifikasi PKS</h3>
-        <input type="password" id="pks-password" placeholder="Masukkan Password PKS">
-        <button class="btn-export" onclick="validateAndExport()">
-            <i class="fa-solid fa-file-pdf"></i> EKSPOR PDF
-        </button>
-    </div>
-
-    <a href="menu.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i> KEMBALI KE MENU</a>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -90,101 +60,56 @@
         messagingSenderId: "125984859692",
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.firestore();
 
-    let myChart;
-    let userJC = "";
+    function showError(t, m) {
+        document.getElementById("error-title").innerText = t;
+        document.getElementById("error-text").innerText = m;
+        document.getElementById("error-block").style.display = "flex";
+    }
 
-    async function init() {
-        const email = localStorage.getItem("userEmail") || "imade.bobydaniel@gmail.com";
+    function hideError() {
+        document.getElementById("error-block").style.display = "none";
+    }
+
+    async function prosesLogin() {
+        const emailInput = document.getElementById('email').value.trim();
+        const passInput = document.getElementById('pass').value;
+
+        if(!emailInput || !passInput) {
+            showError("Data Kosong", "Isi email dan password.");
+            return;
+        }
+
         try {
-            const snap = await db.collection("users").where("email", "==", email).get();
-            if(!snap.empty) {
-                userJC = snap.docs[0].data().komsel;
-                document.getElementById("label-jc").innerText = "Laporan Khusus: JC " + userJC;
-                initChart();
-                sinkronisasiRealtime();
+            // Gunakan satu Query saja untuk email
+            const snapshot = await db.collection("users").where("email", "==", emailInput).get();
+
+            if (snapshot.empty) {
+                showError("User Tidak Ada", "Email tidak terdaftar.");
+                return;
             }
-        } catch (e) { document.getElementById("label-jc").innerText = "Gagal Sinkronisasi"; }
-    }
 
-    function initChart() {
-        const ctx = document.getElementById('performaChart').getContext('2d');
-        myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Firman', 'Hadir', 'Izin'],
-                datasets: [{
-                    label: '% Capaian',
-                    data: [0, 0, 0],
-                    backgroundColor: ['#3182ce', '#38a169', '#e53e3e'],
-                    borderRadius: 8
-                }]
-            },
-            options: { 
-                maintainAspectRatio: false, 
-                scales: { y: { beginAtZero: true, max: 100 } },
-                plugins: { legend: { display: false } }
+            const userDoc = snapshot.docs[0].data();
+
+            if (userDoc.password === passInput) {
+                // SIMPAN DATA KE STORAGE
+                localStorage.setItem("userEmail", emailInput);
+                localStorage.setItem("userName", userDoc.nama);
+                localStorage.setItem("userKomsel", String(userDoc.komsel));
+                
+                window.location.href = "menu.html";
+            } else {
+                showError("Password Salah", "Periksa kembali password Anda.");
             }
-        });
+        } catch (e) {
+            showError("Database Error", e.message);
+        }
     }
-
-    function sinkronisasiRealtime() {
-        const periode = parseInt(document.getElementById("filter-periode").value);
-        const batasWaktu = new Date();
-        batasWaktu.setMonth(batasWaktu.getMonth() - periode);
-        const tsBatas = firebase.firestore.Timestamp.fromDate(batasWaktu);
-        const jcStr = String(userJC);
-
-        // 1. Data Hadir & Izin
-        db.collection("kehadiran").where("komsel", "==", jcStr).where("tanggal", ">=", tsBatas)
-            .onSnapshot(snap => {
-                let h = 0, i = 0, htmlH = "", htmlI = "";
-                snap.forEach(doc => {
-                    const d = doc.data();
-                    if(d.status === "Hadir") {
-                        h++; htmlH += `<div class="name-item">${d.nama}</div>`;
-                    } else if(d.status === "Tidak Hadir") {
-                        i++; htmlI += `<div class="name-item">${d.nama}<span class="reason">(${d.alasan || 'Izin'})</span></div>`;
-                    }
-                });
-                document.getElementById("list-hadir").innerHTML = htmlH || "---";
-                document.getElementById("list-izin").innerHTML = htmlI || "---";
-                
-                const total = h + i;
-                myChart.data.datasets[0].data[1] = total > 0 ? Math.round((h/total)*100) : 0;
-                myChart.data.datasets[0].data[2] = total > 0 ? Math.round((i/total)*100) : 0;
-                myChart.update();
-            });
-
-        // 2. Data Baca Alkitab
-        db.collection("laporan_bacaan").where("komsel", "==", jcStr).where("tanggal", ">=", tsBatas)
-            .onSnapshot(snap => {
-                let htmlA = "";
-                const names = new Set();
-                snap.forEach(doc => { names.add(doc.data().nama); });
-                names.forEach(n => { htmlA += `<div class="name-item">${n}</div>`; });
-                document.getElementById("list-alkitab").innerHTML = htmlA || "---";
-                
-                const target = 10 * (periode * 4); 
-                myChart.data.datasets[0].data[0] = Math.min(Math.round((snap.size/target)*100), 100);
-                myChart.update();
-            });
-    }
-
-    async function validateAndExport() {
-        const pass = document.getElementById("pks-password").value;
-        const check = await db.collection("users").where("komsel", "==", userJC).where("jabatan", "==", "Ketua Komsel").where("password", "==", pass).get();
-        if(!check.empty) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.text(`LAPORAN KOMSEL JC ${userJC}`, 10, 20);
-            doc.save(`Laporan_JC${userJC}.pdf`);
-        } else { alert("Password Salah!"); }
-    }
-
-    window.onload = init;
 </script>
 </body>
 </html>
