@@ -61,6 +61,34 @@
     </div>
 
     <div class="card">
+        <div class="card-header"><h3><i class="fa-solid fa-calendar-check"></i> STATISTIK KEHADIRAN</h3></div>
+        <div class="filter-row">
+            <div class="filter-group">
+                <label>Pilih Komsel</label>
+                <select id="sel-hadir" onchange="loadHadir()">
+                    <option value="JC 1">JC 1</option><option value="JC 2">JC 2</option>
+                    <option value="JC 3">JC 3</option><option value="JC 4">JC 4</option>
+                    <option value="JC 5" selected>JC 5</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Periode Laporan</label>
+                <select id="month-hadir" onchange="loadHadir()">
+                    <option value="1">1 Bulan Terakhir</option><option value="6">6 Bulan Terakhir</option>
+                </select>
+            </div>
+        </div>
+        <div class="stat-row">
+            <div class="stat-label-container"><span id="lbl-hadir">Kehadiran JC 5</span><span class="label-pct" id="val-hadir">0%</span></div>
+            <div class="progress-container"><div class="progress-bar bar-jc" id="bar-hadir"></div></div>
+        </div>
+        <div class="stat-row">
+            <div class="stat-label-container"><span>Seluruh Komsel (Global)</span><span class="label-pct" id="val-hadir-global" style="color:#6c5ce7">0%</span></div>
+            <div class="progress-container"><div class="progress-bar bar-global" id="bar-hadir-global"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
         <div class="card-header"><h3><i class="fa-solid fa-droplet"></i> DATA GOLONGAN DARAH</h3></div>
         <div class="filter-group">
             <label>Lihat Distribusi Per Komsel</label>
@@ -75,7 +103,7 @@
             <tr><td>A</td><td id="c-A" class="blood-count">0 Orang</td></tr>
             <tr><td>B</td><td id="c-B" class="blood-count">0 Orang</td></tr>
             <tr><td>O</td><td id="c-O" class="blood-count">0 Orang</td></tr>
-            <tr><td>AB</td><td id="c-AB" class="blood-count">0 Orang</td></tr>
+            <tr><td>AB</td><td id="c-AB" class="blood-count">1 Orang</td></tr>
         </table>
     </div>
 
@@ -97,13 +125,11 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    // 1. FUNGSI REAL-TIME GOLONGAN DARAH
+    // REAL-TIME GOLONGAN DARAH
     const bloodSelector = document.getElementById("sel-darah");
-    
     db.collection("users").onSnapshot((snapshot) => {
         updateBloodStats(snapshot);
     });
-
     bloodSelector.addEventListener("change", () => {
         db.collection("users").get().then(updateBloodStats);
     });
@@ -111,29 +137,21 @@
     function updateBloodStats(snapshot) {
         const filterJC = bloodSelector.value;
         let golA = 0, golB = 0, golAB = 0, golO = 0;
-
         snapshot.forEach((doc) => {
             const data = doc.data();
-            // Samakan filter dengan field 'komsel' (misal: "5")
             const targetJC = filterJC.replace("JC ", "");
-
             if (filterJC === "" || data.komsel === targetJC) {
                 const darah = data.golongan_darah; 
-                if (darah === "A") golA++;
-                else if (darah === "B") golB++;
-                else if (darah === "AB") golAB++;
-                else if (darah === "O") golO++;
+                if (darah === "A") golA++; else if (darah === "B") golB++; else if (darah === "AB") golAB++; else if (darah === "O") golO++;
             }
         });
-
-        // Update ID sesuai HTML: c-A, c-B, c-O, c-AB
         document.getElementById("c-A").innerText = golA + " Orang";
         document.getElementById("c-B").innerText = golB + " Orang";
         document.getElementById("c-AB").innerText = golAB + " Orang";
         document.getElementById("c-O").innerText = golO + " Orang";
     }
 
-    // 2. FUNGSI CAPAIAN (Sesuai Logika Lama Anda)
+    // FUNGSI CAPAIAN (UMUM)
     async function calculateStats(collectionName, jcValue, monthCount, labelId, valId, barId, valGlobalId, barGlobalId) {
         const dateLimit = new Date();
         dateLimit.setMonth(dateLimit.getMonth() - parseInt(monthCount));
@@ -141,12 +159,11 @@
 
         const allUsers = await db.collection("users").get();
         const jcUsers = await db.collection("users").where("komsel", "==", jcValue.replace("JC ","")).get();
-        
         const allReports = await db.collection(collectionName).where("tanggal", ">=", timestampLimit).get();
         const jcReports = await db.collection(collectionName).where("komsel", "==", jcValue.replace("JC ","")).where("tanggal", ">=", timestampLimit).get();
 
         const pctJC = jcUsers.size > 0 ? (jcReports.size / jcUsers.size * 100).toFixed(1) : 0;
-        document.getElementById(labelId).innerText = "Capaian " + jcValue;
+        document.getElementById(labelId).innerText = "Kehadiran " + jcValue;
         document.getElementById(valId).innerText = pctJC + "%";
         document.getElementById(barId).style.width = pctJC + "%";
 
@@ -156,8 +173,9 @@
     }
 
     const loadAlkitab = () => calculateStats("laporan_bacaan", document.getElementById('sel-alkitab').value, document.getElementById('month-alkitab').value, 'lbl-alkitab', 'val-alkitab', 'bar-alkitab', 'val-alkitab-global', 'bar-alkitab-global');
+    const loadHadir = () => calculateStats("kehadiran", document.getElementById('sel-hadir').value, document.getElementById('month-hadir').value, 'lbl-hadir', 'val-hadir', 'bar-hadir', 'val-hadir-global', 'bar-hadir-global');
 
-    window.onload = () => { loadAlkitab(); };
+    window.onload = () => { loadAlkitab(); loadHadir(); };
 </script>
 </body>
 </html>
