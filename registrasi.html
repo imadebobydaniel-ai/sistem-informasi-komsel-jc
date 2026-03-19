@@ -26,6 +26,9 @@
         .modal-box p { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 20px; }
         .password-container { position: relative; }
         .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666; }
+        
+        /* Penekanan visual untuk kolom NK */
+        #nk-display { background: #fff3cd !important; border: 2px solid #ffc107 !important; color: #856404; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -40,18 +43,9 @@
     <form id="formRegistrasi">
         <div class="time-info" id="current-time"></div>
 
-        <div class="form-group">
-            <label>Nama Lengkap</label>
-            <input type="text" id="nama" required>
-        </div>
-        <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="email" required>
-        </div>
-        <div class="form-group">
-            <label>Nomor HP / WhatsApp</label>
-            <input type="tel" id="hp" required>
-        </div>
+        <div class="form-group"><label>Nama Lengkap</label><input type="text" id="nama" required></div>
+        <div class="form-group"><label>Email</label><input type="email" id="email" required></div>
+        <div class="form-group"><label>Nomor HP / WhatsApp</label><input type="tel" id="hp" required></div>
         <div class="form-group">
             <label>Password</label>
             <div class="password-container">
@@ -59,10 +53,7 @@
                 <i class="fa-solid fa-eye toggle-password" id="eyeIcon"></i>
             </div>
         </div>
-        <div class="form-group">
-            <label>Alamat Lengkap</label>
-            <textarea id="alamat" rows="3" required></textarea>
-        </div>
+        <div class="form-group"><label>Alamat Lengkap</label><textarea id="alamat" rows="3" required></textarea></div>
         <div class="form-group">
             <label>Golongan Darah</label>
             <select id="darah" required>
@@ -89,10 +80,10 @@
             </select>
         </div>
 
-        <div class="form-group" id="group-nk" style="display:none; margin-top: 10px;">
+        <div class="form-group" id="group-nk" style="border: 1px dashed #ccc; padding: 10px; border-radius: 10px;">
             <label>Nomor Komsel (NK) Otomatis</label>
-            <input type="text" id="nk-display" readonly style="background: #e9ecef; font-weight: bold; color: #28a745; border: 2px solid #28a745;">
-            <small id="nk-loading-text" style="display:none; color: orange;">Sedang sinkronisasi data...</small>
+            <input type="text" id="nk-display" readonly placeholder="Pilih Komsel Dahulu">
+            <small id="nk-loading-text" style="display:none; color: orange;">Sedang memproses...</small>
         </div>
 
         <button type="button" id="btnSubmit" onclick="handleRegistrasi()" class="btn-submit">DAFTAR SEKARANG</button>
@@ -123,6 +114,7 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
+    // Jam Digital
     function updateClock() {
         const now = new Date();
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
@@ -131,47 +123,37 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    const eyeIcon = document.getElementById('eyeIcon');
-    const passwordInput = document.getElementById('pass');
-    eyeIcon.addEventListener('click', function() {
+    // Toggle Mata Password
+    document.getElementById('eyeIcon').addEventListener('click', function() {
+        const passwordInput = document.getElementById('pass');
         const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
         passwordInput.setAttribute('type', type);
         this.classList.toggle('fa-eye');
         this.classList.toggle('fa-eye-slash');
     });
 
-    // FUNGSI UTAMA: MENAMPILKAN KOLOM NK
+    // FUNGSI NK
     async function updateNKPreview() {
         const jcValue = document.getElementById("komsel").value;
-        const nkGroup = document.getElementById("group-nk");
         const nkInput = document.getElementById("nk-display");
         const loadingText = document.getElementById("nk-loading-text");
 
         if (jcValue) {
-            // Langsung munculkan elemen agar user tahu sistem merespon
-            nkGroup.style.display = "block";
             loadingText.style.display = "block";
             nkInput.value = "Generating...";
 
             try {
-                // Ambil data terbaru dari collection "users"
                 const snapshot = await db.collection("users").get();
                 const urutanNext = snapshot.size + 1;
                 const formatUrutan = String(urutanNext).padStart(3, '0');
                 const tahun = new Date().getFullYear();
                 
                 const nkBaru = `NK-PPP-${formatUrutan}-JC${jcValue}-${tahun}`;
-                
-                // Isi nilai ke input
                 nkInput.value = nkBaru;
                 loadingText.style.display = "none";
             } catch (error) {
-                console.error("Firebase Error:", error);
-                nkInput.value = "Error Data";
-                loadingText.innerText = "Gagal mengambil data dari server.";
+                nkInput.value = "Error Koneksi";
             }
-        } else {
-            nkGroup.style.display = "none";
         }
     }
 
@@ -180,9 +162,8 @@
         const jcValue = document.getElementById("komsel").value;
         const nkBaru = document.getElementById("nk-display").value;
 
-        // Validasi input wajib
         if(!document.getElementById("nama").value || !jcValue || nkBaru === "Generating..." || nkBaru === "") {
-            alert("Harap lengkapi Nama dan pilih Komsel JC!");
+            alert("Pilih Komsel JC dan lengkapi Nama!");
             return;
         }
 
@@ -205,12 +186,10 @@
             };
 
             await db.collection("users").add(userData);
-            
-            document.getElementById('pesan-sukses').innerHTML = `Pendaftaran Berhasil!<br>Nomor Komsel Anda:<br><b style="color:#28a745; font-size:18px;">${nkBaru}</b>`;
+            document.getElementById('pesan-sukses').innerHTML = `Berhasil!<br>Nomor Komsel:<br><b>${nkBaru}</b>`;
             document.getElementById('blocking-message').style.display = 'flex';
-
         } catch (error) { 
-            alert("Error simpan: " + error.message); 
+            alert("Gagal: " + error.message); 
             btn.innerText = "DAFTAR SEKARANG";
             btn.disabled = false;
         }
