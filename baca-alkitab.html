@@ -3,72 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baca Alkitab - Pondok Pemulihan Papua</title>
+    <title>Lapor Baca Alkitab</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
-        .container { max-width: 450px; margin: auto; text-align: center; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 20px; }
-        h3 { color: #333; text-transform: uppercase; margin-bottom: 15px; }
-        .target-box { background: #e7f1ff; padding: 15px; border-radius: 15px; border: 1px solid #b3d7ff; margin-bottom: 20px; }
-        .target-box h4 { margin: 5px 0; color: #007bff; font-size: 18px; }
-        .target-box p { margin: 0; font-size: 13px; color: #555; }
-        .check-item { display: flex; align-items: center; background: #f9f9f9; padding: 12px; border-radius: 10px; margin-bottom: 10px; text-align: left; }
-        .check-item input { width: 20px; height: 20px; margin-right: 15px; cursor: pointer; }
-        .check-item label { font-weight: bold; color: #333; cursor: pointer; flex: 1; }
-        .btn-selesai { width: 100%; background: #28a745; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; }
-        .btn-selesai:disabled { background: #ccc; cursor: not-allowed; }
-        .btn-back { display: inline-block; margin-top: 20px; text-decoration: none; color: #007bff; font-weight: bold; font-size: 14px; }
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
-        .modal-box { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 400px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .modal-box i { font-size: 50px; margin-bottom: 15px; }
-        .modal-box h2 { margin: 0 0 10px 0; font-size: 20px; }
-        .modal-box p { color: #666; margin-bottom: 20px; line-height: 1.5; }
-        .modal-btn { background: #007bff; color: white; border: none; padding: 12px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; position: relative; }
+        h3 { margin: 10px 0; color: #333; }
+        .target-box { background: #e7f3ff; padding: 15px; border-radius: 12px; margin: 15px 0; border: 1px solid #cce5ff; }
+        .hikmat-box { background: #fff4e5; padding: 15px; border-radius: 12px; margin: 15px 0; border: 1px solid #ffeeba; }
+        .label-pasal { font-size: 12px; color: #666; display: block; margin-bottom: 5px; }
+        .nama-pasal { font-size: 18px; font-weight: bold; color: #007bff; }
+        .check-item { background: #f8f9fa; padding: 12px; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; cursor: pointer; border: 1px solid #ddd; transition: 0.3s; }
+        .check-item:hover { background: #eee; }
+        input[type="checkbox"] { transform: scale(1.3); }
+        .btn-kirim { width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .btn-enabled { background-color: #333; color: white; }
+        .btn-disabled { background-color: #ccc; color: #666; cursor: not-allowed; }
+        .btn-home { display: inline-block; margin-top: 25px; color: #007bff; text-decoration: none; font-size: 14px; font-weight: bold; }
+
+        /* CSS Overlay Blokir (Sama dengan Menu Kehadiran) */
+        #block-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); color: white; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="card">
-        <h3><i class="fa-solid fa-book-bible"></i> Target Hari Ini</h3>
-        <p id="tgl-sekarang" style="font-weight: bold; color: #007bff;"></p>
-        <hr>
-        
-        <div class="target-box">
-            <p>Pasal Utama:</p>
-            <h4 id="display-pasal">Memuat...</h4>
-        </div>
-
-        <div class="target-box" style="background: #fff4e5; border-color: #ffe5b3;">
-            <p>Pasal Hikmat:</p>
-            <h4 id="display-amsal">Memuat...</h4>
-        </div>
-
-        <div id="checklist-area">
-            <div class="check-item">
-                <input type="checkbox" id="check-utama">
-                <label for="check-utama">Selesai Membaca 4 Pasal Utama</label>
-            </div>
-            <div class="check-item">
-                <input type="checkbox" id="check-amsal">
-                <label for="check-amsal">Selesai Membaca Pasal Amsal</label>
-            </div>
-        </div>
-
-        <button id="btn-submit" class="btn-selesai" onclick="kirimLaporan()" disabled>KIRIM LAPORAN SEKARANG</button>
-    </div>
-
-    <a href="menu.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Kembali ke Menu</a>
+<div id="block-screen">
+    <i id="block-icon" class="fa-solid fa-circle-check" style="font-size: 60px; color: #2ecc71; margin-bottom: 20px;"></i>
+    <h2 id="block-title">TERIMA KASIH!</h2>
+    <p id="block-message" style="font-size: 18px; margin-top: 10px;"></p>
+    <button onclick="window.location.href='menu.html'" style="margin-top: 20px; padding: 12px 30px; border-radius: 10px; border: none; background: #007bff; color: white; font-weight: bold; cursor: pointer;">KEMBALI KE MENU</button>
 </div>
 
-<div id="customModal" class="modal-overlay">
-    <div class="modal-box">
-        <i id="modalIcon"></i>
-        <h2 id="modalTitle">Judul</h2>
-        <p id="modalMsg">Pesan laporan Anda.</p>
-        <button class="modal-btn" id="modalAction" onclick="closeModal()">OK</button>
+<div class="card">
+    <h3><i class="fa-solid fa-book-bible"></i> TARGET HARI INI</h3>
+    <p id="current-date" style="font-weight: bold; color: #007bff;"></p>
+
+    <div class="target-box">
+        <span class="label-pasal">Pasal Utama:</span>
+        <span class="nama-pasal" id="pasal-utama">Matius 19 - 22</span>
     </div>
+
+    <div class="hikmat-box">
+        <span class="label-pasal">Pasal Hikmat:</span>
+        <span class="nama-pasal" id="pasal-hikmat" style="color: #d9480f;">Amsal 19</span>
+    </div>
+
+    <label class="check-item">
+        <input type="checkbox" id="check1" onchange="validasiTombol()"> Selesai Membaca 4 Pasal Utama
+    </label>
+
+    <label class="check-item">
+        <input type="checkbox" id="check2" onchange="validasiTombol()"> Selesai Membaca Pasal Amsal
+    </label>
+
+    <button id="btnKirim" class="btn-kirim btn-disabled" disabled onclick="kirimLaporan()">KIRIM LAPORAN SEKARANG</button>
+
+    <a href="menu.html" class="btn-home"><i class="fa-solid fa-arrow-left"></i> Kembali ke Menu</a>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -83,125 +73,89 @@
         messagingSenderId: "125984859692",
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
-
     const userEmail = localStorage.getItem("userEmail");
-    
-    // Fungsi inisialisasi waktu dan pasal
-    function initHalaman() {
-        const sekarang = new Date();
-        const opsi = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
-        
-        document.getElementById('tgl-sekarang').innerText = sekarang.toLocaleDateString('id-ID', opsi);
-        
-        // Pasal Amsal otomatis sesuai tanggal (1-31)
-        document.getElementById('display-amsal').innerText = "Amsal " + sekarang.getDate();
 
-        // Hitung urutan pasal (Mulai 18 Maret 2026 sebagai hari ke-0)
-        const tglMulai = new Date("2026-03-18");
-        const selisihHari = Math.floor((sekarang - tglMulai) / (1000 * 60 * 60 * 24));
-        const startPasal = 15 + (selisihHari * 4);
-        const endPasal = startPasal + 3;
-        document.getElementById('display-pasal').innerText = "Matius " + startPasal + " - " + endPasal;
-    }
+    // Tampilkan Tanggal Hari Ini
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('current-date').innerText = new Date().toLocaleDateString('id-ID', options);
 
-    // Modal Control
-    function showModal(title, msg, type, stayAtPage = true) {
-        const modal = document.getElementById('customModal');
-        const icon = document.getElementById('modalIcon');
-        const actionBtn = document.getElementById('modalAction');
-
-        document.getElementById('modalTitle').innerText = title;
-        document.getElementById('modalMsg').innerText = msg;
-
-        if (type === 'success') { icon.className = "fa-solid fa-circle-check"; icon.style.color = "#28a745"; }
-        else if (type === 'warning') { icon.className = "fa-solid fa-triangle-exclamation"; icon.style.color = "#ffc107"; }
-        else if (type === 'error') { icon.className = "fa-solid fa-circle-xmark"; icon.style.color = "#dc3545"; }
-
-        modal.style.display = "flex";
-
-        actionBtn.onclick = function() {
-            closeModal();
-            if (!stayAtPage) window.location.href = "menu.html";
-        };
-    }
-
-    function closeModal() { document.getElementById('customModal').style.display = "none"; }
-
-    // Validation
-    const checkUtama = document.getElementById('check-utama');
-    const checkAmsal = document.getElementById('check-amsal');
-    const btnSubmit = document.getElementById('btn-submit');
-
-    function validateCheck() { btnSubmit.disabled = !(checkUtama.checked && checkAmsal.checked); }
-    checkUtama.addEventListener('change', validateCheck);
-    checkAmsal.addEventListener('change', validateCheck);
-
-    async function kirimLaporan() {
-        if (!userEmail) { showModal("EROR", "Silakan login kembali.", "error", false); return; }
-
-        const sekarang = new Date();
-        const jam = sekarang.getHours();
-        const menit = sekarang.getMinutes();
-        const dateKey = sekarang.toISOString().split('T')[0];
-
-        // 1. Batas waktu laporan 23:30 (Blokir jika jam 23 dan menit > 30, atau jam > 23)
-        if (jam > 23 || (jam === 23 && menit > 30)) {
-            showModal("AKSES DITOLAK", "Batas waktu lapor hari ini sudah lewat (23:30). Silakan lapor lagi besok jam 00:01.", "error");
-            return;
-        }
-
-        btnSubmit.innerText = "Memproses...";
-        btnSubmit.disabled = true;
+    // 1. CEK APAKAH SUDAH LAPOR SAAT HALAMAN DIBUKA
+    async function cekLaporanHariIni() {
+        if (!userEmail) return;
+        const hariIni = new Date();
+        hariIni.setHours(0,0,0,0);
+        const tsHariIni = firebase.firestore.Timestamp.fromDate(hariIni);
 
         try {
-            // Ambil data user
-            const userSnap = await db.collection("users").where("email", "==", userEmail).get();
-            if (userSnap.empty) { showModal("GAGAL", "Data profil tidak ditemukan.", "error"); return; }
-            
-            const userData = userSnap.docs[0].data();
-
-            // Cek duplikasi hari ini
-            const cekLaporan = await db.collection("laporan_bacaan")
+            const snap = await db.collection("laporan_bacaan")
                 .where("email", "==", userEmail)
-                .where("tanggal_str", "==", dateKey)
+                .where("tanggal", ">=", tsHariIni)
                 .get();
 
-            if (!cekLaporan.empty) {
-                showModal("INFO", "Anda sudah melapor untuk hari ini.", "warning");
-                return;
+            if (!snap.empty) {
+                tampilkanPesanBlokir("Anda tadi Sudah Melaporkan", "fa-circle-exclamation", "#ffc107");
             }
+        } catch (e) { console.error(e); }
+    }
 
-            // Simpan Data
-            await db.collection("laporan_bacaan").add({
-                email: userEmail,
-                nama: userData.nama,
-                komsel: String(userData.komsel),
-                tanggal: firebase.firestore.Timestamp.now(),
-                tanggal_str: dateKey,
-                pasal_utama: document.getElementById('display-pasal').innerText,
-                pasal_amsal: document.getElementById('display-amsal').innerText,
-                waktu_kirim: jam.toString().padStart(2, '0') + ":" + menit.toString().padStart(2, '0')
-            });
+    function tampilkanPesanBlokir(pesan, icon, color) {
+        document.getElementById('block-title').innerText = pesan === "Terimakasih Atas Laporan Anda" ? "BERHASIL!" : "MAAF!";
+        document.getElementById('block-message').innerText = pesan;
+        const iconEl = document.getElementById('block-icon');
+        iconEl.className = "fa-solid " + icon;
+        iconEl.style.color = color;
+        document.getElementById('block-screen').style.display = 'flex';
+    }
 
-            // Berhasil: Tetap di halaman (stayAtPage = true)
-            showModal("BERHASIL", "Laporan berhasil terkirim!", "success");
-            
-            // Reset checklist
-            checkUtama.checked = false;
-            checkAmsal.checked = false;
-            validateCheck();
-
-        } catch (error) {
-            console.error(error);
-            showModal("GAGAL", "Gagal mengirim. Periksa koneksi.", "error");
-        } finally {
-            btnSubmit.innerText = "KIRIM LAPORAN SEKARANG";
+    function validasiTombol() {
+        const c1 = document.getElementById('check1').checked;
+        const c2 = document.getElementById('check2').checked;
+        const btn = document.getElementById('btnKirim');
+        
+        if (c1 && c2) {
+            btn.disabled = false;
+            btn.className = "btn-kirim btn-enabled";
+        } else {
+            btn.disabled = true;
+            btn.className = "btn-kirim btn-disabled";
         }
     }
 
-    initHalaman();
+    // 2. FUNGSI KIRIM LAPORAN
+    async function kirimLaporan() {
+        const btn = document.getElementById('btnKirim');
+        btn.innerText = "Mengirim...";
+        btn.disabled = true;
+
+        try {
+            const snapUser = await db.collection("users").where("email", "==", userEmail).get();
+            if (snapUser.empty) return alert("Sesi habis.");
+            const u = snapUser.docs[0].data();
+
+            await db.collection("laporan_bacaan").add({
+                nama: u.nama,
+                email: userEmail,
+                komsel: String(u.komsel),
+                pasal_utama: document.getElementById('pasal-utama').innerText,
+                pasal_hikmat: document.getElementById('pasal-hikmat').innerText,
+                tanggal: firebase.firestore.Timestamp.now()
+            });
+
+            // Tampilkan pesan Sukses setelah berhasil input
+            tampilkanPesanBlokir("Terimakasih Atas Laporan Anda", "fa-circle-check", "#2ecc71");
+
+        } catch (e) {
+            alert("Terjadi kesalahan.");
+            btn.innerText = "KIRIM LAPORAN SEKARANG";
+            btn.disabled = false;
+        }
+    }
+
+    // Jalankan cek saat window dimuat
+    window.onload = cekLaporanHariIni;
 </script>
 </body>
 </html>
