@@ -203,6 +203,54 @@
         selDarah.addEventListener('change', renderBlood);
         renderBlood();
     }
+    function setupRealtimeListener(collectionName, jcId, monthId, labelId, valId, barId, valGlobalId, barGlobalId, labelText) {
+    const jcSelect = document.getElementById(jcId);
+    const monthSelect = document.getElementById(monthId);
+
+    const updateData = () => {
+        if (cachedUsers.length === 0) return;
+
+        const selectedJC = jcSelect.value;
+        const months = parseInt(monthSelect.value);
+        const dateLimit = new Date();
+        dateLimit.setMonth(dateLimit.getMonth() - months);
+        const timestampLimit = firebase.firestore.Timestamp.fromDate(dateLimit);
+
+        // PERBAIKAN: Tambahkan filter status jika sedang menghitung "kehadiran"
+        let query = db.collection(collectionName).where("tanggal", ">=", timestampLimit);
+        
+        if (collectionName === "kehadiran") {
+            query = query.where("status", "==", "Hadir");
+        }
+
+        query.onSnapshot(snapshot => {
+            let totalGlobalReports = snapshot.size;
+            let totalJCReports = 0;
+            
+            snapshot.forEach(doc => { 
+                if (String(doc.data().komsel) === String(selectedJC)) totalJCReports++; 
+            });
+
+            const totalGlobalUsers = cachedUsers.length;
+            const totalJCUsers = cachedUsers.filter(u => String(u.komsel) === String(selectedJC)).length;
+
+            const pctJC = calculateSafePct(totalJCReports, totalJCUsers);
+            document.getElementById(valId).innerText = pctJC + "%";
+            document.getElementById(barId).style.width = pctJC + "%";
+            document.getElementById(labelId).innerText = `${labelText} JC ${selectedJC}`;
+
+            if (valGlobalId) {
+                const pctGlobal = calculateSafePct(totalGlobalReports, totalGlobalUsers);
+                document.getElementById(valGlobalId).innerText = pctGlobal + "%";
+                document.getElementById(barGlobalId).style.width = pctGlobal + "%";
+            }
+        });
+    };
+    
+    jcSelect.addEventListener('change', updateData);
+    monthSelect.addEventListener('change', updateData);
+    updateData();
+}
 
     function setupTidakHadirListener() {
         const jcSelect = document.getElementById("sel-tidak-hadir");
