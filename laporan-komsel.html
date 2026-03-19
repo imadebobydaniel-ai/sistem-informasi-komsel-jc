@@ -14,47 +14,15 @@
         h3 { border-bottom: 2px solid #007bff; padding-bottom: 10px; font-size: 14px; text-transform: uppercase; margin-top: 0; color: #333; }
         select, input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box; outline: none; }
         
-        .realtime-grid { 
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 8px; 
-            margin-top: 15px; 
-        }
-
-        .status-col { 
-            padding: 8px; 
-            border-radius: 12px; 
-            font-size: 10px; 
-            min-height: 120px; 
-            border: 1px solid #eee; 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            background: #fff;
-            overflow: hidden;
-        }
-
+        .realtime-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 15px; }
+        .status-col { padding: 8px; border-radius: 12px; font-size: 10px; min-height: 120px; border: 1px solid #eee; display: flex; flex-direction: column; align-items: center; text-align: center; background: #fff; }
         .col-hadir { background: #f0fff4; border-color: #c6f6d5; }
         .col-izin { background: #fff5f5; border-color: #fed7d7; }
         .col-alkitab { background: #ebf8ff; border-color: #bee3f8; }
         
-        .status-title { font-weight: bold; margin-bottom: 8px; display: block; font-size: 10px; text-align: center; }
-        
-        .name-list { 
-            width: 100%; 
-            margin-top: 5px;
-            line-height: 1.3; 
-            color: #444; 
-        }
-
-        .name-item { 
-            border-bottom: 1px solid rgba(0,0,0,0.05); 
-            padding: 4px 0; 
-            font-size: 9px; 
-            word-break: break-word; 
-        }
-
+        .status-title { font-weight: bold; margin-bottom: 8px; display: block; font-size: 10px; }
+        .name-list { width: 100%; margin-top: 5px; line-height: 1.3; color: #444; }
+        .name-item { border-bottom: 1px solid rgba(0,0,0,0.05); padding: 4px 0; font-size: 9px; word-break: break-word; }
         .reason { color: #c53030; font-style: italic; font-size: 8px; display: block; }
 
         .chart-container { position: relative; height: 250px; margin-bottom: 20px; width: 100%; }
@@ -86,15 +54,15 @@
         <div class="realtime-grid">
             <div class="status-col col-hadir">
                 <span class="status-title" style="color: #2f855a;"><i class="fa-solid fa-check"></i> HADIR</span>
-                <div id="list-hadir" class="name-list">Memuat...</div>
+                <div id="list-hadir" class="name-list">---</div>
             </div>
             <div class="status-col col-izin">
                 <span class="status-title" style="color: #c53030;"><i class="fa-solid fa-clock"></i> IZIN</span>
-                <div id="list-izin" class="name-list">Memuat...</div>
+                <div id="list-izin" class="name-list">---</div>
             </div>
             <div class="status-col col-alkitab">
                 <span class="status-title" style="color: #2b6cb0;"><i class="fa-solid fa-book"></i> FIRMAN</span>
-                <div id="list-alkitab" class="name-list">Memuat...</div>
+                <div id="list-alkitab" class="name-list">---</div>
             </div>
         </div>
     </div>
@@ -132,23 +100,15 @@
 
     async function init() {
         const email = (localStorage.getItem("userEmail") || "imade.bobydaniel@gmail.com").trim();
-        
         try {
             const snap = await db.collection("users").where("email", "==", email).get();
             if(!snap.empty) {
-                const data = snap.docs[0].data();
-                userJC = String(data.komsel);
+                userJC = String(snap.docs[0].data().komsel);
                 document.getElementById("label-jc").innerText = "Laporan Khusus: JC " + userJC;
-                
                 initChart();
                 sinkronisasiRealtime();
-            } else {
-                document.getElementById("label-jc").innerText = "User tidak ditemukan.";
             }
-        } catch (e) { 
-            console.error(e);
-            document.getElementById("label-jc").innerText = "Gagal Sinkronisasi"; 
-        }
+        } catch (e) { console.error(e); }
     }
 
     function initChart() {
@@ -174,9 +134,20 @@
     }
 
     function sinkronisasiRealtime() {
-        // Berhenti mendengarkan snapshot sebelumnya jika ada agar tidak tumpang tindih
+        // PENTING: Matikan pendengar data lama agar data tidak campur aduk
         if (unsubKehadiran) unsubKehadiran();
         if (unsubBacaan) unsubBacaan();
+
+        // 1. Reset Grafik ke Nol
+        if(myChart) {
+            myChart.data.datasets[0].data = [0, 0, 0];
+            myChart.update();
+        }
+
+        // 2. Kosongkan List Nama
+        document.getElementById("list-hadir").innerHTML = "Memuat...";
+        document.getElementById("list-izin").innerHTML = "Memuat...";
+        document.getElementById("list-alkitab").innerHTML = "Memuat...";
 
         const periode = parseInt(document.getElementById("filter-periode").value);
         const batasWaktu = new Date();
@@ -184,28 +155,28 @@
         const tsBatas = firebase.firestore.Timestamp.fromDate(batasWaktu);
         const jcStr = String(userJC);
 
-        // Reset tampilan saat memuat data baru
-        document.getElementById("list-hadir").innerHTML = "Memuat...";
-        document.getElementById("list-izin").innerHTML = "Memuat...";
-        document.getElementById("list-alkitab").innerHTML = "Memuat...";
-
+        // Ambil Data Kehadiran
         unsubKehadiran = db.collection("kehadiran")
             .where("komsel", "==", jcStr)
             .where("tanggal", ">=", tsBatas)
             .onSnapshot(snap => {
                 let h = 0, i = 0, htmlH = "", htmlI = "";
-                snap.forEach(doc => {
-                    const d = doc.data();
-                    if(d.status === "Hadir") {
-                        h++; 
-                        htmlH += `<div class="name-item">${d.nama}</div>`;
-                    } else {
-                        i++; 
-                        htmlI += `<div class="name-item">${d.nama}<span class="reason">(${d.alasan || 'Izin'})</span></div>`;
-                    }
-                });
-                document.getElementById("list-hadir").innerHTML = htmlH || "Tidak ada data";
-                document.getElementById("list-izin").innerHTML = htmlI || "Tidak ada data";
+                
+                if (snap.empty) {
+                    document.getElementById("list-hadir").innerHTML = "---";
+                    document.getElementById("list-izin").innerHTML = "---";
+                } else {
+                    snap.forEach(doc => {
+                        const d = doc.data();
+                        if(d.status === "Hadir") {
+                            h++; htmlH += `<div class="name-item">${d.nama}</div>`;
+                        } else {
+                            i++; htmlI += `<div class="name-item">${d.nama}<span class="reason">(${d.alasan || 'Izin'})</span></div>`;
+                        }
+                    });
+                    document.getElementById("list-hadir").innerHTML = htmlH || "---";
+                    document.getElementById("list-izin").innerHTML = htmlI || "---";
+                }
                 
                 const total = h + i;
                 myChart.data.datasets[0].data[1] = total > 0 ? Math.round((h/total)*100) : 0;
@@ -213,18 +184,25 @@
                 myChart.update();
             });
 
+        // Ambil Data Bacaan
         unsubBacaan = db.collection("laporan_bacaan")
             .where("komsel", "==", jcStr)
             .where("tanggal", ">=", tsBatas)
             .onSnapshot(snap => {
                 let htmlA = "";
                 const names = new Set();
-                snap.forEach(doc => { names.add(doc.data().nama); });
-                names.forEach(n => { htmlA += `<div class="name-item">${n}</div>`; });
-                document.getElementById("list-alkitab").innerHTML = htmlA || "Tidak ada data";
                 
+                if (snap.empty) {
+                    document.getElementById("list-alkitab").innerHTML = "---";
+                } else {
+                    snap.forEach(doc => { names.add(doc.data().nama); });
+                    names.forEach(n => { htmlA += `<div class="name-item">${n}</div>`; });
+                    document.getElementById("list-alkitab").innerHTML = htmlA || "---";
+                }
+                
+                // Target: 10 bacaan per minggu x jumlah bulan
                 const target = 10 * (periode * 4); 
-                myChart.data.datasets[0].data[0] = Math.min(Math.round((snap.size/target)*100), 100);
+                myChart.data.datasets[0].data[0] = snap.empty ? 0 : Math.min(Math.round((snap.size/target)*100), 100);
                 myChart.update();
             });
     }
@@ -232,23 +210,14 @@
     async function validateAndExport() {
         const pass = document.getElementById("pks-password").value;
         if(!pass) { alert("Masukkan password PKS!"); return; }
-
         try {
-            const check = await db.collection("users")
-                .where("komsel", "==", userJC)
-                .where("jabatan", "==", "Ketua Komsel")
-                .where("password", "==", pass)
-                .get();
-
+            const check = await db.collection("users").where("komsel", "==", userJC).where("jabatan", "==", "Ketua Komsel").where("password", "==", pass).get();
             if(!check.empty) {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
                 doc.text(`LAPORAN KOMSEL JC ${userJC}`, 20, 20);
-                doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 20, 30);
                 doc.save(`Laporan_JC${userJC}.pdf`);
-            } else { 
-                alert("Password Salah!"); 
-            }
+            } else { alert("Password Salah!"); }
         } catch (e) { alert("Error: " + e.message); }
     }
 
