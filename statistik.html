@@ -128,7 +128,7 @@
 
     let cachedUsers = [];
 
-    // Fungsi Hitung Persentase yang Benar
+    // FUNGSI HITUNG AMAN (Pencegah 100% palsu)
     function calculateSafePct(reports, totalUsers) {
         if (!totalUsers || totalUsers <= 0 || !reports || reports <= 0) return "0.0";
         let res = (reports / totalUsers) * 100;
@@ -136,29 +136,32 @@
     }
 
     async function initSystem() {
-        // AMBIL DATA USERS DAHULU - INI KUNCINYA
         const snap = await db.collection("users").get();
         cachedUsers = snap.docs.map(doc => doc.data());
-
-        // Setelah data users ada, jalankan listener statistik
+        
         setupAlkitabListener();
         setupKehadiranListener();
         setupTidakHadirListener();
         setupBloodListener();
     }
 
-    // 1. Logic Baca Alkitab
     function setupAlkitabListener() {
         const jcSel = document.getElementById("sel-alkitab");
         const monthSel = document.getElementById("month-alkitab");
+        
         const update = () => {
+            const selectedJC = String(jcSel.value).trim();
             const limit = new Date();
             limit.setMonth(limit.getMonth() - parseInt(monthSel.value));
+
             db.collection("laporan_bacaan").where("tanggal", ">=", firebase.firestore.Timestamp.fromDate(limit))
               .onSnapshot(snap => {
                   let countJC = 0;
-                  snap.forEach(doc => { if(String(doc.data().komsel) === String(jcSel.value)) countJC++; });
-                  const totalJC = cachedUsers.filter(u => String(u.komsel) === String(jcSel.value)).length;
+                  snap.forEach(doc => { 
+                      if(String(doc.data().komsel).trim() === selectedJC) countJC++; 
+                  });
+
+                  const totalJC = cachedUsers.filter(u => String(u.komsel).trim() === selectedJC).length;
                   const totalGlobal = cachedUsers.length;
                   
                   const pctJC = calculateSafePct(countJC, totalJC);
@@ -166,111 +169,68 @@
 
                   document.getElementById("val-alkitab").innerText = pctJC + "%";
                   document.getElementById("bar-alkitab").style.width = pctJC + "%";
-                  document.getElementById("lbl-alkitab").innerText = "Capaian JC " + jcSel.value;
+                  document.getElementById("lbl-alkitab").innerText = "Capaian JC " + selectedJC;
                   document.getElementById("val-alkitab-global").innerText = pctGlobal + "%";
                   document.getElementById("bar-alkitab-global").style.width = pctGlobal + "%";
+                  
+                  console.log("Alkitab - JC:", selectedJC, "Laporan:", countJC, "Total User:", totalJC);
               });
         };
         jcSel.onchange = update; monthSel.onchange = update; update();
     }
 
-    // 2. Logic Kehadiran
     function setupKehadiranListener() {
         const jcSel = document.getElementById("sel-hadir");
         const monthSel = document.getElementById("month-hadir");
         const update = () => {
+            const selectedJC = String(jcSel.value).trim();
             const limit = new Date();
             limit.setMonth(limit.getMonth() - parseInt(monthSel.value));
+
             db.collection("kehadiran").where("status", "==", "Hadir").where("tanggal", ">=", firebase.firestore.Timestamp.fromDate(limit))
               .onSnapshot(snap => {
                   let countJC = 0;
-                  snap.forEach(doc => { if(String(doc.data().komsel) === String(jcSel.value)) countJC++; });
-                  const totalJC = cachedUsers.filter(u => String(u.komsel) === String(jcSel.value)).length;
+                  snap.forEach(doc => { if(String(doc.data().komsel).trim() === selectedJC) countJC++; });
+                  const totalJC = cachedUsers.filter(u => String(u.komsel).trim() === selectedJC).length;
                   const pct = calculateSafePct(countJC, totalJC);
                   document.getElementById("val-hadir").innerText = pct + "%";
                   document.getElementById("bar-hadir").style.width = pct + "%";
-                  document.getElementById("lbl-hadir").innerText = "Kehadiran JC " + jcSel.value;
+                  document.getElementById("lbl-hadir").innerText = "Kehadiran JC " + selectedJC;
               });
         };
         jcSel.onchange = update; monthSel.onchange = update; update();
     }
 
-    // 3. Logic Ketidak Hadiran
     function setupTidakHadirListener() {
         const jcSel = document.getElementById("sel-tidak-hadir");
         const monthSel = document.getElementById("month-tidak-hadir");
         const update = () => {
+            const selectedJC = String(jcSel.value).trim();
             const limit = new Date();
             limit.setMonth(limit.getMonth() - parseInt(monthSel.value));
+
             db.collection("kehadiran").where("status", "==", "Tidak Hadir").where("tanggal", ">=", firebase.firestore.Timestamp.fromDate(limit))
               .onSnapshot(snap => {
                   let countJC = 0;
-                  snap.forEach(doc => { if(String(doc.data().komsel) === String(jcSel.value)) countJC++; });
-                  const totalJC = cachedUsers.filter(u => String(u.komsel) === String(jcSel.value)).length;
+                  snap.forEach(doc => { if(String(doc.data().komsel).trim() === selectedJC) countJC++; });
+                  const totalJC = cachedUsers.filter(u => String(u.komsel).trim() === selectedJC).length;
                   const pct = calculateSafePct(countJC, totalJC);
                   document.getElementById("val-tidak-hadir").innerText = pct + "%";
                   document.getElementById("bar-tidak-hadir").style.width = pct + "%";
-                  document.getElementById("lbl-tidak-hadir").innerText = "Ketidak Hadiran JC " + jcSel.value;
+                  document.getElementById("lbl-tidak-hadir").innerText = "Ketidak Hadiran JC " + selectedJC;
               });
         };
         jcSel.onchange = update; monthSel.onchange = update; update();
     }
-    // --- BAGIAN LOGIKA PERBAIKAN PENTING ---
 
-function calculateSafePct(reports, totalUsers) {
-    // Jika tidak ada laporan, pasti 0%
-    if (!reports || reports <= 0) return "0.0";
-    // Jika tidak ada user ditemukan, jangan bagi dengan 0, tapi anggap 100% atau 0% sesuai kebijakan.
-    // Untuk kasus Anda, kita ingin (1 orang / 20 orang) * 100 = 5%
-    if (!totalUsers || totalUsers <= 0) return "0.0"; 
-
-    let res = (reports / totalUsers) * 100;
-    return res.toFixed(1);
-}
-
-// Perbaikan pada setupAlkitabListener (dan listener lainnya)
-function setupAlkitabListener() {
-    const jcSel = document.getElementById("sel-alkitab");
-    const monthSel = document.getElementById("month-alkitab");
-
-    const update = () => {
-        const selectedJC = jcSel.value; // Ini biasanya string "5"
-        
-        db.collection("laporan_bacaan")
-          .onSnapshot(snap => {
-            let reportsJC = 0;
-            snap.forEach(doc => {
-                // SINKRONISASI TIPE DATA: Pastikan membandingkan String dengan String
-                if (String(doc.data().komsel) === String(selectedJC)) {
-                    reportsJC++;
-                }
-            });
-
-            // HITUNG TOTAL ANGGOTA DI KOMSEL TERSEBUT
-            // Pastikan nama field di database 'users' adalah 'komsel'
-            const membersInJC = cachedUsers.filter(u => String(u.komsel) === String(selectedJC)).length;
-            
-            // LOG UNTUK DEBUG (Cek di Console Browser F12)
-            console.log("Reports:", reportsJC, "Total Members in JC:", membersInJC);
-
-            const pctJC = calculateSafePct(reportsJC, membersInJC);
-            
-            document.getElementById("val-alkitab").innerText = pctJC + "%";
-            document.getElementById("bar-alkitab").style.width = pctJC + "%";
-        });
-    };
-    jcSel.onchange = update;
-    update();
-}
-
-    // 4. Logic Golongan Darah
     function setupBloodListener() {
         const sel = document.getElementById("sel-darah");
         const update = () => {
             let counts = { "A": 0, "B": 0, "O": 0, "AB": 0 };
+            const filterJC = String(sel.value).trim();
             cachedUsers.forEach(u => {
                 const gd = u.golDarah || u.golongan_darah;
-                if (sel.value === "" || String(u.komsel) === String(sel.value)) {
+                if (filterJC === "" || String(u.komsel).trim() === filterJC) {
                     if (counts.hasOwnProperty(gd)) counts[gd]++;
                 }
             });
