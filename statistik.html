@@ -42,11 +42,7 @@
             </div>
             <div class="filter-group">
                 <label>Periode</label>
-                <select id="month-alkitab">
-                    <option value="1" selected>1 Bulan Terakhir</option>
-                    <option value="2">2 Bulan Terakhir</option>
-                    <option value="6">6 Bulan Terakhir</option>
-                </select>
+                <select id="month-alkitab"><option value="1" selected>1 Bulan Terakhir</option><option value="6">6 Bulan Terakhir</option></select>
             </div>
         </div>
         <div class="stat-row">
@@ -68,12 +64,30 @@
             </div>
             <div class="filter-group">
                 <label>Periode</label>
-                <select id="month-hadir"><option value="1">1 Bulan Terakhir</option><option value="6">6 Bulan Terakhir</option></select>
+                <select id="month-hadir"><option value="1" selected>1 Bulan Terakhir</option><option value="6">6 Bulan Terakhir</option></select>
             </div>
         </div>
         <div class="stat-row">
             <div class="stat-label-container"><span id="lbl-hadir">Kehadiran JC 5</span><span class="label-pct" id="val-hadir">0%</span></div>
             <div class="progress-container"><div class="progress-bar bar-jc" id="bar-hadir"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h3><i class="fa-solid fa-circle-xmark" style="color: #e91e63;"></i> KETIDAK HADIRAN</h3></div>
+        <div class="filter-row">
+            <div class="filter-group">
+                <label>Pilih Komsel</label>
+                <select id="sel-tidak-hadir"><option value="1">JC 1</option><option value="2">JC 2</option><option value="3">JC 3</option><option value="4">JC 4</option><option value="5" selected>JC 5</option></select>
+            </div>
+            <div class="filter-group">
+                <label>Periode</label>
+                <select id="month-tidak-hadir"><option value="1" selected>1 Bulan Terakhir</option><option value="6">6 Bulan Terakhir</option></select>
+            </div>
+        </div>
+        <div class="stat-row">
+            <div class="stat-label-container"><span id="lbl-tidak-hadir">Ketidak Hadiran JC 5</span><span class="label-pct" id="val-tidak-hadir" style="color:#e91e63">0%</span></div>
+            <div class="progress-container"><div class="progress-bar bar-tidak-hadir" id="bar-tidak-hadir"></div></div>
         </div>
     </div>
 
@@ -114,95 +128,96 @@
 
     let cachedUsers = [];
 
-    // Fungsi Hitung: Jika total user 0 atau laporan 0, hasil harus 0%
+    // Fungsi Hitung Persentase yang Benar
     function calculateSafePct(reports, totalUsers) {
-        if (!totalUsers || totalUsers <= 0 || reports <= 0) return "0.0";
+        if (!totalUsers || totalUsers <= 0 || !reports || reports <= 0) return "0.0";
         let res = (reports / totalUsers) * 100;
         return res > 100 ? "100.0" : res.toFixed(1);
     }
 
-    async function loadStatistics() {
-        // 1. Ambil data users dulu secara asinkron
-        const userSnap = await db.collection("users").get();
-        cachedUsers = userSnap.docs.map(doc => doc.data());
+    async function initSystem() {
+        // AMBIL DATA USERS DAHULU - INI KUNCINYA
+        const snap = await db.collection("users").get();
+        cachedUsers = snap.docs.map(doc => doc.data());
 
-        if (cachedUsers.length === 0) return;
-
-        // 2. Jalankan listener untuk setiap kategori
-        setupAlkitabStat();
-        setupHadirStat();
-        setupBloodStat();
+        // Setelah data users ada, jalankan listener statistik
+        setupAlkitabListener();
+        setupKehadiranListener();
+        setupTidakHadirListener();
+        setupBloodListener();
     }
 
-    function setupAlkitabStat() {
+    // 1. Logic Baca Alkitab
+    function setupAlkitabListener() {
         const jcSel = document.getElementById("sel-alkitab");
         const monthSel = document.getElementById("month-alkitab");
-
         const update = () => {
-            const selectedJC = jcSel.value;
-            const months = parseInt(monthSel.value);
-            const dateLimit = new Date();
-            dateLimit.setMonth(dateLimit.getMonth() - months);
-
-            db.collection("laporan_bacaan")
-              .where("tanggal", ">=", firebase.firestore.Timestamp.fromDate(dateLimit))
+            const limit = new Date();
+            limit.setMonth(limit.getMonth() - parseInt(monthSel.value));
+            db.collection("laporan_bacaan").where("tanggal", ">=", firebase.firestore.Timestamp.fromDate(limit))
               .onSnapshot(snap => {
-                  let reportsJC = 0;
-                  let reportsGlobal = snap.size;
+                  let countJC = 0;
+                  snap.forEach(doc => { if(String(doc.data().komsel) === String(jcSel.value)) countJC++; });
+                  const totalJC = cachedUsers.filter(u => String(u.komsel) === String(jcSel.value)).length;
+                  const totalGlobal = cachedUsers.length;
                   
-                  snap.forEach(doc => {
-                      if (String(doc.data().komsel) === String(selectedJC)) reportsJC++;
-                  });
-
-                  const totalJCUsers = cachedUsers.filter(u => String(u.komsel) === String(selectedJC)).length;
-                  const totalGlobalUsers = cachedUsers.length;
-
-                  const pctJC = calculateSafePct(reportsJC, totalJCUsers);
-                  const pctGlobal = calculateSafePct(reportsGlobal, totalGlobalUsers);
+                  const pctJC = calculateSafePct(countJC, totalJC);
+                  const pctGlobal = calculateSafePct(snap.size, totalGlobal);
 
                   document.getElementById("val-alkitab").innerText = pctJC + "%";
                   document.getElementById("bar-alkitab").style.width = pctJC + "%";
-                  document.getElementById("lbl-alkitab").innerText = "Capaian JC " + selectedJC;
-                  
+                  document.getElementById("lbl-alkitab").innerText = "Capaian JC " + jcSel.value;
                   document.getElementById("val-alkitab-global").innerText = pctGlobal + "%";
                   document.getElementById("bar-alkitab-global").style.width = pctGlobal + "%";
               });
         };
-
-        jcSel.onchange = update;
-        monthSel.onchange = update;
-        update();
+        jcSel.onchange = update; monthSel.onchange = update; update();
     }
 
-    function setupHadirStat() {
+    // 2. Logic Kehadiran
+    function setupKehadiranListener() {
         const jcSel = document.getElementById("sel-hadir");
         const monthSel = document.getElementById("month-hadir");
-
         const update = () => {
-            const dateLimit = new Date();
-            dateLimit.setMonth(dateLimit.getMonth() - parseInt(monthSel.value));
-
-            db.collection("kehadiran")
-              .where("status", "==", "Hadir")
-              .where("tanggal", ">=", firebase.firestore.Timestamp.fromDate(dateLimit))
+            const limit = new Date();
+            limit.setMonth(limit.getMonth() - parseInt(monthSel.value));
+            db.collection("kehadiran").where("status", "==", "Hadir").where("tanggal", ">=", firebase.firestore.Timestamp.fromDate(limit))
               .onSnapshot(snap => {
                   let countJC = 0;
                   snap.forEach(doc => { if(String(doc.data().komsel) === String(jcSel.value)) countJC++; });
-
                   const totalJC = cachedUsers.filter(u => String(u.komsel) === String(jcSel.value)).length;
                   const pct = calculateSafePct(countJC, totalJC);
-
                   document.getElementById("val-hadir").innerText = pct + "%";
                   document.getElementById("bar-hadir").style.width = pct + "%";
                   document.getElementById("lbl-hadir").innerText = "Kehadiran JC " + jcSel.value;
               });
         };
-        jcSel.onchange = update;
-        monthSel.onchange = update;
-        update();
+        jcSel.onchange = update; monthSel.onchange = update; update();
     }
 
-    function setupBloodStat() {
+    // 3. Logic Ketidak Hadiran
+    function setupTidakHadirListener() {
+        const jcSel = document.getElementById("sel-tidak-hadir");
+        const monthSel = document.getElementById("month-tidak-hadir");
+        const update = () => {
+            const limit = new Date();
+            limit.setMonth(limit.getMonth() - parseInt(monthSel.value));
+            db.collection("kehadiran").where("status", "==", "Tidak Hadir").where("tanggal", ">=", firebase.firestore.Timestamp.fromDate(limit))
+              .onSnapshot(snap => {
+                  let countJC = 0;
+                  snap.forEach(doc => { if(String(doc.data().komsel) === String(jcSel.value)) countJC++; });
+                  const totalJC = cachedUsers.filter(u => String(u.komsel) === String(jcSel.value)).length;
+                  const pct = calculateSafePct(countJC, totalJC);
+                  document.getElementById("val-tidak-hadir").innerText = pct + "%";
+                  document.getElementById("bar-tidak-hadir").style.width = pct + "%";
+                  document.getElementById("lbl-tidak-hadir").innerText = "Ketidak Hadiran JC " + jcSel.value;
+              });
+        };
+        jcSel.onchange = update; monthSel.onchange = update; update();
+    }
+
+    // 4. Logic Golongan Darah
+    function setupBloodListener() {
         const sel = document.getElementById("sel-darah");
         const update = () => {
             let counts = { "A": 0, "B": 0, "O": 0, "AB": 0 };
@@ -214,12 +229,10 @@
             });
             for (let t in counts) document.getElementById("c-"+t).innerText = counts[t] + " Orang";
         };
-        sel.onchange = update;
-        update();
+        sel.onchange = update; update();
     }
 
-    // Jalankan sistem
-    loadStatistics();
+    initSystem();
 </script>
 </body>
 </html>
