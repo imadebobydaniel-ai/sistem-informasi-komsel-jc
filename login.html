@@ -104,37 +104,6 @@
         document.getElementById("error-block").style.display = "none";
     }
 
-    // Fungsi Sinkronisasi Realtime (Pindahkan ke laporan-komsel.html jika diperlukan di sana)
-    function sinkronisasiRealtime() {
-        let jcRaw = localStorage.getItem("userKomsel") || "5";
-        const jcStr = String(jcRaw);
-
-        const periodeSelect = document.getElementById("filter-periode");
-        const periode = periodeSelect ? parseInt(periodeSelect.value) : 1;
-        
-        const batasWaktu = new Date();
-        batasWaktu.setMonth(batasWaktu.getMonth() - periode);
-        const tsBatas = firebase.firestore.Timestamp.fromDate(batasWaktu);
-
-        db.collection("kehadiran")
-            .where("komsel", "==", jcStr) 
-            .where("tanggal", ">=", tsBatas)
-            .onSnapshot(snap => {
-                if (snap.empty) {
-                    const listHadir = document.getElementById("list-hadir");
-                    const listIzin = document.getElementById("list-izin");
-                    if(listHadir) listHadir.innerHTML = "Tidak ada data";
-                    if(listIzin) listIzin.innerHTML = "Tidak ada data";
-                    return;
-                }
-                // Sisa pengolahan data Anda di sini
-            }, err => {
-                console.error("Firebase Error:", err);
-                const listHadir = document.getElementById("list-hadir");
-                if(listHadir) listHadir.innerHTML = "Error ambil data";
-            });
-    }
-
     async function prosesLogin() {
         const email = document.getElementById('email').value.trim();
         const pass = document.getElementById('pass').value;
@@ -154,6 +123,7 @@
                 const user = snapshot.docs[0].data();
                 localStorage.setItem("userEmail", email);
                 localStorage.setItem("userName", user.nama);
+                // PENTING: Paksa jadi String agar sinkron dengan database
                 localStorage.setItem("userKomsel", String(user.komsel)); 
                 window.location.href = "menu.html";
             } else {
@@ -162,6 +132,40 @@
         } catch (e) { 
             showError("Kendala Koneksi", "Gagal terhubung ke database.");
         }
+    }
+
+    // Script Sinkronisasi Realtime (Ditempatkan di sini agar tersedia secara global)
+    function sinkronisasiRealtime() {
+        // Ambil JC dari localStorage, jika kosong default ke "5" (sesuai gambar DB Anda)
+        let jcRaw = localStorage.getItem("userKomsel") || "5";
+        const jcStr = String(jcRaw); // Pastikan bentuknya "5", bukan angka 5
+
+        const periode = parseInt(document.getElementById("filter-periode").value);
+        const batasWaktu = new Date();
+        batasWaktu.setMonth(batasWaktu.getMonth() - periode);
+        const tsBatas = firebase.firestore.Timestamp.fromDate(batasWaktu);
+
+        // Filter menggunakan jcStr yang sudah pasti teks
+        db.collection("kehadiran")
+            .where("komsel", "==", jcStr) 
+            .where("tanggal", ">=", tsBatas)
+            .onSnapshot(snap => {
+                if (snap.empty) {
+                    const hadirEl = document.getElementById("list-hadir");
+                    const izinEl = document.getElementById("list-izin");
+                    if(hadirEl) hadirEl.innerHTML = "Tidak ada data";
+                    if(izinEl) izinEl.innerHTML = "Tidak ada data";
+                    return;
+                }
+                
+                // Sisa kode pengolahan data Anda diletakkan di sini saat di halaman laporan
+                console.log("Data ditemukan untuk JC: " + jcStr);
+                
+            }, err => {
+                console.error("Firebase Error:", err);
+                const hadirEl = document.getElementById("list-hadir");
+                if(hadirEl) hadirEl.innerHTML = "Error ambil data";
+            });
     }
 </script>
 </body>
