@@ -203,30 +203,36 @@
         });
         for (let t in counts) document.getElementById('c-' + t).innerText = counts[t] + " Orang";
     }
-    // Fungsi Real-time Listener
+  // Fungsi Mendengarkan Data secara Real-time
 db.collection("users").onSnapshot((snapshot) => {
-    // Reset semua hitungan ke 0 setiap ada perubahan data
-    let countA = 0, countB = 0, countAB = 0, countO = 0;
+    // Ambil nilai filter dari dropdown (Misal: "JC 5" atau "Pilih Komsel...")
+    const filterJC = document.getElementById("filterKomsel").value; // Pastikan ID dropdown benar
+
+    // Reset hitungan setiap ada perubahan di database
+    let golA = 0, golB = 0, golAB = 0, golO = 0;
 
     snapshot.forEach((doc) => {
         const data = doc.data();
         
-        // Cek field 'gol_darah' ATAU 'golongan_darah'
-        const gd = data.gol_darah || data.golongan_darah;
+        // Logika Filter: Jika "Pilih Komsel..." (tampilkan semua) 
+        // ATAU jika komsel di data cocok dengan pilihan dropdown
+        if (filterJC === "" || data.komsel === filterJC.replace("JC ", "")) {
+            
+            const darah = data.golongan_darah; // Gunakan field standar Anda
 
-        if (gd === "A") countA++;
-        else if (gd === "B") countB++;
-        else if (gd === "AB") countAB++; // Ini yang akan menangkap data Boby Daniel
-        else if (gd === "O") countO++;
+            if (darah === "A") golA++;
+            else if (darah === "B") golB++;
+            else if (darah === "AB") golAB++;
+            else if (darah === "O") golO++;
+        }
     });
 
-    // Update angka di kartu tampilan secara instan
-    document.getElementById("stat_a").innerText = countA + " Orang";
-    document.getElementById("stat_b").innerText = countB + " Orang";
-    document.getElementById("stat_ab").innerText = countAB + " Orang"; // Akan muncul 1
-    document.getElementById("stat_o").innerText = countO + " Orang";
+    // Update tampilan angka di kartu (Pastikan ID elemen sesuai)
+    document.getElementById("count_a").innerText = golA + " Orang";
+    document.getElementById("count_b").innerText = golB + " Orang";
+    document.getElementById("count_ab").innerText = golAB + " Orang";
+    document.getElementById("count_o").innerText = golO + " Orang";
 });
-
     window.onload = () => { loadAlkitab(); loadHadir(); };
 </script>
 </body>
