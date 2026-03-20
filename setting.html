@@ -2,64 +2,99 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pengaturan - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 15px; }
-        .container { max-width: 450px; margin: auto; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 20px; }
-        h3 { color: #333; text-align: center; margin-bottom: 20px; text-transform: uppercase; font-size: 18px; }
-        
-        .form-group { margin-bottom: 15px; text-align: left; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; color: #555; }
-        .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; outline: none; }
+        :root {
+            --biru-tua: #003366;
+            --biru-safir: #0056b3;
+            --biru-muda: #00e6e6;
+            --hijau-zamrud: #2ecc71;
+            --emas-lux: #D4AF37;
+            --putih-bg: #f4f7fa;
+        }
 
-        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .setting-item span { font-size: 14px; font-weight: 500; color: #333; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--putih-bg); margin: 0; padding: 20px; color: #333; }
         
-        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .settings-card {
+            background: white;
+            max-width: 450px;
+            margin: auto;
+            border-radius: 25px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border-top: 5px solid var(--biru-safir);
+        }
+
+        h2 { color: var(--biru-tua); font-weight: 800; text-align: center; margin-bottom: 25px; font-size: 20px; text-transform: uppercase; }
+        h2 i { color: var(--emas-lux); margin-right: 8px; }
+
+        .input-group { margin-bottom: 18px; text-align: left; }
+        .input-group label { display: block; font-weight: bold; font-size: 13px; margin-bottom: 8px; color: var(--biru-tua); }
+        .input-group input, .input-group select {
+            width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid #ddd;
+            box-sizing: border-box; font-size: 14px; transition: 0.3s;
+        }
+        .input-group input:focus { border-color: var(--biru-safir); outline: none; box-shadow: 0 0 8px rgba(0,86,179,0.2); }
+
+        /* Style Toggle Switch */
+        .switch-group {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 0; border-bottom: 1px solid #eee;
+        }
+        .switch { position: relative; display: inline-block; width: 45px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
-        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #007bff; }
-        input:checked + .slider:before { transform: translateX(20px); }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--hijau-zamrud); }
+        input:checked + .slider:before { transform: translateX(21px); }
 
-        .btn-save { width: 100%; background: #007bff; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 14px; }
-        .btn-delete { width: 100%; background: #ff4d4d; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 14px; }
-        
-        .dev-info { background: #f9f9f9; padding: 15px; border-radius: 15px; border-left: 4px solid #007bff; margin-top: 20px; text-align: left; }
-        .dev-info h4 { margin: 0 0 5px 0; font-size: 14px; color: #007bff; }
-        .dev-info p { margin: 0; font-size: 12px; color: #666; line-height: 1.4; }
+        .btn-save {
+            width: 100%; background: var(--biru-safir); color: white; border: none;
+            padding: 15px; border-radius: 50px; font-weight: bold; margin-top: 20px;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(0,86,179,0.3); transition: 0.3s;
+        }
+        .btn-save:active { transform: scale(0.98); }
 
-        /* Perbaikan tombol kembali agar masuk dalam frame */
-        .btn-back { display: block; text-align: center; margin-top: 20px; text-decoration: none; color: #007bff; font-weight: bold; font-size: 14px; padding: 10px; border-top: 1px solid #eee; }
+        .btn-delete {
+            width: 100%; background: #dc3545; color: white; border: none;
+            padding: 12px; border-radius: 50px; font-weight: bold; margin-top: 10px;
+            cursor: pointer; font-size: 13px;
+        }
 
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
-        .modal-box { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 400px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .modal-box i { font-size: 50px; margin-bottom: 15px; }
-        .modal-box h2 { margin: 0 0 10px 0; font-size: 20px; }
-        .modal-box p { color: #666; margin-bottom: 20px; line-height: 1.5; }
-        .modal-btn { background: #007bff; color: white; border: none; padding: 12px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; }
+        .info-box {
+            background: #eef6ff; border-left: 4px solid var(--biru-muda);
+            padding: 15px; border-radius: 12px; margin-top: 25px; font-size: 12px; text-align: left;
+        }
+
+        .back-link { display: block; margin-top: 25px; text-decoration: none; color: var(--biru-safir); font-weight: bold; font-size: 14px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="card">
-        <h3><i class="fa-solid fa-gear"></i> Pengaturan Akun</h3>
+    <div class="settings-card">
+        <h2><i class="fa-solid fa-user-gear"></i> Pengaturan Akun</h2>
         
-        <div class="form-group">
+        <div class="input-group">
             <label>Email Baru</label>
             <input type="email" id="new-email" placeholder="Masukkan email baru">
         </div>
-        <div class="form-group">
+
+        <div class="input-group">
             <label>Password Baru</label>
-            <input type="password" id="new-pass" placeholder="Masukkan password baru">
+            <input type="password" id="new-password" placeholder="Masukkan password baru">
         </div>
-        <div class="form-group">
+
+        <div class="input-group">
             <label>Lokasi Komsel</label>
-            <select id="set-komsel">
+            <select id="lokasi-komsel">
                 <option value="JC 1">JC 1</option>
                 <option value="JC 2">JC 2</option>
                 <option value="JC 3">JC 3</option>
@@ -68,103 +103,113 @@
             </select>
         </div>
 
-        <hr>
-
-        <div class="setting-item">
-            <span>Suara Notifikasi</span>
+        <div class="switch-group">
+            <label style="font-weight: bold; font-size: 13px; color: var(--biru-tua);">Suara Notifikasi Alkitab (22:00)</label>
             <label class="switch">
-                <input type="checkbox" id="mute-sound" checked onchange="toggleSetting('muteSound', this.checked)">
+                <input type="checkbox" id="toggle-suara">
                 <span class="slider"></span>
             </label>
         </div>
 
-        <div class="setting-item">
-            <span>Aktifkan GPS</span>
+        <div class="switch-group">
+            <label style="font-weight: bold; font-size: 13px; color: var(--biru-tua);">Aktifkan Popup Notifikasi</label>
             <label class="switch">
-                <input type="checkbox" id="gps-status" onchange="toggleSetting('gpsActive', this.checked)">
+                <input type="checkbox" id="toggle-popup">
                 <span class="slider"></span>
             </label>
         </div>
 
-        <div class="form-group" style="margin-top: 15px;">
+        <div class="input-group" style="margin-top: 15px;">
             <label>Logout Otomatis</label>
-            <select id="auto-logout-dur" onchange="toggleSetting('logoutDuration', this.value)">
+            <select id="auto-logout">
                 <option value="0">Matikan</option>
                 <option value="30">30 Menit</option>
                 <option value="60">60 Menit</option>
             </select>
         </div>
 
-        <button class="btn-save" onclick="simpanPerubahan()">Simpan Perubahan</button>
-        <button class="btn-delete">Hapus Akun Permanen</button>
+        <button class="btn-save" onclick="saveSettings()">SIMPAN PERUBAHAN</button>
+        <button class="btn-delete">HAPUS AKUN PERMANEN</button>
 
-        <div class="dev-info">
-            <h4><i class="fa-solid fa-circle-info"></i> Info Pengembang</h4>
-            <p>Aplikasi ini dibuat untuk memudahkan melakukan pelaporan pembacaan alkitab secara realtime, dan membantu mengingatkan secara otomatis jadwal pelaporan dan batas waktu pelaporan. dikembangkan untuk komsel JC Pondok Pemulihan papua.</p>
+        <div class="info-box">
+            <strong style="color: var(--biru-safir);"><i class="fa-solid fa-circle-info"></i> Info Pengembang</strong><br>
+            Aplikasi ini dikembangkan untuk memudahkan pelaporan pembacaan Alkitab secara realtime bagi Komsel JC Pondok Pemulihan Papua.
         </div>
 
-        <a href="menu.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Kembali ke Menu</a>
+        <a href="menu.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Kembali ke Menu</a>
     </div>
-</div>
 
-<div id="customModal" class="modal-overlay">
-    <div class="modal-box">
-        <i id="modalIcon"></i>
-        <h2 id="modalTitle">Judul</h2>
-        <p id="modalMsg">Pesan akan muncul di sini.</p>
-        <button class="modal-btn" id="modalAction" onclick="closeModal()">OK</button>
-    </div>
-</div>
+    <audio id="sirine-audio" src="https://www.soundjay.com/buttons/sounds/beep-01a.mp3"></audio>
 
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const settings = JSON.parse(localStorage.getItem("appSettings")) || {
-            muteSound: true,
-            gpsActive: false,
-            logoutDuration: "0"
+    <script>
+        // Memuat Pengaturan Saat Halaman Dibuka
+        window.onload = function() {
+            document.getElementById('toggle-suara').checked = localStorage.getItem('suaraNotif') === 'true';
+            document.getElementById('toggle-popup').checked = localStorage.getItem('popupNotif') === 'true';
+            document.getElementById('auto-logout').value = localStorage.getItem('timeoutValue') || "0";
+            
+            // Jalankan sistem monitoring
+            startInactivityTimer();
+            startNotificationCheck();
         };
-        
-        document.getElementById("mute-sound").checked = settings.muteSound;
-        document.getElementById("gps-status").checked = settings.gpsActive;
-        document.getElementById("auto-logout-dur").value = settings.logoutDuration;
-    });
 
-    function showModal(title, msg, type) {
-        const modal = document.getElementById('customModal');
-        const icon = document.getElementById('modalIcon');
-        
-        document.getElementById('modalTitle').innerText = title;
-        document.getElementById('modalMsg').innerText = msg;
+        function saveSettings() {
+            const suara = document.getElementById('toggle-suara').checked;
+            const popup = document.getElementById('toggle-popup').checked;
+            const timeout = document.getElementById('auto-logout').value;
 
-        if (type === 'success') {
-            icon.className = "fa-solid fa-circle-check";
-            icon.style.color = "#28a745";
-        } else if (type === 'warning') {
-            icon.className = "fa-solid fa-triangle-exclamation";
-            icon.style.color = "#ffc107";
+            localStorage.setItem('suaraNotif', suara);
+            localStorage.setItem('popupNotif', popup);
+            localStorage.setItem('timeoutValue', timeout);
+
+            alert("Pengaturan Berhasil Disimpan!");
+            location.reload();
         }
 
-        modal.style.display = "flex";
-    }
-
-    function closeModal() {
-        document.getElementById('customModal').style.display = "none";
-    }
-
-    function toggleSetting(key, value) {
-        let settings = JSON.parse(localStorage.getItem("appSettings")) || {};
-        settings[key] = value;
-        localStorage.setItem("appSettings", JSON.stringify(settings));
-        
-        if (key === 'gpsActive' && value === true) {
-            showModal("AKSES GPS", "GPS telah diaktifkan untuk fitur Lacak Domba.", "success");
+        // --- LOGIKA LOGOUT OTOMATIS ---
+        let idleTimer;
+        function startInactivityTimer() {
+            const minutes = parseInt(localStorage.getItem('timeoutValue'));
+            if (minutes > 0) {
+                const ms = minutes * 60 * 1000;
+                resetTimer(ms);
+                window.onmousemove = () => resetTimer(ms);
+                window.onkeypress = () => resetTimer(ms);
+                window.ontouchstart = () => resetTimer(ms);
+            }
         }
-    }
 
-    function simpanPerubahan() {
-        showModal("BERHASIL", "Perubahan pengaturan berhasil disimpan.", "success");
-    }
-</script>
+        function resetTimer(ms) {
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => {
+                alert("Sesi berakhir karena tidak ada aktivitas.");
+                localStorage.clear();
+                window.location.href = 'index.html';
+            }, ms);
+        }
 
+        // --- LOGIKA NOTIFIKASI JAM 10 MALAM (22:00) ---
+        function startNotificationCheck() {
+            setInterval(() => {
+                const now = new Date();
+                if (now.getHours() === 22 && now.getMinutes() === 0 && now.getSeconds() === 0) {
+                    executeNotification();
+                }
+            }, 1000);
+        }
+
+        function executeNotification() {
+            const suaraAktif = localStorage.getItem('suaraNotif') === 'true';
+            const popupAktif = localStorage.getItem('popupNotif') === 'true';
+
+            if (suaraAktif) {
+                document.getElementById('sirine-audio').play();
+            }
+
+            if (popupAktif) {
+                alert("🔔 PENGINGAT: Harap segera laporkan pembacaan Alkitab Anda hari ini!");
+            }
+        }
+    </script>
 </body>
 </html>
