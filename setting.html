@@ -7,66 +7,27 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --biru-tua: #003366;
-            --biru-safir: #0056b3;
-            --biru-muda: #00e6e6;
-            --hijau-zamrud: #2ecc71;
-            --emas-lux: #D4AF37;
-            --putih-bg: #f4f7fa;
+            --biru-tua: #003366; --biru-safir: #0056b3; --biru-muda: #00e6e6;
+            --hijau-zamrud: #2ecc71; --emas-lux: #D4AF37; --putih-bg: #f4f7fa;
         }
-
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--putih-bg); margin: 0; padding: 20px; color: #333; }
-        
         .settings-card {
-            background: white;
-            max-width: 450px;
-            margin: auto;
-            border-radius: 25px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            border-top: 5px solid var(--biru-safir);
+            background: white; max-width: 450px; margin: auto; border-radius: 25px;
+            padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border-top: 5px solid var(--biru-safir);
         }
-
-        h2 { color: var(--biru-tua); font-weight: 800; text-align: center; margin-bottom: 25px; font-size: 20px; text-transform: uppercase; }
-        h2 i { color: var(--emas-lux); margin-right: 8px; }
-
-        .input-group { margin-bottom: 18px; text-align: left; }
+        h2 { color: var(--biru-tua); font-weight: 800; text-align: center; margin-bottom: 25px; font-size: 18px; text-transform: uppercase; }
+        .input-group { margin-bottom: 18px; }
         .input-group label { display: block; font-weight: bold; font-size: 13px; margin-bottom: 8px; color: var(--biru-tua); }
-        .input-group input, .input-group select {
-            width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid #ddd;
-            box-sizing: border-box; font-size: 14px; transition: 0.3s;
-        }
-
-        /* Style Toggle Switch */
-        .switch-group {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 12px 0; border-bottom: 1px solid #eee;
-        }
-        .switch { position: relative; display: inline-block; width: 45px; height: 24px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #ccc; transition: .4s; border-radius: 34px;
-        }
-        .slider:before {
-            position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
-            background-color: white; transition: .4s; border-radius: 50%;
-        }
-        input:checked + .slider { background-color: var(--hijau-zamrud); }
-        input:checked + .slider:before { transform: translateX(21px); }
-
+        .input-group select { width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid #ddd; font-size: 14px; }
         .btn-save {
             width: 100%; background: var(--biru-safir); color: white; border: none;
-            padding: 15px; border-radius: 50px; font-weight: bold; margin-top: 20px;
-            cursor: pointer; box-shadow: 0 4px 15px rgba(0,86,179,0.3); transition: 0.3s;
+            padding: 15px; border-radius: 50px; font-weight: bold; margin-top: 20px; cursor: pointer;
         }
-
+        /* Notifikasi Block Display */
         #notif-pesan {
             display: none; color: #0d9488; font-weight: bold; margin-top: 15px; 
-            text-align: center; background: #f0fdfa; padding: 10px; border-radius: 12px;
-            font-size: 13px; border: 1px solid #0d9488;
+            text-align: center; background: #f0fdfa; padding: 10px; border-radius: 12px; font-size: 13px;
         }
-
         .back-link { display: block; margin-top: 25px; text-decoration: none; color: var(--biru-safir); font-weight: bold; font-size: 14px; text-align: center; }
     </style>
 </head>
@@ -86,15 +47,7 @@
             </select>
         </div>
 
-        <div class="switch-group">
-            <label style="font-weight: bold; font-size: 13px; color: var(--biru-tua);">Suara Notifikasi Alkitab (22:00)</label>
-            <label class="switch">
-                <input type="checkbox" id="toggle-suara">
-                <span class="slider"></span>
-            </label>
-        </div>
-
-        <div class="input-group" style="margin-top: 15px;">
+        <div class="input-group">
             <label>Logout Otomatis (Keamanan)</label>
             <select id="auto-logout">
                 <option value="0">Matikan</option>
@@ -104,35 +57,32 @@
         </div>
 
         <button class="btn-save" onclick="saveSettings()">SIMPAN PERUBAHAN</button>
-        
         <div id="notif-pesan"></div>
 
         <a href="menu.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Kembali ke Menu</a>
     </div>
 
-    <audio id="sirine-audio" src="https://www.soundjay.com/buttons/sounds/beep-01a.mp3"></audio>
-
     <script>
         let idleTimer;
 
-        // 1. Memuat Pengaturan Saat Halaman Dibuka
+        // 1. FUNGSI LOAD (Dijalankan sekali saat buka halaman)
         window.onload = function() {
-            document.getElementById('toggle-suara').checked = localStorage.getItem('suaraNotif') === 'true';
+            // Muat data tersimpan
             document.getElementById('lokasi-komsel').value = localStorage.getItem('userJC') || "JC 1";
-            
             const savedTimeout = localStorage.getItem('timeoutValue') || "0";
             document.getElementById('auto-logout').value = savedTimeout;
 
-            startInactivityTimer();
+            // Jalankan monitor hanya jika nilainya BUKAN "0"
+            if (savedTimeout !== "0") {
+                startMonitoring(parseInt(savedTimeout));
+            }
         };
 
-        // 2. Fungsi Simpan Pengaturan (Tanpa Popup Alert)
+        // 2. FUNGSI SIMPAN (Tanpa Alert Popup)
         function saveSettings() {
-            const suara = document.getElementById('toggle-suara').checked;
             const jc = document.getElementById('lokasi-komsel').value;
             const timeoutVal = document.getElementById('auto-logout').value;
 
-            localStorage.setItem('suaraNotif', suara);
             localStorage.setItem('userJC', jc);
             localStorage.setItem('timeoutValue', timeoutVal);
 
@@ -143,32 +93,31 @@
             
             setTimeout(() => { 
                 pesan.style.display = 'none'; 
-                location.reload(); // Refresh untuk menerapkan timer baru
-            }, 2000);
+                location.reload(); // Refresh untuk mengaktifkan timer baru
+            }, 1500);
         }
 
-        // 3. Sistem Logout Otomatis (Tanpa Popup Pesan)
-        function startInactivityTimer() {
-            const minutes = parseInt(localStorage.getItem('timeoutValue'));
-            if (minutes > 0) {
-                const ms = minutes * 60 * 1000;
-                resetTimer(ms);
+        // 3. SISTEM MONITORING (Anti Instant Logout)
+        function startMonitoring(minutes) {
+            const ms = minutes * 60 * 1000;
+            
+            // Fungsi untuk reset timer saat ada aktivitas
+            const resetAction = () => {
+                clearTimeout(idleTimer);
+                idleTimer = setTimeout(() => {
+                    localStorage.clear();
+                    window.location.href = 'login.html';
+                }, ms);
+            };
 
-                // Deteksi aktivitas termasuk sentuhan layar HP
-                window.onmousemove = () => resetTimer(ms);
-                window.onkeypress = () => resetTimer(ms);
-                window.ontouchstart = () => resetTimer(ms); 
-                window.onclick = () => resetTimer(ms);
-            }
-        }
+            // Daftarkan event aktivitas (Termasuk sentuhan HP)
+            window.onmousemove = resetAction;
+            window.onkeypress = resetAction;
+            window.ontouchstart = resetAction;
+            window.onclick = resetAction;
 
-        function resetTimer(ms) {
-            clearTimeout(idleTimer);
-            idleTimer = setTimeout(() => {
-                // Logout langsung tanpa alert
-                localStorage.clear();
-                window.location.href = 'login.html';
-            }, ms);
+            // Jalankan pertama kali
+            resetAction();
         }
     </script>
 </body>
