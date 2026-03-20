@@ -33,16 +33,37 @@
             background: white; padding: 12px; border-radius: 15px; margin-bottom: 10px;
             display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03);
         }
-        .friend-img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--biru-safir); }
-        .friend-info { flex: 1; }
+        .friend-img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--biru-safir); cursor: pointer; }
+        .friend-info { flex: 1; cursor: pointer; }
         .friend-info h4 { margin: 0; font-size: 14px; color: var(--biru-tua); }
         .friend-info p { margin: 0; font-size: 11px; color: #888; }
 
-        /* Button Styles */
-        .btn { border: none; padding: 7px 15px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-invite { background: var(--biru-safir); color: white; }
-        .btn-accept { background: var(--hijau-zamrud); color: white; }
+        /* Style Modal Profil ala FB */
+        .profile-modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; 
+            width: 100%; height: 100%; background: rgba(0,0,0,0.6); 
+            backdrop-filter: blur(5px); justify-content: center; align-items: center;
+        }
+        .profile-card {
+            background: white; width: 85%; max-width: 320px; border-radius: 25px;
+            overflow: hidden; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .card-header { background: var(--biru-tua); height: 80px; position: relative; }
+        .card-avatar { 
+            width: 100px; height: 100px; border-radius: 50%; border: 5px solid white;
+            margin-top: -50px; background: white; object-fit: cover; position: relative; z-index: 2;
+        }
+        .card-body { padding: 20px; }
+        .card-body h3 { margin: 10px 0 5px; color: #333; font-size: 18px; }
+        .card-body p { margin: 0; color: #777; font-size: 13px; }
+
+        .btn { border: none; padding: 10px 15px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-invite { background: var(--biru-safir); color: white; width: 100%; margin-top: 15px; }
         .btn-track { background: #f0fdfa; color: #0d9488; border: 1px solid #0d9488; }
+        .btn-close { background: #eee; color: #333; width: 100%; margin-top: 8px; }
         .btn:active { transform: scale(0.95); }
 
         .back-btn { display: block; text-align: center; margin: 20px; color: var(--biru-safir); text-decoration: none; font-size: 14px; font-weight: bold; }
@@ -54,9 +75,7 @@
         <h2 id="header-title"><i class="fa-solid fa-map-location-dot" style="color: var(--emas);"></i> Lacak Domba</h2>
     </div>
 
-    <div class="info-panel" id="access-text">
-        Memuat informasi akses...
-    </div>
+    <div class="info-panel" id="access-text">Memuat informasi...</div>
 
     <div class="search-container">
         <div class="search-box">
@@ -77,98 +96,31 @@
             <div class="section-title">Hasil Pencarian</div>
             <div id="search-results"></div>
         </div>
-
         <div class="section-title">Teman Terhubung</div>
         <div id="connected-friends"></div>
+    </div>
+
+    <div id="modalProfil" class="profile-modal">
+        <div class="profile-card">
+            <div class="card-header"></div>
+            <img id="p-foto" src="" class="card-avatar">
+            <div class="card-body">
+                <h3 id="p-nama">Nama Anggota</h3>
+                <p id="p-jc">JC Group</p>
+                <button id="p-btn-action" class="btn btn-invite" onclick="inviteFromModal()">
+                    <i class="fa-solid fa-user-plus"></i> ADD FRIEND
+                </button>
+                <button class="btn btn-close" onclick="tutupProfil()">TUTUP</button>
+            </div>
+        </div>
     </div>
 
     <a href="menu.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Kembali ke Menu</a>
 
     <script>
-        // Ambil data JC dari setting Bapak
         const myJC = localStorage.getItem('userJC') || "JC 1"; 
-        
-        // Update Teks Peringatan & Header secara dinamis
         document.getElementById('header-title').innerHTML += ` (${myJC})`;
         document.getElementById('access-text').innerText = `Lacak Domba hanya bisa dilakukan sesama anggota ${myJC} dengan saling terhubung masing-masing akun.`;
 
-        // Data Simulasi Anggota dalam satu JC
         const databaseAnggota = [
-            { id: 101, nama: "Andi Pratama", jc: myJC, connected: true, requestSent: false, lat: -2.548, lon: 140.704 },
-            { id: 102, nama: "Siska Wulandari", jc: myJC, connected: true, requestSent: false, lat: -2.550, lon: 140.710 },
-            { id: 103, nama: "Budi Santoso", jc: myJC, connected: false, requestSent: false },
-            { id: 104, nama: "Yohanes Papua", jc: myJC, connected: false, requestSent: true }, // Menunggu Accept
-        ];
-
-        const searchInput = document.getElementById('search-name');
-        const searchSection = document.getElementById('search-results-section');
-        const searchResults = document.getElementById('search-results');
-        const connectedList = document.getElementById('connected-friends');
-
-        function renderLists(filter = "") {
-            searchResults.innerHTML = "";
-            connectedList.innerHTML = "";
-            
-            let hasSearch = false;
-
-            databaseAnggota.forEach(user => {
-                // Template Item
-                const itemHTML = (button) => `
-                    <div class="friend-item">
-                        <img src="https://ui-avatars.com/api/?name=${user.nama}&background=random" class="friend-img">
-                        <div class="friend-info">
-                            <h4>${user.nama}</h4>
-                            <p>${user.jc}</p>
-                        </div>
-                        ${button}
-                    </div>
-                `;
-
-                // Logika Filter Pencarian
-                if (filter && user.nama.toLowerCase().includes(filter.toLowerCase())) {
-                    hasSearch = true;
-                    searchSection.style.display = "block";
-                    
-                    let btn = "";
-                    if (user.connected) {
-                        btn = `<button class="btn btn-track" onclick="track('${user.nama}', ${user.lat}, ${user.lon})">LACAK</button>`;
-                    } else if (user.requestSent) {
-                        btn = `<button class="btn btn-accept" onclick="accept('${user.nama}')">ACCEPT</button>`;
-                    } else {
-                        btn = `<button class="btn btn-invite" onclick="invite('${user.nama}')">INVITE</button>`;
-                    }
-                    searchResults.innerHTML += itemHTML(btn);
-                }
-
-                // Tampilkan di daftar teman terhubung jika sudah connect
-                if (user.connected && !filter) {
-                    connectedList.innerHTML += itemHTML(`<button class="btn btn-track" onclick="track('${user.nama}', ${user.lat}, ${user.lon})">LACAK</button>`);
-                }
-            });
-
-            if (!hasSearch) searchSection.style.display = "none";
-        }
-
-        // Aksi Tombol
-        function invite(name) {
-            alert("Undangan pertemanan dikirim ke " + name);
-        }
-
-        function accept(name) {
-            alert("Sekarang anda bisa saling melacak dengan " + name);
-        }
-
-        function track(name, lat, lon) {
-            document.getElementById('map-status').innerText = "Melacak: " + name;
-            document.getElementById('map-coord').innerText = `Posisi Terkini: ${lat}, ${lon}`;
-            document.getElementById('map-container').style.background = "#d1fae5";
-        }
-
-        // Event listener search
-        searchInput.addEventListener('input', (e) => renderLists(e.target.value));
-
-        // Load awal
-        window.onload = () => renderLists();
-    </script>
-</body>
-</html>
+            { id: 101, nama: "Andi Pratama", jc: myJC, connected: true, requestSent: false, lat: -2.548, lon: 140.704
