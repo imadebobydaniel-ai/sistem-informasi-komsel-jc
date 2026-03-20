@@ -28,7 +28,6 @@
 
         .container { max-width: 500px; margin: auto; }
         
-        /* Card & Headers */
         .card { 
             background: white; 
             padding: 18px; 
@@ -50,7 +49,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Form Elements */
         select, input { 
             width: 100%; 
             padding: 14px; 
@@ -63,7 +61,6 @@
         }
         select:focus, input:focus { border-color: var(--primary); outline: none; background: #fff; }
 
-        /* AI Insight Styling */
         .insight-box { 
             background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
             border-left: 5px solid var(--primary); 
@@ -84,7 +81,6 @@
             font-weight: bold;
         }
 
-        /* List Styling */
         .mutasi-item { 
             display: flex; 
             padding: 12px; 
@@ -109,7 +105,6 @@
         .mutasi-desc { font-size: 11px; color: #777; margin-top: 2px; }
         .mutasi-status { font-size: 10px; color: var(--success); font-weight: 900; }
 
-        /* Export Section */
         .export-card { background: #fffdf5; border: 1.5px dashed #ffd54f; }
         .btn-export { 
             background: var(--success); 
@@ -125,7 +120,6 @@
             text-transform: uppercase;
         }
 
-        /* Bottom Menu */
         .btn-back-container {
             position: fixed;
             bottom: 0;
@@ -179,10 +173,12 @@
     <div class="card">
         <h3><i class="fa-solid fa-clock-rotate-left"></i> Rentang Analisis</h3>
         <select id="filter-periode" onchange="sinkronisasiRealtime()">
-            <option value="1">30 Hari Terakhir</option>
-            <option value="2">60 Hari Terakhir</option>
-            <option value="3">90 Hari Terakhir</option>
-            <option value="6">Semester Ini</option>
+            <option value="1">1 Bulan Terakhir</option>
+            <option value="2">2 Bulan Terakhir</option>
+            <option value="3">3 Bulan Terakhir</option>
+            <option value="4">4 Bulan Terakhir</option>
+            <option value="5">5 Bulan Terakhir</option>
+            <option value="6">6 Bulan Terakhir</option>
         </select>
     </div>
 
@@ -190,7 +186,7 @@
         <div class="ai-badge"><i class="fas fa-microchip"></i> AI ENGINE ACTIVE</div>
         <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Pertumbuhan Komsel</h3>
         <div class="insight-box">
-            <div id="text-insight" class="insight-text">Menganalisis pola kehadiran dan kerohanian...</div>
+            <div id="text-insight" class="insight-text">Menganalisis data...</div>
         </div>
         <div style="text-align: right; margin-top: 10px;">
             <span onclick="toggleLogicPopup()" style="font-size: 10px; font-weight: bold; color: var(--primary); cursor: pointer;">
@@ -200,9 +196,9 @@
 
         <div id="popup-logic">
             <h4 style="margin-top:0; font-size: 12px;">Metode Klasifikasi:</h4>
-            <div style="font-size: 11px; border-left: 3px solid var(--success); padding: 5px; margin-bottom: 5px;"><strong>HI-GROWTH (>=80%):</strong> Jemaat sangat antusias.</div>
-            <div style="font-size: 11px; border-left: 3px solid var(--warning); padding: 5px; margin-bottom: 5px;"><strong>STABLE (50-79%):</strong> Konsistensi terjaga baik.</div>
-            <div style="font-size: 11px; border-left: 3px solid var(--danger); padding: 5px;"><strong>CRITICAL (<50%):</strong> Butuh kunjungan segera.</div>
+            <div style="font-size: 11px; border-left: 3px solid var(--success); padding: 5px; margin-bottom: 5px;"><strong>HI-GROWTH (>=80%):</strong> Sangat Sehat</div>
+            <div style="font-size: 11px; border-left: 3px solid var(--warning); padding: 5px; margin-bottom: 5px;"><strong>STABLE (50-79%):</strong> Cukup Baik</div>
+            <div style="font-size: 11px; border-left: 3px solid var(--danger); padding: 5px;"><strong>CRITICAL (<50%):</strong> Perlu Perhatian</div>
             <button onclick="toggleLogicPopup()" style="width:100%; margin-top:10px; border:none; padding:8px; border-radius:8px; font-weight:bold;">MENGERTI</button>
         </div>
     </div>
@@ -217,13 +213,13 @@
     <div class="card">
         <h3><i class="fa-solid fa-list-check"></i> Log Aktifitas</h3>
         <div id="mutasi-list">
-            <div style="text-align: center; color: #ccc; font-size: 11px; padding: 20px;">Menarik data dari server...</div>
+            <div style="text-align: center; color: #ccc; font-size: 11px; padding: 20px;">Menarik data...</div>
         </div>
     </div>
 
     <div class="card export-card">
         <h3 style="color: #856404; border-color: #ffd54f;"><i class="fa-solid fa-signature"></i> Otoritas PKS</h3>
-        <p style="font-size: 11px; color: #856404; margin-top: -10px; margin-bottom: 15px;">Ekspor PDF memerlukan password Ketua Komsel untuk validitas dokumen.</p>
+        <p style="font-size: 11px; color: #856404; margin-top: -10px; margin-bottom: 15px;">Ekspor PDF memerlukan password valid.</p>
         <div style="position: relative;">
             <input type="password" id="pks-password" placeholder="Password PKS / Admin">
             <i class="fa-solid fa-eye" id="togglePass" onclick="togglePass()" 
@@ -245,7 +241,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    // Konfigurasi Database (Gunakan milik Bapak yang sudah jalan)
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -341,6 +336,7 @@
                 });
                 document.getElementById("mutasi-list").innerHTML = html || '<p style="text-align:center;font-size:12px;color:#999;">Belum ada aktifitas.</p>';
                 
+                // Target statistik disesuaikan secara rincian bulan (periode)
                 const target = 20 * (periode * 4); 
                 const persen = Math.min(Math.round((count/target)*100), 100);
                 myChart.data.datasets[0].data[0] = persen;
@@ -352,21 +348,18 @@
     function generateInsight(persen) {
         document.getElementById("card-insight").style.display = "block";
         const txt = document.getElementById("text-insight");
-        if (persen >= 80) txt.innerText = "Komsel JC " + userJC + " dalam performa puncak. Pertahankan atmosfir kerohanian ini!";
-        else if (persen >= 50) txt.innerText = "Stabilitas JC " + userJC + " terjaga. Terus dorong jemaat untuk lebih disiplin lapor.";
-        else txt.innerText = "Perhatian: Partisipasi menurun. Disarankan PKS melakukan 'Personal Touch' ke jemaat.";
+        if (persen >= 80) txt.innerText = "Komsel JC " + userJC + " dalam performa puncak. Pertahankan!";
+        else if (persen >= 50) txt.innerText = "Stabilitas JC " + userJC + " terjaga cukup baik.";
+        else txt.innerText = "Perhatian: Partisipasi rendah. Segera lakukan follow-up jemaat.";
     }
 
     async function validateAndExport() {
         const pass = document.getElementById("pks-password").value;
-        if(!pass) { alert("Sila masukkan password valid!"); return; }
-        
-        // Logika password Bapak sebelumnya
+        if(!pass) { alert("Masukkan password!"); return; }
         if (pass === "rahasia123") {
-            alert("Membuat laporan PDF Resmi...");
-            // Panggil fungsi proceedExport Bapak di sini
+            alert("Laporan PDF sedang diproses...");
         } else {
-            alert("Password PKS tidak sesuai!");
+            alert("Password salah!");
         }
     }
 
