@@ -14,18 +14,20 @@
         h3 { border-bottom: 2px solid #007bff; padding-bottom: 10px; font-size: 14px; text-transform: uppercase; margin-top: 0; color: #333; }
         select, input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box; outline: none; }
         
-        .realtime-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 15px; }
-        .status-col { padding: 8px; border-radius: 12px; font-size: 10px; min-height: 120px; border: 1px solid #eee; display: flex; flex-direction: column; align-items: center; text-align: center; background: #fff; }
-        .col-hadir { background: #f0fff4; border-color: #c6f6d5; }
-        .col-izin { background: #fff5f5; border-color: #fed7d7; }
-        .col-alkitab { background: #ebf8ff; border-color: #bee3f8; }
-        
-        .status-title { font-weight: bold; margin-bottom: 8px; display: block; font-size: 10px; }
-        .name-list { width: 100%; margin-top: 5px; line-height: 1.3; color: #444; }
-        .name-item { border-bottom: 1px solid rgba(0,0,0,0.05); padding: 4px 0; font-size: 9px; word-break: break-word; }
-        .reason { color: #c53030; font-style: italic; font-size: 8px; display: block; }
-
         .chart-container { position: relative; height: 250px; margin-bottom: 20px; width: 100%; }
+        
+        /* Gaya Mutasi Rekening BCA */
+        .mutasi-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; align-items: center; }
+        .mutasi-date { font-size: 10px; color: #888; width: 45px; font-weight: bold; }
+        .mutasi-info { flex: 1; margin-left: 10px; }
+        .mutasi-name { font-weight: bold; font-size: 12px; color: #333; }
+        .mutasi-desc { font-size: 10px; color: #2ecc71; }
+        .mutasi-status { font-size: 9px; background: #eafff0; color: #2ecc71; padding: 2px 8px; border-radius: 5px; font-weight: bold; }
+
+        /* Gaya Insight AI */
+        .insight-box { background: #eef7ff; border-left: 4px solid #007bff; padding: 15px; border-radius: 10px; margin-top: 10px; }
+        .insight-text { font-size: 12.5px; color: #333; line-height: 1.5; font-style: italic; }
+
         .btn-export { background: #28a745; color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-back { position: fixed; bottom: 20px; left: 20px; right: 20px; background: #007bff; color: white; text-align: center; padding: 15px; border-radius: 15px; text-decoration: none; font-weight: bold; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
     </style>
@@ -38,6 +40,7 @@
         <select id="filter-periode" onchange="sinkronisasiRealtime()">
             <option value="1">1 Bulan Terakhir</option>
             <option value="2">2 Bulan Terakhir</option>
+            <option value="3">3 Bulan Terakhir</option>
             <option value="4">4 Bulan Terakhir</option>
             <option value="5">5 Bulan Terakhir</option>
             <option value="6">6 Bulan Terakhir</option>
@@ -45,25 +48,24 @@
         <p id="label-jc" style="color:#007bff; font-weight:bold; margin-top: 10px;">Menghubungkan Database...</p>
     </div>
 
+    <div class="card" id="card-insight" style="display:none;">
+        <h3><i class="fa-solid fa-robot"></i> Ringkasan Insight AI</h3>
+        <div class="insight-box">
+            <div id="text-insight" class="insight-text">Menganalisis pertumbuhan komsel...</div>
+        </div>
+    </div>
+
     <div class="card">
         <h3><i class="fa-solid fa-chart-simple"></i> Performa Real-Time</h3>
         <div class="chart-container">
             <canvas id="performaChart"></canvas>
         </div>
+    </div>
 
-        <div class="realtime-grid">
-            <div class="status-col col-hadir">
-                <span class="status-title" style="color: #2f855a;"><i class="fa-solid fa-check"></i> HADIR</span>
-                <div id="list-hadir" class="name-list">---</div>
-            </div>
-            <div class="status-col col-izin">
-                <span class="status-title" style="color: #c53030;"><i class="fa-solid fa-clock"></i> IZIN</span>
-                <div id="list-izin" class="name-list">---</div>
-            </div>
-            <div class="status-col col-alkitab">
-                <span class="status-title" style="color: #2b6cb0;"><i class="fa-solid fa-book"></i> FIRMAN</span>
-                <div id="list-alkitab" class="name-list">---</div>
-            </div>
+    <div class="card">
+        <h3><i class="fa-solid fa-list-ul"></i> Detail Aktivitas (Mutasi)</h3>
+        <div id="mutasi-list">
+            <div style="text-align: center; color: #bbb; font-size: 12px; padding: 20px;">Memuat riwayat...</div>
         </div>
     </div>
 
@@ -99,7 +101,6 @@
     let unsubBacaan = null;
 
     async function init() {
-        // Koreksi: Pastikan email menggunakan titik sesuai database (imade.bobydaniel)
         let emailRaw = localStorage.getItem("userEmail") || "imade.bobydaniel@gmail.com";
         const email = emailRaw.trim().toLowerCase();
         
@@ -110,14 +111,8 @@
                 document.getElementById("label-jc").innerText = "Laporan Khusus: JC " + userJC;
                 initChart();
                 sinkronisasiRealtime();
-            } else {
-                document.getElementById("label-jc").innerText = "Email tidak terdaftar!";
-                document.getElementById("label-jc").style.color = "red";
             }
-        } catch (e) { 
-            console.error(e); 
-            document.getElementById("label-jc").innerText = "Gagal memuat data.";
-        }
+        } catch (e) { console.error(e); }
     }
 
     function initChart() {
@@ -126,121 +121,86 @@
         myChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Firman', 'Hadir', 'Izin'],
+                labels: ['Firman', 'Hadir'],
                 datasets: [{
                     label: '% Capaian',
-                    data: [0, 0, 0],
-                    backgroundColor: ['#3182ce', '#38a169', '#e53e3e'],
+                    data: [0, 0],
+                    backgroundColor: ['#3182ce', '#38a169'],
                     borderRadius: 8
                 }]
             },
-            options: { 
-                maintainAspectRatio: false, 
-                scales: { y: { beginAtZero: true, max: 100 } },
-                plugins: { legend: { display: false } }
-            }
+            options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
         });
     }
 
     function sinkronisasiRealtime() {
-        // 1. Putus koneksi lama agar data tidak bertumpuk
         if (unsubKehadiran) unsubKehadiran();
         if (unsubBacaan) unsubBacaan();
-
-        // 2. Reset tampilan visual secara instan
-        if(myChart) {
-            myChart.data.datasets[0].data = [0, 0, 0];
-            myChart.update();
-        }
-        document.getElementById("list-hadir").innerHTML = "Memuat...";
-        document.getElementById("list-izin").innerHTML = "Memuat...";
-        document.getElementById("list-alkitab").innerHTML = "Memuat...";
 
         const periode = parseInt(document.getElementById("filter-periode").value);
         const batasWaktu = new Date();
         batasWaktu.setMonth(batasWaktu.getMonth() - periode);
         const tsBatas = firebase.firestore.Timestamp.fromDate(batasWaktu);
-        const jcStr = String(userJC);
+        
+        let dataMutasi = [];
 
-        // 3. Ambil Data Kehadiran (Hadir & Izin)
-        unsubKehadiran = db.collection("kehadiran")
-            .where("komsel", "==", jcStr)
-            .where("tanggal", ">=", tsBatas)
-            .onSnapshot(snap => {
-                let h = 0, i = 0, htmlH = "", htmlI = "";
-                
-                if (snap.empty) {
-                    document.getElementById("list-hadir").innerHTML = "---";
-                    document.getElementById("list-izin").innerHTML = "---";
-                    myChart.data.datasets[0].data[1] = 0;
-                    myChart.data.datasets[0].data[2] = 0;
-                } else {
-                    snap.forEach(doc => {
-                        const d = doc.data();
-                        if(d.status === "Hadir") {
-                            h++; htmlH += `<div class="name-item">${d.nama}</div>`;
-                        } else {
-                            i++; htmlI += `<div class="name-item">${d.nama}<span class="reason">(${d.alasan || 'Izin'})</span></div>`;
-                        }
-                    });
-                    document.getElementById("list-hadir").innerHTML = htmlH || "---";
-                    document.getElementById("list-izin").innerHTML = htmlI || "---";
-                    
-                    const total = h + i;
-                    myChart.data.datasets[0].data[1] = Math.round((h/total)*100);
-                    myChart.data.datasets[0].data[2] = Math.round((i/total)*100);
-                }
-                myChart.update();
-            });
-
-        // 4. Ambil Data Bacaan Alkitab (Firman)
+        // 1. Ambil Data Bacaan (Detail Mutasi)
         unsubBacaan = db.collection("laporan_bacaan")
-            .where("komsel", "==", jcStr)
+            .where("komsel", "==", userJC)
             .where("tanggal", ">=", tsBatas)
             .onSnapshot(snap => {
-                if (snap.empty) {
-                    document.getElementById("list-alkitab").innerHTML = "---";
-                    myChart.data.datasets[0].data[0] = 0;
-                } else {
-                    let htmlA = "";
-                    const names = new Set();
-                    snap.forEach(doc => { names.add(doc.data().nama); });
-                    names.forEach(n => { htmlA += `<div class="name-item">${n}</div>`; });
-                    document.getElementById("list-alkitab").innerHTML = htmlA || "---";
-                    
-                    // Target progresif: 10 bacaan per minggu x 4 minggu x jumlah bulan
-                    const target = 10 * (periode * 4); 
-                    myChart.data.datasets[0].data[0] = Math.min(Math.round((snap.size/target)*100), 100);
-                }
+                let html = "";
+                let count = 0;
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    count++;
+                    const tgl = d.tanggal.toDate().toLocaleDateString('id-ID', {day:'2-digit', month:'short'});
+                    html += `
+                        <div class="mutasi-item">
+                            <div class="mutasi-date">${tgl}</div>
+                            <div class="mutasi-info">
+                                <div class="mutasi-name">${d.nama}</div>
+                                <div class="mutasi-desc">Selesai Baca: ${d.pasal_utama || '-'}</div>
+                            </div>
+                            <div class="mutasi-status">BERHASIL</div>
+                        </div>`;
+                });
+                document.getElementById("mutasi-list").innerHTML = html || '<div style="text-align:center; padding:20px; color:#bbb;">Tidak ada aktivitas.</div>';
+                
+                // Update Chart & Insight
+                const target = 20 * (periode * 4); 
+                const persen = Math.min(Math.round((count/target)*100), 100);
+                myChart.data.datasets[0].data[0] = persen;
                 myChart.update();
+                generateInsight(persen);
             });
+    }
+
+    function generateInsight(persen) {
+        const box = document.getElementById("card-insight");
+        const txt = document.getElementById("text-insight");
+        box.style.display = "block";
+
+        if (persen >= 80) {
+            txt.innerText = "Luar biasa! Pertumbuhan rohani di JC " + userJC + " sangat stabil. Jemaat menunjukkan komitmen tinggi terhadap Firman Tuhan. Terus fasilitasi momentum ini.";
+        } else if (persen >= 50) {
+            txt.innerText = "Kondisi JC " + userJC + " cukup baik. Ada tren positif dalam kehadiran. Disarankan PKS memberikan apresiasi kecil di grup WA untuk menjaga semangat jemaat.";
+        } else {
+            txt.innerText = "Tingkat partisipasi JC " + userJC + " perlu perhatian. Disarankan melakukan visitasi digital atau kontak personal kepada jemaat yang jarang melapor periode ini.";
+        }
     }
 
     async function validateAndExport() {
         const pass = document.getElementById("pks-password").value;
         if(!pass) { alert("Masukkan password PKS!"); return; }
-        try {
-            const check = await db.collection("users")
-                .where("komsel", "==", userJC)
-                .where("jabatan", "==", "Ketua Komsel")
-                .where("password", "==", pass)
-                .get();
-                
-            if(!check.empty) {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                doc.setFontSize(18);
-                doc.text(`LAPORAN KOMSEL JC ${userJC}`, 20, 20);
-                doc.setFontSize(12);
-                doc.text(`Periode: ${document.getElementById("filter-periode").options[document.getElementById("filter-periode").selectedIndex].text}`, 20, 30);
-                doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 20, 40);
-                doc.save(`Laporan_JC${userJC}.pdf`);
-            } else { 
-                alert("Password Salah atau Anda bukan Ketua Komsel!"); 
-            }
-        } catch (e) { 
-            alert("Error: " + e.message); 
-        }
+        const check = await db.collection("users").where("komsel", "==", userJC).where("jabatan", "==", "Ketua Komsel").where("password", "==", pass).get();
+        if(!check.empty) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text(`LAPORAN RESMI JC ${userJC}`, 20, 20);
+            doc.text(`Dicetak pada: ${new Date().toLocaleString()}`, 20, 30);
+            doc.save(`Laporan_JC${userJC}.pdf`);
+        } else { alert("Password Salah!"); }
     }
 
     window.onload = init;
