@@ -13,10 +13,10 @@
         .header h2 { margin: 0; color: var(--biru-tua); font-size: 16px; text-transform: uppercase; letter-spacing: 1px; }
 
         .search-container { padding: 15px; background: white; margin: 10px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .search-box input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box; }
+        .search-box input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box; outline: none; }
 
         #map-container { 
-            width: 92%; height: 200px; background: #e5e3df; margin: auto; 
+            width: 92%; height: 180px; background: #e5e3df; margin: auto; 
             border-radius: 20px; display: flex; align-items: center; justify-content: center;
             border: 2px solid white; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative;
         }
@@ -29,16 +29,17 @@
         .friends-list { padding: 0 15px 30px 15px; }
         .section-title { font-size: 13px; color: #666; margin: 15px 0 10px 5px; font-weight: bold; text-transform: uppercase; }
 
+        /* FB Card Style */
         .friend-item { 
             background: white; padding: 12px; border-radius: 15px; margin-bottom: 10px;
             display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03);
         }
-        .friend-img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--biru-safir); cursor: pointer; }
+        .friend-img { width: 55px; height: 55px; border-radius: 10px; object-fit: cover; cursor: pointer; border: 1px solid #eee; }
         .friend-info { flex: 1; cursor: pointer; }
         .friend-info h4 { margin: 0; font-size: 14px; color: var(--biru-tua); }
-        .friend-info p { margin: 0; font-size: 11px; color: #888; }
+        .friend-info p { margin: 2px 0; font-size: 11px; color: #777; }
 
-        /* Style Modal Profil ala FB */
+        /* Modal Profil ala FB */
         .profile-modal {
             display: none; position: fixed; z-index: 1000; left: 0; top: 0; 
             width: 100%; height: 100%; background: rgba(0,0,0,0.6); 
@@ -60,11 +61,11 @@
         .card-body h3 { margin: 10px 0 5px; color: #333; font-size: 18px; }
         .card-body p { margin: 0; color: #777; font-size: 13px; }
 
-        .btn { border: none; padding: 10px 15px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn { border: none; padding: 10px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .btn-invite { background: var(--biru-safir); color: white; width: 100%; margin-top: 15px; }
-        .btn-track { background: #f0fdfa; color: #0d9488; border: 1px solid #0d9488; }
+        .btn-track { background: #f0fdfa; color: #0d9488; border: 1px solid #0d9488; padding: 6px 15px; }
         .btn-close { background: #eee; color: #333; width: 100%; margin-top: 8px; }
-        .btn:active { transform: scale(0.95); }
+        .btn-sent { background: #e4e6eb !important; color: #4b4f56 !important; }
 
         .back-btn { display: block; text-align: center; margin: 20px; color: var(--biru-safir); text-decoration: none; font-size: 14px; font-weight: bold; }
     </style>
@@ -79,7 +80,7 @@
 
     <div class="search-container">
         <div class="search-box">
-            <input type="text" id="search-name" placeholder="Cari nama anggota JC...">
+            <input type="text" id="search-input" placeholder="Cari Nama atau ketik 'JC 5'...">
         </div>
     </div>
 
@@ -87,7 +88,7 @@
         <div style="text-align: center; color: #666;">
             <i class="fa-solid fa-location-dot fa-2x" style="color: #ff4757; margin-bottom: 8px;"></i><br>
             <strong id="map-status" style="font-size: 14px;">Peta Siap</strong><br>
-            <small id="map-coord" style="font-size: 10px;">Pilih teman yang sudah terhubung</small>
+            <small id="map-coord" style="font-size: 10px;">Pilih teman untuk melacak</small>
         </div>
     </div>
 
@@ -96,6 +97,7 @@
             <div class="section-title">Hasil Pencarian</div>
             <div id="search-results"></div>
         </div>
+        
         <div class="section-title">Teman Terhubung</div>
         <div id="connected-friends"></div>
     </div>
@@ -107,7 +109,7 @@
             <div class="card-body">
                 <h3 id="p-nama">Nama Anggota</h3>
                 <p id="p-jc">JC Group</p>
-                <button id="p-btn-action" class="btn btn-invite" onclick="inviteFromModal()">
+                <button id="p-btn-action" class="btn btn-invite" onclick="handleInviteAction()">
                     <i class="fa-solid fa-user-plus"></i> ADD FRIEND
                 </button>
                 <button class="btn btn-close" onclick="tutupProfil()">TUTUP</button>
@@ -118,9 +120,113 @@
     <a href="menu.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Kembali ke Menu</a>
 
     <script>
-        const myJC = localStorage.getItem('userJC') || "JC 1"; 
+        const myJC = localStorage.getItem('userJC') || "JC 5"; 
         document.getElementById('header-title').innerHTML += ` (${myJC})`;
         document.getElementById('access-text').innerText = `Lacak Domba hanya bisa dilakukan sesama anggota ${myJC} dengan saling terhubung masing-masing akun.`;
 
-        const databaseAnggota = [
-            { id: 101, nama: "Andi Pratama", jc: myJC, connected: true, requestSent: false, lat: -2.548, lon: 140.704
+        // Database Simulasi (Nantinya tarik dari Firebase berdasarkan field 'komsel')
+        let databaseAnggota = [
+            { id: 1, nama: "Andi Pratama", jc: "JC 5", connected: true, requestSent: false, lat: -2.54, lon: 140.70 },
+            { id: 2, nama: "Siska Wulandari", jc: "JC 5", connected: true, requestSent: false, lat: -2.55, lon: 140.71 },
+            { id: 3, nama: "Budi Santoso", jc: "JC 5", connected: false, requestSent: false },
+            { id: 4, nama: "Yohanes Papua", jc: "JC 5", connected: false, requestSent: false },
+            { id: 5, nama: "Dewi Sartika", jc: "JC 1", connected: false, requestSent: false },
+        ];
+
+        let userAktif = null;
+
+        function renderLists(filter = "") {
+            const searchResults = document.getElementById('search-results');
+            const connectedList = document.getElementById('connected-friends');
+            const searchSection = document.getElementById('search-results-section');
+            
+            searchResults.innerHTML = "";
+            connectedList.innerHTML = "";
+            let hasSearch = false;
+
+            databaseAnggota.forEach(user => {
+                const avatar = `https://ui-avatars.com/api/?name=${user.nama}&background=random&bold=true`;
+                
+                const itemHTML = (button) => `
+                    <div class="friend-item">
+                        <img src="${avatar}" class="friend-img" onclick="bukaProfil(${user.id})">
+                        <div class="friend-info" onclick="bukaProfil(${user.id})">
+                            <h4>${user.nama}</h4>
+                            <p>${user.jc} • Pondok Pemulihan</p>
+                        </div>
+                        ${button}
+                    </div>
+                `;
+
+                // Logika Search Pintar: Bisa cari Nama atau Grup (JC 5)
+                const isMatch = filter && (
+                    user.nama.toLowerCase().includes(filter.toLowerCase()) || 
+                    user.jc.toLowerCase().includes(filter.toLowerCase())
+                );
+
+                if (isMatch) {
+                    hasSearch = true;
+                    searchSection.style.display = "block";
+                    let btn = "";
+                    if (user.connected) {
+                        btn = `<button class="btn btn-track" onclick="track('${user.nama}', ${user.lat}, ${user.lon})">LACAK</button>`;
+                    } else if (user.requestSent) {
+                        btn = `<button class="btn btn-invite btn-sent">SENT</button>`;
+                    } else {
+                        btn = `<button class="btn btn-invite" onclick="bukaProfil(${user.id})">ADD</button>`;
+                    }
+                    searchResults.innerHTML += itemHTML(btn);
+                }
+
+                if (user.connected && !filter) {
+                    connectedList.innerHTML += itemHTML(`<button class="btn btn-track" onclick="track('${user.nama}', ${user.lat}, ${user.lon})">LACAK</button>`);
+                }
+            });
+
+            if (!hasSearch) searchSection.style.display = "none";
+        }
+
+        function bukaProfil(id) {
+            userAktif = databaseAnggota.find(u => u.id === id);
+            if(userAktif) {
+                document.getElementById('p-nama').innerText = userAktif.nama;
+                document.getElementById('p-jc').innerText = "Grup Komsel: " + userAktif.jc;
+                document.getElementById('p-foto').src = `https://ui-avatars.com/api/?name=${userAktif.nama}&background=random&size=128`;
+                
+                const btn = document.getElementById('p-btn-action');
+                if(userAktif.connected) {
+                    btn.innerHTML = `<i class="fa-solid fa-check"></i> SUDAH BERTEMAN`;
+                    btn.classList.add('btn-sent');
+                } else if(userAktif.requestSent) {
+                    btn.innerHTML = `<i class="fa-solid fa-clock"></i> MENUNGGU KONFIRMASI`;
+                    btn.classList.add('btn-sent');
+                } else {
+                    btn.innerHTML = `<i class="fa-solid fa-user-plus"></i> ADD FRIEND`;
+                    btn.classList.remove('btn-sent');
+                }
+                document.getElementById('modalProfil').style.display = 'flex';
+            }
+        }
+
+        function handleInviteAction() {
+            if(userAktif && !userAktif.connected && !userAktif.requestSent) {
+                userAktif.requestSent = true;
+                alert(`Permintaan terkirim ke ${userAktif.nama}. Orang tersebut akan menerima notifikasi konfirmasi di akunnya.`);
+                tutupProfil();
+                renderLists(document.getElementById('search-input').value);
+            }
+        }
+
+        function tutupProfil() { document.getElementById('modalProfil').style.display = 'none'; }
+
+        function track(name, lat, lon) {
+            document.getElementById('map-status').innerText = "Melacak: " + name;
+            document.getElementById('map-coord').innerText = `Posisi: ${lat}, ${lon}`;
+            document.getElementById('map-container').style.background = "#d1fae5";
+        }
+
+        document.getElementById('search-input').addEventListener('input', (e) => renderLists(e.target.value));
+        window.onload = () => renderLists();
+    </script>
+</body>
+</html>
