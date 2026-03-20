@@ -64,7 +64,9 @@
             <div id="search-results"></div>
         </div>
         <div class="section-title">Teman Terhubung</div>
-        <div id="connected-friends"></div>
+        <div id="connected-friends">
+            <p style="font-size: 11px; color: #999; text-align: center; padding: 10px;">Gunakan fitur cari untuk menambah teman.</p>
+        </div>
     </div>
 
     <div id="modalProfil" class="profile-modal">
@@ -88,14 +90,14 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
-        // --- 1. CONFIG FIREBASE ---
+        // --- 1. CONFIG FIREBASE (Sesuai dengan Boby Apps Project) ---
         const firebaseConfig = {
-            apiKey: "AIzaSy...", 
-            authDomain: "pondok-pemulihan.firebaseapp.com",
-            projectId: "pondok-pemulihan",
-            storageBucket: "pondok-pemulihan.appspot.com",
-            messagingSenderId: "...",
-            appId: "..."
+            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+            authDomain: "boby-apps-project.firebaseapp.com",
+            projectId: "boby-apps-project",
+            storageBucket: "boby-apps-project.appspot.com",
+            messagingSenderId: "125984859692",
+            appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
         };
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
@@ -104,17 +106,17 @@
         const currentUserEmail = localStorage.getItem('userEmail');
         const currentUserId = localStorage.getItem('userId');
         
-        // Mengambil JC dari localStorage dan memastikan formatnya "JC 5"
-        let userJC = localStorage.getItem('userJC') || "5";
+        // Ambil JC dari login (default ke JC 1 jika tidak ada)
+        let userJC = localStorage.getItem('userJC') || "1";
         let displayJC = userJC.toUpperCase().includes("JC") ? userJC : "JC " + userJC;
 
-        // Update UI secara dinamis
+        // Update UI secara dinamis berdasarkan data Login
         document.getElementById('header-title').innerHTML = `<i class="fa-solid fa-map-location-dot" style="color: var(--emas);"></i> Lacak Domba (${displayJC})`;
         document.getElementById('access-text').innerText = `Lacak Domba hanya bisa dilakukan sesama anggota ${displayJC} yang sudah saling terhubung.`;
 
-        // --- 3. FUNGSI HELPER PENCARIAN ---
+        // --- 3. FUNGSI NORMALISASI NAMA ---
         function formatNamaDatabase(str) {
-            // Mengubah "boby daniel" -> "Boby Daniel" (Agar cocok dengan Firestore)
+            // Mengubah input "boby daniel" -> "Boby Daniel" agar cocok dengan Firestore
             return str.toLowerCase().split(' ').map(word => 
                 word.charAt(0).toUpperCase() + word.slice(1)
             ).join(' ');
@@ -135,10 +137,11 @@
 
             searchSection.style.display = "block";
             
-            // Konversi input ke Title Case agar sesuai database
+            // Konversi input user ke Title Case agar cocok dengan database hasil Registrasi
             const searchTerm = formatNamaDatabase(cleanInput);
 
             try {
+                // Mencari nama yang dimulai dengan input tersebut
                 const snapshot = await db.collection("users")
                     .where("nama", ">=", searchTerm)
                     .where("nama", "<=", searchTerm + "\uf8ff")
@@ -154,8 +157,8 @@
                     const user = doc.data();
                     const userId = doc.id;
 
-                    // Hilangkan tanda komentar (//) di bawah ini jika ingin menyembunyikan akun sendiri saat cari
-                    // if (user.email === currentUserEmail) return;
+                    // Sembunyikan akun sendiri dari hasil pencarian
+                    if (user.email === currentUserEmail) return;
 
                     const avatar = user.foto_profil || `https://ui-avatars.com/api/?name=${user.nama}&background=random&bold=true`;
                     
@@ -174,13 +177,17 @@
                 });
             } catch (error) { 
                 console.error("Error search:", error); 
-                searchResults.innerHTML = "<p style='color:red;'>Gagal memuat data anggota.</p>";
+                searchResults.innerHTML = "<p style='color:red; font-size:12px;'>Gagal memuat data anggota.</p>";
             }
         }
 
-        // --- 5. FUNGSI INVITE ---
+        // --- 5. FUNGSI KIRIM PERMINTAAN PERTEMANAN ---
         async function handleInvite(targetId, targetName) {
-            if (!currentUserId) { alert("Sesi login berakhir. Silakan login ulang."); return; }
+            if (!currentUserId) { 
+                alert("Sesi login berakhir. Silakan login kembali."); 
+                window.location.href = "login.html";
+                return; 
+            }
             
             try {
                 await db.collection("friend_requests").add({
@@ -190,29 +197,38 @@
                     status: "pending",
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
+                
                 const btn = document.getElementById(`btn-${targetId}`);
-                btn.innerHTML = "SENT";
-                btn.classList.add('btn-sent');
-                btn.onclick = null;
-                alert("Permintaan terkirim ke " + targetName);
+                if (btn) {
+                    btn.innerHTML = "SENT";
+                    btn.classList.add('btn-sent');
+                    btn.onclick = null;
+                }
+                alert("Permintaan pertemanan terkirim ke " + targetName);
             } catch (e) { 
-                alert("Gagal mengirim permintaan."); 
+                alert("Gagal mengirim permintaan: " + e.message); 
             }
         }
 
         // --- 6. MODAL PROFIL ---
         async function bukaProfil(id) {
-            const doc = await db.collection("users").doc(id).get();
-            if (doc.exists) {
-                const user = doc.data();
-                document.getElementById('p-nama').innerText = user.nama;
-                document.getElementById('p-jc').innerText = "Grup Komsel: JC " + (user.komsel || "-");
-                document.getElementById('p-foto').src = user.foto_profil || `https://ui-avatars.com/api/?name=${user.nama}&background=random&size=128`;
-                document.getElementById('modalProfil').style.display = 'flex';
-                
-                // Set action button modal
-                const btnAction = document.getElementById('p-btn-action');
-                btnAction.onclick = () => handleInvite(id, user.nama);
+            try {
+                const doc = await db.collection("users").doc(id).get();
+                if (doc.exists) {
+                    const user = doc.data();
+                    document.getElementById('p-nama').innerText = user.nama;
+                    document.getElementById('p-jc').innerText = "Grup Komsel: JC " + (user.komsel || "-");
+                    document.getElementById('p-foto').src = user.foto_profil || `https://ui-avatars.com/api/?name=${user.nama}&background=random&size=128`;
+                    document.getElementById('modalProfil').style.display = 'flex';
+                    
+                    const btnAction = document.getElementById('p-btn-action');
+                    btnAction.onclick = () => {
+                        handleInvite(id, user.nama);
+                        tutupProfil();
+                    };
+                }
+            } catch (err) {
+                console.error("Error profil:", err);
             }
         }
 
