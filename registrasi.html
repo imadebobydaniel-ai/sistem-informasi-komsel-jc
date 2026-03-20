@@ -26,8 +26,6 @@
         .modal-box p { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 20px; }
         .password-container { position: relative; }
         .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666; }
-        
-        /* Penekanan visual untuk kolom NK */
         #nk-display { background: #fff3cd !important; border: 2px solid #ffc107 !important; color: #856404; font-weight: bold; }
     </style>
 </head>
@@ -165,6 +163,7 @@
         const nkBaru = document.getElementById("nk-display").value;
         const fotoFile = document.getElementById("foto").files[0];
 
+        // Validasi input
         if(!document.getElementById("nama").value || !jcValue || nkBaru === "" || !fotoFile) {
             alert("Harap lengkapi semua data dan upload Foto Profil!");
             return;
@@ -179,22 +178,25 @@
             reader.onload = async function () {
                 const base64Foto = reader.result;
 
+                // --- BAGIAN UPDATE KUNCI DATABASE (WhatsApp & GolDarah) ---
                 const userData = {
                     nama: document.getElementById("nama").value,
                     email: document.getElementById("email").value,
-                    whatsapp: document.getElementById("hp").value,
+                    whatsapp: document.getElementById("hp").value, // Sesuai permintaan: 'whatsapp'
                     password: document.getElementById("pass").value,
                     alamat: document.getElementById("alamat").value,
-                    golDarah: document.getElementById("darah").value,
+                    goldarah: document.getElementById("darah").value, // Sesuai permintaan: 'goldarah'
                     jabatan: document.getElementById("jabatan").value,
                     komsel: jcValue,
                     nomor_komsel: nkBaru,
                     foto_profil: base64Foto,
                     status: "Aktif",
-                    tanggalDaftar: firebase.firestore.Timestamp.now()
+                    tanggalDaftar: new Date().toLocaleString('id-ID') // Simpan format tanggal baca
                 };
 
+                // Simpan ke Firestore
                 await db.collection("users").add(userData);
+                
                 document.getElementById('pesan-sukses').innerHTML = `Berhasil!<br>Nomor Komsel:<br><b>${nkBaru}</b>`;
                 document.getElementById('blocking-message').style.display = 'flex';
             };
