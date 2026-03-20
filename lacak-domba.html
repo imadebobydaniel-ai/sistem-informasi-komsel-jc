@@ -42,11 +42,11 @@
         <h2 id="header-title"><i class="fa-solid fa-map-location-dot" style="color: var(--emas);"></i> Lacak Domba</h2>
     </div>
 
-    <div class="info-panel" id="access-text">Memuat informasi...</div>
+    <div class="info-panel" id="access-text">Memuat informasi akses...</div>
 
     <div class="search-container">
         <div class="search-box">
-            <input type="text" id="search-input" placeholder="Cari Nama Anggota...">
+            <input type="text" id="search-input" placeholder="Cari Nama Anggota (Contoh: Boby)...">
         </div>
     </div>
 
@@ -54,7 +54,7 @@
         <div style="text-align: center; color: #666;">
             <i class="fa-solid fa-location-dot fa-2x" style="color: #ff4757; margin-bottom: 8px;"></i><br>
             <strong id="map-status" style="font-size: 14px;">Peta Siap</strong><br>
-            <small id="map-coord" style="font-size: 10px;">Pilih teman untuk melacak</small>
+            <small id="map-coord" style="font-size: 10px;">Pilih teman untuk melacak posisi</small>
         </div>
     </div>
 
@@ -88,7 +88,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
-        // 1. Inisialisasi Firebase
+        // --- 1. CONFIG FIREBASE ---
         const firebaseConfig = {
             apiKey: "AIzaSy...", 
             authDomain: "pondok-pemulihan.firebaseapp.com",
@@ -100,44 +100,53 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
 
+        // --- 2. SETUP IDENTITAS USER ---
         const currentUserEmail = localStorage.getItem('userEmail');
         const currentUserId = localStorage.getItem('userId');
-        const myJC = localStorage.getItem('userJC') || "JC";
+        
+        // Mengambil JC dari localStorage dan memastikan formatnya "JC 5"
+        let userJC = localStorage.getItem('userJC') || "5";
+        let displayJC = userJC.toUpperCase().includes("JC") ? userJC : "JC " + userJC;
 
-        document.getElementById('header-title').innerHTML += ` (${myJC})`;
-        document.getElementById('access-text').innerText = `Lacak Domba dilakukan dengan mencari nama anggota dan mengirim permintaan pertemanan.`;
+        // Update UI secara dinamis
+        document.getElementById('header-title').innerHTML = `<i class="fa-solid fa-map-location-dot" style="color: var(--emas);"></i> Lacak Domba (${displayJC})`;
+        document.getElementById('access-text').innerText = `Lacak Domba hanya bisa dilakukan sesama anggota ${displayJC} yang sudah saling terhubung.`;
 
-        // 2. Fungsi Helper untuk format pencarian
-        function toTitleCase(str) {
-            return str.replace(/\w\S*/g, function(txt){
-                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-            });
+        // --- 3. FUNGSI HELPER PENCARIAN ---
+        function formatNamaDatabase(str) {
+            // Mengubah "boby daniel" -> "Boby Daniel" (Agar cocok dengan Firestore)
+            return str.toLowerCase().split(' ').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
         }
 
-        // 3. Fungsi Utama: Render List & Search
+        // --- 4. FUNGSI SEARCH UTAMA ---
         async function renderLists(filter = "") {
             const searchResults = document.getElementById('search-results');
             const searchSection = document.getElementById('search-results-section');
             searchResults.innerHTML = "";
 
-            if (!filter || filter.trim().length < 2) {
+            const cleanInput = filter.trim();
+
+            if (cleanInput.length < 2) {
                 searchSection.style.display = "none";
                 return;
             }
 
             searchSection.style.display = "block";
             
-            // Logika: Firestore Case Sensitive. Kita coba ubah input ke Title Case (Boby Daniel)
-            let searchTerm = toTitleCase(filter.trim());
+            // Konversi input ke Title Case agar sesuai database
+            const searchTerm = formatNamaDatabase(cleanInput);
 
             try {
                 const snapshot = await db.collection("users")
                     .where("nama", ">=", searchTerm)
                     .where("nama", "<=", searchTerm + "\uf8ff")
+                    .limit(5)
                     .get();
 
                 if (snapshot.empty) {
-                    searchResults.innerHTML = "<p style='padding:10px; font-size:12px; color:red;'>Anggota tidak ditemukan. Coba periksa ejaan.</p>";
+                    searchResults.innerHTML = `<p style='padding:10px; font-size:12px; color:red;'>Anggota "${searchTerm}" tidak ditemukan.</p>`;
                     return;
                 }
 
@@ -145,8 +154,8 @@
                     const user = doc.data();
                     const userId = doc.id;
 
-                    // Jangan tampilkan akun sendiri di hasil cari
-                    if (user.email === currentUserEmail) return;
+                    // Hilangkan tanda komentar (//) di bawah ini jika ingin menyembunyikan akun sendiri saat cari
+                    // if (user.email === currentUserEmail) return;
 
                     const avatar = user.foto_profil || `https://ui-avatars.com/api/?name=${user.nama}&background=random&bold=true`;
                     
@@ -165,13 +174,13 @@
                 });
             } catch (error) { 
                 console.error("Error search:", error); 
-                searchResults.innerHTML = "<p style='color:red;'>Gagal memuat data.</p>";
+                searchResults.innerHTML = "<p style='color:red;'>Gagal memuat data anggota.</p>";
             }
         }
 
-        // 4. Fungsi Kirim Permintaan Teman
+        // --- 5. FUNGSI INVITE ---
         async function handleInvite(targetId, targetName) {
-            if (!currentUserId) { alert("Sesi login berakhir. Silahkan login kembali."); return; }
+            if (!currentUserId) { alert("Sesi login berakhir. Silakan login ulang."); return; }
             
             try {
                 await db.collection("friend_requests").add({
@@ -187,12 +196,11 @@
                 btn.onclick = null;
                 alert("Permintaan terkirim ke " + targetName);
             } catch (e) { 
-                console.error(e);
-                alert("Terjadi kesalahan."); 
+                alert("Gagal mengirim permintaan."); 
             }
         }
 
-        // 5. Modal Profil
+        // --- 6. MODAL PROFIL ---
         async function bukaProfil(id) {
             const doc = await db.collection("users").doc(id).get();
             if (doc.exists) {
@@ -201,12 +209,16 @@
                 document.getElementById('p-jc').innerText = "Grup Komsel: JC " + (user.komsel || "-");
                 document.getElementById('p-foto').src = user.foto_profil || `https://ui-avatars.com/api/?name=${user.nama}&background=random&size=128`;
                 document.getElementById('modalProfil').style.display = 'flex';
+                
+                // Set action button modal
+                const btnAction = document.getElementById('p-btn-action');
+                btnAction.onclick = () => handleInvite(id, user.nama);
             }
         }
 
         function tutupProfil() { document.getElementById('modalProfil').style.display = 'none'; }
 
-        // 6. Event Listener
+        // --- 7. EVENT LISTENER ---
         document.getElementById('search-input').addEventListener('input', (e) => {
             renderLists(e.target.value);
         });
