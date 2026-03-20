@@ -8,65 +8,32 @@
     <style>
         :root { --biru-tua: #003366; --biru-safir: #0056b3; --hijau-zamrud: #2ecc71; --putih-bg: #f4f7fa; --emas: #D4AF37; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--putih-bg); margin: 0; padding: 0; color: #333; }
-        
         .header { background: white; padding: 20px; text-align: center; border-bottom: 3px solid var(--biru-safir); }
         .header h2 { margin: 0; color: var(--biru-tua); font-size: 16px; text-transform: uppercase; letter-spacing: 1px; }
-
         .search-container { padding: 15px; background: white; margin: 10px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
         .search-box input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box; outline: none; }
-
-        #map-container { 
-            width: 92%; height: 180px; background: #e5e3df; margin: auto; 
-            border-radius: 20px; display: flex; align-items: center; justify-content: center;
-            border: 2px solid white; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative;
-        }
-
-        .info-panel { 
-            background: #fff9db; border: 1px solid #ffe066; margin: 15px; padding: 12px; 
-            border-radius: 10px; font-size: 12px; text-align: center; line-height: 1.5; color: #856404;
-        }
-
+        #map-container { width: 92%; height: 180px; background: #e5e3df; margin: auto; border-radius: 20px; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; }
+        .info-panel { background: #fff9db; border: 1px solid #ffe066; margin: 15px; padding: 12px; border-radius: 10px; font-size: 12px; text-align: center; line-height: 1.5; color: #856404; }
         .friends-list { padding: 0 15px 30px 15px; }
         .section-title { font-size: 13px; color: #666; margin: 15px 0 10px 5px; font-weight: bold; text-transform: uppercase; }
-
-        /* FB Card Style */
-        .friend-item { 
-            background: white; padding: 12px; border-radius: 15px; margin-bottom: 10px;
-            display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-        }
+        .friend-item { background: white; padding: 12px; border-radius: 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
         .friend-img { width: 55px; height: 55px; border-radius: 10px; object-fit: cover; cursor: pointer; border: 1px solid #eee; }
         .friend-info { flex: 1; cursor: pointer; }
         .friend-info h4 { margin: 0; font-size: 14px; color: var(--biru-tua); }
         .friend-info p { margin: 2px 0; font-size: 11px; color: #777; }
-
-        /* Modal Profil ala FB */
-        .profile-modal {
-            display: none; position: fixed; z-index: 1000; left: 0; top: 0; 
-            width: 100%; height: 100%; background: rgba(0,0,0,0.6); 
-            backdrop-filter: blur(5px); justify-content: center; align-items: center;
-        }
-        .profile-card {
-            background: white; width: 85%; max-width: 320px; border-radius: 25px;
-            overflow: hidden; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            animation: slideUp 0.3s ease-out;
-        }
+        .profile-modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); justify-content: center; align-items: center; }
+        .profile-card { background: white; width: 85%; max-width: 320px; border-radius: 25px; overflow: hidden; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.2); animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        
         .card-header { background: var(--biru-tua); height: 80px; position: relative; }
-        .card-avatar { 
-            width: 100px; height: 100px; border-radius: 50%; border: 5px solid white;
-            margin-top: -50px; background: white; object-fit: cover; position: relative; z-index: 2;
-        }
+        .card-avatar { width: 100px; height: 100px; border-radius: 50%; border: 5px solid white; margin-top: -50px; background: white; object-fit: cover; position: relative; z-index: 2; }
         .card-body { padding: 20px; }
         .card-body h3 { margin: 10px 0 5px; color: #333; font-size: 18px; }
         .card-body p { margin: 0; color: #777; font-size: 13px; }
-
         .btn { border: none; padding: 10px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .btn-invite { background: var(--biru-safir); color: white; width: 100%; margin-top: 15px; }
         .btn-track { background: #f0fdfa; color: #0d9488; border: 1px solid #0d9488; padding: 6px 15px; }
         .btn-close { background: #eee; color: #333; width: 100%; margin-top: 8px; }
         .btn-sent { background: #e4e6eb !important; color: #4b4f56 !important; }
-
         .back-btn { display: block; text-align: center; margin: 20px; color: var(--biru-safir); text-decoration: none; font-size: 14px; font-weight: bold; }
     </style>
 </head>
@@ -97,7 +64,6 @@
             <div class="section-title">Hasil Pencarian</div>
             <div id="search-results"></div>
         </div>
-        
         <div class="section-title">Teman Terhubung</div>
         <div id="connected-friends"></div>
     </div>
@@ -109,7 +75,7 @@
             <div class="card-body">
                 <h3 id="p-nama">Nama Anggota</h3>
                 <p id="p-jc">JC Group</p>
-                <button id="p-btn-action" class="btn btn-invite" onclick="handleInviteAction()">
+                <button id="p-btn-action" class="btn btn-invite">
                     <i class="fa-solid fa-user-plus"></i> ADD FRIEND
                 </button>
                 <button class="btn btn-close" onclick="tutupProfil()">TUTUP</button>
@@ -119,114 +85,122 @@
 
     <a href="menu.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Kembali ke Menu</a>
 
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
     <script>
+        // 1. Inisialisasi Firebase (Ganti dengan Config Bapak)
+        const firebaseConfig = {
+            apiKey: "AIzaSy...",
+            authDomain: "pondok-pemulihan.firebaseapp.com",
+            projectId: "pondok-pemulihan",
+            storageBucket: "pondok-pemulihan.appspot.com",
+            messagingSenderId: "...",
+            appId: "..."
+        };
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.firestore();
+
         const myJC = localStorage.getItem('userJC') || "JC 5"; 
+        const currentUserEmail = localStorage.getItem('userEmail');
+        const currentUserId = localStorage.getItem('userId');
+
         document.getElementById('header-title').innerHTML += ` (${myJC})`;
         document.getElementById('access-text').innerText = `Lacak Domba hanya bisa dilakukan sesama anggota ${myJC} dengan saling terhubung masing-masing akun.`;
 
-        // Database Simulasi (Nantinya tarik dari Firebase berdasarkan field 'komsel')
-        let databaseAnggota = [
-            { id: 1, nama: "Andi Pratama", jc: "JC 5", connected: true, requestSent: false, lat: -2.54, lon: 140.70 },
-            { id: 2, nama: "Siska Wulandari", jc: "JC 5", connected: true, requestSent: false, lat: -2.55, lon: 140.71 },
-            { id: 3, nama: "Budi Santoso", jc: "JC 5", connected: false, requestSent: false },
-            { id: 4, nama: "Yohanes Papua", jc: "JC 5", connected: false, requestSent: false },
-            { id: 5, nama: "Dewi Sartika", jc: "JC 1", connected: false, requestSent: false },
-        ];
-
-        let userAktif = null;
-
-        function renderLists(filter = "") {
+        // 2. Fungsi Search Real-time dari Firebase
+        async function renderLists(filter = "") {
             const searchResults = document.getElementById('search-results');
-            const connectedList = document.getElementById('connected-friends');
             const searchSection = document.getElementById('search-results-section');
             
             searchResults.innerHTML = "";
-            connectedList.innerHTML = "";
-            let hasSearch = false;
 
-            databaseAnggota.forEach(user => {
-                const avatar = `https://ui-avatars.com/api/?name=${user.nama}&background=random&bold=true`;
-                
-                const itemHTML = (button) => `
-                    <div class="friend-item">
-                        <img src="${avatar}" class="friend-img" onclick="bukaProfil(${user.id})">
-                        <div class="friend-info" onclick="bukaProfil(${user.id})">
-                            <h4>${user.nama}</h4>
-                            <p>${user.jc} • Pondok Pemulihan</p>
-                        </div>
-                        ${button}
-                    </div>
-                `;
-
-                // Logika Search Pintar: Bisa cari Nama atau Grup (JC 5)
-                const isMatch = filter && (
-                    user.nama.toLowerCase().includes(filter.toLowerCase()) || 
-                    user.jc.toLowerCase().includes(filter.toLowerCase())
-                );
-
-                if (isMatch) {
-                    hasSearch = true;
-                    searchSection.style.display = "block";
-                    let btn = "";
-                    if (user.connected) {
-                        btn = `<button class="btn btn-track" onclick="track('${user.nama}', ${user.lat}, ${user.lon})">LACAK</button>`;
-                    } else if (user.requestSent) {
-                        btn = `<button class="btn btn-invite btn-sent">SENT</button>`;
-                    } else {
-                        btn = `<button class="btn btn-invite" onclick="bukaProfil(${user.id})">ADD</button>`;
-                    }
-                    searchResults.innerHTML += itemHTML(btn);
-                }
-
-                if (user.connected && !filter) {
-                    connectedList.innerHTML += itemHTML(`<button class="btn btn-track" onclick="track('${user.nama}', ${user.lat}, ${user.lon})">LACAK</button>`);
-                }
-            });
-
-            if (!hasSearch) searchSection.style.display = "none";
-        }
-
-        function bukaProfil(id) {
-            userAktif = databaseAnggota.find(u => u.id === id);
-            if(userAktif) {
-                document.getElementById('p-nama').innerText = userAktif.nama;
-                document.getElementById('p-jc').innerText = "Grup Komsel: " + userAktif.jc;
-                document.getElementById('p-foto').src = `https://ui-avatars.com/api/?name=${userAktif.nama}&background=random&size=128`;
-                
-                const btn = document.getElementById('p-btn-action');
-                if(userAktif.connected) {
-                    btn.innerHTML = `<i class="fa-solid fa-check"></i> SUDAH BERTEMAN`;
-                    btn.classList.add('btn-sent');
-                } else if(userAktif.requestSent) {
-                    btn.innerHTML = `<i class="fa-solid fa-clock"></i> MENUNGGU KONFIRMASI`;
-                    btn.classList.add('btn-sent');
-                } else {
-                    btn.innerHTML = `<i class="fa-solid fa-user-plus"></i> ADD FRIEND`;
-                    btn.classList.remove('btn-sent');
-                }
-                document.getElementById('modalProfil').style.display = 'flex';
+            if (!filter) {
+                searchSection.style.display = "none";
+                loadConnectedFriends(); 
+                return;
             }
+
+            searchSection.style.display = "block";
+            
+            let queryField = "nama";
+            let searchTerm = filter;
+
+            if (filter.toLowerCase().includes("jc")) {
+                queryField = "komsel";
+                searchTerm = filter.replace(/\D/g, ""); 
+            }
+
+            try {
+                const snapshot = await db.collection("users")
+                    .where(queryField, ">=", searchTerm)
+                    .where(queryField, "<=", searchTerm + "\uf8ff")
+                    .get();
+
+                if (snapshot.empty) {
+                    searchResults.innerHTML = "<p style='padding:10px; font-size:12px; color:red;'>Tidak ada anggota ditemukan.</p>";
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const user = doc.data();
+                    const userId = doc.id;
+                    if (user.email === currentUserEmail) return;
+
+                    const avatar = user.foto_profil || `https://ui-avatars.com/api/?name=${user.nama}&background=random&bold=true`;
+                    
+                    searchResults.innerHTML += `
+                        <div class="friend-item">
+                            <img src="${avatar}" class="friend-img" onclick="bukaProfil('${userId}')">
+                            <div class="friend-info" onclick="bukaProfil('${userId}')">
+                                <h4>${user.nama}</h4>
+                                <p>Komsel JC ${user.komsel} • ${user.jabatan || 'Anggota'}</p>
+                            </div>
+                            <button class="btn btn-invite" id="btn-${userId}" onclick="handleInvite('${userId}', '${user.nama}')">
+                                <i class="fa-solid fa-user-plus"></i> ADD
+                            </button>
+                        </div>
+                    `;
+                });
+            } catch (error) { console.error("Error search:", error); }
         }
 
-        function handleInviteAction() {
-            if(userAktif && !userAktif.connected && !userAktif.requestSent) {
-                userAktif.requestSent = true;
-                alert(`Permintaan terkirim ke ${userAktif.nama}. Orang tersebut akan menerima notifikasi konfirmasi di akunnya.`);
-                tutupProfil();
-                renderLists(document.getElementById('search-input').value);
+        // 3. Fungsi Kirim Add Friend
+        async function handleInvite(targetId, targetName) {
+            try {
+                await db.collection("friend_requests").add({
+                    fromId: currentUserId,
+                    fromNama: localStorage.getItem('userName'),
+                    toId: targetId,
+                    status: "pending",
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                const btn = document.getElementById(`btn-${targetId}`);
+                btn.innerHTML = "SENT";
+                btn.classList.add('btn-sent');
+                btn.onclick = null;
+                alert("Permintaan pertemanan terkirim ke " + targetName);
+            } catch (e) { alert("Gagal kirim permintaan."); }
+        }
+
+        async function bukaProfil(id) {
+            const doc = await db.collection("users").doc(id).get();
+            if (doc.exists) {
+                const user = doc.data();
+                document.getElementById('p-nama').innerText = user.nama;
+                document.getElementById('p-jc').innerText = "Grup Komsel: JC " + user.komsel;
+                document.getElementById('p-foto').src = user.foto_profil || `https://ui-avatars.com/api/?name=${user.nama}&background=random&size=128`;
+                document.getElementById('modalProfil').style.display = 'flex';
             }
         }
 
         function tutupProfil() { document.getElementById('modalProfil').style.display = 'none'; }
 
-        function track(name, lat, lon) {
-            document.getElementById('map-status').innerText = "Melacak: " + name;
-            document.getElementById('map-coord').innerText = `Posisi: ${lat}, ${lon}`;
-            document.getElementById('map-container').style.background = "#d1fae5";
-        }
-
+        // Tambahkan Listener Pencarian
         document.getElementById('search-input').addEventListener('input', (e) => renderLists(e.target.value));
-        window.onload = () => renderLists();
+
+        // Panggil fungsi saat awal buka
+        window.onload = () => renderLists("");
     </script>
 </body>
 </html>
