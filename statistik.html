@@ -2,30 +2,148 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Statistik Lengkap JC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Statistik Lengkap - Komsel JC</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        :root {
+            --biru-tua: #003366;
+            --biru-safir: #0056b3;
+            --biru-muda: #00e6e6;
+            --hijau-zamrud: #2ecc71;
+            --merah-lux: #ff4757;
+            --emas-lux: #D4AF37;
+            --putih-bg: #f4f7fa;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            background-color: var(--putih-bg); 
+            margin: 0; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
+
         .container { width: 100%; max-width: 450px; }
-        .card { background: white; padding: 15px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .card-title { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: bold; border-bottom: 2px solid #007bff; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; }
-        
-        .filter-row { display: flex; gap: 10px; margin-bottom: 15px; }
+
+        .card { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 25px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+            margin-bottom: 20px; 
+            border-top: 5px solid var(--biru-safir);
+        }
+
+        .card-title { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; 
+            font-size: 15px; 
+            font-weight: 800; 
+            color: var(--biru-tua);
+            border-bottom: 2px solid #f0f0f0; 
+            padding-bottom: 12px; 
+            margin-bottom: 20px; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+        }
+        .card-title i { color: var(--emas-lux); }
+
+        /* Filter Styling */
+        .filter-row { display: flex; gap: 12px; margin-bottom: 20px; }
         .filter-item { flex: 1; }
-        .filter-item label { font-size: 9px; font-weight: bold; color: #bbb; display: block; margin-bottom: 4px; text-transform: uppercase; }
-        select { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ddd; background: #f9f9f9; font-size: 12px; font-weight: bold; outline: none; }
+        .filter-item label { 
+            font-size: 10px; 
+            font-weight: 800; 
+            color: #aaa; 
+            display: block; 
+            margin-bottom: 6px; 
+            text-transform: uppercase; 
+        }
+        select { 
+            width: 100%; 
+            padding: 10px; 
+            border-radius: 12px; 
+            border: 1.5px solid #eee; 
+            background: #fdfdfd; 
+            font-size: 13px; 
+            font-weight: 700; 
+            color: var(--biru-tua);
+            outline: none; 
+            transition: 0.3s;
+        }
+        select:focus { border-color: var(--biru-safir); background: white; }
 
-        .stat-line { display: flex; justify-content: space-between; align-items: center; margin: 10px 0 5px 0; font-size: 13px; font-weight: bold; }
-        .val-txt { color: #007bff; }
-        .progress-bg { background: #eee; height: 10px; border-radius: 10px; width: 100%; overflow: hidden; margin-bottom: 15px; }
-        .progress-fill { height: 100%; transition: 0.5s; border-radius: 10px; }
+        /* Progress Bar Styling */
+        .stat-line { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin: 15px 0 8px 0; 
+            font-size: 13px; 
+            font-weight: 700; 
+            color: #555;
+        }
+        .val-txt { color: var(--biru-safir); font-weight: 900; font-size: 14px; }
+        
+        .progress-bg { 
+            background: #f0f0f0; 
+            height: 12px; 
+            border-radius: 20px; 
+            width: 100%; 
+            overflow: hidden; 
+            margin-bottom: 5px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .progress-fill { 
+            height: 100%; 
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); 
+            border-radius: 20px; 
+        }
 
-        .blood-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
-        .blood-type { font-weight: bold; color: #333; }
-        .blood-count { color: #007bff; font-weight: bold; }
+        /* Blood Type Rows */
+        .blood-grid { margin-top: 10px; }
+        .blood-row { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 12px 5px; 
+            border-bottom: 1px solid #f9f9f9; 
+            font-size: 14px; 
+            align-items: center;
+        }
+        .blood-type { 
+            font-weight: 900; 
+            color: var(--merah-lux); 
+            background: #fff5f6;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+        }
+        .blood-count { color: var(--biru-tua); font-weight: 800; }
 
-        .btn-footer { display: block; width: 100%; padding: 12px; background: white; border-radius: 12px; text-align: center; text-decoration: none; color: #007bff; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .btn-footer { 
+            display: block; 
+            width: 100%; 
+            padding: 16px; 
+            background: white; 
+            border-radius: 18px; 
+            text-align: center; 
+            text-decoration: none; 
+            color: var(--biru-safir); 
+            font-weight: 800; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05); 
+            transition: 0.3s;
+            border: 1px solid #eee;
+            margin-top: 10px;
+        }
+        .btn-footer:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
@@ -33,10 +151,10 @@
 <div class="container">
     
     <div class="card">
-        <div class="card-title"><i class="fa-solid fa-earth-asia"></i> Capaian Baca Alkitab</div>
+        <div class="card-title"><i class="fa-solid fa-book-open-reader"></i> Capaian Baca Alkitab</div>
         <div class="filter-row">
             <div class="filter-item">
-                <label>Pilih Komsel</label>
+                <label>Komsel</label>
                 <select id="jc-alkitab" onchange="loadAlkitab()">
                     <option value="JC 1">JC 1</option>
                     <option value="JC 2">JC 2</option>
@@ -48,86 +166,56 @@
             <div class="filter-item">
                 <label>Periode</label>
                 <select id="per-alkitab" onchange="loadAlkitab()">
-                    <option value="1">1 Bulan Terakhir</option>
-                    <option value="2">2 Bulan Terakhir</option>
-                    <option value="3">3 Bulan Terakhir</option>
-                    <option value="4">4 Bulan Terakhir</option>
-                    <option value="5">5 Bulan Terakhir</option>
-                    <option value="6">6 Bulan Terakhir</option>
+                    <option value="1">1 Bulan</option>
+                    <option value="3">3 Bulan</option>
+                    <option value="6">6 Bulan</option>
                 </select>
             </div>
         </div>
-        <div class="stat-line"><span>Capaian <span id="label-jc-baca">JC 5</span></span><span class="val-txt" id="txt-baca-jc">0.0%</span></div>
-        <div class="progress-bg"><div id="bar-baca-jc" class="progress-fill" style="background: #00c6ff; width: 0%;"></div></div>
-        <div class="stat-line"><span>Seluruh Komsel (Global)</span><span class="val-txt" style="color: #6c5ce7;" id="txt-baca-global">0.0%</span></div>
-        <div class="progress-bg"><div id="bar-baca-global" class="progress-fill" style="background: #a29bfe; width: 0%;"></div></div>
+        <div class="stat-line"><span>Progres <span id="label-jc-baca">JC 5</span></span><span class="val-txt" id="txt-baca-jc">0.0%</span></div>
+        <div class="progress-bg"><div id="bar-baca-jc" class="progress-fill" style="background: linear-gradient(90deg, var(--biru-safir), var(--biru-muda)); width: 0%;"></div></div>
+        
+        <div class="stat-line"><span>Rata-rata Global</span><span class="val-txt" style="color: #6c5ce7;" id="txt-baca-global">0.0%</span></div>
+        <div class="progress-bg"><div id="bar-baca-global" class="progress-fill" style="background: linear-gradient(90deg, #6c5ce7, #a29bfe); width: 0%;"></div></div>
     </div>
 
-    <div class="card">
-        <div class="card-title"><i class="fa-solid fa-calendar-check"></i> Statistik Kehadiran</div>
+    <div class="card" style="border-top-color: var(--hijau-zamrud);">
+        <div class="card-title"><i class="fa-solid fa-users-check"></i> Statistik Kehadiran</div>
         <div class="filter-row">
             <div class="filter-item">
-                <label>Pilih Komsel</label>
+                <label>Komsel</label>
                 <select id="jc-hadir" onchange="loadKehadiran()">
                     <option value="JC 1">JC 1</option>
                     <option value="JC 2">JC 2</option>
                     <option value="JC 3">JC 3</option>
                     <option value="JC 4">JC 4</option>
                     <option value="JC 5" selected>JC 5</option>
-                    
                 </select>
             </div>
             <div class="filter-item">
                 <label>Periode</label>
                 <select id="per-hadir" onchange="loadKehadiran()">
-                    <option value="1">1 Bulan Terakhir</option>
-                    <option value="2">2 Bulan Terakhir</option>
-                    <option value="3">3 Bulan Terakhir</option>
-                    <option value="4">4 Bulan Terakhir</option>
-                    <option value="5">5 Bulan Terakhir</option>
-                    <option value="6">6 Bulan Terakhir</option>
+                    <option value="1">1 Bulan</option>
+                    <option value="3">3 Bulan</option>
                 </select>
             </div>
         </div>
-        <div class="stat-line"><span>Kehadiran <span id="label-jc-hadir">JC 5</span></span><span class="val-txt" id="txt-hadir-jc">0%</span></div>
-        <div class="progress-bg"><div id="bar-hadir-jc" class="progress-fill" style="background: #ddd; width: 0%;"></div></div>
-        <div class="stat-line"><span>Seluruh Komsel (Global)</span><span class="val-txt" id="txt-hadir-global">0%</span></div>
-        <div class="progress-bg"><div id="bar-hadir-global" class="progress-fill" style="background: #ddd; width: 0%;"></div></div>
+        <div class="stat-line"><span>Kehadiran <span id="label-jc-hadir">JC 5</span></span><span class="val-txt" style="color: var(--hijau-zamrud);" id="txt-hadir-jc">0%</span></div>
+        <div class="progress-bg"><div id="bar-hadir-jc" class="progress-fill" style="background: var(--hijau-zamrud); width: 0%;"></div></div>
+        
+        <div class="stat-line"><span>Global</span><span class="val-txt" id="txt-hadir-global">0%</span></div>
+        <div class="progress-bg"><div id="bar-hadir-global" class="progress-fill" style="background: #ccc; width: 0%;"></div></div>
     </div>
 
-    <div class="card">
-        <div class="card-title" style="border-bottom-color: #ff4757;"><i class="fa-solid fa-circle-dot" style="color: #ff4757;"></i> Ketidak Hadiran</div>
-        <div class="filter-row">
-            <div class="filter-item">
-                <label>Pilih Komsel</label>
-                <select id="jc-absen" onchange="loadKehadiran()">
-                    <option value="JC 1">JC 1</option>
-                    <option value="JC 2">JC 2</option>
-                    <option value="JC 3">JC 3</option>
-                    <option value="JC 4">JC 4</option>
-                    <option value="JC 5" selected>JC 5</option>
-                </select>
-            </div>
-            <div class="filter-item">
-                <label>Periode</label>
-                <select id="per-absen" onchange="loadKehadiran()">
-                    <option value="1">1 Bulan Terakhir</option>
-                    <option value="2">2 Bulan Terakhir</option>
-                    <option value="3">3 Bulan Terakhir</option>
-                    <option value="4">4 Bulan Terakhir</option>
-                    <option value="5">5 Bulan Terakhir</option>
-                    <option value="6">6 Bulan Terakhir</option>
-                </select>
-            </div>
-        </div>
-        <div class="stat-line"><span>Ketidak Hadiran <span id="label-jc-absen">JC 5</span></span><span class="val-txt" style="color: #ff4757;" id="txt-absen-jc">0%</span></div>
-        <div class="progress-bg"><div id="bar-absen-jc" class="progress-fill" style="background: #ddd; width: 0%;"></div></div>
+    <div class="card" style="border-top-color: var(--merah-lux);">
+        <div class="card-title" style="color: var(--merah-lux);"><i class="fa-solid fa-user-slash"></i> Ketidakhadiran</div>
+        <div class="stat-line"><span>Persentase <span id="label-jc-absen">JC 5</span></span><span class="val-txt" style="color: var(--merah-lux);" id="txt-absen-jc">0%</span></div>
+        <div class="progress-bg"><div id="bar-absen-jc" class="progress-fill" style="background: var(--merah-lux); width: 0%;"></div></div>
     </div>
 
-    <div class="card">
-        <div class="card-title"><i class="fa-solid fa-droplet"></i> Data Golongan Darah</div>
-        <label style="font-size: 9px; font-weight: bold; color: #bbb;">LIHAT DISTRIBUSI PER KOMSEL</label>
-        <select id="jc-darah" style="margin-top: 5px;" onchange="loadDarah()">
+    <div class="card" style="border-top-color: var(--emas-lux);">
+        <div class="card-title"><i class="fa-solid fa-droplet"></i> Golongan Darah</div>
+        <select id="jc-darah" onchange="loadDarah()">
             <option value="Semua">Semua Komsel</option>
             <option value="1">JC 1</option>
             <option value="2">JC 2</option>
@@ -135,7 +223,7 @@
             <option value="4">JC 4</option>
             <option value="5">JC 5</option>
         </select>
-        <div style="margin-top: 15px;">
+        <div class="blood-grid">
             <div class="blood-row"><span class="blood-type">A</span><span class="blood-count" id="count-A">0 Orang</span></div>
             <div class="blood-row"><span class="blood-type">B</span><span class="blood-count" id="count-B">0 Orang</span></div>
             <div class="blood-row"><span class="blood-type">O</span><span class="blood-count" id="count-O">0 Orang</span></div>
@@ -143,7 +231,7 @@
         </div>
     </div>
 
-    <a href="menu.html" class="btn-footer"><i class="fa-solid fa-arrow-left"></i> Kembali ke Menu Utama</a>
+    <a href="menu.html" class="btn-footer"><i class="fa-solid fa-house"></i> KEMBALI KE MENU UTAMA</a>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -165,7 +253,6 @@
         const bulanPeriode = parseInt(document.getElementById('per-alkitab').value);
         document.getElementById('label-jc-baca').innerText = jcTerpilih;
 
-        // Target Per JC (Contoh: 20 orang)
         const targetPerJC = 20; 
         const totalJC = 5; 
         const targetGlobal = targetPerJC * totalJC * bulanPeriode;
@@ -182,9 +269,7 @@
             snap.forEach(doc => {
                 const d = doc.data();
                 jumlahLaporGlobal++;
-                if (d.komsel === jcTerpilih.replace("JC ", "")) { 
-                    jumlahLaporJC++; 
-                }
+                if (d.komsel === jcTerpilih.replace("JC ", "")) { jumlahLaporJC++; }
             });
 
             const persenJC = ((jumlahLaporJC / (targetPerJC * bulanPeriode)) * 100).toFixed(1);
@@ -192,19 +277,16 @@
 
             document.getElementById('txt-baca-jc').innerText = persenJC + "%";
             document.getElementById('bar-baca-jc').style.width = Math.min(persenJC, 100) + "%";
-            
             document.getElementById('txt-baca-global').innerText = persenGlobal + "%";
             document.getElementById('bar-baca-global').style.width = Math.min(persenGlobal, 100) + "%";
-
-        } catch (e) { console.error("Gagal memuat data: ", e); }
+        } catch (e) { console.error(e); }
     }
 
     async function loadKehadiran() {
         const jc = document.getElementById('jc-hadir').value;
-        const jcAbsen = document.getElementById('jc-absen').value;
         document.getElementById('label-jc-hadir').innerText = jc;
-        document.getElementById('label-jc-absen').innerText = jcAbsen;
-        // Logic kehadiran bisa ditambahkan di sini sesuai database Bapak
+        document.getElementById('label-jc-absen').innerText = jc;
+        // Logic kehadiran bisa diisi sesuai kebutuhan database
     }
 
     async function loadDarah() {
