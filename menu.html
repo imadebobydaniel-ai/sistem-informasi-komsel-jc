@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Menu Utama - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Variabel Warna Khas Logo */
         :root {
             --biru-tua: #003366;
             --biru-safir: #0056b3;
@@ -26,15 +24,15 @@
             color: #333;
         }
 
-        /* Layar peringatan jika GPS ditolak */
         #gps-lock-screen {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 51, 102, 0.95); /* Biru tua transparan */
+            background: rgba(0, 51, 102, 0.95);
             color: white; z-index: 9999;
             text-align: center; padding: 50px 20px; box-sizing: border-box;
         }
+
         .btn-reset {
             background: var(--emas); color: var(--biru-tua);
             padding: 12px 20px; border-radius: 10px; font-weight: bold;
@@ -42,7 +40,6 @@
             cursor: pointer; border: none;
         }
 
-        /* Top Bar Info */
         .top-info-bar { 
             background: var(--biru-tua); 
             display: flex; 
@@ -54,10 +51,7 @@
             border-bottom: 2px solid var(--emas-lux);
             color: white;
         }
-        #display-tanggal { color: var(--emas-lux); }
-        #digital-clock { color: var(--biru-muda); }
 
-        /* Running Text Header */
         header { 
             background: white; 
             border-bottom: 3px solid var(--hijau-zamrud); 
@@ -69,6 +63,7 @@
             align-items: center; 
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
+
         .running-content { 
             display: inline-block; 
             padding-left: 100%; 
@@ -79,6 +74,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
+
         @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
         .container { padding: 20px; max-width: 450px; margin: auto; text-align: center; }
@@ -91,7 +87,6 @@
             letter-spacing: 1px;
         }
 
-        /* Profile Section */
         .profile-section { 
             background: linear-gradient(145deg, #ffffff, #e6e6e6);
             padding: 25px; 
@@ -101,8 +96,8 @@
             position: relative;
             border-top: 4px solid var(--biru-safir);
         }
+
         .setting-icon-profile { position: absolute; top: 18px; right: 18px; color: var(--biru-tua); font-size: 22px; transition: 0.3s; }
-        .setting-icon-profile:hover { transform: rotate(90deg); color: var(--emas-lux); }
         
         .profile-img-container { 
             width: 90px; height: 90px; border-radius: 50%; 
@@ -111,14 +106,14 @@
             background: white; border: 3px solid var(--emas-lux);
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
+
         .profile-img-container img { width: 100%; height: 100%; object-fit: cover; }
         .profile-section i.fa-circle-user { font-size: 85px; color: var(--biru-safir); }
-        
         .profile-section h2 { margin: 8px 0 2px 0; font-size: 24px; color: var(--biru-tua); font-weight: 800; }
         .profile-section p { margin: 0; color: var(--hijau-zamrud); font-weight: bold; font-size: 14px; text-transform: uppercase; }
 
-        /* Grid Menu */
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+        
         .menu-box { 
             background: white; 
             padding: 22px 10px; 
@@ -134,7 +129,9 @@
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             border: 1px solid rgba(0,0,0,0.03);
         }
+
         .menu-box:active { transform: scale(0.92); }
+        
         .menu-box i { 
             font-size: 30px; 
             margin-bottom: 12px; 
@@ -178,7 +175,6 @@
         <i class="fa-solid fa-location-dot" style="font-size: 50px; color: #ff4d4d;"></i>
         <h2>AKSES GPS DITOLAK</h2>
         <p>Aplikasi Komsel JC mewajibkan akses lokasi agar tetap aktif.</p>
-        <p style="font-size: 13px; color: #ddd;">Silakan buka pengaturan browser, izinkan lokasi untuk situs ini, lalu login kembali.</p>
         <a href="index.html" class="btn-reset" onclick="localStorage.clear()">LOGOUT & RESET LOGIN</a>
     </div>
 
@@ -223,21 +219,14 @@
             <a href="laporan-komsel.html" class="menu-box">
                 <i class="fa-solid fa-file-signature"></i>Laporan Komsel
             </a>
-            
             <a href="lacak-domba.html" class="menu-box lacak-box">
                 <i class="fa-solid fa-map-location-dot"></i>Lacak Domba
             </a>
 
-            <div class="menu-item" onclick="window.location.href='capaian-doa.html'" style="cursor: pointer;">
-    <div class="menu-icon">
-        <i class="fa-solid fa-hands-praying" style="color: #D4AF37; font-size: 24px;"></i>
-    </div>
-    <div class="menu-label" style="color: #003366; font-weight: bold; font-size: 12px; margin-top: 5px;">Capaian DOA</div>
-</div>
-        <i class="fa-solid fa-hands-praying" style="color: #D4AF37;"></i>
-    </div>
-    <div class="menu-label">Capaian DOA</div>
-</a>
+            <a href="capaian-doa.html" class="menu-box">
+                <i class="fa-solid fa-hands-praying icon-special"></i>Capaian DOA
+            </a>
+
             <a href="javascript:location.reload()" class="menu-box" style="color: #28a745;">
                 <i class="fa-solid fa-arrows-rotate"></i>Refresh
             </a>
@@ -253,7 +242,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
-        // CONFIG FIREBASE
         const firebaseConfig = { 
             apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
             authDomain: "boby-apps-project.firebaseapp.com", 
@@ -265,137 +253,67 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // JALANKAN SAAT HALAMAN DIMUAT
         window.onload = function() {
             updateWaktuDanRunningText();
             setInterval(updateWaktuDanRunningText, 1000);
-            checkGPSPermission(); // Panggil pengecekan GPS
+            checkGPSPermission();
             syncUserData();
         };
 
-        // 1. FUNGSI UPDATE WAKTU
         function updateWaktuDanRunningText() {
             const now = new Date();
             const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
             const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-            
-            const dayName = days[now.getDay()];
-            const date = now.getDate();
-            const monthName = months[now.getMonth()];
-            const year = now.getFullYear();
+            const dayName = days[now.getDay()], date = now.getDate(), monthName = months[now.getMonth()], year = now.getFullYear();
             const time = now.toLocaleTimeString('id-ID', { hour12: false });
             
-            if(document.getElementById('display-tanggal')) document.getElementById('display-tanggal').innerText = `${dayName}, ${date} ${monthName} ${year}`;
-            if(document.getElementById('digital-clock')) document.getElementById('digital-clock').innerText = `${time} WIT`;
-            
-            const runningContent = `Shalom! ${dayName}, ${date} ${monthName} ${year} | ${time} WIT | SISTEM INFORMASI KOMSEL JC - PONDOK PEMULIHAN PAPUA | TETAP SEMANGAT MELAYANI TUHAN!`;
-            if(document.getElementById('running-text')) document.getElementById('running-text').innerText = runningContent;
+            document.getElementById('display-tanggal').innerText = `${dayName}, ${date} ${monthName} ${year}`;
+            document.getElementById('digital-clock').innerText = `${time} WIT`;
+            document.getElementById('running-text').innerText = `Shalom! ${dayName}, ${date} ${monthName} ${year} | ${time} WIT | SISTEM INFORMASI KOMSEL JC | TETAP SEMANGAT!`;
         }
 
-        // 2. FUNGSI GPS PERMISSION (Baru diintegrasikan)
         function checkGPSPermission() {
-            if (!navigator.geolocation) {
-                alert("HP Anda tidak mendukung GPS.");
-                return;
-            }
-
+            if (!navigator.geolocation) return;
             navigator.geolocation.getCurrentPosition(
-                (position) => {
+                (pos) => { 
                     document.getElementById('gps-lock-screen').style.display = 'none';
-                    updateLokasiKeFirebase(position.coords.latitude, position.coords.longitude);
-                    startContinuousTracking();
+                    updateLokasiKeFirebase(pos.coords.latitude, pos.coords.longitude);
                 },
-                (error) => {
-                    if (error.code === error.PERMISSION_DENIED) {
-                        document.getElementById('gps-lock-screen').style.display = 'block';
-                    }
-                },
-                { enableHighAccuracy: true, timeout: 10000 }
+                (err) => { if (err.code === 1) document.getElementById('gps-lock-screen').style.display = 'block'; },
+                { enableHighAccuracy: true }
             );
         }
 
-        // 3. FUNGSI TRACKING BERKALA
-        function startContinuousTracking() {
-            navigator.geolocation.watchPosition((pos) => {
-                updateLokasiKeFirebase(pos.coords.latitude, pos.coords.longitude);
-            }, (error) => {
-                if (error.code === error.PERMISSION_DENIED) {
-                    document.getElementById('gps-lock-screen').style.display = 'block';
-                }
-            }, { enableHighAccuracy: true });
-        }
-
-        // 4. FUNGSI UPDATE KE FIREBASE (Dipisahkan agar rapi)
         async function updateLokasiKeFirebase(lat, lng) {
-            const userEmail = localStorage.getItem("userEmail");
-            const userName = localStorage.getItem("userName");
-            const userJC = localStorage.getItem("userJC");
-
-            if (userEmail && userName) {
-                try {
-                    await db.collection("live_tracking").doc(userEmail).set({
-                        nama: userName,
-                        lat: lat,
-                        lng: lng,
-                        komsel: userJC || "1",
-                        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-                    }, { merge: true });
-                } catch (e) {
-                    console.error("Error updating location:", e);
-                }
+            const email = localStorage.getItem("userEmail");
+            if (email) {
+                await db.collection("live_tracking").doc(email).set({
+                    lat: lat, lng: lng, lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
             }
         }
 
-        // 5. SYNC DATA PROFIL
         function syncUserData() {
-            const userEmail = localStorage.getItem("userEmail");
-            if (!userEmail) { window.location.href = "index.html"; return; }
-
-            db.collection("users").where("email", "==", userEmail).onSnapshot((querySnapshot) => {
-                if (!querySnapshot.empty) {
-                    const data = querySnapshot.docs[0].data();
-                    localStorage.setItem("userName", data.nama);
-                    localStorage.setItem("userJC", data.komsel);
-
-                    document.getElementById('disp_nama').innerText = data.nama || "User";
-                    document.getElementById('disp_komsel').innerText = data.komsel ? "JC " + data.komsel : "KOMSEL JC";
-                    
-                    const photoImg = document.getElementById('user-photo');
-                    const defaultIcon = document.getElementById('default-icon');
-                    if (data.fotoUrl) { 
-                        photoImg.src = data.fotoUrl; 
-                        photoImg.style.display = "block"; 
-                        defaultIcon.style.display = "none"; 
-                    } else { 
-                        photoImg.style.display = "none"; 
-                        defaultIcon.style.display = "block"; 
+            const email = localStorage.getItem("userEmail");
+            if (!email) { window.location.href = "index.html"; return; }
+            db.collection("users").where("email", "==", email).onSnapshot((snap) => {
+                if (!snap.empty) {
+                    const d = snap.docs[0].data();
+                    document.getElementById('disp_nama').innerText = d.nama || "User";
+                    document.getElementById('disp_komsel').innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
+                    if (d.fotoUrl) {
+                        document.getElementById('user-photo').src = d.fotoUrl;
+                        document.getElementById('user-photo').style.display = "block";
+                        document.getElementById('default-icon').style.display = "none";
                     }
                 }
             });
         }
 
-        // 6. FUNGSI LOGOUT
         async function logoutDanHapusDevice() {
-            const userEmail = localStorage.getItem("userEmail");
-            const currentDeviceId = localStorage.getItem("myDeviceId");
-
-            if (confirm("Apakah Anda yakin ingin keluar?")) {
-                try {
-                    if (userEmail && currentDeviceId) {
-                        const snapshot = await db.collection("users").where("email", "==", userEmail).get();
-                        if (!snapshot.empty) {
-                            const docId = snapshot.docs[0].id;
-                            await db.collection("users").doc(docId).update({
-                                deviceIds: firebase.firestore.FieldValue.arrayRemove(currentDeviceId)
-                            });
-                        }
-                    }
-                } catch (e) {
-                    console.error("Logout error:", e);
-                } finally {
-                    localStorage.clear();
-                    window.location.href = "index.html";
-                }
+            if (confirm("Keluar sistem?")) {
+                localStorage.clear();
+                window.location.href = "index.html";
             }
         }
     </script>
