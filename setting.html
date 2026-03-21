@@ -2,169 +2,111 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pengaturan - Pondok Pemulihan Papua</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengaturan Akun - Pondok Pemulihan</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root {
-            --biru-tua: #003366; --biru-safir: #0056b3; --biru-muda: #00e6e6;
-            --hijau-zamrud: #2ecc71; --emas-lux: #D4AF37; --putih-bg: #f4f7fa;
-        }
-
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--putih-bg); margin: 0; padding: 20px; color: #333; }
+        :root { --biru-utama: #0056b3; --putih-bg: #f4f7fa; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--putih-bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .setting-container { background: white; width: 100%; max-width: 400px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 25px; border-top: 5px solid var(--biru-utama); }
+        .header { text-align: center; margin-bottom: 25px; color: var(--biru-utama); font-weight: bold; font-size: 1.2rem; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; }
+        .btn-save { background: var(--biru-utama); color: white; width: 100%; padding: 15px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .btn-save:hover { background: #003d80; }
+        .back-link { display: block; text-align: center; margin-top: 20px; text-decoration: none; color: var(--biru-utama); font-size: 14px; font-weight: bold; }
         
-        .settings-card {
-            background: white; max-width: 450px; margin: auto; border-radius: 25px;
-            padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border-top: 5px solid var(--biru-safir);
-        }
-
-        h2 { color: var(--biru-tua); font-weight: 800; text-align: center; margin-bottom: 25px; font-size: 20px; text-transform: uppercase; }
-        h2 i { color: var(--emas-lux); margin-right: 8px; }
-
-        .input-group { margin-bottom: 18px; text-align: left; }
-        .input-group label { display: block; font-weight: bold; font-size: 13px; margin-bottom: 8px; color: var(--biru-tua); }
-        .input-group input, .input-group select {
-            width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid #ddd;
-            box-sizing: border-box; font-size: 14px; transition: 0.3s;
-        }
-
-        /* Style Toggle Switch */
-        .switch-group {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 12px 0; border-bottom: 1px solid #eee;
-        }
-        .switch { position: relative; display: inline-block; width: 45px; height: 24px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #ccc; transition: .4s; border-radius: 34px;
-        }
-        .slider:before {
-            position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
-            background-color: white; transition: .4s; border-radius: 50%;
-        }
-        input:checked + .slider { background-color: var(--hijau-zamrud); }
-        input:checked + .slider:before { transform: translateX(21px); }
-
-        .btn-save {
-            width: 100%; background: var(--biru-safir); color: white; border: none;
-            padding: 15px; border-radius: 50px; font-weight: bold; margin-top: 20px;
-            cursor: pointer; box-shadow: 0 4px 15px rgba(0,86,179,0.3); transition: 0.3s;
-        }
-
         /* Notifikasi Block Display */
-        #notif-pesan {
-            display: none; color: #0d9488; font-weight: bold; margin-top: 15px; 
-            text-align: center; background: #f0fdfa; padding: 10px; border-radius: 12px;
-            font-size: 13px; border: 1px solid #0d9488;
+        #notif-block {
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9); color: white; padding: 30px; border-radius: 15px;
+            text-align: center; z-index: 10000; width: 80%; max-width: 300px;
+            border: 2px solid var(--biru-utama);
         }
-
-        .back-link { display: block; margin-top: 25px; text-decoration: none; color: var(--biru-safir); font-weight: bold; font-size: 14px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div class="settings-card">
-        <h2><i class="fa-solid fa-user-gear"></i> Pengaturan Akun</h2>
-        
-        <div class="input-group">
-            <label>Email Baru</label>
-            <input type="email" id="new-email" placeholder="Masukkan email baru">
-        </div>
+<div id="notif-block">
+    <i class="fa-solid fa-circle-check" style="font-size: 40px; color: #2ecc71; margin-bottom: 15px;"></i>
+    <p id="notif-text" style="margin: 0;">Password dan Email Berhasil diupdate</p>
+    <p style="font-size: 12px; margin-top: 10px; color: #aaa;">Mengalihkan ke Login...</p>
+</div>
 
-        <div class="input-group">
-            <label>Password Baru</label>
-            <input type="password" id="new-password" placeholder="Masukkan password baru">
-        </div>
-
-        <div class="input-group">
-            <label>Lokasi Komsel</label>
-            <select id="lokasi-komsel">
-                <option value="JC 1">JC 1</option>
-                <option value="JC 2">JC 2</option>
-                <option value="JC 3">JC 3</option>
-                <option value="JC 4">JC 4</option>
-                <option value="JC 5">JC 5</option>
-            </select>
-        </div>
-
-        <div class="switch-group">
-            <label style="font-weight: bold; font-size: 13px; color: var(--biru-tua);">Suara Notifikasi Alkitab (22:00)</label>
-            <label class="switch">
-                <input type="checkbox" id="toggle-suara">
-                <span class="slider"></span>
-            </label>
-        </div>
-
-        <div class="input-group" style="margin-top: 15px;">
-            <label>Logout Otomatis (Keamanan)</label>
-            <select id="auto-logout">
-                <option value="0">Matikan</option>
-                <option value="30">30 Menit</option>
-                <option value="60">60 Menit</option>
-            </select>
-        </div>
-
-        <button class="btn-save" onclick="saveSettings()">SIMPAN PERUBAHAN</button>
-        <div id="notif-pesan"></div>
-
-        <a href="menu.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Kembali ke Menu</a>
+<div class="setting-container">
+    <div class="header"><i class="fa-solid fa-user-gear"></i> PENGATURAN AKUN</div>
+    
+    <div class="form-group">
+        <label>Email Baru</label>
+        <input type="email" id="newEmail" placeholder="Masukkan email baru">
     </div>
 
-    <script>
-        let idleTimer;
+    <div class="form-group">
+        <label>Password Baru</label>
+        <input type="password" id="newPassword" placeholder="Masukkan password baru">
+    </div>
 
-        // 1. Memuat Pengaturan Saat Halaman Dibuka
-        window.onload = function() {
-            // Load email/pass jika ada (optional)
-            document.getElementById('lokasi-komsel').value = localStorage.getItem('userJC') || "JC 1";
-            document.getElementById('toggle-suara').checked = localStorage.getItem('suaraNotif') === 'true';
-            
-            const savedTimeout = localStorage.getItem('timeoutValue') || "0";
-            document.getElementById('auto-logout').value = savedTimeout;
+    <button class="btn-save" onclick="updateAkun()">SIMPAN PERUBAHAN</button>
+    
+    <a href="menu.html" class="back-link">← Kembali ke Menu</a>
+</div>
 
-            // Jalankan monitor HANYA jika bukan "Matikan" (0)
-            if (savedTimeout !== "0") {
-                startMonitoring(parseInt(savedTimeout));
-            }
-        };
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-        function saveSettings() {
-            const jc = document.getElementById('lokasi-komsel').value;
-            const timeoutVal = document.getElementById('auto-logout').value;
-            const suara = document.getElementById('toggle-suara').checked;
+<script>
+    // Konfigurasi Firebase (Tetap sesuai milik Bapak)
+    const firebaseConfig = {
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+        authDomain: "boby-apps-project.firebaseapp.com",
+        projectId: "boby-apps-project",
+        storageBucket: "boby-apps-project.appspot.com",
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+    };
 
-            localStorage.setItem('userJC', jc);
-            localStorage.setItem('timeoutValue', timeoutVal);
-            localStorage.setItem('suaraNotif', suara);
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
+    const oldEmail = localStorage.getItem("userEmail");
 
-            const pesan = document.getElementById('notif-pesan');
-            pesan.style.display = 'block';
-            pesan.innerHTML = '✅ Pengaturan Berhasil Diperbarui!';
-            
-            setTimeout(() => { 
-                pesan.style.display = 'none'; 
-                location.reload(); 
-            }, 1500);
+    async function updateAkun() {
+        const newEmail = document.getElementById("newEmail").value;
+        const newPassword = document.getElementById("newPassword").value;
+
+        if (!newEmail || !newPassword) {
+            alert("Harap isi Email dan Password baru!");
+            return;
         }
 
-        function startMonitoring(minutes) {
-            const ms = minutes * 60 * 1000;
-            const resetAction = () => {
-                clearTimeout(idleTimer);
-                idleTimer = setTimeout(() => {
+        try {
+            // 1. Cari dokumen user berdasarkan email lama
+            const snap = await db.collection("users").where("email", "==", oldEmail).get();
+
+            if (!snap.empty) {
+                const docId = snap.docs[0].id;
+
+                // 2. Update di Database
+                await db.collection("users").doc(docId).update({
+                    email: newEmail,
+                    password: newPassword // Pastikan nama field sesuai di DB Bapak
+                });
+
+                // 3. Munculkan Notif Block
+                document.getElementById("notif-block").style.display = "block";
+
+                // 4. Hapus sesi & Arahkan ke Login setelah 3 detik
+                setTimeout(() => {
                     localStorage.clear();
-                    window.location.href = 'login.html';
-                }, ms);
-            };
-
-            window.onmousemove = resetAction;
-            window.onkeypress = resetAction;
-            window.ontouchstart = resetAction;
-            window.onclick = resetAction;
-
-            resetAction(); // Mulai hitung mundur
+                    window.location.replace("index.html");
+                }, 3000);
+            } else {
+                alert("Data user tidak ditemukan.");
+            }
+        } catch (error) {
+            alert("Gagal update: " + error.message);
         }
-    </script>
+    }
+</script>
 </body>
 </html>
