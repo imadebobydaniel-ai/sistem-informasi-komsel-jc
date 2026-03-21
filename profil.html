@@ -138,27 +138,21 @@
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
 
-    if (!firebase.apps.length) { 
-        firebase.initializeApp(firebaseConfig); 
-    }
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
     const userEmail = localStorage.getItem("userEmail");
 
     if (!userEmail) {
         window.location.replace("index.html");
     } else {
-        // Mendengarkan perubahan data secara Realtime
+        // Sinkronisasi data utama
         db.collection("users").where("email", "==", userEmail)
             .onSnapshot((querySnapshot) => {
                 if (!querySnapshot.empty) {
                     const data = querySnapshot.docs[0].data();
                     
-                    // Foto Profil
-                    if (data.fotoUrl) { 
-                        document.getElementById('view-foto').src = data.fotoUrl; 
-                    }
+                    if (data.fotoUrl) { document.getElementById('view-foto').src = data.fotoUrl; }
                     
-                    // Sinkronisasi Data Database ke UI
                     document.getElementById("no_komsel").innerText = data.nomor_komsel || "-"; 
                     document.getElementById("nama_lengkap").innerText = data.nama || "-";
                     document.getElementById("jabatan").innerText = data.jabatan || "-";
@@ -168,6 +162,8 @@
                     document.getElementById("gol_darah").innerText = data.golDarah || "-";
                     document.getElementById("alamat").innerText = data.alamat || "-";
                 }
+            }, (error) => {
+                console.error("Error memuat data:", error);
             });
     }
 
@@ -179,13 +175,28 @@
         reader.onload = function(e) {
             const img = new Image();
             img.onload = async function() {
-                // Proses Kompresi Gambar agar hemat storage
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
-                const max_size = 600; // Ukuran optimal untuk profil
+                const max_size = 600;
 
                 if (width > height) {
                     if (width > max_size) { height *= max_size / width; width = max_size; }
                 } else {
-                    if (height > max_size) { width
+                    if (height > max_size) { width *= max_size / height; height = max_size; }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+
+                try {
+                    const snap = await db.collection("users").where("email", "==", userEmail).get();
+                    if (!snap.empty) {
+                        await db.collection("users").doc(snap.docs[0].id).update({
+                            fotoUrl: compressedBase64
+                        });
+                        const notif = document.getElementById('notif-success');
+                        notif.style.display = 'block';
+                        setTimeout(() => { notif.style.display = 'none'; }, 30
