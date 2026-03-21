@@ -59,6 +59,7 @@
             width: 42px; height: 42px; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; 
             border: 3px solid white; cursor: pointer;
+            z-index: 10;
         }
 
         .info-section { padding: 10px 25px 20px; }
@@ -146,22 +147,25 @@
     if (!userEmail) {
         window.location.replace("index.html");
     } else {
+        // Mendengarkan perubahan data secara Realtime
         db.collection("users").where("email", "==", userEmail)
             .onSnapshot((querySnapshot) => {
                 if (!querySnapshot.empty) {
                     const data = querySnapshot.docs[0].data();
-                    if (data.fotoUrl) { document.getElementById('view-foto').src = data.fotoUrl; }
                     
-                    // Integrasi NK & Golongan Darah (Sesuai gambar database Bapak)
+                    // Foto Profil
+                    if (data.fotoUrl) { 
+                        document.getElementById('view-foto').src = data.fotoUrl; 
+                    }
+                    
+                    // Sinkronisasi Data Database ke UI
                     document.getElementById("no_komsel").innerText = data.nomor_komsel || "-"; 
-                    document.getElementById("gol_darah").innerText = data.golDarah || "-";
-
-                    // Sisa data tetap menggunakan struktur Bapak
                     document.getElementById("nama_lengkap").innerText = data.nama || "-";
                     document.getElementById("jabatan").innerText = data.jabatan || "-";
                     document.getElementById("email_aktif").innerText = data.email || "-";
                     document.getElementById("no_hp").innerText = data.no_hp || "-";
                     document.getElementById("lokasi_komsel").innerText = data.komsel ? "JC " + data.komsel : "-";
+                    document.getElementById("gol_darah").innerText = data.golDarah || "-";
                     document.getElementById("alamat").innerText = data.alamat || "-";
                 }
             });
@@ -175,41 +179,13 @@
         reader.onload = function(e) {
             const img = new Image();
             img.onload = async function() {
+                // Proses Kompresi Gambar agar hemat storage
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
-                const max_size = 800;
+                const max_size = 600; // Ukuran optimal untuk profil
 
                 if (width > height) {
                     if (width > max_size) { height *= max_size / width; width = max_size; }
                 } else {
-                    if (height > max_size) { width *= max_size / height; height = max_size; }
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-                canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-
-                try {
-                    const snap = await db.collection("users").where("email", "==", userEmail).get();
-                    if (!snap.empty) {
-                        await db.collection("users").doc(snap.docs[0].id).update({
-                            fotoUrl: compressedBase64
-                        });
-                        
-                        const notif = document.getElementById('notif-success');
-                        notif.style.display = 'block';
-                        setTimeout(() => { notif.style.display = 'none'; }, 3000);
-                    }
-                } catch (err) {
-                    console.error("Upload error:", err);
-                }
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
-</script>
-</body>
-</html>
+                    if (height > max_size) { width
