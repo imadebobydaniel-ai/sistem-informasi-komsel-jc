@@ -169,7 +169,8 @@
         <div style="display: flex; align-items: center; justify-content: space-between;">
             <div>
                 <p style="margin: 0; font-size: 11px; font-weight: bold; opacity: 0.8;">OFFICIAL REPORT</p>
-                <h2 id="label-jc" style="margin: 0; font-size: 20px; font-weight: 900;">JC - ANALYTICS</h2>
+                <h2 id="label-jc" style="margin: 0; font-size: 20px; font-weight: 900;">MEMUAT DATA...</h2>
+                <p id="label-nama-user" style="margin: 5px 0 0 0; font-size: 12px; font-weight: 600; opacity: 0.9;"></p>
             </div>
             <i class="fa-solid fa-shield-halved" style="font-size: 24px; opacity: 0.5;"></i>
         </div>
@@ -258,7 +259,8 @@
     const db = firebase.firestore();
 
     let myChart;
-    let userJC = "5"; // Default, akan diupdate via init()
+    let userJC = ""; 
+    let userNama = "";
 
     function hitungSLA(tglStart, tglEnd) {
         if (!tglStart || !tglEnd) return "- Hari";
@@ -270,20 +272,41 @@
     }
 
     async function init() {
-        let emailRaw = localStorage.getItem("userEmail") || "imade.bobydaniel@gmail.com";
+        let emailRaw = localStorage.getItem("userEmail");
+        
+        if (!emailRaw) {
+            alert("Sesi berakhir, silakan login kembali.");
+            window.location.href = "index.html";
+            return;
+        }
+
         try {
+            // Ambil data User secara otomatis berdasarkan Email Login
             const snap = await db.collection("users").where("email", "==", emailRaw.trim().toLowerCase()).get();
+            
             if(!snap.empty) {
-                userJC = String(snap.docs[0].data().komsel);
+                const userData = snap.docs[0].data();
+                userJC = String(userData.komsel);
+                userNama = userData.nama;
+
+                // Update Tampilan Header secara Otomatis
                 document.getElementById("label-jc").innerText = "ANALISA JC " + userJC;
+                document.getElementById("label-nama-user").innerText = "Petugas: " + userNama;
+            } else {
+                document.getElementById("label-jc").innerText = "USER TIDAK DIKENAL";
             }
+
             initChart();
             sinkronisasiRealtime();
-            muatDoaTerjawab(); // Panggil fungsi doa terjawab
-        } catch (e) { console.error(e); }
+            muatDoaTerjawab(); 
+        } catch (e) { 
+            console.error("Error Init:", e); 
+        }
     }
 
     function muatDoaTerjawab() {
+        if (!userJC) return;
+        
         db.collection("laporan_doa")
             .where("terjawab", "==", true)
             .where("jc", "==", "JC" + userJC) 
@@ -310,7 +333,6 @@
             });
     }
 
-    // Fungsi lainnya tetap (sinkronisasiRealtime, initChart, validateAndExport, dll)
     function toggleLogModal(show) { document.getElementById("modal-log").style.display = show ? "flex" : "none"; }
 
     function initChart() {
@@ -331,6 +353,7 @@
     }
 
     function sinkronisasiRealtime() {
+        if (!userJC) return;
         const periode = parseInt(document.getElementById("filter-periode").value);
         const batasWaktu = new Date();
         batasWaktu.setMonth(batasWaktu.getMonth() - periode);
@@ -359,8 +382,8 @@
     async function validateAndExport() {
         const pass = document.getElementById("pks-password").value;
         if(pass === "rahasia123") {
-            alert("Sistem sedang menyiapkan PDF dengan data Log & Jawaban Doa...");
-            // Logika JSPDF Anda di sini...
+            alert(`Sistem menyiapkan PDF untuk ${userNama} (JC ${userJC})...`);
+            // Logika JSPDF Anda...
         } else {
             alert("Password Salah!");
         }
