@@ -65,17 +65,21 @@
     const userEmail = localStorage.getItem("userEmail") || "guest@gmail.com";
     const userName = localStorage.getItem("userName") || "User";
 
-    // 1. Fungsi Cek Apakah Sudah Absen Hari Ini
-    async function cekSudahAbsen() {
-        const today = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
+    // --- FUNGSI CEK STATUS TERAKHIR ---
+    async function getStatusHariIni() {
+        const today = new Date().toISOString().split('T')[0];
         const snap = await db.collection("kehadiran")
             .where("email", "==", userEmail)
             .where("tanggal_str", "==", today)
             .get();
-        return !snap.empty;
+        
+        if (!snap.empty) {
+            return snap.docs[0].data().status; 
+        }
+        return null;
     }
 
-    // 2. Fungsi Ambil Alamat dari GPS
+    // --- FUNGSI AMBIL ALAMAT DARI GPS ---
     function getAlamatLengkap(lat, lon) {
         return fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
             .then(res => res.json())
@@ -83,19 +87,26 @@
             .catch(() => "Alamat tidak ditemukan");
     }
 
-    // 3. Proses HADIR
+    // --- PROSES HADIR ---
     async function prosesHadir() {
         const btn = document.getElementById("btnHadir");
-        btn.disabled = true;
+        const status = await getStatusHariIni();
 
-        if (await cekSudahAbsen()) {
+        // Counter: Cek jika sudah melapor sebelumnya
+        if (status === "HADIR") {
             alert("Anda tadi sudah melapor!");
-            btn.disabled = false;
+            return;
+        }
+        if (status === "TIDAK HADIR") {
+            alert("Anda tadi sudah melapor Tidak Hadir!");
             return;
         }
 
+        btn.disabled = true;
+
         if (!navigator.geolocation) {
             alert("GPS tidak didukung di browser ini.");
+            btn.disabled = false;
             return;
         }
 
@@ -115,26 +126,41 @@
 
             alert(`Terimakasih atas kehadirannya!\n\nPosisi Anda:\n${alamat}`);
             window.location.href = "menu.html";
-        }, () => {
+        }, (err) => {
             alert("Gagal mengambil lokasi. Pastikan GPS aktif.");
             btn.disabled = false;
         });
     }
 
-    // 4. Munculkan Input Alasan
-    function showReason() {
+    // --- MUNCULKAN INPUT ALASAN (TIDAK HADIR) ---
+    async function showReason() {
+        const status = await getStatusHariIni();
+
+        // Counter khusus jika mencoba menekan tombol Tidak Hadir padahal sudah Hadir
+        if (status === "HADIR") {
+            alert("Anda Tadi sudah Melapora Hadir"); 
+            return;
+        }
+        if (status === "TIDAK HADIR") {
+            alert("Anda tadi sudah melapor!");
+            return;
+        }
+
         document.getElementById("reason-container").style.display = "block";
         document.getElementById("btnHadir").style.display = "none";
         document.getElementById("btnAbsen").style.display = "none";
     }
 
-    // 5. Proses TIDAK HADIR
+    // --- PROSES TIDAK HADIR ---
     async function prosesTidakHadir() {
         const alasan = document.getElementById("alasan").value;
         if (!alasan) { alert("Wajib mengisi alasan!"); return; }
 
-        if (await cekSudahAbsen()) {
+        // Double check sebelum final add
+        const status = await getStatusHariIni();
+        if (status) {
             alert("Anda tadi sudah melapor!");
+            window.location.reload();
             return;
         }
 
