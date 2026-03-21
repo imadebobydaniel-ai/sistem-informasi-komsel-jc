@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Tiket Doa Komsel</title>
+    <title>SLA Tiket Doa Komsel</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --biru: #003366; --emas: #D4AF37; --bg: #f4f7fa; --merah: #d32f2f; --hijau: #2e7d32; }
@@ -13,53 +13,67 @@
         
         .container { flex-grow: 1; overflow-y: auto; padding: 15px; padding-bottom: 100px; }
         
-        .btn-tambah { background: var(--emas); color: var(--biru); width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: pointer; }
+        .btn-add { background: var(--emas); color: var(--biru); width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: 800; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: pointer; }
         
-        /* Card Tiket Doa */
-        .card-tiket { background: white; padding: 15px; border-radius: 12px; margin-bottom: 12px; border-left: 5px solid var(--emas); box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative; }
-        .no-tiket { font-size: 10px; color: #888; font-weight: bold; margin-bottom: 5px; }
-        .status-badge { position: absolute; top: 15px; right: 15px; font-size: 10px; padding: 3px 8px; border-radius: 10px; font-weight: bold; }
+        /* Card Tiket */
+        .card-tiket { background: white; padding: 15px; border-radius: 15px; margin-bottom: 12px; border-left: 6px solid var(--emas); box-shadow: 0 4px 8px rgba(0,0,0,0.05); position: relative; }
+        .no-tiket { font-size: 11px; color: var(--biru); font-weight: 900; background: #eef2f7; padding: 4px 8px; border-radius: 5px; display: inline-block; margin-bottom: 8px; }
+        .status-badge { position: absolute; top: 15px; right: 15px; font-size: 10px; padding: 4px 10px; border-radius: 20px; font-weight: bold; }
         .pending { background: #fff3e0; color: #ef6c00; }
         .answered { background: #e8f5e9; color: var(--hijau); }
         
-        .sla-info { font-size: 11px; color: #555; background: #eee; padding: 5px 10px; border-radius: 5px; margin-top: 10px; display: inline-block; }
+        .sla-box { font-size: 12px; color: #444; background: #f0f0f0; padding: 8px; border-radius: 8px; margin-top: 10px; font-weight: bold; }
+        .btn-action-group { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #eee; padding-top: 12px; }
+        .btn-act { border: none; background: none; font-size: 12px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+
+        /* Popup Victory */
+        #popupVictory { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; text-align: center; color: white; padding: 20px; box-sizing: border-box; }
+        .victory-content h2 { color: var(--emas); font-size: 28px; }
         
-        .aksi-buttons { margin-top: 15px; display: flex; gap: 10px; border-top: 1px solid #eee; padding-top: 10px; }
-        .btn-aksi { border: none; background: none; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
-        .btn-check { color: var(--hijau); font-weight: bold; }
-        .btn-edit { color: var(--biru); }
-        .btn-hapus { color: var(--merah); }
-
-        .nav-bawah { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px 0; display: flex; justify-content: center; box-shadow: 0 -3px 10px rgba(0,0,0,0.1); }
-        .btn-kembali { background: var(--merah); color: white; text-decoration: none; padding: 12px 60px; border-radius: 30px; font-weight: bold; }
-
-        /* Modal */
+        /* Modal Input */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: flex-end; }
-        .modal-content { background: white; width: 100%; padding: 25px; border-radius: 25px 25px 0 0; box-sizing: border-box; }
-        textarea { width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 12px; margin: 15px 0; font-family: inherit; resize: none; }
+        .modal-content { background: white; width: 100%; padding: 25px; border-radius: 25px 25px 0 0; box-sizing: border-box; animation: slideUp 0.3s; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 12px; box-sizing: border-box; font-size: 14px; }
+        .nav-bawah { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px 0; display: flex; justify-content: center; box-shadow: 0 -3px 10px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
 
-<header>SISTEM TIKET DOA KOMSEL</header>
+<header>CAPAIAN DOA KOMSEL</header>
 
 <div class="container">
-    <div id="labelJC" style="font-size: 12px; font-weight: bold; color: var(--biru); margin-bottom: 10px;">TIKET DOA JC-5</div>
-    <button class="btn-tambah" onclick="bukaModal()"><i class="fa-solid fa-ticket"></i> INPUT TIKET DOA BARU</button>
-    <div id="displayTiket">Memuat daftar tiket...</div>
+    <button class="btn-add" onclick="bukaModal()"><i class="fa-solid fa-plus-circle"></i> ADD DOA BARU</button>
+    <div id="listTiket">Memuat data tiket...</div>
 </div>
 
 <div class="nav-bawah">
-    <a href="menu.html" class="btn-kembali">KEMBALI</a>
+    <button onclick="window.location.href='menu.html'" style="background: var(--merah); color: white; border: none; padding: 12px 60px; border-radius: 30px; font-weight: bold;">KEMBALI</button>
 </div>
 
 <div id="modalInput" class="modal">
     <div class="modal-content">
-        <h3 id="modalTitle" style="margin: 0; color: var(--biru);">Input Pergumulan Doa</h3>
-        <input type="hidden" id="editId">
-        <textarea id="isiDoa" rows="4" placeholder="Tuliskan pokok doa Anda..."></textarea>
-        <button id="btnSimpan" onclick="simpanTiket()" style="width: 100%; background: var(--biru); color: white; padding: 15px; border: none; border-radius: 12px; font-weight: bold;">KIRIM TIKET</button>
-        <button onclick="tutupModal()" style="width: 100%; background: none; border: none; color: #999; margin-top: 10px;">Batal</button>
+        <h3 style="margin-top:0; color:var(--biru)">Form Tiket Doa</h3>
+        <input type="text" id="namaLengkap" placeholder="Nama Lengkap Pemohon">
+        <select id="selectJC">
+            <option value="">-- Pilih Komsel --</option>
+            <option value="JC1">JC1</option><option value="JC2">JC2</option>
+            <option value="JC3">JC3</option><option value="JC4">JC4</option>
+            <option value="JC5">JC5</option><option value="JC6">JC6</option>
+        </select>
+        <textarea id="pokokDoa" rows="3" placeholder="Isi Pergumulan Doa..."></textarea>
+        <button onclick="kirimTiket()" style="width:100%; background:var(--biru); color:white; padding:15px; border:none; border-radius:12px; font-weight:bold;">KIRIM TIKET</button>
+        <button onclick="tutupModal()" style="width:100%; background:none; border:none; color:#999; margin-top:10px;">Batal</button>
+    </div>
+</div>
+
+<div id="popupVictory">
+    <div class="victory-content">
+        <i class="fa-solid fa-crown" style="font-size: 60px; color: var(--emas);"></i>
+        <h2>Puji Tuhan!</h2>
+        <p style="font-size: 18px;">Selamat, Doa Anda Sudah Terjawab</p>
+        <button onclick="tutupVictory()" style="background:var(--emas); color:var(--biru); border:none; padding:10px 30px; border-radius:20px; font-weight:bold; margin-top:20px;">AMEN!</button>
     </div>
 </div>
 
@@ -78,92 +92,75 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    const userJC = localStorage.getItem("userJC") || "5";
-    const userName = localStorage.getItem("userName") || "User";
-
-    function bukaModal(id = '', text = '') {
-        document.getElementById('editId').value = id;
-        document.getElementById('isiDoa').value = text;
-        document.getElementById('modalTitle').innerText = id ? "Edit Tiket Doa" : "Input Pergumulan Doa";
-        document.getElementById('btnSimpan').innerText = id ? "SIMPAN PERUBAHAN" : "KIRIM TIKET";
-        document.getElementById('modalInput').style.display = 'flex';
-    }
-
+    function bukaModal() { document.getElementById('modalInput').style.display = 'flex'; }
     function tutupModal() { document.getElementById('modalInput').style.display = 'none'; }
+    function tutupVictory() { document.getElementById('popupVictory').style.display = 'none'; }
 
-    async function simpanTiket() {
-        const text = document.getElementById('isiDoa').value;
-        const id = document.getElementById('editId').value;
-        if (!text) return alert("Isi doa tidak boleh kosong");
+    async function kirimTiket() {
+        const nama = document.getElementById('namaLengkap').value;
+        const jc = document.getElementById('selectJC').value;
+        const doa = document.getElementById('pokokDoa').value;
 
-        try {
-            if (id) {
-                await db.collection("laporan_doa").doc(id).update({ pokokDoa: text });
-            } else {
-                await db.collection("laporan_doa").add({
-                    nama: userName,
-                    jc: userJC,
-                    pokokDoa: text,
-                    tglInput: firebase.firestore.FieldValue.serverTimestamp(),
-                    terjawab: false,
-                    tglTerjawab: null
-                });
-            }
-            tutupModal();
-        } catch (e) { alert("Error: " + e.message); }
-    }
+        if(!nama || !jc || !doa) return alert("Lengkapi data!");
 
-    async function tandaiTerjawab(id) {
-        if(confirm("Apakah doa ini sudah terjawab?")) {
-            await db.collection("laporan_doa").doc(id).update({
-                terjawab: true,
-                tglTerjawab: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
-    }
+        // Penomoran otomatis berbasis count (sederhana)
+        const snapshot = await db.collection("laporan_doa").get();
+        const noUrut = snapshot.size + 1;
+        const ticketID = `NK-DOA-${noUrut.toString().padStart(3, '0')}-2026`;
 
-    async function hapusTiket(id) {
-        if(confirm("Hapus tiket doa ini?")) {
-            await db.collection("laporan_doa").doc(id).delete();
-        }
+        await db.collection("laporan_doa").add({
+            ticketID: ticketID,
+            nama: nama,
+            jc: jc,
+            pokokDoa: doa,
+            tglInput: firebase.firestore.FieldValue.serverTimestamp(),
+            status: "Proses",
+            terjawab: false
+        });
+        
+        tutupModal();
+        alert("Tiket Berhasil Dikirim: " + ticketID);
     }
 
     function hitungSLA(tglStart, tglEnd) {
         const start = tglStart.toDate();
         const end = tglEnd ? tglEnd.toDate() : new Date();
-        const diffTime = Math.abs(end - start);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-        return diffDays + " Hari";
+        const diff = Math.floor((end - start) / (1000 * 60 * 60 * 24));
+        return diff + " Hari";
     }
 
-    db.collection("laporan_doa").where("jc", "==", userJC).orderBy("tglInput", "desc").onSnapshot((snapshot) => {
-        const container = document.getElementById('displayTiket');
-        container.innerHTML = "";
-        snapshot.forEach((doc) => {
-            const data = doc.data();
+    db.collection("laporan_doa").orderBy("tglInput", "desc").onSnapshot(snapshot => {
+        const list = document.getElementById('listTiket');
+        list.innerHTML = "";
+        snapshot.forEach(doc => {
+            const d = doc.data();
             const id = doc.id;
-            const statusClass = data.terjawab ? 'answered' : 'pending';
-            const statusText = data.terjawab ? 'TERJAWAB' : 'PROSES';
-            const sla = data.tglInput ? hitungSLA(data.tglInput, data.tglTerjawab) : "-";
-
-            container.innerHTML += `
+            const sla = d.tglInput ? hitungSLA(d.tglInput, d.tglTerjawab) : "-";
+            
+            list.innerHTML += `
                 <div class="card-tiket">
-                    <div class="no-tiket">TIKET #${id.substring(0,8).toUpperCase()}</div>
-                    <div class="status-badge ${statusClass}">${statusText}</div>
-                    <h4 style="margin:5px 0; color:var(--biru)">${data.nama}</h4>
-                    <p style="margin:0; font-size:13px;">${data.pokokDoa}</p>
-                    <div class="sla-info">
-                        <i class="fa-regular fa-clock"></i> SLA: ${sla} 
-                        ${data.terjawab ? ` | <i class="fa-solid fa-calendar-check"></i> Selesai` : ''}
-                    </div>
-                    <div class="aksi-buttons">
-                        ${!data.terjawab ? `<button class="btn-aksi btn-check" onclick="tandaiTerjawab('${id}')"><i class="fa-solid fa-circle-check"></i> Terjawab</button>` : ''}
-                        <button class="btn-aksi btn-edit" onclick="bukaModal('${id}', '${data.pokokDoa}')"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
-                        <button class="btn-aksi btn-hapus" onclick="hapusTiket('${id}')"><i class="fa-solid fa-trash"></i> Hapus</button>
+                    <div class="no-tiket">${d.ticketID}</div>
+                    <div class="status-badge ${d.terjawab ? 'answered' : 'pending'}">${d.status}</div>
+                    <h4>${d.nama} (${d.jc})</h4>
+                    <p>${d.pokokDoa}</p>
+                    <div class="sla-box">SLA: ${sla} sejak diinput</div>
+                    <div class="btn-action-group">
+                        ${!d.terjawab ? `<button class="btn-act" style="color:var(--hijau)" onclick="jawabDoa('${id}')"><i class="fa-solid fa-check-double"></i> TERJAWAB</button>` : ''}
+                        <button class="btn-act" style="color:var(--biru)" onclick="alert('Fitur Edit')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn-act" style="color:var(--merah)" onclick="db.collection('laporan_doa').doc('${id}').delete()"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </div>`;
         });
     });
+
+    async function jawabDoa(id) {
+        await db.collection("laporan_doa").doc(id).update({
+            status: "TERJAWAB",
+            terjawab: true,
+            tglTerjawab: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        document.getElementById('popupVictory').style.display = 'flex';
+    }
 </script>
 </body>
 </html>
