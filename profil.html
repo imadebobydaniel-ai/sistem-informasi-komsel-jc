@@ -83,7 +83,6 @@
         
         #fileInput { display: none; }
 
-        /* NOTIFIKASI MODAL MODERN (NON-BLOCKING) */
         #notif-success {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%); 
             background: #2ecc71; color: white; padding: 12px 25px; border-radius: 50px; 
@@ -138,7 +137,6 @@
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
 
-    // Pastikan Firebase terinisialisasi dengan benar
     if (!firebase.apps.length) { 
         firebase.initializeApp(firebaseConfig); 
     }
@@ -154,14 +152,16 @@
                     const data = querySnapshot.docs[0].data();
                     if (data.fotoUrl) { document.getElementById('view-foto').src = data.fotoUrl; }
                     
-                    // FIX: Integrasi NK & Golongan Darah (Mapping Field Database)
-                    document.getElementById("no_komsel").innerText = data.no_komsel || data.nk || "-"; 
+                    // Integrasi NK & Golongan Darah (Sesuai gambar database Bapak)
+                    document.getElementById("no_komsel").innerText = data.nomor_komsel || "-"; 
+                    document.getElementById("gol_darah").innerText = data.golDarah || "-";
+
+                    // Sisa data tetap menggunakan struktur Bapak
                     document.getElementById("nama_lengkap").innerText = data.nama || "-";
                     document.getElementById("jabatan").innerText = data.jabatan || "-";
                     document.getElementById("email_aktif").innerText = data.email || "-";
                     document.getElementById("no_hp").innerText = data.no_hp || "-";
                     document.getElementById("lokasi_komsel").innerText = data.komsel ? "JC " + data.komsel : "-";
-                    document.getElementById("gol_darah").innerText = data.gol_darah || data.golongan_darah || "-";
                     document.getElementById("alamat").innerText = data.alamat || "-";
                 }
             });
@@ -198,7 +198,6 @@
                             fotoUrl: compressedBase64
                         });
                         
-                        // Notifikasi otomatis muncul (tanpa alert OK)
                         const notif = document.getElementById('notif-success');
                         notif.style.display = 'block';
                         setTimeout(() => { notif.style.display = 'none'; }, 3000);
