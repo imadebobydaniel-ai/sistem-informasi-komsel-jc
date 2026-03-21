@@ -10,20 +10,20 @@
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--putih-bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
         .setting-container { background: white; width: 100%; max-width: 400px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 25px; border-top: 5px solid var(--biru-utama); }
         .header { text-align: center; margin-bottom: 25px; color: var(--biru-utama); font-weight: bold; font-size: 1.2rem; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #444; }
         input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; }
         
-        /* Switch Toggle untuk Notif */
-        .switch { position: relative; display: inline-block; width: 45px; height: 22px; }
+        /* Gaya Switch Toggle untuk Suara */
+        .flex-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .switch { position: relative; display: inline-block; width: 45px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--biru-utama); }
         input:checked + .slider:before { transform: translateX(21px); }
 
-        .flex-between { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .btn-save { background: var(--biru-utama); color: white; width: 100%; padding: 15px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; margin-top: 25px; }
+        .btn-save { background: var(--biru-utama); color: white; width: 100%; padding: 15px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 15px; }
         
         #notif-block {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -36,8 +36,8 @@
 
 <div id="notif-block">
     <i class="fa-solid fa-circle-check" style="font-size: 40px; color: #2ecc71; margin-bottom: 15px;"></i>
-    <p style="margin: 0; font-weight: bold;">Password dan Email Berhasil diupdate</p>
-    <p style="font-size: 12px; margin-top: 10px; color: #ccc;">Sesi berakhir, silakan login ulang...</p>
+    <p style="margin: 0; font-weight: bold; font-size: 16px;">Password dan Email Berhasil diupdate</p>
+    <p style="font-size: 13px; margin-top: 10px; color: #ccc;">Data tersimpan ke sistem. Silakan login ulang untuk keamanan.</p>
 </div>
 
 <div class="setting-container">
@@ -52,27 +52,30 @@
         <input type="password" id="newPassword" placeholder="Masukkan password baru">
     </div>
 
-    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+    <button class="btn-save" onclick="updateAkun()">SIMPAN PERUBAHAN AKUN</button>
 
-    <div class="flex-between">
-        <label style="margin: 0;">Suara Notifikasi Alkitab (22:00)</label>
-        <label class="switch">
-            <input type="checkbox" id="notifSound" onchange="saveSettings()">
-            <span class="slider"></span>
-        </label>
+    <div style="margin-top: 30px; padding-top: 10px; border-top: 2px solid #eee;">
+        <p style="font-size: 11px; color: #888; font-weight: bold; margin-bottom: 15px;">FITUR TAMBAHAN SISTEM</p>
+        
+        <div class="flex-row">
+            <label style="margin: 0;">Suara Notifikasi Alkitab (22:00)</label>
+            <label class="switch">
+                <input type="checkbox" id="notifSound" onchange="updateSystemSettings()">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="form-group" style="margin-top: 15px;">
+            <label>Limitasi Waktu / Logout Otomatis</label>
+            <select id="autoLogout" onchange="updateSystemSettings()">
+                <option value="0">Matikan Fitur</option>
+                <option value="30">Aktifkan (30 Menit)</option>
+                <option value="60">Aktifkan (60 Menit)</option>
+            </select>
+        </div>
     </div>
 
-    <div class="form-group" style="margin-top: 15px;">
-        <label>Logout Otomatis (Keamanan)</label>
-        <select id="autoLogout" onchange="saveSettings()">
-            <option value="0">Matikan</option>
-            <option value="30">30 Menit</option>
-            <option value="60">60 Menit</option>
-        </select>
-    </div>
-
-    <button class="btn-save" onclick="updateAkun()">SIMPAN PERUBAHAN</button>
-    <a href="menu.html" style="display: block; text-align: center; margin-top: 20px; text-decoration: none; color: var(--biru-utama); font-weight: bold;">← Kembali ke Menu</a>
+    <a href="menu.html" style="display: block; text-align: center; margin-top: 25px; text-decoration: none; color: var(--biru-utama); font-weight: bold; font-size: 14px;">← KEMBALI KE MENU UTAMA</a>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -90,41 +93,28 @@
 
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
-    const oldEmail = localStorage.getItem("userEmail");
+    const currentEmail = localStorage.getItem("userEmail");
 
-    // Load setingan yang sudah ada
+    // Menampilkan setingan terakhir dari memori HP
     window.onload = function() {
-        document.getElementById("notifSound").checked = localStorage.getItem("notifSound") === "true";
-        document.getElementById("autoLogout").value = localStorage.getItem("autoLogoutTime") || "0";
+        document.getElementById("notifSound").checked = localStorage.getItem("statusSuara") === "true";
+        document.getElementById("autoLogout").value = localStorage.getItem("limitWaktu") || "0";
     };
 
-    function saveSettings() {
-        localStorage.setItem("notifSound", document.getElementById("notifSound").checked);
-        localStorage.setItem("autoLogoutTime", document.getElementById("autoLogout").value);
+    // Fungsi menyimpan setingan suara & waktu ke memori lokal
+    function updateSystemSettings() {
+        localStorage.setItem("statusSuara", document.getElementById("notifSound").checked);
+        localStorage.setItem("limitWaktu", document.getElementById("autoLogout").value);
     }
 
+    // Fungsi utama Update Email/Password ke Database
     async function updateAkun() {
-        const nEmail = document.getElementById("newEmail").value;
-        const nPass = document.getElementById("newPassword").value;
+        const emailBaru = document.getElementById("newEmail").value;
+        const passBaru = document.getElementById("newPassword").value;
 
-        if (!nEmail || !nPass) { alert("Email & Password baru harus diisi!"); return; }
+        if (!emailBaru || !passBaru) { 
+            alert("Silakan isi Email dan Password baru untuk melakukan update!"); 
+            return; 
+        }
 
         try {
-            const snap = await db.collection("users").where("email", "==", oldEmail).get();
-            if (!snap.empty) {
-                await db.collection("users").doc(snap.docs[0].id).update({
-                    email: nEmail,
-                    password: nPass
-                });
-
-                document.getElementById("notif-block").style.display = "block";
-                setTimeout(() => {
-                    localStorage.clear();
-                    window.location.replace("index.html");
-                }, 3000);
-            }
-        } catch (e) { alert("Error: " + e.message); }
-    }
-</script>
-</body>
-</html>
