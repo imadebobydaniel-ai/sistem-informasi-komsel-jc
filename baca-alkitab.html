@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
+            --biru-bca: #0046AD;
             --biru-tua: #003366;
             --biru-safir: #0056b3;
             --hijau-zamrud: #2ecc71;
@@ -17,71 +18,65 @@
 
         body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--putih-bg); display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
 
-        .card { background: white; padding: 30px 25px; border-radius: 25px; box-shadow: 0 12px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; border-top: 6px solid var(--biru-safir); position: relative; }
+        .card { background: white; padding: 30px 25px; border-radius: 25px; box-shadow: 0 12px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; border-top: 6px solid var(--biru-bca); position: relative; }
 
         h3 { margin: 10px 0; color: var(--biru-tua); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-        h3 i { color: var(--emas-lux); margin-right: 8px; }
-
-        #current-date { font-size: 14px; font-weight: 700; color: var(--biru-safir); margin-bottom: 20px; display: block; }
+        
+        #current-date { font-size: 14px; font-weight: 700; color: var(--biru-bca); margin-bottom: 20px; display: block; }
 
         .target-box, .hikmat-box { padding: 15px; border-radius: 18px; margin: 15px 0; text-align: left; border: 1px solid rgba(0,0,0,0.05); }
-        .target-box { background: linear-gradient(135deg, #e7f3ff 0%, #ffffff 100%); border-left: 5px solid var(--biru-safir); }
+        .target-box { background: linear-gradient(135deg, #e7f3ff 0%, #ffffff 100%); border-left: 5px solid var(--biru-bca); }
         .hikmat-box { background: linear-gradient(135deg, #fff4e5 0%, #ffffff 100%); border-left: 5px solid var(--oranye-hikmat); }
 
         .label-pasal { font-size: 10px; font-weight: 800; color: #888; display: block; text-transform: uppercase; margin-bottom: 8px; }
-        
         .sub-label { font-size: 9px; font-weight: 700; color: #555; margin-bottom: 4px; display: block; }
 
         .dropdown-row { display: flex; gap: 8px; margin-bottom: 10px; }
         .dropdown-col { flex: 1; }
 
-        select {
-            width: 100%;
-            padding: 10px;
-            border-radius: 10px;
-            border: 1px solid #ddd;
-            background: white;
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--biru-tua);
-            outline: none;
-            cursor: pointer;
-        }
+        select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; background: white; font-size: 14px; font-weight: 700; color: var(--biru-tua); outline: none; }
 
-        .check-item { background: #f8f9fa; padding: 15px; border-radius: 15px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; cursor: pointer; border: 1.5px solid #eee; font-weight: 600; font-size: 14px; color: #444; }
+        .check-item { background: #f8f9fa; padding: 15px; border-radius: 15px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; cursor: pointer; border: 1.5px solid #eee; font-weight: 600; font-size: 14px; }
         input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--hijau-zamrud); }
 
+        /* Tombol Selalu Aktif (Hanya perlu centang) */
         .btn-kirim { width: 100%; padding: 18px; border: none; border-radius: 50px; font-size: 16px; font-weight: 800; cursor: pointer; margin-top: 15px; transition: 0.4s; text-transform: uppercase; }
-        .btn-enabled { background: linear-gradient(135deg, var(--biru-tua), var(--biru-safir)); color: white; box-shadow: 0 6px 20px rgba(0,86,179,0.3); }
+        .btn-enabled { background: var(--biru-bca); color: white; box-shadow: 0 6px 20px rgba(0,70,173,0.3); }
         .btn-disabled { background-color: #ddd; color: #999; cursor: not-allowed; }
 
-        .btn-home { display: inline-block; margin-top: 25px; color: var(--biru-safir); text-decoration: none; font-size: 14px; font-weight: 800; }
+        /* Style Block Display Biru BCA */
+        #block-screen { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: var(--biru-bca); color: white; z-index: 9999; 
+            flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; 
+        }
+        
+        .icon-circle { background: white; padding: 25px; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
 
-        #block-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 51, 102, 0.98); color: white; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; }
+        .btn-home { display: inline-block; margin-top: 25px; color: var(--biru-bca); text-decoration: none; font-size: 14px; font-weight: 800; }
     </style>
 </head>
 <body>
 
 <div id="block-screen">
-    <div style="background: white; padding: 25px; border-radius: 50%; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; margin-bottom: 25px;">
-        <i id="block-icon" class="fa-solid" style="font-size: 45px;"></i>
+    <div class="icon-circle">
+        <i id="block-icon" class="fa-solid" style="font-size: 40px;"></i>
     </div>
-    <h2 id="block-title" style="color: white; font-weight: 900;"></h2>
-    <p id="block-message" style="font-size: 18px; margin-top: 10px; color: white; font-weight: 600;"></p>
-    <button onclick="window.location.href='menu.html'" style="margin-top: 30px; padding: 15px 35px; border-radius: 50px; border: 2px solid var(--emas-lux); background: transparent; color: white; font-weight: 900; cursor: pointer;">Kembali Ke Menu</button>
+    <h2 id="block-title" style="font-weight: 900; margin: 10px 0;"></h2>
+    <p id="block-message" style="font-size: 18px; font-weight: 600; opacity: 0.9;"></p>
+    <button onclick="window.location.href='menu.html'" style="margin-top: 30px; padding: 15px 40px; border-radius: 50px; border: 2px solid white; background: transparent; color: white; font-weight: 900; cursor: pointer;">KEMBALI KE MENU</button>
 </div>
 
 <div class="card">
-    <h3><i class="fa-solid fa-book-open"></i> LAPOR BACAAN</h3>
+    <h3><i class="fa-solid fa-book-bible" style="color: var(--emas-lux);"></i> LAPOR BACAAN</h3>
     <span id="current-date"></span>
 
     <div class="target-box">
-        <label class="label-pasal">Pasal Utama (4 Pasal):</label>
+        <label class="label-pasal">Pasal Utama:</label>
         <div style="margin-bottom: 10px;">
-            <span class="sub-label">PILIH KITAB:</span>
+            <span class="sub-label">KITAB:</span>
             <select id="kitab-utama"></select>
         </div>
-        
         <div class="dropdown-row">
             <div class="dropdown-col">
                 <span class="sub-label">DARI PASAL:</span>
@@ -95,32 +90,20 @@
     </div>
 
     <div class="hikmat-box">
-        <label class="label-pasal">Pasal Hikmat (Amsal):</label>
+        <label class="label-pasal">Pasal Hikmat:</label>
         <div class="dropdown-row">
-            <div class="dropdown-col" style="flex: 0.5;">
-                <span class="sub-label">KITAB:</span>
-                <select disabled><option>Amsal</option></select>
-            </div>
-            <div class="dropdown-col">
-                <span class="sub-label">PASAL:</span>
-                <select id="pasal-amsal"></select>
-            </div>
+            <div class="dropdown-col" style="flex: 0.6;"><span class="sub-label">KITAB:</span><select disabled><option>Amsal</option></select></div>
+            <div class="dropdown-col"><span class="sub-label">PASAL:</span><select id="pasal-amsal"></select></div>
         </div>
     </div>
 
     <div style="margin-top: 25px;">
-        <label class="check-item">
-            <input type="checkbox" id="check1" onchange="validasiTombol()"> 
-            <span>Selesai Membaca Pasal Utama</span>
-        </label>
-        <label class="check-item">
-            <input type="checkbox" id="check2" onchange="validasiTombol()"> 
-            <span>Selesai Membaca Pasal Amsal</span>
-        </label>
+        <label class="check-item"><input type="checkbox" id="check1" onchange="validasiTombol()"><span>Selesai Membaca Pasal Utama</span></label>
+        <label class="check-item"><input type="checkbox" id="check2" onchange="validasiTombol()"><span>Selesai Membaca Pasal Amsal</span></label>
     </div>
 
-    <button id="btnKirim" class="btn-kirim btn-disabled" disabled onclick="kirimLaporan()">KIRIM LAPORAN SEKARANG</button>
-    <a href="menu.html" class="btn-home"><i class="fa-solid fa-house-user"></i> Kembali ke Menu</a>
+    <button id="btnKirim" class="btn-kirim btn-disabled" disabled onclick="prosesLaporan()">KIRIM LAPORAN SEKARANG</button>
+    <a href="menu.html" class="btn-home"><i class="fa-solid fa-house"></i> Kembali ke Menu Utama</a>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -136,96 +119,93 @@
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
 
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const userEmail = localStorage.getItem("userEmail");
 
-    const daftarKitab = [
-        "Kejadian", "Keluaran", "Imamat", "Bilangan", "Ulangan", "Yosua", "Hakim-hakim", "Rut", "1 Samuel", "2 Samuel", "1 Raja-raja", "2 Raja-raja", "1 Tawarikh", "2 Tawarikh", "Ezra", "Nehemia", "Ester", "Ayub", "Mazmur", "Amsal", "Pengkhotbah", "Kidung Agung", "Yesaya", "Yeremia", "Ratapan", "Yehezkiel", "Daniel", "Hosea", "Yoel", "Amos", "Obaja", "Yunus", "Mikha", "Nahum", "Habakuk", "Zefanya", "Hagai", "Zakharia", "Maleakhi",
-        "Matius", "Markus", "Lukas", "Yohanes", "Kisah Para Rasul", "Roma", "1 Korintus", "2 Korintus", "Galatia", "Efesus", "Filipi", "Kolose", "1 Tesalonika", "2 Tesalonika", "1 Timotius", "2 Timotius", "Titus", "Filemon", "Ibrani", "Yakobus", "1 Petrus", "2 Petrus", "1 Yohanes", "2 Yohanes", "3 Yohanes", "Yudas", "Wahyu"
-    ];
+    // Inisialisasi Dropdown (Sama seperti sebelumnya)
+    const daftarKitab = ["Kejadian", "Keluaran", "Imamat", "Bilangan", "Ulangan", "Yosua", "Hakim-hakim", "Rut", "1 Samuel", "2 Samuel", "1 Raja-raja", "2 Raja-raja", "1 Tawarikh", "2 Tawarikh", "Ezra", "Nehemia", "Ester", "Ayub", "Mazmur", "Amsal", "Pengkhotbah", "Kidung Agung", "Yesaya", "Yeremia", "Ratapan", "Yehezkiel", "Daniel", "Hosea", "Yoel", "Amos", "Obaja", "Yunus", "Mikha", "Nahum", "Habakuk", "Zefanya", "Hagai", "Zakharia", "Maleakhi", "Matius", "Markus", "Lukas", "Yohanes", "Kisah Para Rasul", "Roma", "1 Korintus", "2 Korintus", "Galatia", "Efesus", "Filipi", "Kolose", "1 Tesalonika", "2 Tesalonika", "1 Timotius", "2 Timotius", "Titus", "Filemon", "Ibrani", "Yakobus", "1 Petrus", "2 Petrus", "1 Yohanes", "2 Yohanes", "3 Yohanes", "Yudas", "Wahyu"];
 
-    function initDropdowns() {
-        const kitabSelect = document.getElementById('kitab-utama');
-        const dariSelect = document.getElementById('pasal-dari');
-        const sampaiSelect = document.getElementById('pasal-sampai');
-        const amsalSelect = document.getElementById('pasal-amsal');
+    function init() {
+        const kSelect = document.getElementById('kitab-utama');
+        const dSelect = document.getElementById('pasal-dari');
+        const sSelect = document.getElementById('pasal-sampai');
+        const aSelect = document.getElementById('pasal-amsal');
 
-        // Isi Kitab
-        daftarKitab.forEach(k => {
-            let opt = document.createElement('option');
-            opt.value = k; opt.text = k;
-            if(k === "Yohanes") opt.selected = true;
-            kitabSelect.add(opt);
-        });
-
-        // Isi Pasal 1-150
-        for (let i = 1; i <= 150; i++) {
-            let optDari = document.createElement('option');
-            optDari.value = i; optDari.text = i;
-            if(i === 5) optDari.selected = true;
-            dariSelect.add(optDari);
-
-            let optSampai = document.createElement('option');
-            optSampai.value = i; optSampai.text = i;
-            if(i === 8) optSampai.selected = true;
-            sampaiSelect.add(optSampai);
+        daftarKitab.forEach(k => { let o = new Option(k, k); if(k === "Yohanes") o.selected = true; kSelect.add(o); });
+        for(let i=1; i<=150; i++){ 
+            dSelect.add(new Option(i, i)); 
+            sSelect.add(new Option(i, i)); 
+            if(i === 5) dSelect.lastChild.selected = true;
+            if(i === 8) sSelect.lastChild.selected = true;
         }
-
-        // Isi Amsal 1-31
-        for (let i = 1; i <= 31; i++) {
-            let opt = document.createElement('option');
-            opt.value = i; opt.text = i;
-            if(i === 20) opt.selected = true;
-            amsalSelect.add(opt);
+        for(let i=1; i<=31; i++){ 
+            aSelect.add(new Option(i, i)); 
+            if(i === 20) aSelect.lastChild.selected = true;
         }
     }
 
     function validasiTombol() {
-        const c1 = document.getElementById('check1').checked;
-        const c2 = document.getElementById('check2').checked;
         const btn = document.getElementById('btnKirim');
-        btn.disabled = !(c1 && c2);
-        btn.className = (c1 && c2) ? "btn-kirim btn-enabled" : "btn-kirim btn-disabled";
+        const ready = document.getElementById('check1').checked && document.getElementById('check2').checked;
+        btn.disabled = !ready;
+        btn.className = ready ? "btn-kirim btn-enabled" : "btn-kirim btn-disabled";
     }
 
-    async function kirimLaporan() {
-        const kitab = document.getElementById('kitab-utama').value;
-        const dari = document.getElementById('pasal-dari').value;
-        const sampai = document.getElementById('pasal-sampai').value;
-        const amsal = document.getElementById('pasal-amsal').value;
-
-        const teksUtama = `${kitab} ${dari} - ${sampai}`;
-        const teksHikmat = `Amsal ${amsal}`;
-
+    async function prosesLaporan() {
         const btn = document.getElementById('btnKirim');
-        btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Mengirim...";
+        btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Mengecek Data...";
         btn.disabled = true;
 
+        const hariIni = new Date();
+        hariIni.setHours(0,0,0,0);
+        const besok = new Date(hariIni);
+        besok.setDate(besok.getDate() + 1);
+
         try {
+            // CEK APAKAH SUDAH LAPOR HARI INI
+            const cekDouble = await db.collection("laporan_bacaan")
+                .where("email", "==", userEmail)
+                .where("tanggal", ">=", hariIni)
+                .where("tanggal", "<", besok)
+                .get();
+
+            if (!cekDouble.empty) {
+                showBlock("GAGAL", "Anda tadi sudah kirim Laporan", "fa-circle-xmark", "#e74c3c");
+                return;
+            }
+
+            // JIKA BELUM, KIRIM LAPORAN
             const snapUser = await db.collection("users").where("email", "==", userEmail).get();
             const u = snapUser.docs[0].data();
 
             await db.collection("laporan_bacaan").add({
                 nama: u.nama, email: userEmail, komsel: String(u.komsel),
-                pasal_utama: teksUtama, pasal_hikmat: teksHikmat,
+                pasal_utama: `${document.getElementById('kitab-utama').value} ${document.getElementById('pasal-dari').value} - ${document.getElementById('pasal-sampai').value}`,
+                pasal_hikmat: `Amsal ${document.getElementById('pasal-amsal').value}`,
                 tanggal: firebase.firestore.Timestamp.now()
             });
 
-            document.getElementById('block-title').innerText = "BERHASIL!";
-            document.getElementById('block-message').innerText = "Laporan Anda telah diterima. Tuhan Yesus Memberkati!";
-            document.getElementById('block-screen').style.display = 'flex';
+            showBlock("BERHASIL", "Terimakasih atas laporan anda", "fa-circle-check", "#2ecc71");
+
         } catch (e) {
-            alert("Gagal kirim.");
-            btn.innerText = "KIRIM LAPORAN SEKARANG";
+            alert("Error: " + e.message);
+            btn.innerHTML = "KIRIM LAPORAN SEKARANG";
             btn.disabled = false;
         }
     }
 
+    function showBlock(title, msg, icon, iconCol) {
+        document.getElementById('block-title').innerText = title;
+        document.getElementById('block-message').innerText = msg;
+        document.getElementById('block-icon').className = "fa-solid " + icon;
+        document.getElementById('block-icon').style.color = iconCol;
+        document.getElementById('block-screen').style.display = 'flex';
+    }
+
     window.onload = function() {
-        initDropdowns();
-        const sekarang = new Date();
-        document.getElementById('current-date').innerText = sekarang.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        init();
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     };
 </script>
 </body>
