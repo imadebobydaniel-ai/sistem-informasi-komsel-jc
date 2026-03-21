@@ -12,6 +12,7 @@
             --biru-safir: #0056b3;
             --biru-muda: #00e6e6;
             --hijau-zamrud: #2ecc71;
+            --emas: #D4AF37; /* Menggunakan --emas agar sinkron dengan script baru */
             --emas-lux: #D4AF37;
             --putih-bg: #f4f7fa;
         }
@@ -23,6 +24,24 @@
             padding: 0; 
             color: #333;
         }
+
+        /* --- CSS BARU DISINI --- */
+        /* Layar peringatan jika GPS ditolak */
+        #gps-lock-screen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 51, 102, 0.95); /* Biru tua transparan */
+            color: white; z-index: 9999;
+            text-align: center; padding: 50px 20px; box-sizing: border-box;
+        }
+        .btn-reset {
+            background: var(--emas); color: var(--biru-tua);
+            padding: 12px 20px; border-radius: 10px; font-weight: bold;
+            text-decoration: none; display: inline-block; margin-top: 20px;
+            cursor: pointer; border: none;
+        }
+        /* ----------------------- */
 
         /* Top Bar Info */
         .top-info-bar { 
@@ -125,7 +144,6 @@
             -webkit-text-fill-color: transparent;
         }
 
-        /* Icon Khusus & Lacak Domba */
         .icon-special { 
             background: linear-gradient(135deg, var(--emas-lux), #fff3a0) !important;
             -webkit-background-clip: text !important;
@@ -156,6 +174,15 @@
     </style>
 </head>
 <body>
+
+    <div id="gps-lock-screen">
+        <i class="fa-solid fa-location-dot" style="font-size: 50px; color: var(--emas); margin-bottom: 20px;"></i>
+        <h2>Akses GPS Diperlukan</h2>
+        <p>Sistem JC mewajibkan lokasi aktif untuk keamanan dan pelaporan real-time anggota.</p>
+        <p style="font-size: 12px; color: #ccc; margin-top: 10px;">Mohon izinkan akses lokasi di pengaturan browser Anda lalu tekan tombol di bawah:</p>
+        <button class="btn-reset" onclick="location.reload()">MUAT ULANG HALAMAN</button>
+    </div>
+
     <div class="top-info-bar">
         <div id="display-tanggal">Memuat Tanggal...</div>
         <div id="digital-clock">00:00:00 WIT</div>
@@ -252,10 +279,13 @@
             document.getElementById('running-text').innerText = runningContent;
         }
 
-        // 2. FUNGSI TRACKING GPS
+        // 2. FUNGSI TRACKING GPS (Update: Menampilkan Lock Screen jika GPS ditolak)
         function aktifkanTrackingOtomatis() {
             if (navigator.geolocation) {
                 navigator.geolocation.watchPosition(async (position) => {
+                    // Sembunyikan lock screen jika koordinat berhasil didapat
+                    document.getElementById('gps-lock-screen').style.display = "none";
+
                     const userEmail = localStorage.getItem("userEmail");
                     const userName = localStorage.getItem("userName");
                     const userJC = localStorage.getItem("userJC");
@@ -271,6 +301,10 @@
                     }
                 }, (error) => {
                     console.warn("GPS Warning: " + error.message);
+                    // Tampilkan lock screen jika user menolak GPS
+                    if (error.code === error.PERMISSION_DENIED) {
+                        document.getElementById('gps-lock-screen').style.display = "block";
+                    }
                 }, { enableHighAccuracy: true, maximumAge: 30000, timeout: 27000 });
             }
         }
@@ -304,7 +338,7 @@
             });
         }
 
-        // 4. FUNGSI LOGOUT (PERBAIKAN TOTAL)
+        // 4. FUNGSI LOGOUT
         async function logoutDanHapusDevice() {
             const userEmail = localStorage.getItem("userEmail");
             const currentDeviceId = localStorage.getItem("myDeviceId");
@@ -312,11 +346,9 @@
             if (confirm("Apakah Anda yakin ingin keluar?")) {
                 try {
                     if (userEmail && currentDeviceId) {
-                        // Cari ID Dokumen berdasarkan email
                         const snapshot = await db.collection("users").where("email", "==", userEmail).get();
                         if (!snapshot.empty) {
                             const docId = snapshot.docs[0].id;
-                            // Hapus Device ID dari array di Firestore
                             await db.collection("users").doc(docId).update({
                                 deviceIds: firebase.firestore.FieldValue.arrayRemove(currentDeviceId)
                             });
