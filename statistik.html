@@ -92,15 +92,13 @@
                     <option value="1">1 Bulan Terakhir</option>
                     <option value="2">2 Bulan Terakhir</option>
                     <option value="3">3 Bulan Terakhir</option>
-                    <option value="4">4 Bulan Terakhir</option>
-                    <option value="5">5 Bulan Terakhir</option>
                     <option value="6">6 Bulan Terakhir</option>
                 </select>
             </div>
         </div>
         <div class="stat-line"><span>Progres <span id="label-jc-baca">JC 5</span></span><span class="val-txt" id="txt-baca-jc">0.0%</span></div>
         <div class="progress-bg"><div id="bar-baca-jc" class="progress-fill" style="background: linear-gradient(90deg, var(--biru-safir), var(--biru-muda)); width: 0%;"></div></div>
-        <div class="detail-text" id="rincian-alkitab">Memuat bulan...</div>
+        <div class="detail-text" id="rincian-alkitab">Memuat data...</div>
     </div>
 
     <div class="card" style="border-top-color: var(--hijau-zamrud);">
@@ -120,47 +118,13 @@
                 <label>Periode</label>
                 <select id="per-hadir" onchange="loadKehadiran()">
                     <option value="1">1 Bulan Terakhir</option>
-                    <option value="2">2 Bulan Terakhir</option>
                     <option value="3">3 Bulan Terakhir</option>
-                    <option value="4">4 Bulan Terakhir</option>
-                    <option value="5">5 Bulan Terakhir</option>
-                    <option value="6">6 Bulan Terakhir</option>
                 </select>
             </div>
         </div>
         <div class="stat-line"><span>Kehadiran <span id="label-jc-hadir">JC 5</span></span><span class="val-txt" style="color: var(--hijau-zamrud);" id="txt-hadir-jc">0%</span></div>
         <div class="progress-bg"><div id="bar-hadir-jc" class="progress-fill" style="background: var(--hijau-zamrud); width: 0%;"></div></div>
-        <div class="detail-text" id="rincian-hadir">Memuat bulan...</div>
-    </div>
-
-    <div class="card" style="border-top-color: var(--merah-lux);">
-        <div class="card-title" style="color: var(--merah-lux);"><i class="fa-solid fa-user-slash"></i> Ketidakhadiran</div>
-        <div class="filter-row">
-            <div class="filter-item">
-                <label>Komsel</label>
-                <select id="jc-absen" onchange="syncKehadiran('absen')">
-                    <option value="JC 1">JC 1</option>
-                    <option value="JC 2">JC 2</option>
-                    <option value="JC 3">JC 3</option>
-                    <option value="JC 4">JC 4</option>
-                    <option value="JC 5" selected>JC 5</option>
-                </select>
-            </div>
-            <div class="filter-item">
-                <label>Periode</label>
-                <select id="per-absen" onchange="syncKehadiran('absen')">
-                    <option value="1">1 Bulan Terakhir</option>
-                    <option value="2">2 Bulan Terakhir</option>
-                    <option value="3">3 Bulan Terakhir</option>
-                    <option value="4">4 Bulan Terakhir</option>
-                    <option value="5">5 Bulan Terakhir</option>
-                    <option value="6">6 Bulan Terakhir</option>
-                </select>
-            </div>
-        </div>
-        <div class="stat-line"><span>Persentase <span id="label-jc-absen-teks">JC 5</span></span><span class="val-txt" style="color: var(--merah-lux);" id="txt-absen-jc">0.0%</span></div>
-        <div class="progress-bg"><div id="bar-absen-jc" class="progress-fill" style="background: var(--merah-lux); width: 0%;"></div></div>
-        <div class="detail-text" id="rincian-absen">Memuat bulan...</div>
+        <div class="detail-text" id="rincian-hadir">Memuat data...</div>
     </div>
 
     <div class="card" style="border-top-color: var(--emas-lux);">
@@ -188,9 +152,88 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
+    // Konfigurasi tetap konsisten milik Bapak
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
         projectId: "boby-apps-project",
         storageBucket: "boby-apps-project.appspot.com",
-        messagingSenderId: "1259848596
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+    };
+
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
+
+    // 1. FUNGSI LOAD ALKITAB (SINKRON DENGAN DROPDOWN)
+    async function loadAlkitab() {
+        const jcSelected = document.getElementById('jc-alkitab').value;
+        const periode = parseInt(document.getElementById('per-alkitab').value);
+        
+        // SINKRONISASI LABEL: Mengubah teks statis menjadi dinamis sesuai dropdown
+        document.getElementById('label-jc-baca').innerText = jcSelected;
+        document.getElementById('rincian-alkitab').innerText = "Menghitung...";
+
+        try {
+            const jcID = jcSelected.replace("JC ", "");
+            
+            // Ambil total anggota di komsel tersebut
+            const snapUser = await db.collection("users").where("komsel", "==", jcID).get();
+            const totalAnggota = snapUser.size || 0;
+
+            // Ambil data laporan bacaan
+            const snapLaporan = await db.collection("laporan_bacaan")
+                .where("komsel", "==", jcID).get();
+            
+            const totalLaporan = snapLaporan.size;
+
+            // Hitung Persentase (Sederhana: Laporan / Anggota)
+            let persen = 0;
+            if (totalAnggota > 0) {
+                persen = (totalLaporan / (totalAnggota * 30 * periode)) * 100;
+            }
+            if (persen > 100) persen = 100;
+
+            // Update UI secara sistematis
+            const txt = persen.toFixed(1) + "%";
+            document.getElementById('txt-baca-jc').innerText = txt;
+            document.getElementById('bar-baca-jc').style.width = txt;
+            document.getElementById('rincian-alkitab').innerText = totalLaporan + " Laporan ditemukan.";
+
+        } catch (e) { console.error(e); }
+    }
+
+    // 2. FUNGSI LOAD GOLONGAN DARAH
+    async function loadDarah() {
+        const jcSelected = document.getElementById('jc-darah').value;
+        const types = ['A', 'B', 'O', 'AB'];
+        
+        try {
+            for (const t of types) {
+                let q = db.collection("users").where("golDarah", "==", t);
+                if (jcSelected !== "Semua") {
+                    q = q.where("komsel", "==", jcSelected.replace("JC ", ""));
+                }
+                const s = await q.get();
+                document.getElementById('count-' + t).innerText = s.size + " Orang";
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    // 3. FUNGSI LOAD KEHADIRAN
+    async function loadKehadiran() {
+        const jcSelected = document.getElementById('jc-hadir').value;
+        document.getElementById('label-jc-hadir').innerText = jcSelected;
+        // Logika hitung kehadiran bisa ditambahkan di sini
+    }
+
+    // Inisialisasi saat pertama kali buka
+    window.onload = function() {
+        loadAlkitab();
+        loadDarah();
+        loadKehadiran();
+    };
+</script>
+
+</body>
+</html>
