@@ -13,7 +13,7 @@
         .header { background: var(--biru-tua); color: white; padding: 15px; text-align: center; border-bottom: 3px solid var(--emas); position: sticky; top: 0; z-index: 1000; }
         .btn-back { position: absolute; left: 15px; top: 18px; color: white; text-decoration: none; font-size: 18px; }
 
-        /* Search Container (Logika dari file asli Bapak) */
+        /* Search Container */
         .search-container { padding: 15px; background: white; margin: 10px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
         .search-box { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; outline: none; font-size: 14px; }
         .search-box:focus { border-color: var(--biru-safir); }
@@ -38,7 +38,7 @@
         
         .btn-navigasi {
             display: inline-block; margin-top: 10px; font-size: 12px; color: var(--biru-safir);
-            text-decoration: none; font-weight: bold;
+            text-decoration: none; font-weight: bold; padding: 8px; border: 1px solid var(--biru-safir); border-radius: 8px;
         }
         .no-data { text-align: center; padding: 40px; color: #999; font-size: 14px; }
     </style>
@@ -73,18 +73,12 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Fungsi filter untuk mencari nama (Logika Search)
         function filterNama() {
             let input = document.getElementById('searchInput').value.toLowerCase();
             let cards = document.getElementsByClassName('card-lacak');
-            
             for (let i = 0; i < cards.length; i++) {
                 let nama = cards[i].getAttribute('data-nama').toLowerCase();
-                if (nama.includes(input)) {
-                    cards[i].style.display = "";
-                } else {
-                    cards[i].style.display = "none";
-                }
+                cards[i].style.display = nama.includes(input) ? "" : "none";
             }
         }
 
@@ -105,6 +99,7 @@
                     const nama = data.nama || "Tanpa Nama";
                     const lastSeen = data.lastSeen ? new Date(data.lastSeen.seconds * 1000).toLocaleString('id-ID') : "Baru saja";
 
+                    // Perbaikan: Menggunakan HTTPS standar agar tidak error di HP
                     const card = `
                         <div class="card-lacak" data-nama="${nama}">
                             <div class="info-nama"><i class="fa-solid fa-location-dot" style="color:red;"></i> ${nama}</div>
@@ -115,7 +110,7 @@
                                 <iframe src="https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed"></iframe>
                             </div>
                             <div style="text-align:right;">
-                                <a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" class="btn-navigasi">
+                                <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" class="btn-navigasi">
                                     <i class="fa-solid fa-route"></i> BUKA NAVIGASI
                                 </a>
                             </div>
@@ -123,8 +118,6 @@
                     `;
                     listContainer.innerHTML += card;
                 });
-                
-                // Re-filter setelah data baru masuk agar pencarian tetap aktif
                 filterNama();
             });
         }
