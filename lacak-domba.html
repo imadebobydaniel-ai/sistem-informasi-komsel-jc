@@ -57,7 +57,7 @@
         <div style="text-align: center; color: #666;">
             <i class="fa-solid fa-location-dot fa-2x" style="color: #ff4757; margin-bottom: 8px;"></i><br>
             <strong id="map-status" style="font-size: 14px;">Peta Siap</strong><br>
-            <small id="map-coord" style="font-size: 10px;">Pilih anggota untuk melacak</small>
+            <small id="map-coord" style="font-size: 10px;">Menampilkan anggota aktif di JC Anda</small>
         </div>
     </div>
 
@@ -111,12 +111,47 @@
             if (userJC && userName) {
                 document.getElementById('header-title').innerHTML = `<i class="fa-solid fa-map-location-dot" style="color: var(--emas);"></i> LACAK DOMBA JC ${userJC}`;
                 document.getElementById('access-text').innerText = `Anda login sebagai ${userName} (JC ${userJC})`;
+                // Jalankan fungsi muat peta saat halaman terbuka
+                muatPetaKomsel();
             } else {
                 document.getElementById('access-text').innerHTML = `<b style="color:red;">Sesi Berakhir. Silakan <a href="login.html">Login Ulang</a></b>`;
             }
         };
 
-        // --- 3. FUNGSI CARI ---
+        // --- 3. FUNGSI MUAT PETA KOMSEL (REAL-TIME) ---
+        function muatPetaKomsel() {
+            const myJC = localStorage.getItem("userJC");
+            const myEmail = localStorage.getItem("userEmail");
+
+            // Ambil semua anggota yang satu komsel dari koleksi live_tracking
+            db.collection("live_tracking")
+                .where("komsel", "==", myJC)
+                .onSnapshot((snapshot) => {
+                    // Bersihkan marker lama
+                    hapusSemuaMarker(); 
+
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        
+                        // Tampilkan marker anggota lain di konsol/log (atau UI simulasi)
+                        if (doc.id !== myEmail) {
+                            tambahMarkerKePeta(data.lat, data.lng, data.nama);
+                        }
+                    });
+                });
+        }
+
+        function tambahMarkerKePeta(lat, lng, nama) {
+            console.log(`Marker ditambahkan: ${nama} di ${lat}, ${lng}`);
+            // Karena ini adalah tampilan simulasi, kita update status di kotak peta
+            document.getElementById('map-coord').innerText = `Anggota aktif ditemukan: ${nama}`;
+        }
+
+        function hapusSemuaMarker() {
+            console.log("Membersihkan marker lama...");
+        }
+
+        // --- 4. FUNGSI CARI ---
         async function cariAnggota() {
             const keyword = document.getElementById('search-input').value.trim().toLowerCase();
             const resultsDiv = document.getElementById('search-results');
@@ -128,7 +163,6 @@
             }
 
             try {
-                // Mencari hanya di JC yang sama
                 const snapshot = await db.collection("users").where("komsel", "==", userJC).get();
                 resultsDiv.innerHTML = "";
                 let found = false;
@@ -155,7 +189,7 @@
             }
         }
 
-        // --- 4. MODAL & UI ---
+        // --- 5. MODAL & UI ---
         function bukaProfil(nama, jc, foto) {
             document.getElementById('p-nama').innerText = nama;
             document.getElementById('p-jc').innerText = "Anggota JC Group " + jc;
@@ -170,7 +204,7 @@
         function lacakSekarang() {
             const nama = document.getElementById('p-nama').innerText;
             document.getElementById('map-status').innerText = "Melacak: " + nama;
-            document.getElementById('map-coord').innerText = "Koordinat sedang disinkronkan...";
+            document.getElementById('map-coord').innerText = "Koordinat sedang disinkronkan secara real-time...";
             tutupProfil();
         }
 
