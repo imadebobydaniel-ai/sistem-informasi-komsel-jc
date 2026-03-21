@@ -6,12 +6,13 @@
     <title>Statistik - Pondok Pemulihan</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --biru-utama: #007bff; --ungu-global: #6f42c1; --merah-absen: #dc3545; --putih-bg: #f4f7fa; }
+        :root { --biru-utama: #007bff; --ungu-global: #6f42c1; --merah-absen: #dc3545; --emas-doa: #D4AF37; --putih-bg: #f4f7fa; }
         body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--putih-bg); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
         
         .mobile-wrapper { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; }
         .card { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #eee; }
         .card-header { display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: bold; border-bottom: 2px solid var(--biru-utama); padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; font-size: 13px; color: #333; }
+        .header-doa { border-bottom-color: var(--emas-doa); }
         
         .flex-row { display: flex; gap: 8px; margin-bottom: 12px; }
         .input-box { flex: 1; }
@@ -22,8 +23,9 @@
         .progress-bar { height: 8px; background: #f0f0f0; border-radius: 10px; overflow: hidden; margin-bottom: 12px; }
         .progress-fill { height: 100%; border-radius: 10px; transition: width 0.5s; }
 
-        .blood-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f8f8f8; font-size: 13px; font-weight: 600; }
+        .blood-item, .doa-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f8f8f8; font-size: 13px; font-weight: 600; }
         .btn-detail { color: var(--biru-utama); cursor: pointer; text-decoration: underline; font-weight: bold; }
+        .val-doa { color: var(--emas-doa); font-size: 15px; }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: white; width: 100%; max-width: 380px; border-radius: 15px; overflow: hidden; animation: slideUp 0.3s ease-out; }
@@ -58,9 +60,6 @@
                     <option value="1">1 Bulan Terakhir</option>
                     <option value="2">2 Bulan Terakhir</option>
                     <option value="3">3 Bulan Terakhir</option>
-                    <option value="4">4 Bulan Terakhir</option>
-                    <option value="5">5 Bulan Terakhir</option>
-                    <option value="6">6 Bulan Terakhir</option>
                 </select>
             </div>
         </div>
@@ -73,67 +72,38 @@
     </div>
 
     <div class="card">
-        <div class="card-header"><i class="fa-solid fa-calendar-check"></i> STATISTIK KEHADIRAN</div>
+        <div class="card-header header-doa"><i class="fa-solid fa-hands-praying" style="color:var(--emas-doa)"></i> CAPAIAN DOA (SLA)</div>
         <div class="flex-row">
-            <div class="input-box"><label>Pilih Komsel</label>
-                <select id="select-komsel-hadir"><option>JC 1</option><option>JC 2</option><option>JC 3</option><option>JC 4</option><option selected>JC 5</option></select>
-            </div>
-            <div class="input-box"><label>Periode</label>
-                <select id="select-periode-hadir">
-                    <option value="1">1 Bulan Terakhir</option>
-                    <option value="2">2 Bulan Terakhir</option>
-                    <option value="3">3 Bulan Terakhir</option>
-                    <option value="4">4 Bulan Terakhir</option>
-                    <option value="5">5 Bulan Terakhir</option>
-                    <option value="6">6 Bulan Terakhir</option>
+            <div class="input-box"><label>Grup JC</label>
+                <select id="select-komsel-doa" onchange="syncDoaRealtime()">
+                    <option value="Semua">Semua JC</option>
+                    <option value="JC1">JC 1</option><option value="JC2">JC 2</option>
+                    <option value="JC3">JC 3</option><option value="JC4">JC 4</option>
+                    <option value="JC5">JC 5</option>
                 </select>
             </div>
         </div>
-        <div class="stat-item">
-            <div class="stat-label-flex"><span>Kehadiran Komsel</span><span style="color:var(--biru-utama)">0%</span></div>
-            <div class="progress-bar"><div class="progress-fill" style="width: 0%; background: var(--biru-utama);"></div></div>
-            <div class="stat-label-flex"><span>Seluruh Komsel (Global)</span><span style="color:var(--ungu-global)">0%</span></div>
-            <div class="progress-bar"><div class="progress-fill" style="width: 0%; background: var(--ungu-global);"></div></div>
+        <div class="doa-item"><span>Rata-rata Jawaban (SLA)</span><span class="val-doa" id="avg-sla">0 Hari</span></div>
+        <div class="doa-item"><span>Total Doa Masuk</span><span class="val-doa" id="total-doa">0</span></div>
+        <div class="stat-item" style="margin-top:10px;">
+            <div class="stat-label-flex"><span>Persentase Doa Dijawab</span><span id="text-doa-persen" style="color:var(--emas-doa)">0%</span></div>
+            <div class="progress-bar"><div id="bar-doa-persen" class="progress-fill" style="width: 0%; background: var(--emas-doa);"></div></div>
         </div>
     </div>
 
     <div class="card">
-        <div class="card-header"><i class="fa-solid fa-circle-dot" style="color:var(--merah-absen)"></i> KETIDAK HADIRAN</div>
-        <div class="flex-row">
-            <div class="input-box"><label>Pilih Komsel</label>
-                <select id="select-komsel-absen"><option>JC 1</option><option>JC 2</option><option>JC 3</option><option>JC 4</option><option selected>JC 5</option></select>
-            </div>
-            <div class="input-box"><label>Periode</label>
-                <select id="select-periode-absen">
-                    <option value="1">1 Bulan Terakhir</option>
-                    <option value="2">2 Bulan Terakhir</option>
-                    <option value="3">3 Bulan Terakhir</option>
-                    <option value="4">4 Bulan Terakhir</option>
-                    <option value="5">5 Bulan Terakhir</option>
-                    <option value="6">6 Bulan Terakhir</option>
-                </select>
-            </div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-label-flex"><span>Ketidak Hadiran Komsel</span><span style="color:var(--merah-absen)">0%</span></div>
-            <div class="progress-bar"><div class="progress-fill" style="width: 0%; background: var(--merah-absen);"></div></div>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-header"><i class="fa-solid fa-droplet" style="color:black"></i> DATA GOLONGAN DARAH</div>
-        <label>LIHAT DISTRIBUSI PER KOMSEL</label>
+        <div class="card-header"><i class="fa-solid fa-droplet" style="color:red"></i> DATA GOLONGAN DARAH</div>
+        <label>FILTER KOMSEL</label>
         <select id="select-komsel-goldar" style="margin-bottom:15px;" onchange="syncGoldarRealtime()">
             <option value="Semua Komsel">Semua Komsel</option>
             <option value="JC 1">JC 1</option><option value="JC 2">JC 2</option>
             <option value="JC 3">JC 3</option><option value="JC 4">JC 4</option>
             <option value="JC 5">JC 5</option>
         </select>
-        
-        <div class="blood-item"><span>A</span><span class="btn-detail" id="count-A">0 Orang</span></div>
-        <div class="blood-item"><span>B</span><span class="btn-detail" id="count-B">0 Orang</span></div>
-        <div class="blood-item"><span>O</span><span class="btn-detail" id="count-O">0 Orang</span></div>
-        <div class="blood-item"><span>AB</span><span class="btn-detail" id="count-AB">0 Orang</span></div>
+        <div class="blood-item"><span>Golongan A</span><span class="btn-detail" id="count-A">0 Orang</span></div>
+        <div class="blood-item"><span>Golongan B</span><span class="btn-detail" id="count-B">0 Orang</span></div>
+        <div class="blood-item"><span>Golongan O</span><span class="btn-detail" id="count-O">0 Orang</span></div>
+        <div class="blood-item"><span>Golongan AB</span><span class="btn-detail" id="count-AB">0 Orang</span></div>
     </div>
 
     <a href="menu.html" class="btn-back">← KEMBALI KE MENU UTAMA</a>
@@ -162,6 +132,37 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
+    // 1. STATISTIK DOA (SLA) INTEGRASI
+    function syncDoaRealtime() {
+        const filter = document.getElementById('select-komsel-doa').value;
+        
+        db.collection("laporan_doa").onSnapshot((snapshot) => {
+            let totalDoa = 0;
+            let selesaiDoa = 0;
+            let totalHariSla = 0;
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (filter === "Semua" || data.jc === filter) {
+                    totalDoa++;
+                    if (data.status === "Selesai") {
+                        selesaiDoa++;
+                        totalHariSla += (data.totalHari || 0);
+                    }
+                }
+            });
+
+            const avgSla = selesaiDoa > 0 ? (totalHariSla / selesaiDoa).toFixed(1) : 0;
+            const persen = totalDoa > 0 ? (selesaiDoa / totalDoa) * 100 : 0;
+
+            document.getElementById('avg-sla').innerText = avgSla + " Hari";
+            document.getElementById('total-doa').innerText = totalDoa;
+            document.getElementById('text-doa-persen').innerText = persen.toFixed(1) + "%";
+            document.getElementById('bar-doa-persen').style.width = persen + "%";
+        });
+    }
+
+    // 2. GOLONGAN DARAH
     function syncGoldarRealtime() {
         const filter = document.getElementById('select-komsel-goldar').value;
         db.collection("users").onSnapshot((snapshot) => {
@@ -205,27 +206,21 @@
         listBody.innerHTML = html; modal.style.display = "flex";
     }
 
+    // 3. CAPAIAN BACA ALKITAB
     function syncCapaianRealtime() {
         const selKomsel = document.getElementById('select-komsel-alkitab').value;
         const periodeBulan = parseInt(document.getElementById('select-periode-alkitab').value);
-        
         db.collection("users").onSnapshot(snapUsers => {
             const allUsers = snapUsers.docs.map(d => d.data());
             const totalGlobal = allUsers.length;
             const totalKomsel = allUsers.filter(u => (String(u.komsel || "").includes("JC") ? u.komsel : "JC " + u.komsel) === selKomsel).length;
-
-            // Hitung tanggal mulai berdasarkan periode bulan
             const startDate = new Date();
             startDate.setMonth(startDate.getMonth() - periodeBulan);
-            startDate.setHours(0,0,0,0);
-
             db.collection("laporan_bacaan").where("tanggal", ">=", startDate).onSnapshot(snapLapor => {
                 const laporGlobal = snapLapor.size;
                 const laporKomsel = snapLapor.docs.filter(d => (String(d.data().komsel || "").includes("JC") ? d.data().komsel : "JC " + d.data().komsel) === selKomsel).length;
-
                 const pGlobal = totalGlobal > 0 ? (laporGlobal / (totalGlobal * 30 * periodeBulan)) * 100 : 0;
                 const pKomsel = totalKomsel > 0 ? (laporKomsel / (totalKomsel * 30 * periodeBulan)) * 100 : 0;
-
                 updateUI("global", Math.min(pGlobal, 100));
                 updateUI("komsel", Math.min(pKomsel, 100));
             });
@@ -238,7 +233,7 @@
         document.getElementById('bar-capaian-' + type).style.width = val;
     }
 
-    window.onload = () => { syncGoldarRealtime(); syncCapaianRealtime(); };
+    window.onload = () => { syncGoldarRealtime(); syncCapaianRealtime(); syncDoaRealtime(); };
 </script>
 </body>
 </html>
