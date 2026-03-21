@@ -2,128 +2,77 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Statistik Lengkap - Komsel JC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengaturan Akun - Pondok Pemulihan</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root {
-            --biru-tua: #003366; --biru-safir: #0056b3; --biru-muda: #00e6e6;
-            --hijau-zamrud: #2ecc71; --merah-lux: #ff4757; --emas-lux: #D4AF37; --putih-bg: #f4f7fa;
+        :root { --biru-utama: #0056b3; --putih-bg: #f4f7fa; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--putih-bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .setting-container { background: white; width: 100%; max-width: 400px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 25px; border-top: 5px solid var(--biru-utama); }
+        .header { text-align: center; margin-bottom: 25px; color: var(--biru-utama); font-weight: bold; font-size: 1.2rem; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; }
+        
+        /* Switch Toggle untuk Notif */
+        .switch { position: relative; display: inline-block; width: 45px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--biru-utama); }
+        input:checked + .slider:before { transform: translateX(21px); }
+
+        .flex-between { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .btn-save { background: var(--biru-utama); color: white; width: 100%; padding: 15px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; margin-top: 25px; }
+        
+        #notif-block {
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95); color: white; padding: 30px; border-radius: 15px;
+            text-align: center; z-index: 10000; width: 80%; max-width: 300px; border: 2px solid var(--biru-utama);
         }
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--putih-bg); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .container { width: 100%; max-width: 450px; }
-        .card { background: white; padding: 20px; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 20px; border-top: 5px solid var(--biru-safir); }
-        .card-title { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 15px; font-weight: 800; color: var(--biru-tua); border-bottom: 2px solid #f0f0f0; padding-bottom: 12px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .card-title i { color: var(--emas-lux); }
-        .filter-row { display: flex; gap: 12px; margin-bottom: 20px; background: #f9f9f9; padding: 10px; border-radius: 15px; }
-        .filter-item { flex: 1; }
-        .filter-item label { font-size: 10px; font-weight: 800; color: #aaa; display: block; margin-bottom: 6px; text-transform: uppercase; }
-        select { width: 100%; padding: 10px; border-radius: 12px; border: 1.5px solid #eee; background: white; font-size: 13px; font-weight: 700; color: var(--biru-tua); outline: none; }
-        .stat-line { display: flex; justify-content: space-between; align-items: center; margin: 15px 0 8px 0; font-size: 13px; font-weight: 700; color: #555; }
-        .val-txt { color: var(--biru-safir); font-weight: 900; font-size: 14px; }
-        .progress-bg { background: #f0f0f0; height: 12px; border-radius: 20px; width: 100%; overflow: hidden; margin-bottom: 5px; }
-        .progress-fill { height: 100%; transition: width 1s ease-in-out; border-radius: 20px; }
-        .detail-text { font-size: 10px; color: #999; text-align: center; margin-top: 8px; font-style: italic; line-height: 1.4; }
-        .blood-grid { margin-top: 10px; }
-        .blood-row { display: flex; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid #f9f9f9; font-size: 14px; align-items: center; }
-        .blood-type { font-weight: 900; color: var(--merah-lux); background: #fff5f6; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 10px; }
-        .btn-footer { display: block; width: 100%; padding: 16px; background: white; border-radius: 18px; text-align: center; text-decoration: none; color: var(--biru-safir); font-weight: 800; box-shadow: 0 8px 20px rgba(0,0,0,0.05); border: 1px solid #eee; margin-top: 10px; box-sizing: border-box; }
-        #modal-darah { display:none; position:fixed; z-index:999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; }
-        .modal-content { background:white; width:90%; max-width:350px; border-radius:20px; padding:20px; box-shadow:0 10px 30px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="card">
-        <div class="card-title"><i class="fa-solid fa-book-open-reader"></i> Capaian Baca Alkitab</div>
-        <div class="filter-row">
-            <div class="filter-item">
-                <label>Komsel</label>
-                <select id="jc-alkitab" onchange="loadAlkitab()">
-                    <option value="1">JC 1</option><option value="2">JC 2</option><option value="3">JC 3</option><option value="4">JC 4</option><option value="5" selected>JC 5</option><option value="6">JC 6</option>
-                </select>
-            </div>
-            <div class="filter-item">
-                <label>Periode</label>
-                <select id="per-alkitab" onchange="loadAlkitab()">
-                    <option value="1">1 Bulan Terakhir</option><option value="2">2 Bulan Terakhir</option><option value="3">3 Bulan Terakhir</option><option value="4">4 Bulan Terakhir</option><option value="5">5 Bulan Terakhir</option><option value="6">6 Bulan Terakhir</option>
-                </select>
-            </div>
-        </div>
-        <div class="stat-line"><span>Progres <span id="label-jc-baca">Komsel JC 5</span></span><span class="val-txt" id="txt-baca-jc">0.0%</span></div>
-        <div class="progress-bg"><div id="bar-baca-jc" class="progress-fill" style="background: linear-gradient(90deg, var(--biru-safir), var(--biru-muda)); width: 0%;"></div></div>
-        <div class="detail-text" id="rincian-alkitab">Memuat data...</div>
-    </div>
-
-    <div class="card" style="border-top-color: var(--hijau-zamrud);">
-        <div class="card-title"><i class="fa-solid fa-users-check"></i> Statistik Kehadiran</div>
-        <div class="filter-row">
-            <div class="filter-item">
-                <label>Komsel</label>
-                <select id="jc-hadir" onchange="loadKehadiran()">
-                    <option value="1">JC 1</option><option value="2">JC 2</option><option value="3">JC 3</option><option value="4">JC 4</option><option value="5" selected>JC 5</option><option value="6">JC 6</option>
-                </select>
-            </div>
-            <div class="filter-item">
-                <label>Periode</label>
-                <select id="per-hadir" onchange="loadKehadiran()">
-                    <option value="1">1 Bulan Terakhir</option><option value="2">2 Bulan Terakhir</option><option value="3">3 Bulan Terakhir</option><option value="4">4 Bulan Terakhir</option><option value="5">5 Bulan Terakhir</option><option value="6">6 Bulan Terakhir</option>
-                </select>
-            </div>
-        </div>
-        <div class="stat-line"><span>Kehadiran <span id="label-jc-hadir">Komsel JC 5</span></span><span class="val-txt" style="color: var(--hijau-zamrud);" id="txt-hadir-jc">0%</span></div>
-        <div class="progress-bg"><div id="bar-hadir-jc" class="progress-fill" style="background: var(--hijau-zamrud); width: 0%;"></div></div>
-        <div class="detail-text" id="rincian-hadir">Memuat data...</div>
-    </div>
-
-    <div class="card" style="border-top-color: var(--merah-lux);">
-        <div class="card-title" style="color: var(--merah-lux);"><i class="fa-solid fa-user-slash"></i> Ketidakhadiran</div>
-        <div class="filter-row">
-            <div class="filter-item">
-                <label>Komsel</label>
-                <select id="jc-absen" onchange="loadAbsen()">
-                    <option value="1">JC 1</option><option value="2">JC 2</option><option value="3">JC 3</option><option value="4">JC 4</option><option value="5" selected>JC 5</option><option value="6">JC 6</option>
-                </select>
-            </div>
-            <div class="filter-item">
-                <label>Periode</label>
-                <select id="per-absen" onchange="loadAbsen()">
-                    <option value="1">1 Bulan Terakhir</option><option value="2">2 Bulan Terakhir</option><option value="3">3 Bulan Terakhir</option><option value="4">4 Bulan Terakhir</option><option value="5">5 Bulan Terakhir</option><option value="6">6 Bulan Terakhir</option>
-                </select>
-            </div>
-        </div>
-        <div class="stat-line"><span>Persentase <span id="label-jc-absen">Komsel JC 5</span></span><span class="val-txt" style="color: var(--merah-lux);" id="txt-absen-jc">0.0%</span></div>
-        <div class="progress-bg"><div id="bar-absen-jc" class="progress-fill" style="background: var(--merah-lux); width: 0%;"></div></div>
-        <div class="detail-text" id="rincian-absen">Memuat data...</div>
-    </div>
-
-    <div class="card" style="border-top-color: var(--emas-lux);">
-        <div class="card-title"><i class="fa-solid fa-droplet"></i> Golongan Darah</div>
-        <select id="jc-darah" onchange="loadDarah()" style="margin-bottom: 15px;">
-            <option value="Semua">Semua Komsel</option>
-            <option value="1">JC 1</option><option value="2">JC 2</option><option value="3">JC 3</option><option value="4">JC 4</option><option value="5">JC 5</option><option value="6">JC 6</option>
-        </select>
-        <div class="blood-grid">
-            <div class="blood-row"><span class="blood-type">A</span><span id="count-A">0 Orang</span></div>
-            <div class="blood-row"><span class="blood-type">B</span><span id="count-B">0 Orang</span></div>
-            <div class="blood-row"><span class="blood-type">O</span><span id="count-O">0 Orang</span></div>
-            <div class="blood-row" style="border:none;"><span class="blood-type">AB</span><span id="count-AB">0 Orang</span></div>
-        </div>
-    </div>
-
-    <a href="menu.html" class="btn-footer"><i class="fa-solid fa-house"></i> KEMBALI KE MENU UTAMA</a>
+<div id="notif-block">
+    <i class="fa-solid fa-circle-check" style="font-size: 40px; color: #2ecc71; margin-bottom: 15px;"></i>
+    <p style="margin: 0; font-weight: bold;">Password dan Email Berhasil diupdate</p>
+    <p style="font-size: 12px; margin-top: 10px; color: #ccc;">Sesi berakhir, silakan login ulang...</p>
 </div>
 
-<div id="modal-darah">
-    <div class="modal-content">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:2px solid #f0f0f0; padding-bottom:10px;">
-            <h3 style="margin:0; font-size:16px; color:var(--biru-tua);">Pemilik Golongan Darah <span id="title-gol"></span></h3>
-            <i class="fa-solid fa-xmark" onclick="tutupModal()" style="cursor:pointer; color:#999;"></i>
-        </div>
-        <div id="list-nama" style="max-height:300px; overflow-y:auto; font-size:14px; color:#555;"></div>
-        <button onclick="tutupModal()" style="width:100%; margin-top:20px; padding:12px; border-radius:12px; border:none; background:var(--biru-safir); color:white; font-weight:800; cursor:pointer;">TUTUP</button>
+<div class="setting-container">
+    <div class="header"><i class="fa-solid fa-user-gear"></i> PENGATURAN AKUN</div>
+    
+    <div class="form-group">
+        <label>Email Baru</label>
+        <input type="email" id="newEmail" placeholder="Masukkan email baru">
     </div>
+    <div class="form-group">
+        <label>Password Baru</label>
+        <input type="password" id="newPassword" placeholder="Masukkan password baru">
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+    <div class="flex-between">
+        <label style="margin: 0;">Suara Notifikasi Alkitab (22:00)</label>
+        <label class="switch">
+            <input type="checkbox" id="notifSound" onchange="saveSettings()">
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <div class="form-group" style="margin-top: 15px;">
+        <label>Logout Otomatis (Keamanan)</label>
+        <select id="autoLogout" onchange="saveSettings()">
+            <option value="0">Matikan</option>
+            <option value="30">30 Menit</option>
+            <option value="60">60 Menit</option>
+        </select>
+    </div>
+
+    <button class="btn-save" onclick="updateAkun()">SIMPAN PERUBAHAN</button>
+    <a href="menu.html" style="display: block; text-align: center; margin-top: 20px; text-decoration: none; color: var(--biru-utama); font-weight: bold;">← Kembali ke Menu</a>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -138,85 +87,44 @@
         messagingSenderId: "125984859692",
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
+
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
+    const oldEmail = localStorage.getItem("userEmail");
 
-    // Fungsi agar label tetap "Komsel JC 5" meskipun data di db adalah "5"
-    const displayJC = (id) => "Komsel JC " + id;
+    // Load setingan yang sudah ada
+    window.onload = function() {
+        document.getElementById("notifSound").checked = localStorage.getItem("notifSound") === "true";
+        document.getElementById("autoLogout").value = localStorage.getItem("autoLogoutTime") || "0";
+    };
 
-    function loadAlkitab() {
-        const jcId = document.getElementById('jc-alkitab').value;
-        const per = parseInt(document.getElementById('per-alkitab').value);
-        document.getElementById('label-jc-baca').innerText = displayJC(jcId);
-
-        db.collection("users").where("komsel", "==", jcId).onSnapshot(sUser => {
-            const jml = sUser.size || 0;
-            db.collection("laporan_bacaan").where("komsel", "==", jcId).onSnapshot(sLap => {
-                const total = sLap.size;
-                const target = jml * (30 * per);
-                let persen = target > 0 ? (total / target) * 100 : 0;
-                if(persen > 100) persen = 100;
-                document.getElementById('txt-baca-jc').innerText = persen.toFixed(1) + "%";
-                document.getElementById('bar-baca-jc').style.width = persen + "%";
-                document.getElementById('rincian-alkitab').innerText = total + " laporan ditemukan.";
-            });
-        });
+    function saveSettings() {
+        localStorage.setItem("notifSound", document.getElementById("notifSound").checked);
+        localStorage.setItem("autoLogoutTime", document.getElementById("autoLogout").value);
     }
 
-    function loadKehadiran() {
-        const jcId = document.getElementById('jc-hadir').value;
-        document.getElementById('label-jc-hadir').innerText = displayJC(jcId);
-        db.collection("kehadiran").where("komsel", "==", jcId).onSnapshot(snap => {
-            let hadir = 0; snap.forEach(doc => { if(doc.data().status === "Hadir") hadir++; });
-            let persen = snap.size > 0 ? (hadir / snap.size) * 100 : 0;
-            document.getElementById('txt-hadir-jc').innerText = persen.toFixed(0) + "%";
-            document.getElementById('bar-hadir-jc').style.width = persen + "%";
-            document.getElementById('rincian-hadir').innerText = "Dari " + snap.size + " total data.";
-        });
+    async function updateAkun() {
+        const nEmail = document.getElementById("newEmail").value;
+        const nPass = document.getElementById("newPassword").value;
+
+        if (!nEmail || !nPass) { alert("Email & Password baru harus diisi!"); return; }
+
+        try {
+            const snap = await db.collection("users").where("email", "==", oldEmail).get();
+            if (!snap.empty) {
+                await db.collection("users").doc(snap.docs[0].id).update({
+                    email: nEmail,
+                    password: nPass
+                });
+
+                document.getElementById("notif-block").style.display = "block";
+                setTimeout(() => {
+                    localStorage.clear();
+                    window.location.replace("index.html");
+                }, 3000);
+            }
+        } catch (e) { alert("Error: " + e.message); }
     }
-
-    function loadAbsen() {
-        const jcId = document.getElementById('jc-absen').value;
-        document.getElementById('label-jc-absen').innerText = displayJC(jcId);
-        db.collection("kehadiran").where("komsel", "==", jcId).onSnapshot(snap => {
-            let tdk = 0; snap.forEach(doc => { if(doc.data().status !== "Hadir") tdk++; });
-            let persen = snap.size > 0 ? (tdk / snap.size) * 100 : 0;
-            document.getElementById('txt-absen-jc').innerText = persen.toFixed(1) + "%";
-            document.getElementById('bar-absen-jc').style.width = persen + "%";
-            document.getElementById('rincian-absen').innerText = tdk + " orang tidak hadir.";
-        });
-    }
-
-    function loadDarah() {
-        const sel = document.getElementById('jc-darah').value;
-        ['A', 'B', 'O', 'AB'].forEach(t => {
-            let q = db.collection("users").where("golDarah", "==", t);
-            if (sel !== "Semua") q = q.where("komsel", "==", sel);
-            q.onSnapshot(snap => {
-                document.getElementById('count-' + t).innerHTML = `<span onclick="showDetail('${t}')" style="color:var(--biru-safir); text-decoration:underline; cursor:pointer; font-weight:800;">${snap.size} Orang</span>`;
-            });
-        });
-    }
-
-    function showDetail(gol) {
-        const sel = document.getElementById('jc-darah').value;
-        const list = document.getElementById('list-nama');
-        document.getElementById('title-gol').innerText = gol;
-        list.innerHTML = "Memuat...";
-        document.getElementById('modal-darah').style.display = "flex";
-
-        let q = db.collection("users").where("golDarah", "==", gol);
-        if (sel !== "Semua") q = q.where("komsel", "==", sel);
-        q.get().then(snap => {
-            if (snap.empty) { list.innerHTML = "Data tidak ditemukan."; return; }
-            let h = "<ol>"; 
-            snap.forEach(doc => { h += `<li style='margin-bottom:8px;'><b>${doc.data().nama}</b><br><small>JC ${doc.data().komsel}</small></li>`; });
-            list.innerHTML = h + "</ol>";
-        });
-    }
-
-    function tutupModal() { document.getElementById('modal-darah').style.display = "none"; }
-    window.onload = () => { loadAlkitab(); loadKehadiran(); loadAbsen(); loadDarah(); };
 </script>
 </body>
 </html>
