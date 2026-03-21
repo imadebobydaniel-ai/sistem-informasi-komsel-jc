@@ -52,20 +52,27 @@
         <div class="card-header"><i class="fa-solid fa-earth-americas"></i> CAPAIAN BACA ALKITAB</div>
         <div class="flex-row">
             <div class="input-box"><label>Pilih Komsel</label>
-                <select><option>JC 1</option><option>JC 2</option><option>JC 3</option><option>JC 4</option><option selected>JC 5</option></select>
+                <select id="select-komsel-alkitab" onchange="syncCapaianRealtime()">
+                    <option value="JC 1">JC 1</option>
+                    <option value="JC 2">JC 2</option>
+                    <option value="JC 3">JC 3</option>
+                    <option value="JC 4">JC 4</option>
+                    <option value="JC 5" selected>JC 5</option>
+                </select>
             </div>
             <div class="input-box"><label>Periode</label>
-                <select>
-                    <option>1 Bulan Terakhir</option><option>2 Bulan Terakhir</option><option>3 Bulan Terakhir</option>
-                    <option>4 Bulan Terakhir</option><option>5 Bulan Terakhir</option><option>6 Bulan Terakhir</option>
+                <select id="select-periode-alkitab" onchange="syncCapaianRealtime()">
+                    <option value="1">1 Bulan Terakhir</option>
+                    <option value="2">2 Bulan Terakhir</option>
+                    <option value="3">3 Bulan Terakhir</option>
                 </select>
             </div>
         </div>
         <div class="stat-item">
-            <div class="stat-label-flex"><span>Capaian Komsel</span><span style="color:var(--biru-utama)">100.0%</span></div>
-            <div class="progress-bar"><div class="progress-fill" style="width: 100%; background: var(--biru-utama);"></div></div>
-            <div class="stat-label-flex"><span>Seluruh Komsel (Global)</span><span style="color:var(--ungu-global)">100.0%</span></div>
-            <div class="progress-bar"><div class="progress-fill" style="width: 100%; background: var(--ungu-global);"></div></div>
+            <div class="stat-label-flex"><span>Capaian Komsel</span><span id="text-capaian-komsel" style="color:var(--biru-utama)">0.0%</span></div>
+            <div class="progress-bar"><div id="bar-capaian-komsel" class="progress-fill" style="width: 0%; background: var(--biru-utama);"></div></div>
+            <div class="stat-label-flex"><span>Seluruh Komsel (Global)</span><span id="text-capaian-global" style="color:var(--ungu-global)">0.0%</span></div>
+            <div class="progress-bar"><div id="bar-capaian-global" class="progress-fill" style="width: 0%; background: var(--ungu-global);"></div></div>
         </div>
     </div>
 
@@ -76,10 +83,7 @@
                 <select><option>JC 1</option><option>JC 2</option><option>JC 3</option><option>JC 4</option><option selected>JC 5</option></select>
             </div>
             <div class="input-box"><label>Periode</label>
-                <select>
-                    <option>1 Bulan Terakhir</option><option>2 Bulan Terakhir</option><option>3 Bulan Terakhir</option>
-                    <option>4 Bulan Terakhir</option><option>5 Bulan Terakhir</option><option>6 Bulan Terakhir</option>
-                </select>
+                <select><option>1 Bulan Terakhir</option></select>
             </div>
         </div>
         <div class="stat-item">
@@ -97,10 +101,7 @@
                 <select><option>JC 1</option><option>JC 2</option><option>JC 3</option><option>JC 4</option><option selected>JC 5</option></select>
             </div>
             <div class="input-box"><label>Periode</label>
-                <select>
-                    <option>1 Bulan Terakhir</option><option>2 Bulan Terakhir</option><option>3 Bulan Terakhir</option>
-                    <option>4 Bulan Terakhir</option><option>5 Bulan Terakhir</option><option>6 Bulan Terakhir</option>
-                </select>
+                <select><option>1 Bulan Terakhir</option></select>
             </div>
         </div>
         <div class="stat-item">
@@ -112,15 +113,105 @@
     <div class="card">
         <div class="card-header"><i class="fa-solid fa-droplet" style="color:black"></i> DATA GOLONGAN DARAH</div>
         <label>LIHAT DISTRIBUSI PER KOMSEL</label>
-        <select style="margin-bottom:15px;">
-            <option>Semua Komsel</option><option>JC 1</option><option>JC 2</option><option>JC 3</option><option>JC 4</option><option>JC 5</option>
+        <select id="select-komsel-goldar" style="margin-bottom:15px;" onchange="syncGoldarRealtime()">
+            <option value="Semua Komsel">Semua Komsel</option>
+            <option value="JC 1">JC 1</option><option value="JC 2">JC 2</option>
+            <option value="JC 3">JC 3</option><option value="JC 4">JC 4</option>
+            <option value="JC 5">JC 5</option>
         </select>
         
-        <div class="blood-item"><span>A</span><span class="btn-detail" onclick="openPopup('A')">0 Orang</span></div>
-        <div class="blood-item"><span>B</span><span class="btn-detail" onclick="openPopup('B')">0 Orang</span></div>
-        <div class="blood-item"><span>O</span><span class="btn-detail" onclick="openPopup('O')">0 Orang</span></div>
-        <div class="blood-item"><span>AB</span><span class="btn-detail" onclick="openPopup('AB')">1 Orang</span></div>
+        <div class="blood-item"><span>A</span><span class="btn-detail" id="count-A">0 Orang</span></div>
+        <div class="blood-item"><span>B</span><span class="btn-detail" id="count-B">0 Orang</span></div>
+        <div class="blood-item"><span>O</span><span class="btn-detail" id="count-O">0 Orang</span></div>
+        <div class="blood-item"><span>AB</span><span class="btn-detail" id="count-AB">0 Orang</span></div>
     </div>
 
     <a href="menu.html" class="btn-back">← KEMBALI KE MENU UTAMA</a>
 </div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+        authDomain: "boby-apps-project.firebaseapp.com",
+        projectId: "boby-apps-project",
+        storageBucket: "boby-apps-project.appspot.com",
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+    };
+
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
+
+    // 1. Sinkronisasi Golongan Darah (Termasuk AB)
+    function syncGoldarRealtime() {
+        const filter = document.getElementById('select-komsel-goldar').value;
+        db.collection("users").onSnapshot((snapshot) => {
+            let counts = { A: 0, B: 0, O: 0, AB: 0 };
+            snapshot.docs.forEach(doc => {
+                const data = doc.data();
+                const komselUser = String(data.komsel || "").includes("JC") ? data.komsel : "JC " + data.komsel;
+                
+                if (filter === "Semua Komsel" || komselUser === filter) {
+                    const g = (data.golongan_darah || data.golDarah || "").toUpperCase();
+                    if (counts.hasOwnProperty(g)) counts[g]++;
+                }
+            });
+            // Update UI
+            for (let type in counts) {
+                document.getElementById('count-' + type).innerText = counts[type] + " Orang";
+            }
+        });
+    }
+
+    // 2. Sinkronisasi Capaian Alkitab (JC vs Global)
+    function syncCapaianRealtime() {
+        const selKomsel = document.getElementById('select-komsel-alkitab').value;
+        
+        // Listen ke Users untuk total anggota
+        db.collection("users").onSnapshot(snapUsers => {
+            const allUsers = snapUsers.docs.map(d => d.data());
+            const totalGlobal = allUsers.length;
+            const totalKomsel = allUsers.filter(u => {
+                const k = String(u.komsel || "").includes("JC") ? u.komsel : "JC " + u.komsel;
+                return k === selKomsel;
+            }).length;
+
+            // Listen ke Laporan hari ini
+            const start = new Date(); start.setHours(0,0,0,0);
+            db.collection("laporan_bacaan")
+              .where("tanggal", ">=", start)
+              .onSnapshot(snapLapor => {
+                const laporGlobal = snapLapor.size;
+                const laporKomsel = snapLapor.docs.filter(d => {
+                    const k = String(d.data().komsel || "").includes("JC") ? d.data().komsel : "JC " + d.data().komsel;
+                    return k === selKomsel;
+                }).length;
+
+                // Hitung %
+                const pGlobal = totalGlobal > 0 ? (laporGlobal / totalGlobal) * 100 : 0;
+                const pKomsel = totalKomsel > 0 ? (laporKomsel / totalKomsel) * 100 : 0;
+
+                // Update UI
+                updateUI("global", pGlobal);
+                updateUI("komsel", pKomsel);
+            });
+        });
+    }
+
+    function updateUI(type, percent) {
+        const val = percent.toFixed(1) + "%";
+        document.getElementById('text-capaian-' + type).innerText = val;
+        document.getElementById('bar-capaian-' + type).style.width = val;
+    }
+
+    // Jalankan saat load
+    window.onload = () => {
+        syncGoldarRealtime();
+        syncCapaianRealtime();
+    };
+</script>
+</body>
+</html>
