@@ -105,41 +105,56 @@
         });
     };
 
+    // FUNGSI KIRIM TIKET SINKRON DENGAN SLA CAPAIAN DOA
     async function kirimTiket() {
         const pesan = document.getElementById('pesan-tiket').value.trim();
         const kategori = document.getElementById('kategori-tiket').value;
         const btn = document.getElementById('btn-submit');
         const email = localStorage.getItem("userEmail");
+        
         const nama = document.getElementById('txt-nama').innerText;
         const komsel = document.getElementById('txt-komsel').innerText;
 
-        if (!pesan) return alert("Mohon isi pesan Anda!");
+        if (!pesan || nama === "Memuat...") {
+            return alert("Mohon tunggu hingga identitas dimuat atau isi pesan Anda!");
+        }
 
         btn.disabled = true;
-        btn.innerHTML = "Mengirim...";
+        btn.innerHTML = "Sedang Memproses...";
 
         try {
-            // ALUR TIKETING: Simpan ke koleksi 'saran_masukan' (atau ganti jadi 'tickets' jika mau)
-            // Saya gunakan 'saran_masukan' agar sama dengan file admin sebelumnya
+            const now = new Date();
+            const tahun = now.getFullYear();
+            
+            // Generate nomor tiket otomatis (Contoh: NK-DOA-742-2026)
+            const randomNum = Math.floor(100 + Math.random() * 900);
+            const nomorTiket = `NK-DOA-${randomNum}-${tahun}`;
+
+            // Simpan ke koleksi 'saran_masukan'
             await db.collection("saran_masukan").add({
-                nama: nama,
-                email: email,
-                jc: komsel,
-                kategori: kategori,
-                isi_saran: pesan, // field disamakan dengan admin_dashboard
-                status: "open",   // Kunci Alur: Status Awal
+                nomor_tiket: nomorTiket,         // Kode unik untuk tracking SLA
+                nama: nama,                      // Nama asli pengirim
+                email: email,                    // Email pengirim
+                jc: komsel,                      // Nama Komsel
+                kategori: kategori,              // Jenis layanan
+                isi_saran: pesan,                // Isi pesan
+                status: "proses",                // Status awal label "Proses"
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                tanggal_kirim: new Date().toLocaleDateString('id-ID'),
-                jam_kirim: new Date().toLocaleTimeString('id-ID')
+                tanggal_kirim: now.toLocaleDateString('id-ID'),
+                jam_kirim: now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+                sla_days: 0                      // Counter awal untuk hitungan hari SLA
             });
 
+            // Tampilkan layar sukses
             document.getElementById('form-screen').style.display = "none";
             document.getElementById('success-screen').style.display = "block";
 
-            setTimeout(() => { window.location.href = "menu.html"; }, 3500);
+            // Redirect otomatis
+            setTimeout(() => { window.location.href = "menu.html"; }, 3000);
 
         } catch (error) {
-            alert("Error: " + error.message);
+            console.error("Gagal mengirim tiket:", error);
+            alert("Terjadi gangguan koneksi ke database.");
             btn.disabled = false;
             btn.innerHTML = "KIRIM TIKET";
         }
