@@ -6,7 +6,8 @@
     <title>Laporan Komsel - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
     <style>
         :root {
             --primary: #0056b3;
@@ -210,11 +211,18 @@
             width: 90%;
             left: 5%;
         }
+
+        /* CSS KHUSUS UNTUK PDF AGAR TIDAK TERPOTONG */
+        @media print {
+            .no-print { display: none !important; }
+            .container { width: 100%; max-width: none; margin: 0; padding: 0; }
+            .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="container" id="report-area">
     <div class="card" style="background: var(--primary); color: white; border: none;">
         <div style="display: flex; align-items: center; justify-content: space-between;">
             <div>
@@ -225,7 +233,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <div class="card no-print">
         <h3><i class="fa-solid fa-clock-rotate-left"></i> Rentang Analisis</h3>
         <select id="filter-periode" onchange="sinkronisasiRealtime()">
             <option value="1">1 Bulan Terakhir</option>
@@ -238,18 +246,18 @@
     </div>
 
     <div class="card" id="card-insight" style="display:none; overflow: visible; position: relative;">
-        <div class="ai-badge"><i class="fas fa-microchip"></i> AI ENGINE ACTIVE</div>
+        <div class="ai-badge no-print"><i class="fas fa-microchip"></i> AI ENGINE ACTIVE</div>
         <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Pertumbuhan Komsel</h3>
         <div class="insight-box">
             <div id="text-insight" class="insight-text">Menganalisis data...</div>
         </div>
-        <div style="text-align: right; margin-top: 10px;">
+        <div style="text-align: right; margin-top: 10px;" class="no-print">
             <span onclick="toggleLogicPopup()" style="font-size: 10px; font-weight: bold; color: var(--primary); cursor: pointer;">
                 <i class="fas fa-circle-info"></i> LOGIKA PENILAIAN
             </span>
         </div>
 
-        <div id="popup-logic">
+        <div id="popup-logic" class="no-print">
             <h4 style="margin-top:0; font-size: 12px;">Metode Klasifikasi:</h4>
             <div style="font-size: 11px; border-left: 3px solid var(--success); padding: 5px; margin-bottom: 5px;"><strong>HI-GROWTH (>=80%):</strong> Sangat Sehat</div>
             <div style="font-size: 11px; border-left: 3px solid var(--warning); padding: 5px; margin-bottom: 5px;"><strong>STABLE (50-79%):</strong> Cukup Baik</div>
@@ -265,14 +273,14 @@
         </div>
     </div>
 
-    <div class="card">
+    <div class="card no-print">
         <h3><i class="fa-solid fa-list-check"></i> Log Aktifitas</h3>
         <button class="btn-open-log" onclick="toggleLogModal(true)">
             <i class="fa-solid fa-clock-rotate-left"></i> LIHAT DETAIL LOG
         </button>
     </div>
 
-    <div class="card export-card">
+    <div class="card export-card no-print">
         <h3 style="color: #856404; border-color: #ffd54f;"><i class="fa-solid fa-signature"></i> Otoritas PKS</h3>
         <p style="font-size: 11px; color: #856404; margin-top: -10px; margin-bottom: 15px;">Ekspor PDF memerlukan password valid.</p>
         <div style="position: relative;">
@@ -285,7 +293,7 @@
         </button>
     </div>
 
-    <div class="btn-back-container">
+    <div class="btn-back-container no-print">
         <a href="menu.html" class="btn-back">
             <i class="fa-solid fa-arrow-left"></i> KEMBALI KE PANEL UTAMA
         </a>
@@ -306,8 +314,6 @@
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js">
-        </script>
 
 <script>
     const firebaseConfig = {
@@ -373,6 +379,7 @@
             },
             options: { 
                 maintainAspectRatio: false, 
+                animation: false, // Matikan animasi agar stabil saat difoto PDF
                 plugins: { legend: { display: false } },
                 scales: { y: { beginAtZero: true, max: 100 } } 
             }
@@ -393,15 +400,13 @@
             .onSnapshot(snap => {
                 let html = "";
                 let countAlkitab = 0;
-                let listNamaAlkitab = [];
 
                 snap.forEach(doc => {
                     const d = doc.data();
                     countAlkitab++;
-                    listNamaAlkitab.push(`${d.nama} (${d.pasal_utama || 'Baca Firman'})`);
                     const tgl = d.tanggal.toDate().toLocaleDateString('id-ID', {day:'2-digit', month:'short'});
                     html += `
-                        <div class="mutasi-item" data-nama="${d.nama}" data-bacaan="${d.pasal_utama}">
+                        <div class="mutasi-item">
                             <div class="mutasi-date">${tgl}</div>
                             <div class="mutasi-info">
                                 <div class="mutasi-name">${d.nama}</div>
@@ -415,8 +420,6 @@
                 
                 const target = 20 * (periode * 4); 
                 const persenAlkitab = Math.min(Math.round((countAlkitab/target)*100), 100);
-                
-                // Kalkulasi simulasi Kehadiran (Dapat diganti data Firestore Absensi jika sudah ada)
                 const persenHadir = Math.min(persenAlkitab + 15, 95); 
                 const persenAbsen = 100 - persenHadir;
 
@@ -429,95 +432,52 @@
     function generateInsight(persen) {
         document.getElementById("card-insight").style.display = "block";
         const txt = document.getElementById("text-insight");
-        if (persen >= 80) txt.innerText = "Komsel JC " + userJC + " dalam performa puncak. Kerohanian jemaat melalui Alkitab sangat kuat.";
+        if (persen >= 80) txt.innerText = "Komsel JC " + userJC + " dalam performa puncak. Kerohanian jemaat sangat kuat.";
         else if (persen >= 50) txt.innerText = "Stabilitas JC " + userJC + " terjaga. Disarankan penguatan mentoring personal.";
-        else txt.innerText = "Perhatian: Partisipasi rendah. Segera lakukan follow-up atau visitasi jemaat JC " + userJC;
+        else txt.innerText = "Perhatian: Partisipasi rendah. Segera lakukan follow-up jemaat JC " + userJC;
     }
 
+    // FUNGSI EKSPOR PDF TERBARU (ANTI-BUFFERING)
     async function validateAndExport() {
         const pass = document.getElementById("pks-password").value;
-        const items = document.querySelectorAll(".mutasi-item");
-
         if(!pass || pass !== "rahasia123") { alert("Password Otoritas Salah!"); return; }
-        if (items.length === 0) { alert("Tidak ada data untuk laporan."); return; }
 
-        alert("Menghasilkan Laporan PDF Resmi...");
+        const btn = document.querySelector(".btn-export");
+        const originalText = btn.innerHTML;
         
-        try {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            const pageWidth = doc.internal.pageSize.getWidth();
+        // UI Feedback
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> GENERATING...';
+        btn.disabled = true;
 
-            // --- 1. KOP SURAT ---
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(16);
-            doc.text("GBI PONDOK PEMULIHAN PAPUA", pageWidth / 2, 18, { align: "center" });
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            doc.text("Laporan Perkembangan Komsel JC " + userJC, pageWidth / 2, 24, { align: "center" });
-            doc.setLineWidth(1.2);
-            doc.line(15, 28, pageWidth - 15, 28); // Garis tebal bawah kop
+        const element = document.getElementById('report-area');
+        
+        // Sembunyikan elemen yang tidak ingin masuk PDF
+        const noPrintElements = document.querySelectorAll('.no-print');
+        noPrintElements.forEach(el => el.style.display = 'none');
 
-            let y = 38;
+        const opt = {
+            margin:       [10, 10],
+            filename:     `Laporan_JC${userJC}_${Date.now()}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { 
+                scale: 2, 
+                useCORS: true, 
+                letterRendering: true 
+            },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
 
-            // --- 2. ANALISA PEMBACAAN ALKITAB ---
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(11);
-            doc.text("I. ANALISA CAPAIAN PEMBACAAN ALKITAB", 15, y);
-            y += 7;
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(10);
-            
-            let daftarNama = "";
-            items.forEach(el => { daftarNama += el.getAttribute('data-nama') + " (" + el.getAttribute('data-bacaan') + "), "; });
-            
-            let txtAlkitab = `Capaian pembacaan Alkitab mencapai ${myChart.data.datasets[0].data[0]}%. Daftar jemaat yang menyelesaikan tugas: ` + daftarNama.slice(0, -2);
-            let splitAlkitab = doc.splitTextToSize(txtAlkitab, pageWidth - 30);
-            doc.text(splitAlkitab, 15, y);
-            y += (splitAlkitab.length * 5) + 8;
-
-            // --- 3. ANALISA KEHADIRAN ---
-            doc.setFont("helvetica", "bold");
-            doc.text("II. ANALISA KEHADIRAN KOMSEL", 15, y);
-            y += 7;
-            doc.setFont("helvetica", "normal");
-            doc.text(`Tingkat kehadiran jemaat JC ${userJC} mencapai ${myChart.data.datasets[0].data[1]}% dengan partisipasi aktif jemaat inti.`, 15, y);
-            y += 12;
-
-            // --- 4. ANALISA KETIDAKHADIRAN ---
-            doc.setFont("helvetica", "bold");
-            doc.text("III. ANALISA KETIDAKHADIRAN & KETERANGAN", 15, y);
-            y += 7;
-            doc.setFont("helvetica", "normal");
-            let txtAbsen = `Terdapat ${myChart.data.datasets[0].data[2]}% ketidakhadiran. Alasan utama didasari oleh faktor pekerjaan, kondisi kesehatan (sakit), dan kendala transportasi bagi jemaat yang berdomisili jauh.`;
-            let splitAbsen = doc.splitTextToSize(txtAbsen, pageWidth - 30);
-            doc.text(splitAbsen, 15, y);
-            y += (splitAbsen.length * 5) + 8;
-
-            // --- 5. MASUKAN AI ---
-            doc.setFont("helvetica", "bold");
-            doc.text("IV. ANALISA MASUKAN & REFERENSI AI", 15, y);
-            y += 7;
-            doc.setFont("helvetica", "italic");
-            let aiRef = document.getElementById("text-insight").innerText + " Rekomendasi: Tingkatkan keterlibatan melalui sharing grup digital di sela-sela hari komsel.";
-            let splitAI = doc.splitTextToSize(aiRef, pageWidth - 30);
-            doc.text(splitAI, 15, y);
-            y += (splitAI.length * 5) + 12;
-
-            // --- 6. DIAGRAM ---
-            doc.setFont("helvetica", "bold");
-            doc.text("V. DIAGRAM PERSENTASE CAPAIAN", 15, y);
-            const canvas = document.getElementById('performaChart');
-            const imgData = canvas.toDataURL('image/png');
-            doc.addImage(imgData, 'PNG', 15, y + 5, 85, 45);
-
-            // Save PDF
-            doc.save(`Laporan_JC${userJC}_${Date.now()}.pdf`);
-            
-        } catch (error) {
-            console.error(error);
-            alert("Gagal membuat PDF.");
-        }
+        // Eksekusi Generate
+        html2pdf().set(opt).from(element).save().then(() => {
+            alert("Ekspor Berhasil! Cek folder Download.");
+        }).catch(err => {
+            alert("Gagal ekspor: " + err);
+        }).finally(() => {
+            // Tampilkan kembali elemen UI
+            noPrintElements.forEach(el => el.style.display = 'block');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
     }
 
     window.onload = init;
