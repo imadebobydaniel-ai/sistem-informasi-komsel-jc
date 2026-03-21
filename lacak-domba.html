@@ -2,215 +2,112 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lacak Domba - Pondok Pemulihan Papua</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lacak Domba - Komsel JC</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --biru-tua: #003366; --biru-safir: #0056b3; --hijau-zamrud: #2ecc71; --putih-bg: #f4f7fa; --emas: #D4AF37; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--putih-bg); margin: 0; padding: 0; color: #333; }
-        .header { background: white; padding: 20px; text-align: center; border-bottom: 3px solid var(--biru-safir); }
-        .header h2 { margin: 0; color: var(--biru-tua); font-size: 16px; text-transform: uppercase; letter-spacing: 1px; }
-        .search-container { padding: 15px; background: white; margin: 10px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .search-box input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box; outline: none; }
-        #map-container { width: 92%; height: 180px; background: #e5e3df; margin: auto; border-radius: 20px; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; overflow: hidden; }
-        .info-panel { background: #fff9db; border: 1px solid #ffe066; margin: 15px; padding: 12px; border-radius: 10px; font-size: 12px; text-align: center; line-height: 1.5; color: #856404; }
-        .friends-list { padding: 0 15px 30px 15px; }
-        .section-title { font-size: 13px; color: #666; margin: 15px 0 10px 5px; font-weight: bold; text-transform: uppercase; }
+        :root {
+            --biru-tua: #003366;
+            --emas: #D4AF37;
+            --putih: #f4f7fa;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--putih); margin: 0; padding: 0; }
         
-        /* Friend Item Style */
-        .friend-item { background: white; padding: 12px; border-radius: 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); cursor: pointer; }
-        .friend-img { width: 55px; height: 55px; border-radius: 10px; object-fit: cover; border: 1px solid #eee; }
-        .friend-info { flex: 1; }
-        .friend-info h4 { margin: 0; font-size: 14px; color: var(--biru-tua); }
-        .friend-info p { margin: 2px 0; font-size: 11px; color: #777; }
-
-        /* Modal Style */
-        .profile-modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); justify-content: center; align-items: center; }
-        .profile-card { background: white; width: 85%; max-width: 320px; border-radius: 25px; overflow: hidden; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.2); animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .card-header { background: var(--biru-tua); height: 80px; position: relative; }
-        .card-avatar { width: 100px; height: 100px; border-radius: 50%; border: 5px solid white; margin-top: -50px; background: white; object-fit: cover; position: relative; z-index: 2; }
-        .card-body { padding: 20px; }
-        .card-body h3 { margin: 10px 0 5px; color: #333; font-size: 18px; }
-        .card-body p { margin: 0; color: #777; font-size: 13px; margin-bottom: 15px; }
-        .btn { border: none; padding: 12px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
-        .btn-invite { background: var(--biru-safir); color: white; margin-top: 5px; }
-        .btn-close { background: #eee; color: #333; margin-top: 8px; }
-        .back-btn { display: block; text-align: center; margin: 20px; color: var(--biru-safir); text-decoration: none; font-size: 14px; font-weight: bold; }
+        .header { background: var(--biru-tua); color: white; padding: 15px; text-align: center; border-bottom: 3px solid var(--emas); }
+        .btn-back { position: absolute; left: 15px; top: 15px; color: white; text-decoration: none; font-size: 18px; }
+        
+        .container { padding: 15px; }
+        
+        /* List Anggota */
+        .card-lacak {
+            background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-left: 5px solid var(--biru-tua);
+        }
+        .info-nama { font-weight: 800; color: var(--biru-tua); font-size: 16px; margin-bottom: 5px; }
+        .info-detail { font-size: 12px; color: #666; margin-bottom: 10px; }
+        
+        /* Tampilan Peta */
+        .map-container {
+            width: 100%; height: 200px; border-radius: 10px; overflow: hidden;
+            background: #ddd; position: relative; border: 1px solid #ccc;
+        }
+        iframe { width: 100%; height: 100%; border: none; }
+        
+        .status-online { color: #2ecc71; font-weight: bold; font-size: 11px; }
+        .loading-text { text-align: center; padding: 50px; color: #999; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h2 id="header-title"><i class="fa-solid fa-map-location-dot" style="color: var(--emas);"></i> LACAK DOMBA</h2>
+        <a href="menu.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i></a>
+        <h3 style="margin:0;">LOKASI LIVE ANGGOTA</h3>
     </div>
 
-    <div class="info-panel" id="access-text">Menghubungkan ke sistem...</div>
-
-    <div class="search-container">
-        <div class="search-box">
-            <input type="text" id="search-input" placeholder="Ketik Nama (Contoh: Boby)..." onkeyup="cariAnggota()">
-        </div>
+    <div class="container" id="list-lacak">
+        <div class="loading-text">Mencari data lokasi anggota...</div>
     </div>
-
-    <div id="map-container">
-        <div style="text-align: center; color: #666;">
-            <i class="fa-solid fa-location-dot fa-2x" style="color: #ff4757; margin-bottom: 8px;"></i><br>
-            <strong id="map-status" style="font-size: 14px;">Peta Siap</strong><br>
-            <small id="map-coord" style="font-size: 10px;">Menampilkan anggota aktif di JC Anda</small>
-        </div>
-    </div>
-
-    <div class="friends-list">
-        <div id="search-results-section">
-            <div class="section-title">Hasil Pencarian</div>
-            <div id="search-results">
-                <p style="font-size: 11px; color: #999; text-align: center; padding: 10px;">Hasil pencarian akan muncul di sini.</p>
-            </div>
-        </div>
-    </div>
-
-    <div id="modalProfil" class="profile-modal">
-        <div class="profile-card">
-            <div class="card-header"></div>
-            <img id="p-foto" src="https://via.placeholder.com/100" class="card-avatar">
-            <div class="card-body">
-                <h3 id="p-nama">Nama Anggota</h3>
-                <p id="p-jc">JC Group</p>
-                <button class="btn btn-invite" onclick="lacakSekarang()">
-                    <i class="fa-solid fa-crosshairs"></i> LACAK SEKARANG
-                </button>
-                <button class="btn btn-close" onclick="tutupProfil()">TUTUP</button>
-            </div>
-        </div>
-    </div>
-
-    <a href="menu.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Kembali ke Menu</a>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
-        // --- 1. CONFIG FIREBASE ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
-            authDomain: "boby-apps-project.firebaseapp.com",
-            projectId: "boby-apps-project",
-            storageBucket: "boby-apps-project.appspot.com",
-            messagingSenderId: "125984859692",
-            appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
+            authDomain: "boby-apps-project.firebaseapp.com", 
+            projectId: "boby-apps-project", 
+            storageBucket: "boby-apps-project.appspot.com", 
+            messagingSenderId: "125984859692", 
+            appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
         };
-        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // --- 2. INISIALISASI DATA LOGIN ---
-        window.onload = function() {
-            const userJC = localStorage.getItem("userJC");
-            const userName = localStorage.getItem("userName");
+        function renderLacak() {
+            // Mengambil data dari koleksi live_tracking yang dibuat di menu.html
+            db.collection("live_tracking").onSnapshot((querySnapshot) => {
+                const listContainer = document.getElementById('list-lacak');
+                listContainer.innerHTML = "";
 
-            if (userJC && userName) {
-                document.getElementById('header-title').innerHTML = `<i class="fa-solid fa-map-location-dot" style="color: var(--emas);"></i> LACAK DOMBA JC ${userJC}`;
-                document.getElementById('access-text').innerText = `Anda login sebagai ${userName} (JC ${userJC})`;
-                // Jalankan fungsi muat peta saat halaman terbuka
-                muatPetaKomsel();
-            } else {
-                document.getElementById('access-text').innerHTML = `<b style="color:red;">Sesi Berakhir. Silakan <a href="login.html">Login Ulang</a></b>`;
-            }
-        };
+                if (querySnapshot.empty) {
+                    listContainer.innerHTML = "<div class='loading-text'>Belum ada anggota yang online.</div>";
+                    return;
+                }
 
-        // --- 3. FUNGSI MUAT PETA KOMSEL (REAL-TIME) ---
-        function muatPetaKomsel() {
-            const myJC = localStorage.getItem("userJC");
-            const myEmail = localStorage.getItem("userEmail");
-
-            // Ambil semua anggota yang satu komsel dari koleksi live_tracking
-            db.collection("live_tracking")
-                .where("komsel", "==", myJC)
-                .onSnapshot((snapshot) => {
-                    // Bersihkan marker lama
-                    hapusSemuaMarker(); 
-
-                    snapshot.forEach((doc) => {
-                        const data = doc.data();
-                        
-                        // Tampilkan marker anggota lain di konsol/log (atau UI simulasi)
-                        if (doc.id !== myEmail) {
-                            tambahMarkerKePeta(data.lat, data.lng, data.nama);
-                        }
-                    });
-                });
-        }
-
-        function tambahMarkerKePeta(lat, lng, nama) {
-            console.log(`Marker ditambahkan: ${nama} di ${lat}, ${lng}`);
-            // Karena ini adalah tampilan simulasi, kita update status di kotak peta
-            document.getElementById('map-coord').innerText = `Anggota aktif ditemukan: ${nama}`;
-        }
-
-        function hapusSemuaMarker() {
-            console.log("Membersihkan marker lama...");
-        }
-
-        // --- 4. FUNGSI CARI ---
-        async function cariAnggota() {
-            const keyword = document.getElementById('search-input').value.trim().toLowerCase();
-            const resultsDiv = document.getElementById('search-results');
-            const userJC = localStorage.getItem("userJC") || "1";
-
-            if (keyword.length < 2) {
-                resultsDiv.innerHTML = "<p style='text-align:center; font-size:11px; color:#999;'>Ketik minimal 2 huruf...</p>";
-                return;
-            }
-
-            try {
-                const snapshot = await db.collection("users").where("komsel", "==", userJC).get();
-                resultsDiv.innerHTML = "";
-                let found = false;
-
-                snapshot.forEach(doc => {
+                querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    if (data.nama.toLowerCase().includes(keyword)) {
-                        found = true;
-                        resultsDiv.innerHTML += `
-                            <div class="friend-item" onclick="bukaProfil('${data.nama}', '${data.komsel}', '${data.foto}')">
-                                <img src="${data.foto || 'https://via.placeholder.com/55'}" class="friend-img">
-                                <div class="friend-info">
-                                    <h4>${data.nama}</h4>
-                                    <p>JC ${data.komsel} • ${data.jabatan || 'Anggota'}</p>
-                                </div>
-                                <i class="fa-solid fa-chevron-right" style="color:#eee"></i>
-                            </div>`;
-                    }
+                    const lat = data.lat;
+                    const lng = data.lng;
+                    const nama = data.nama;
+                    const lastSeen = data.lastSeen ? new Date(data.lastSeen.seconds * 1000).toLocaleString('id-ID') : "Baru saja";
+
+                    // Membuat tampilan kartu untuk setiap anggota
+                    const card = `
+                        <div class="card-lacak">
+                            <div class="info-nama"><i class="fa-solid fa-user-location"></i> ${nama}</div>
+                            <div class="status-online"><i class="fa-solid fa-circle"></i> Terdeteksi: ${lastSeen}</div>
+                            <div class="info-detail">Koordinat: ${lat}, ${lng}</div>
+                            
+                            <div class="map-container">
+                                <iframe 
+                                    src="https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed">
+                                </iframe>
+                            </div>
+                            <div style="margin-top:10px; text-align:right;">
+                                <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" 
+                                   style="font-size:12px; color:var(--biru-safir); text-decoration:none; font-weight:bold;">
+                                   <i class="fa-solid fa-up-right-from-square"></i> Buka Navigasi
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    listContainer.innerHTML += card;
                 });
-
-                if (!found) resultsDiv.innerHTML = "<p style='text-align:center; font-size:11px; color:red;'>Anggota tidak ditemukan.</p>";
-            } catch (e) {
-                console.error(e);
-            }
+            });
         }
 
-        // --- 5. MODAL & UI ---
-        function bukaProfil(nama, jc, foto) {
-            document.getElementById('p-nama').innerText = nama;
-            document.getElementById('p-jc').innerText = "Anggota JC Group " + jc;
-            document.getElementById('p-foto').src = foto || 'https://via.placeholder.com/100';
-            document.getElementById('modalProfil').style.display = 'flex';
-        }
-
-        function tutupProfil() {
-            document.getElementById('modalProfil').style.display = 'none';
-        }
-
-        function lacakSekarang() {
-            const nama = document.getElementById('p-nama').innerText;
-            document.getElementById('map-status').innerText = "Melacak: " + nama;
-            document.getElementById('map-coord').innerText = "Koordinat sedang disinkronkan secara real-time...";
-            tutupProfil();
-        }
-
-        window.onclick = function(event) {
-            if (event.target == document.getElementById('modalProfil')) { tutupProfil(); }
-        }
+        // Jalankan fungsi
+        renderLacak();
     </script>
 </body>
 </html>
