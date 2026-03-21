@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --biru: #003366; --emas: #D4AF37; --bg: #f4f7fa; --merah: #d32f2f; }
+        
         body { 
             font-family: 'Segoe UI', sans-serif; 
             background: var(--bg); 
@@ -17,19 +18,20 @@
             overflow: hidden; 
         }
         
-        /* Judul Tetap di Atas */
+        /* Judul di Atas */
         header { 
             background: var(--biru); 
             color: white; 
-            padding: calc(env(safe-area-inset-top) + 15px) 15px 15px; 
+            padding: calc(env(safe-area-inset-top) + 20px) 15px 15px; 
             text-align: center; 
             font-weight: bold; 
             border-bottom: 3px solid var(--emas); 
-            flex-shrink: 0; 
+            flex-shrink: 0;
+            text-transform: uppercase;
         }
         
-        /* Area List Doa */
-        .container { 
+        /* Area Konten (Scrollable) */
+        .main-container { 
             flex-grow: 1; 
             overflow-y: auto; 
             padding: 15px; 
@@ -37,6 +39,8 @@
             -webkit-overflow-scrolling: touch; 
         }
         
+        .label-jc { font-size: 12px; font-weight: bold; color: var(--biru); margin-bottom: 10px; display: block; }
+
         .btn-tambah { 
             background: var(--emas); 
             color: var(--biru); 
@@ -48,8 +52,10 @@
             margin-bottom: 20px; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
             font-size: 14px;
+            cursor: pointer;
         }
         
+        /* Card Tampilan Doa */
         .card-doa { 
             background: white; 
             padding: 15px; 
@@ -58,10 +64,10 @@
             border-left: 5px solid var(--emas); 
             box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
         }
-        .card-doa h4 { margin: 0 0 5px; font-size: 14px; color: var(--biru); text-transform: uppercase; }
+        .card-doa h4 { margin: 0 0 5px; font-size: 14px; color: var(--biru); }
         .card-doa p { margin: 0; font-size: 13px; color: #444; line-height: 1.5; font-style: italic; }
 
-        /* Tombol Back Merah di Bawah (Sesuai Coretan Anda) */
+        /* Tombol Back Merah di Bawah (Sesuai Permintaan) */
         .nav-bawah { 
             position: fixed; 
             bottom: 0; 
@@ -84,9 +90,10 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            border: none;
         }
 
-        /* Modal Input (Pengganti file yang 404) */
+        /* Modal Input (Pengganti halaman input-doa.html) */
         .modal { 
             display: none; 
             position: fixed; 
@@ -116,6 +123,7 @@
             box-sizing: border-box; 
             font-size: 14px;
             background: #f9f9f9;
+            resize: none;
         }
     </style>
 </head>
@@ -123,30 +131,30 @@
 
 <header>CAPAIAN DOA KOMSEL</header>
 
-<div class="container">
-    <div id="labelJC" style="font-size: 12px; font-weight: bold; color: var(--biru); margin-bottom: 10px;">LIST DOA KELOMPOK...</div>
+<div class="main-container">
+    <span class="label-jc" id="txtJC">LIST DOA KELOMPOK...</span>
     
-    <button class="btn-tambah" onclick="bukaModal()">
+    <button class="btn-tambah" onclick="bukaInput()">
         <i class="fa-solid fa-plus-circle"></i> TAMBAH DOA BARU
     </button>
     
     <div id="listDoa">
-        <p style="text-align: center; color: #999; padding: 20px;">Menghubungkan ke database...</p>
+        <p style="text-align: center; color: #999; padding: 20px;">Menghubungkan database...</p>
     </div>
 </div>
 
 <div class="nav-bawah">
-    <a href="menu.html" class="btn-kembali">
+    <button class="btn-kembali" onclick="window.location.href='menu.html'">
         <i class="fa-solid fa-arrow-left"></i> KEMBALI
-    </a>
+    </button>
 </div>
 
 <div id="modalInput" class="modal">
     <div class="modal-content">
-        <h3 style="margin: 0; color: var(--biru);">Input Doa Baru</h3>
-        <textarea id="isiDoa" rows="4" placeholder="Tuliskan pokok doa Anda di sini..."></textarea>
-        <button onclick="simpanDoa()" style="width: 100%; background: var(--biru); color: white; padding: 15px; border: none; border-radius: 12px; font-weight: bold;">KIRIM KE DATABASE</button>
-        <button onclick="tutupModal()" style="width: 100%; background: none; border: none; color: #999; margin-top: 10px; cursor: pointer;">Batal</button>
+        <h3 style="margin: 0; color: var(--biru);">Tulis Pokok Doa</h3>
+        <textarea id="isiDoa" rows="4" placeholder="Apa yang ingin didoakan hari ini?"></textarea>
+        <button onclick="simpanKeFirebase()" style="width: 100%; background: var(--biru); color: white; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer;">KIRIM DOA</button>
+        <button onclick="tutupInput()" style="width: 100%; background: none; border: none; color: #999; margin-top: 10px; cursor: pointer;">Batal</button>
     </div>
 </div>
 
@@ -154,7 +162,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    // Konfigurasi Firebase Anda
+    // Konfigurasi Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -168,25 +176,25 @@
 
     const userJC = localStorage.getItem("userJC") || "5";
     const userName = localStorage.getItem("userName") || "Anggota";
-    document.getElementById('labelJC').innerText = "LIST DOA KELOMPOK JC-" + userJC;
+    document.getElementById('txtJC').innerText = "LIST DOA KELOMPOK JC-" + userJC;
 
-    function bukaModal() { document.getElementById('modalInput').style.display = 'flex'; }
-    function tutupModal() { document.getElementById('modalInput').style.display = 'none'; }
+    function bukaInput() { document.getElementById('modalInput').style.display = 'flex'; }
+    function tutupInput() { document.getElementById('modalInput').style.display = 'none'; }
 
-    async function simpanDoa() {
-        const text = document.getElementById('isiDoa').value;
-        if (!text) return alert("Mohon isi pokok doa Anda.");
+    async function simpanKeFirebase() {
+        const textDoa = document.getElementById('isiDoa').value;
+        if (!textDoa) return alert("Isi doa tidak boleh kosong");
         
         try {
             await db.collection("laporan_doa").add({
                 nama: userName,
                 jc: userJC,
-                pokokDoa: text,
+                pokokDoa: textDoa,
                 tglInput: firebase.firestore.FieldValue.serverTimestamp()
             });
             document.getElementById('isiDoa').value = "";
-            tutupModal();
-        } catch (e) { alert("Gagal kirim: " + e.message); }
+            tutupInput();
+        } catch (e) { alert("Gagal: " + e.message); }
     }
 
     // Load Data Realtime
@@ -197,7 +205,7 @@
         const listDiv = document.getElementById('listDoa');
         listDiv.innerHTML = "";
         if (snapshot.empty) {
-            listDiv.innerHTML = '<p style="text-align: center; color: #999;">Belum ada doa di kelompok ini.</p>';
+            listDiv.innerHTML = '<p style="text-align: center; color: #999;">Belum ada doa masuk.</p>';
             return;
         }
         snapshot.forEach((doc) => {
@@ -209,7 +217,7 @@
                 </div>`;
         });
     }, (err) => {
-        document.getElementById('listDoa').innerHTML = `<p style="color:red; text-align:center;">Koneksi Terputus: ${err.message}</p>`;
+        document.getElementById('listDoa').innerHTML = `<p style="color:red; text-align:center; font-size:12px;">Gagal muat: ${err.message}</p>`;
     });
 </script>
 </body>
