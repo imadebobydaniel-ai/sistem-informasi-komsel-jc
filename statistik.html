@@ -129,6 +129,17 @@
     <a href="menu.html" class="btn-back">← KEMBALI KE MENU UTAMA</a>
 </div>
 
+<div id="modal-goldar" class="modal-overlay" onclick="this.style.display='none'">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <span id="modal-title">Daftar Anggota</span>
+            <i class="fa-solid fa-xmark" style="cursor:pointer" onclick="document.getElementById('modal-goldar').style.display='none'"></i>
+        </div>
+        <div id="modal-list-user" class="modal-body">
+            </div>
+    </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
@@ -145,32 +156,70 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    // 1. Sinkronisasi Golongan Darah (Termasuk AB)
+    // 1. Sinkronisasi Golongan Darah & Fungsi Klik Detail
     function syncGoldarRealtime() {
         const filter = document.getElementById('select-komsel-goldar').value;
         db.collection("users").onSnapshot((snapshot) => {
             let counts = { A: 0, B: 0, O: 0, AB: 0 };
+            let usersData = snapshot.docs.map(doc => doc.data());
+
             snapshot.docs.forEach(doc => {
                 const data = doc.data();
-                const komselUser = String(data.komsel || "").includes("JC") ? data.komsel : "JC " + data.komsel;
+                const kUser = String(data.komsel || "").includes("JC") ? data.komsel : "JC " + data.komsel;
                 
-                if (filter === "Semua Komsel" || komselUser === filter) {
+                if (filter === "Semua Komsel" || kUser === filter) {
                     const g = (data.golongan_darah || data.golDarah || "").toUpperCase();
                     if (counts.hasOwnProperty(g)) counts[g]++;
                 }
             });
-            // Update UI
+
+            // Update UI & Tambah Event Klik
             for (let type in counts) {
-                document.getElementById('count-' + type).innerText = counts[type] + " Orang";
+                const el = document.getElementById('count-' + type);
+                el.innerText = counts[type] + " Orang";
+                el.onclick = () => openUserDetail(type, filter, usersData);
             }
         });
+    }
+
+    // Fungsi untuk menampilkan orang-orang di dalam Modal
+    function openUserDetail(goldarType, filterKomsel, allUsers) {
+        const modal = document.getElementById('modal-goldar');
+        const listBody = document.getElementById('modal-list-user');
+        document.getElementById('modal-title').innerText = "Anggota Golongan Darah " + goldarType;
+        
+        let html = "";
+        const filtered = allUsers.filter(u => {
+            const kUser = String(u.komsel || "").includes("JC") ? u.komsel : "JC " + u.komsel;
+            const gUser = (u.golongan_darah || u.golDarah || "").toUpperCase();
+            return gUser === goldarType && (filterKomsel === "Semua Komsel" || kUser === filterKomsel);
+        });
+
+        if (filtered.length === 0) {
+            html = "<p style='text-align:center; padding:20px; color:#888;'>Tidak ada anggota ditemukan.</p>";
+        } else {
+            filtered.forEach(u => {
+                const kUser = String(u.komsel || "").includes("JC") ? u.komsel : "JC " + u.komsel;
+                const foto = u.profileImage || u.foto || "https://via.placeholder.com/150";
+                html += `
+                    <div class="user-list-item">
+                        <img src="${foto}" alt="User">
+                        <div class="user-info-text">
+                            <p class="user-name">${u.nama || "Tanpa Nama"}</p>
+                            <p class="user-jc">${kUser}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        listBody.innerHTML = html;
+        modal.style.display = "flex";
     }
 
     // 2. Sinkronisasi Capaian Alkitab (JC vs Global)
     function syncCapaianRealtime() {
         const selKomsel = document.getElementById('select-komsel-alkitab').value;
-        
-        // Listen ke Users untuk total anggota
         db.collection("users").onSnapshot(snapUsers => {
             const allUsers = snapUsers.docs.map(d => d.data());
             const totalGlobal = allUsers.length;
@@ -179,22 +228,17 @@
                 return k === selKomsel;
             }).length;
 
-            // Listen ke Laporan hari ini
             const start = new Date(); start.setHours(0,0,0,0);
-            db.collection("laporan_bacaan")
-              .where("tanggal", ">=", start)
-              .onSnapshot(snapLapor => {
+            db.collection("laporan_bacaan").where("tanggal", ">=", start).onSnapshot(snapLapor => {
                 const laporGlobal = snapLapor.size;
                 const laporKomsel = snapLapor.docs.filter(d => {
                     const k = String(d.data().komsel || "").includes("JC") ? d.data().komsel : "JC " + d.data().komsel;
                     return k === selKomsel;
                 }).length;
 
-                // Hitung %
                 const pGlobal = totalGlobal > 0 ? (laporGlobal / totalGlobal) * 100 : 0;
                 const pKomsel = totalKomsel > 0 ? (laporKomsel / totalKomsel) * 100 : 0;
 
-                // Update UI
                 updateUI("global", pGlobal);
                 updateUI("komsel", pKomsel);
             });
@@ -207,7 +251,6 @@
         document.getElementById('bar-capaian-' + type).style.width = val;
     }
 
-    // Jalankan saat load
     window.onload = () => {
         syncGoldarRealtime();
         syncCapaianRealtime();
