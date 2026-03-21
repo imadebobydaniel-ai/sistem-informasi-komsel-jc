@@ -54,13 +54,17 @@
             apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
             authDomain: "boby-apps-project.firebaseapp.com",
             projectId: "boby-apps-project",
-            storageBucket: "boby-apps-project.firebasestorage.app",
+            storageBucket: "boby-apps-project.appspot.com",
             messagingSenderId: "125984859692",
             appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
         };
-        firebase.initializeApp(firebaseConfig);
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const db = firebase.firestore();
 
+        // Fungsi Lihat Password
         function togglePassLogin() {
             const passInput = document.getElementById('pass');
             const eyeIcon = document.getElementById('eyeIconLogin');
@@ -73,9 +77,12 @@
             }
         }
 
+        // --- SISTEM LOGIN STABIL (TANPA GPS) ---
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
+            
+            // Menghilangkan spasi dan memaksa huruf kecil untuk email agar tidak error di HP
+            const email = document.getElementById('email').value.trim().toLowerCase();
             const password = document.getElementById('pass').value;
 
             try {
@@ -85,13 +92,17 @@
                     .get();
 
                 if (!snapshot.empty) {
+                    // Simpan data ke session
                     localStorage.setItem("userEmail", email);
-                    window.location.replace("menu.html");
+                    
+                    // Gunakan window.location.href agar redirect lebih lancar di browser HP (Chrome/Safari)
+                    window.location.href = "menu.html"; 
                 } else {
-                    alert("Email atau Password Salah!");
+                    alert("Email atau Password Salah! Pastikan penulisan sudah benar.");
                 }
             } catch (err) {
-                alert("Error: " + err.message);
+                // Menampilkan pesan error spesifik jika gagal koneksi database
+                alert("Gagal terhubung ke database: " + err.message);
             }
         });
     </script>
