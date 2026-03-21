@@ -15,16 +15,50 @@
         .btn { width: 100%; padding: 15px; border: none; border-radius: 15px; font-weight: bold; font-size: 16px; cursor: pointer; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s; }
         .btn-hadir { background: #00c853; color: white; }
         .btn-absen { background: #d81b60; color: white; }
-        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        
+        /* MODAL POPUP BLOCK DISPLAY */
+        #popup-block {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .popup-box {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 85%;
+            max-width: 320px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation: popDown 0.3s ease-out;
+        }
+        .popup-box i { font-size: 45px; color: #d81b60; margin-bottom: 15px; }
+        .popup-box h3 { margin: 0 0 10px; color: #333; }
+        .popup-box p { margin: 0 0 20px; color: #555; font-size: 15px; line-height: 1.4; }
+        .btn-ok { background: #003366; color: white; border: none; padding: 12px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; }
 
         #reason-container { display: none; margin-top: 15px; animation: fadeIn 0.3s; }
-        textarea { width: 100%; border-radius: 10px; border: 1px solid #ddd; padding: 10px; box-sizing: border-box; font-family: inherit; }
+        textarea { width: 100%; border-radius: 10px; border: 1px solid #ddd; padding: 10px; box-sizing: border-box; font-family: inherit; margin-bottom: 10px; }
         
-        .btn-back { display: block; margin-top: 20px; color: #003366; text-decoration: none; font-weight: bold; font-size: 13px; }
+        @keyframes popDown { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .btn-back { display: block; margin-top: 20px; color: #003366; text-decoration: none; font-weight: bold; font-size: 13px; }
     </style>
 </head>
 <body>
+
+<div id="popup-block">
+    <div class="popup-box">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <h3>Pemberitahuan</h3>
+        <p id="popup-text">Pesan akan muncul di sini</p>
+        <button class="btn-ok" onclick="tutupPopup()">SAYA MENGERTI</button>
+    </div>
+</div>
 
 <div class="card">
     <i class="fa-solid fa-location-dot icon-loc"></i>
@@ -41,7 +75,7 @@
 
     <div id="reason-container">
         <textarea id="alasan" rows="3" placeholder="Tulis alasan tidak hadir..."></textarea>
-        <button class="btn btn-absen" style="margin-top:10px;" onclick="prosesTidakHadir()">KIRIM ALASAN</button>
+        <button class="btn btn-absen" onclick="prosesTidakHadir()">KIRIM ALASAN</button>
     </div>
 
     <a href="menu.html" class="btn-back"><i class="fa-solid fa-house"></i> KEMBALI KE MENU</a>
@@ -51,6 +85,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
+    // Konfigurasi Anda tetap dipertahankan
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -65,84 +100,63 @@
     const userEmail = localStorage.getItem("userEmail") || "guest@gmail.com";
     const userName = localStorage.getItem("userName") || "User";
 
-    // --- FUNGSI CEK STATUS TERAKHIR ---
+    // Fungsi menampilkan Popup Block
+    function tampilPopup(pesan) {
+        document.getElementById("popup-text").innerText = pesan;
+        document.getElementById("popup-block").style.display = "flex";
+    }
+
+    function tutupPopup() {
+        document.getElementById("popup-block").style.display = "none";
+    }
+
     async function getStatusHariIni() {
         const today = new Date().toISOString().split('T')[0];
         const snap = await db.collection("kehadiran")
             .where("email", "==", userEmail)
             .where("tanggal_str", "==", today)
             .get();
-        
-        if (!snap.empty) {
-            return snap.docs[0].data().status; 
-        }
-        return null;
+        return !snap.empty ? snap.docs[0].data().status : null;
     }
 
-    // --- FUNGSI AMBIL ALAMAT DARI GPS ---
-    function getAlamatLengkap(lat, lon) {
-        return fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
-            .then(res => res.json())
-            .then(data => data.display_name)
-            .catch(() => "Alamat tidak ditemukan");
-    }
-
-    // --- PROSES HADIR ---
+    // PROSES HADIR
     async function prosesHadir() {
-        const btn = document.getElementById("btnHadir");
         const status = await getStatusHariIni();
-
-        // Counter: Cek jika sudah melapor sebelumnya
         if (status === "HADIR") {
-            alert("Anda tadi sudah melapor!");
+            tampilPopup("Anda tadi sudah melapor!");
             return;
         }
         if (status === "TIDAK HADIR") {
-            alert("Anda tadi sudah melapor Tidak Hadir!");
+            tampilPopup("Anda tadi sudah melapor Tidak Hadir!");
             return;
         }
 
-        btn.disabled = true;
-
         if (!navigator.geolocation) {
-            alert("GPS tidak didukung di browser ini.");
-            btn.disabled = false;
+            tampilPopup("GPS tidak didukung di perangkat ini.");
             return;
         }
 
         navigator.geolocation.getCurrentPosition(async (pos) => {
-            const { latitude, longitude } = pos.coords;
-            const alamat = await getAlamatLengkap(latitude, longitude);
-
             await db.collection("kehadiran").add({
-                nama: userName,
-                email: userEmail,
-                status: "HADIR",
-                lokasi: alamat,
-                koordinat: `${latitude}, ${longitude}`,
+                nama: userName, email: userEmail, status: "HADIR",
+                koordinat: `${pos.coords.latitude}, ${pos.coords.longitude}`,
                 tanggal: firebase.firestore.FieldValue.serverTimestamp(),
                 tanggal_str: new Date().toISOString().split('T')[0]
             });
-
-            alert(`Terimakasih atas kehadirannya!\n\nPosisi Anda:\n${alamat}`);
-            window.location.href = "menu.html";
-        }, (err) => {
-            alert("Gagal mengambil lokasi. Pastikan GPS aktif.");
-            btn.disabled = false;
+            tampilPopup("Terimakasih atas kehadirannya!");
+            setTimeout(() => window.location.href = "menu.html", 2500);
         });
     }
 
-    // --- MUNCULKAN INPUT ALASAN (TIDAK HADIR) ---
+    // PROSES SHOW REASON (TIDAK HADIR)
     async function showReason() {
         const status = await getStatusHariIni();
-
-        // Counter khusus jika mencoba menekan tombol Tidak Hadir padahal sudah Hadir
         if (status === "HADIR") {
-            alert("Anda Tadi sudah Melapora Hadir"); 
+            tampilPopup("Anda Tadi sudah Melapora Hadir"); 
             return;
         }
         if (status === "TIDAK HADIR") {
-            alert("Anda tadi sudah melapor!");
+            tampilPopup("Anda tadi sudah melapor!");
             return;
         }
 
@@ -151,30 +165,18 @@
         document.getElementById("btnAbsen").style.display = "none";
     }
 
-    // --- PROSES TIDAK HADIR ---
+    // PROSES KIRIM ALASAN
     async function prosesTidakHadir() {
         const alasan = document.getElementById("alasan").value;
-        if (!alasan) { alert("Wajib mengisi alasan!"); return; }
-
-        // Double check sebelum final add
-        const status = await getStatusHariIni();
-        if (status) {
-            alert("Anda tadi sudah melapor!");
-            window.location.reload();
-            return;
-        }
+        if (!alasan) { tampilPopup("Wajib mengisi alasan!"); return; }
 
         await db.collection("kehadiran").add({
-            nama: userName,
-            email: userEmail,
-            status: "TIDAK HADIR",
-            alasan: alasan,
+            nama: userName, email: userEmail, status: "TIDAK HADIR", alasan: alasan,
             tanggal: firebase.firestore.FieldValue.serverTimestamp(),
             tanggal_str: new Date().toISOString().split('T')[0]
         });
-
-        alert("Terimakasih sudah melapor.");
-        window.location.href = "menu.html";
+        tampilPopup("Terimakasih sudah melapor.");
+        setTimeout(() => window.location.href = "menu.html", 2500);
     }
 </script>
 </body>
