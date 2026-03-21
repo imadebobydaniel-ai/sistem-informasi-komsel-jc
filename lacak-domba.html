@@ -62,6 +62,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
+        // --- 1. CONFIG FIREBASE ---
         const firebaseConfig = { 
             apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
             authDomain: "boby-apps-project.firebaseapp.com", 
@@ -70,28 +71,60 @@
             messagingSenderId: "125984859692", 
             appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
         };
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
 
+        // --- 2. FUNGSI FILTER NAMA (VERSI TERBARU) ---
         function filterNama() {
-            let input = document.getElementById('searchInput').value.toLowerCase();
+            let input = document.getElementById('searchInput').value.trim().toLowerCase();
             let cards = document.getElementsByClassName('card-lacak');
+            let found = false;
+
             for (let i = 0; i < cards.length; i++) {
-                let nama = cards[i].getAttribute('data-nama').toLowerCase();
-                cards[i].style.display = nama.includes(input) ? "" : "none";
+                // Mengambil teks dari elemen nama di dalam kartu
+                let namaElemen = cards[i].querySelector('.info-nama').innerText.toLowerCase();
+                
+                if (namaElemen.includes(input)) {
+                    cards[i].style.display = "";
+                    found = true;
+                } else {
+                    cards[i].style.display = "none";
+                }
+            }
+
+            // Menampilkan pesan jika tidak ditemukan
+            const listContainer = document.getElementById('list-lacak');
+            const existingNoMatch = document.getElementById('no-match');
+            
+            if (!found && input !== "") {
+                if (!existingNoMatch) {
+                    const noMatchDiv = document.createElement('div');
+                    noMatchDiv.id = "no-match";
+                    noMatchDiv.className = "no-data";
+                    noMatchDiv.innerHTML = `Nama "${input}" tidak sedang online/aktif.`;
+                    listContainer.appendChild(noMatchDiv);
+                } else {
+                    existingNoMatch.innerHTML = `Nama "${input}" tidak sedang online/aktif.`;
+                }
+            } else {
+                if (existingNoMatch) existingNoMatch.remove();
             }
         }
 
+        // --- 3. LISTEN DATA REAL-TIME ---
         function listenLocation() {
             db.collection("live_tracking").onSnapshot((querySnapshot) => {
                 const listContainer = document.getElementById('list-lacak');
-                listContainer.innerHTML = "";
+                
+                // Simpan nilai pencarian saat ini agar tidak hilang saat data update
+                const currentSearch = document.getElementById('searchInput').value;
 
                 if (querySnapshot.empty) {
                     listContainer.innerHTML = "<div class='no-data'>Belum ada anggota yang aktif membagikan lokasi.</div>";
                     return;
                 }
 
+                let htmlContent = "";
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     const lat = data.lat;
@@ -99,9 +132,8 @@
                     const nama = data.nama || "Tanpa Nama";
                     const lastSeen = data.lastSeen ? new Date(data.lastSeen.seconds * 1000).toLocaleString('id-ID') : "Baru saja";
 
-                    // Perbaikan: Menggunakan HTTPS standar agar tidak error di HP
-                    const card = `
-                        <div class="card-lacak" data-nama="${nama}">
+                    htmlContent += `
+                        <div class="card-lacak">
                             <div class="info-nama"><i class="fa-solid fa-location-dot" style="color:red;"></i> ${nama}</div>
                             <div class="status-online"><i class="fa-solid fa-circle" style="font-size:8px;"></i> Terdeteksi: ${lastSeen}</div>
                             <div class="info-detail">Koordinat: ${lat}, ${lng}</div>
@@ -110,14 +142,17 @@
                                 <iframe src="https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed"></iframe>
                             </div>
                             <div style="text-align:right;">
-                                <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" class="btn-navigasi">
+                                <a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" class="btn-navigasi">
                                     <i class="fa-solid fa-route"></i> BUKA NAVIGASI
                                 </a>
                             </div>
                         </div>
                     `;
-                    listContainer.innerHTML += card;
                 });
+                
+                listContainer.innerHTML = htmlContent;
+                
+                // Jalankan filter kembali setelah data di-render ulang
                 filterNama();
             });
         }
