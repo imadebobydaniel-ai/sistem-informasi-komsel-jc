@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Statistik - Pondok Pemulihan</title>
+    <title>Statistik Lengkap - Pondok Pemulihan</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --biru-utama: #007bff; --ungu-global: #6f42c1; --merah-absen: #dc3545; --putih-bg: #f4f7fa; }
@@ -27,7 +27,6 @@
         .modal-body { max-height: 350px; overflow-y: auto; padding: 10px; }
         .user-list-item { display: flex; align-items: center; gap: 12px; padding: 10px; border-bottom: 1px solid #eee; }
         .user-list-item img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #ddd; }
-        .user-info-text { display: flex; flex-direction: column; }
         .user-name { font-size: 14px; font-weight: bold; color: #333; margin: 0; }
         .user-jc { font-size: 11px; color: #666; margin: 0; font-weight: bold; }
         .btn-back { display: block; text-align: center; padding: 14px; background: white; color: var(--biru-utama); text-decoration: none; font-weight: bold; border-radius: 12px; border: 1px solid #ddd; margin-top: 10px; font-size: 13px; width: 100%; box-sizing: border-box; }
@@ -40,7 +39,7 @@
         <div class="card-header"><i class="fa-solid fa-earth-americas"></i> CAPAIAN BACA ALKITAB</div>
         <div class="flex-row">
             <div class="input-box"><label>Pilih Komsel</label>
-                <select id="selectKomselCapaian" onchange="loadCapaianAlkitab()">
+                <select id="selectKomselCapaian" onchange="loadStats()">
                     <option value="1">JC 1</option><option value="2">JC 2</option><option value="3">JC 3</option><option value="4">JC 4</option><option value="5" selected>JC 5</option>
                 </select>
             </div>
@@ -51,9 +50,26 @@
         <div class="stat-item">
             <div class="stat-label-flex"><span>Capaian Komsel</span><span id="txtCapaianKomsel" style="color:var(--biru-utama)">0%</span></div>
             <div class="progress-bar"><div id="barCapaianKomsel" class="progress-fill" style="width: 0%; background: var(--biru-utama);"></div></div>
-            
             <div class="stat-label-flex"><span>Seluruh Komsel (Global)</span><span id="txtCapaianGlobal" style="color:var(--ungu-global)">0%</span></div>
             <div class="progress-bar"><div id="barCapaianGlobal" class="progress-fill" style="width: 0%; background: var(--ungu-global);"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><i class="fa-solid fa-calendar-check"></i> STATISTIK KEHADIRAN</div>
+        <div class="stat-item">
+            <div class="stat-label-flex"><span>Kehadiran Komsel</span><span id="txtHadirKomsel" style="color:var(--biru-utama)">0%</span></div>
+            <div class="progress-bar"><div id="barHadirKomsel" class="progress-fill" style="width: 0%; background: var(--biru-utama);"></div></div>
+            <div class="stat-label-flex"><span>Seluruh Komsel (Global)</span><span id="txtHadirGlobal" style="color:var(--ungu-global)">0%</span></div>
+            <div class="progress-bar"><div id="barHadirGlobal" class="progress-fill" style="width: 0%; background: var(--ungu-global);"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><i class="fa-solid fa-circle-exclamation" style="color:var(--merah-absen)"></i> KETIDAK HADIRAN</div>
+        <div class="stat-item">
+            <div class="stat-label-flex"><span>Ketidak Hadiran Komsel</span><span id="txtAbsenKomsel" style="color:var(--merah-absen)">0%</span></div>
+            <div class="progress-bar"><div id="barAbsenKomsel" class="progress-fill" style="width: 0%; background: var(--merah-absen);"></div></div>
         </div>
     </div>
 
@@ -64,128 +80,5 @@
             <option value="Semua">Semua Komsel</option>
             <option value="1">JC 1</option><option value="2">JC 2</option><option value="3">JC 3</option><option value="4">JC 4</option><option value="5" selected>JC 5</option>
         </select>
-        
         <div class="blood-item"><span>A</span><span class="btn-detail" id="countA" onclick="openPopup('A')">0 Orang</span></div>
-        <div class="blood-item"><span>B</span><span class="btn-detail" id="countB" onclick="openPopup('B')">0 Orang</span></div>
-        <div class="blood-item"><span>O</span><span class="btn-detail" id="countO" onclick="openPopup('O')">0 Orang</span></div>
-        <div class="blood-item"><span>AB</span><span class="btn-detail" id="countAB" onclick="openPopup('AB')">0 Orang</span></div>
-    </div>
-
-    <a href="menu.html" class="btn-back">← KEMBALI KE MENU UTAMA</a>
-</div>
-
-<div id="modalDetail" class="modal-overlay" onclick="closePopup()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <div class="modal-header">
-            <span>Detail Golongan Darah <span id="bloodTypeTitle"></span></span>
-            <i class="fa-solid fa-times" style="cursor:pointer" onclick="closePopup()"></i>
-        </div>
-        <div class="modal-body" id="userList"></div>
-    </div>
-</div>
-
-<script type="module">
-    import { db } from './firebase-config.js'; 
-    import { collection, query, where, getDocs, or } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    // --- LOGIKA CAPAIAN BACA ALKITAB (REALTIME & GLOBAL) ---
-    window.loadCapaianAlkitab = async function() {
-        const komselId = document.getElementById('selectKomselCapaian').value;
-        const usersRef = collection(db, "users");
-
-        // 1. Hitung Global (Semua User)
-        const snapGlobal = await getDocs(usersRef);
-        let totalUserGlobal = snapGlobal.size;
-        let sdhBacaGlobal = 0;
-        
-        // 2. Hitung Komsel Spesifik
-        let totalUserKomsel = 0;
-        let sdhBacaKomsel = 0;
-
-        snapGlobal.forEach(doc => {
-            const d = doc.data();
-            // Cek status baca (Asumsi field 'sudah_baca' true/false atau ada data di 'laporan_alkitab')
-            if(d.status_baca_hari_ini === true) sdhBacaGlobal++;
-            
-            if(String(d.komsel) === komselId) {
-                totalUserKomsel++;
-                if(d.status_baca_hari_ini === true) sdhBacaKomsel++;
-            }
-        });
-
-        // Hitung Persentase
-        const persenKomsel = totalUserKomsel > 0 ? Math.round((sdhBacaKomsel/totalUserKomsel)*100) : 0;
-        const persenGlobal = totalUserGlobal > 0 ? Math.round((sdhBacaGlobal/totalUserGlobal)*100) : 0;
-
-        // Update UI
-        document.getElementById('txtCapaianKomsel').innerText = `${persenKomsel}%`;
-        document.getElementById('barCapaianKomsel').style.width = `${persenKomsel}%`;
-        document.getElementById('txtCapaianGlobal').innerText = `${persenGlobal}%`;
-        document.getElementById('barCapaianGlobal').style.width = `${persenGlobal}%`;
-    }
-
-    // --- LOGIKA GOLONGAN DARAH (DUAL FIELD SUPPORT) ---
-    window.updateBloodStats = async function() {
-        const komselId = document.getElementById('filterKomselDarah').value;
-        const types = ['A', 'B', 'O', 'AB'];
-        
-        for (const type of types) {
-            const usersRef = collection(db, "users");
-            let q;
-
-            // Penting: Menggunakan or() karena ada perbedaan field 'golongan_darah' dan 'golDarah'
-            if (komselId === "Semua") {
-                q = query(usersRef, or(where("golongan_darah", "==", type), where("golDarah", "==", type)));
-            } else {
-                q = query(usersRef, where("komsel", "==", komselId), 
-                    or(where("golongan_darah", "==", type), where("golDarah", "==", type))
-                );
-            }
-            
-            const snap = await getDocs(q);
-            document.getElementById(`count${type}`).innerText = `${snap.size} Orang`;
-        }
-    }
-
-    window.openPopup = async function(type) {
-        document.getElementById("bloodTypeTitle").innerText = type;
-        document.getElementById("modalDetail").style.display = "flex";
-        const userList = document.getElementById("userList");
-        userList.innerHTML = '<p style="text-align:center; font-size:11px;">Memuat data...</p>';
-        
-        const komselId = document.getElementById('filterKomselDarah').value;
-        let q;
-        const usersRef = collection(db, "users");
-
-        if (komselId === "Semua") {
-            q = query(usersRef, or(where("golongan_darah", "==", type), where("golDarah", "==", type)));
-        } else {
-            q = query(usersRef, where("komsel", "==", komselId), 
-                or(where("golongan_darah", "==", type), where("golDarah", "==", type))
-            );
-        }
-
-        const snap = await getDocs(q);
-        userList.innerHTML = snap.empty ? '<p style="text-align:center; padding:20px;">Tidak ada data.</p>' : "";
-        
-        snap.forEach(doc => {
-            const d = doc.data();
-            userList.innerHTML += `
-                <div class="user-list-item">
-                    <img src="${d.fotoUrl || d.foto_profil || 'https://via.placeholder.com/50'}" alt="Foto">
-                    <div class="user-info-text">
-                        <p class="user-name">${d.nama || 'Tanpa Nama'}</p>
-                        <p class="user-jc">Unit: JC ${d.komsel}</p>
-                    </div>
-                </div>`;
-        });
-    }
-
-    window.closePopup = function() { document.getElementById("modalDetail").style.display = "none"; }
-
-    // Jalankan awal
-    loadCapaianAlkitab();
-    updateBloodStats();
-</script>
-</body>
-</html>
+        <div class="blood-item"><span>B</span><span class="btn-detail" id="countB" onclick="openPopup('
