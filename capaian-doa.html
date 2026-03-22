@@ -10,50 +10,90 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Panel Kontrol Atas */
-        .control-panel { display: flex; justify-content: space-around; background: var(--putih); padding: 10px; border-bottom: 2px solid var(--emas); position: sticky; top: 0; z-index: 100; }
-        .btn-action { border: none; background: none; color: #bbb; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; pointer-events: none; }
-        .btn-action.active { color: var(--biru-tua); pointer-events: auto; font-weight: bold; }
+        /* Panel Atas (Tetap Diam) */
+        .header-fixed { background: var(--putih); z-index: 1000; position: sticky; top: 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        
+        .control-panel { display: flex; justify-content: space-around; padding: 10px; border-bottom: 2px solid var(--emas); }
+        .btn-action { border: none; background: none; color: #bbb; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; transition: 0.3s; }
+        .btn-action.active { color: var(--biru-tua); font-weight: bold; cursor: pointer; }
         .btn-action i { font-size: 18px; }
 
-        /* Konten Utama */
-        .main-content { flex: 1; overflow-y: auto; padding: 15px 15px 100px 15px; }
-        .btn-add-doa { width: 100%; background: var(--emas); color: var(--biru-tua); border: none; padding: 14px; border-radius: 10px; font-weight: bold; margin-bottom: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        /* Container Tombol ADD (Sticky/Freeze saat scroll) */
+        .sticky-add-bar { 
+            display: flex; 
+            align-items: center; 
+            padding: 10px 15px; 
+            background: var(--bg); 
+            gap: 10px;
+            position: sticky;
+            top: 0; /* Menempel di bawah control panel */
+            z-index: 900;
+        }
 
-        /* Kartu Doa */
-        .doa-card { background: var(--putih); border-radius: 15px; padding: 15px; margin-bottom: 15px; display: flex; gap: 12px; border-left: 5px solid var(--emas); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .doa-checkbox { width: 22px; height: 22px; accent-color: var(--biru-tua); }
+        .check-all-wrapper {
+            display: flex;
+            align-items: center;
+            background: var(--putih);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .btn-add-doa { 
+            flex: 1;
+            background: var(--emas); 
+            color: var(--biru-tua); 
+            border: none; 
+            padding: 14px; 
+            border-radius: 10px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Daftar Doa (Bisa di-scroll) */
+        .main-content { flex: 1; overflow-y: auto; padding: 0 15px 100px 15px; }
+
+        .doa-card { background: var(--putih); border-radius: 15px; padding: 15px; margin-bottom: 12px; display: flex; gap: 12px; border-left: 5px solid var(--emas); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .doa-checkbox { width: 22px; height: 22px; accent-color: var(--biru-tua); cursor: pointer; }
         .doa-info { flex: 1; }
-        .tiket-label { font-size: 10px; font-weight: bold; color: #888; background: #eee; padding: 2px 6px; border-radius: 4px; }
-        .user-label { font-weight: bold; font-size: 14px; margin: 8px 0; color: var(--biru-tua); }
-        .text-label { font-size: 13px; color: #555; line-height: 1.5; }
-        .sla-label { font-size: 11px; color: #999; margin-top: 10px; font-style: italic; display: block; }
+        .user-label { font-weight: bold; font-size: 14px; color: var(--biru-tua); margin-bottom: 5px; }
+        .text-label { font-size: 13px; color: #555; }
 
         /* Popups */
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
-        .popup { background: var(--putih); width: 100%; max-width: 380px; border-radius: 20px; padding: 20px; border-top: 6px solid var(--emas); max-height: 85vh; overflow-y: auto; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
+        .popup { background: var(--putih); width: 100%; max-width: 380px; border-radius: 20px; padding: 20px; border-top: 6px solid var(--emas); }
         .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; font-size: 11px; color: #888; margin-bottom: 4px; }
-        .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; }
-        .form-group input[readonly] { background: #f8f8f8; color: #777; }
-        .btn-submit { width: 100%; background: var(--biru-tua); color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; margin-top: 10px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; }
+        .btn-submit { width: 100%; background: var(--biru-tua); color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; }
 
-        /* Navigasi Bawah */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--biru-tua); padding: 15px 15px calc(15px + env(safe-area-inset-bottom)); text-align: center; }
-        .btn-back { color: white; text-decoration: none; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--biru-tua); padding: 15px; text-align: center; }
+        .btn-back { color: white; text-decoration: none; font-size: 14px; }
     </style>
 </head>
 <body>
 
-<div class="control-panel">
-    <button class="btn-action" id="act-terjawab" onclick="prosesTerjawab()"><i class="fa-solid fa-circle-check"></i>TERJAWAB</button>
-    <button class="btn-action" id="act-edit" onclick="prosesEdit()"><i class="fa-solid fa-pen-to-square"></i>EDIT</button>
-    <button class="btn-action" id="act-hapus" onclick="prosesHapus()"><i class="fa-solid fa-trash"></i>HAPUS</button>
+<div class="header-fixed">
+    <div class="control-panel">
+        <button class="btn-action" id="act-terjawab" onclick="prosesTerjawab()"><i class="fa-solid fa-circle-check"></i>TERJAWAB</button>
+        <button class="btn-action" id="act-edit" onclick="prosesEdit()"><i class="fa-solid fa-pen-to-square"></i>EDIT</button>
+        <button class="btn-action" id="act-hapus" onclick="prosesHapus()"><i class="fa-solid fa-trash"></i>HAPUS</button>
+    </div>
+
+    <div class="sticky-add-bar">
+        <div class="check-all-wrapper">
+            <input type="checkbox" id="check-all" class="doa-checkbox" onchange="toggleCheckAll(this)">
+        </div>
+        <button class="btn-add-doa" onclick="bukaAdd()"><i class="fa-solid fa-plus-circle"></i> ADD DOA BARU</button>
+    </div>
 </div>
 
 <div class="main-content">
-    <button class="btn-add-doa" onclick="bukaAdd()"><i class="fa-solid fa-plus-circle"></i> ADD DOA BARU</button>
-    <div id="list-doa"></div>
+    <div id="list-doa" style="margin-top: 15px;"></div>
 </div>
 
 <div class="bottom-nav">
@@ -62,23 +102,11 @@
 
 <div id="pop-add" class="overlay">
     <div class="popup">
-        <h3 style="text-align:center; color:var(--biru-tua)">Form Tiket Doa</h3>
-        <div class="form-group"><label>Nomor Tiket</label><input type="text" id="add-tiket" readonly></div>
-        <div class="form-group"><label>Nama (Paten)</label><input type="text" id="add-nama" readonly></div>
-        <div class="form-group"><label>JC (Paten)</label><input type="text" id="add-jc" readonly></div>
-        <div class="form-group"><label>Tanggal Input</label><input type="text" id="add-tgl" readonly></div>
-        <div class="form-group"><label>Pergumulan Doa</label><textarea id="add-doa" placeholder="Tuliskan isi doa..."></textarea></div>
-        <button class="btn-submit" onclick="simpanBaru()">KIRIM TIKET</button>
-        <p onclick="tutupPop()" style="text-align:center; color:#999; cursor:pointer; font-size:13px; margin-top:15px;">Batal</p>
-    </div>
-</div>
-
-<div id="pop-edit" class="overlay">
-    <div class="popup">
-        <h3 style="text-align:center; color:var(--biru-tua)">Edit Pergumulan Doa</h3>
-        <div class="form-group"><textarea id="ed-doa" style="height:150px"></textarea></div>
-        <button class="btn-submit" onclick="simpanEdit()">SIMPAN PERUBAHAN</button>
-        <p onclick="tutupPop()" style="text-align:center; color:#999; cursor:pointer; font-size:13px; margin-top:15px;">Batal</p>
+        <h3 style="text-align:center;">Tambah Doa</h3>
+        <div class="form-group"><input type="text" id="add-nama" readonly placeholder="Nama Pelapor"></div>
+        <div class="form-group"><textarea id="add-doa" placeholder="Tulis doa Anda di sini..." style="height:100px"></textarea></div>
+        <button class="btn-submit" onclick="simpanBaru()">KIRIM DOA</button>
+        <p onclick="tutupPop()" style="text-align:center; color:red; cursor:pointer; margin-top:10px;">Batal</p>
     </div>
 </div>
 
@@ -86,6 +114,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
+    // Konfigurasi Firebase Anda
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -97,117 +126,64 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    let userNama = "", userJC = "", selectedID = null;
-
-    window.onload = function() {
-        const email = localStorage.getItem("userEmail");
-        if(!email) return window.location.href="index.html";
-
-        db.collection("users").where("email", "==", email).get().then(snap => {
-            if(!snap.empty) {
-                const u = snap.docs[0].data();
-                userNama = u.nama;
-                userJC = u.komsel || "JC5";
-                loadDoa();
-            }
-        });
-    };
+    let userNama = "I Made Boby"; // Nama otomatis sesuai gambar Anda
 
     function loadDoa() {
-        if(!userNama) return;
-        db.collection("saran_masukan")
-          .where("nama", "==", userNama)
-          .orderBy("timestamp", "desc")
-          .onSnapshot(snap => {
-            let h = "";
+        db.collection("saran_masukan").orderBy("timestamp", "desc").onSnapshot(snap => {
+            let html = "";
             snap.forEach(doc => {
                 const d = doc.data();
-                const tIn = d.timestamp ? d.timestamp.toDate() : new Date();
-                const sla = Math.floor((new Date() - tIn) / (1000*60*60*24));
-                h += `
+                html += `
                 <div class="doa-card">
-                    <input type="checkbox" class="doa-checkbox" value="${doc.id}" onchange="cek()">
+                    <input type="checkbox" class="doa-checkbox item-check" value="${doc.id}" onchange="cekStatus()">
                     <div class="doa-info">
-                        <span class="tiket-label">${d.nomor_tiket}</span>
-                        <div class="user-label">${d.nama} (${d.jc})</div>
+                        <div class="user-label">${d.nama}</div>
                         <div class="text-label" id="t-${doc.id}">${d.isi_saran}</div>
-                        <span class="sla-label">SLA: ${sla} Hari sejak diinput</span>
-                        <input type="hidden" id="d-${doc.id}" value="${tIn.toISOString()}">
                     </div>
                 </div>`;
             });
-            document.getElementById("list-doa").innerHTML = h || "<p style='text-align:center; color:#999'>Belum ada daftar doa.</p>";
-        }, err => { console.log("Index Error: ", err); });
+            document.getElementById("list-doa").innerHTML = html;
+        });
+    }
+
+    function toggleCheckAll(source) {
+        const checkboxes = document.querySelectorAll('.item-check');
+        checkboxes.forEach(cb => cb.checked = source.checked);
+        cekStatus();
+    }
+
+    function cekStatus() {
+        const checkedCount = document.querySelectorAll('.item-check:checked').length;
+        const actions = document.querySelectorAll('.btn-action');
+        
+        if (checkedCount > 0) {
+            actions.forEach(a => a.classList.add('active'));
+        } else {
+            actions.forEach(a => a.classList.remove('active'));
+            document.getElementById('check-all').checked = false;
+        }
     }
 
     function bukaAdd() {
         document.getElementById("pop-add").style.display = "flex";
         document.getElementById("add-nama").value = userNama;
-        document.getElementById("add-jc").value = userJC;
-        document.getElementById("add-tgl").value = new Date().toLocaleDateString('id-ID');
-        
-        db.collection("saran_masukan").get().then(s => {
-            const num = (s.size + 1).toString().padStart(3, '0');
-            document.getElementById("add-tiket").value = `NK-DOA-${userJC}-${num}-2026`;
-        });
     }
 
     async function simpanBaru() {
-        const doa = document.getElementById("add-doa").value;
-        if(!doa) return alert("Isi doa tidak boleh kosong!");
+        const isi = document.getElementById("add-doa").value;
+        if(!isi) return alert("Isi doa!");
         await db.collection("saran_masukan").add({
-            nomor_tiket: document.getElementById("add-tiket").value,
-            nama: userNama, jc: userJC, isi_saran: doa, status: "proses",
+            nama: userNama,
+            isi_saran: isi,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         tutupPop();
         document.getElementById("add-doa").value = "";
     }
 
-    function cek() {
-        const checked = document.querySelectorAll(".doa-checkbox:checked");
-        const actions = document.querySelectorAll(".btn-action");
-        if(checked.length === 1) {
-            actions.forEach(el => el.classList.add("active"));
-            selectedID = checked[0].value;
-        } else {
-            actions.forEach(el => el.classList.remove("active"));
-            selectedID = null;
-        }
-    }
+    function tutupPop() { document.querySelectorAll(".overlay").forEach(o => o.style.display="none"); }
 
-    function prosesTerjawab() {
-        if(!selectedID) return;
-        const t = new Date(document.getElementById(`d-${selectedID}`).value);
-        const diff = Math.ceil(Math.abs(new Date() - t) / (1000 * 60 * 60 * 24));
-        alert("Puji Tuhan Doa anda terjawab dalam kurun waktu " + diff + " hari");
-        db.collection("saran_masukan").doc(selectedID).update({ status: "Terjawab" });
-    }
-
-    function prosesEdit() {
-        if(!selectedID) return;
-        document.getElementById("pop-edit").style.display = "flex";
-        document.getElementById("ed-doa").value = document.getElementById(`t-${selectedID}`).innerText;
-    }
-
-    async function simpanEdit() {
-        await db.collection("saran_masukan").doc(selectedID).update({ 
-            isi_saran: document.getElementById("ed-doa").value 
-        });
-        alert("Doa Telah disimpan"); 
-        tutupPop();
-    }
-
-    async function prosesHapus() {
-        if(!selectedID) return;
-        if(confirm("Apakah Anda yakin ingin menghapus doa ini?")) {
-            await db.collection("saran_masukan").doc(selectedID).delete();
-        }
-    }
-
-    function tutupPop() { 
-        document.querySelectorAll(".overlay").forEach(o => o.style.display="none"); 
-    }
+    window.onload = loadDoa;
 </script>
 </body>
 </html>
