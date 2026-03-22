@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
+        .card { background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; position: relative; }
         .icon-loc { font-size: 50px; color: #00a884; margin-bottom: 15px; }
         h2 { color: #003366; margin-bottom: 10px; text-transform: uppercase; }
         p { color: #666; font-size: 14px; margin-bottom: 25px; }
@@ -16,44 +16,29 @@
         .btn-hadir { background: #00c853; color: white; }
         .btn-absen { background: #d81b60; color: white; }
         
-        /* MODAL POPUP BLOCK DISPLAY */
-        #popup-block {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-        }
-        .popup-box {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            width: 85%;
-            max-width: 320px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            animation: popDown 0.3s ease-out;
-        }
-        .popup-box i { font-size: 45px; color: #d81b60; margin-bottom: 15px; }
+        /* MODAL POPUP */
+        #popup-block { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 9999; justify-content: center; align-items: center; }
+        .popup-box { background: white; padding: 30px; border-radius: 20px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); animation: popDown 0.3s ease-out; }
+        .popup-box i { font-size: 45px; color: #003366; margin-bottom: 15px; }
         .popup-box h3 { margin: 0 0 10px; color: #333; }
         .popup-box p { margin: 0 0 20px; color: #555; font-size: 15px; line-height: 1.4; }
         .btn-ok { background: #003366; color: white; border: none; padding: 12px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; }
 
         #reason-container { display: none; margin-top: 15px; animation: fadeIn 0.3s; }
-        textarea { width: 100%; border-radius: 10px; border: 1px solid #ddd; padding: 10px; box-sizing: border-box; font-family: inherit; margin-bottom: 10px; }
+        textarea { width: 100%; border-radius: 10px; border: 1px solid #ddd; padding: 10px; box-sizing: border-box; font-family: inherit; margin-bottom: 10px; resize: none; }
         
         @keyframes popDown { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         .btn-back { display: block; margin-top: 20px; color: #003366; text-decoration: none; font-weight: bold; font-size: 13px; }
+        
+        #status-container { display:none; margin-top: 20px; padding: 15px; border-radius: 12px; background: #f8f9fa; border: 1px solid #ddd; }
     </style>
 </head>
 <body>
 
 <div id="popup-block">
     <div class="popup-box">
-        <i class="fa-solid fa-circle-exclamation"></i>
+        <i class="fa-solid fa-circle-info"></i>
         <h3>Pemberitahuan</h3>
         <p id="popup-text">Pesan akan muncul di sini</p>
         <button class="btn-ok" onclick="tutupPopup()">SAYA MENGERTI</button>
@@ -75,7 +60,12 @@
 
     <div id="reason-container">
         <textarea id="alasan" rows="3" placeholder="Tulis alasan tidak hadir..."></textarea>
-        <button class="btn btn-absen" onclick="prosesTidakHadir()">KIRIM ALASAN</button>
+        <button class="btn btn-absen" onclick="prosesTidakHadir()">KIRIM LAPORAN</button>
+    </div>
+
+    <div id="status-container">
+        <h4 id="status-title" style="margin: 0 0 5px 0; font-size: 14px; font-weight: bold; color: #00a884;"></h4>
+        <p id="status-location" style="margin: 0; font-size: 12px; color: #666; font-style: italic;"></p>
     </div>
 
     <a href="menu.html" class="btn-back"><i class="fa-solid fa-house"></i> KEMBALI KE MENU</a>
@@ -85,7 +75,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    // Konfigurasi Anda tetap dipertahankan
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -100,7 +89,7 @@
     const userEmail = localStorage.getItem("userEmail") || "guest@gmail.com";
     const userName = localStorage.getItem("userName") || "User";
 
-    // Fungsi menampilkan Popup Block
+    // FUNGSI UI
     function tampilPopup(pesan) {
         document.getElementById("popup-text").innerText = pesan;
         document.getElementById("popup-block").style.display = "flex";
@@ -110,24 +99,46 @@
         document.getElementById("popup-block").style.display = "none";
     }
 
-    async function getStatusHariIni() {
-        const today = new Date().toISOString().split('T')[0];
+    function tampilkanNotifikasi(judul, sub) {
+        const container = document.getElementById("status-container");
+        document.getElementById("status-title").innerText = judul;
+        document.getElementById("status-location").innerText = sub;
+        container.style.display = "block";
+    }
+
+    function disableTombol() {
+        document.getElementById("btnHadir").disabled = true;
+        document.getElementById("btnAbsen").disabled = true;
+        document.getElementById("btnHadir").style.opacity = "0.5";
+        document.getElementById("btnAbsen").style.opacity = "0.5";
+    }
+
+    // CEK STATUS (FIREBASE & LOCAL STORAGE)
+    async function cekStatusLapor() {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const localStatus = localStorage.getItem("status_lapor_hari_ini");
+
+        if (localStatus === todayStr) return "SUDAH";
+
         const snap = await db.collection("kehadiran")
             .where("email", "==", userEmail)
-            .where("tanggal_str", "==", today)
+            .where("tanggal_str", "==", todayStr)
             .get();
-        return !snap.empty ? snap.docs[0].data().status : null;
+        
+        if (!snap.empty) {
+            localStorage.setItem("status_lapor_hari_ini", todayStr);
+            return "SUDAH";
+        }
+        return "BELUM";
     }
 
     // PROSES HADIR
     async function prosesHadir() {
-        const status = await getStatusHariIni();
-        if (status === "HADIR") {
-            tampilPopup("Anda tadi sudah melapor!");
-            return;
-        }
-        if (status === "TIDAK HADIR") {
-            tampilPopup("Anda tadi sudah melapor Tidak Hadir!");
+        const status = await cekStatusLapor();
+        if (status === "SUDAH") {
+            tampilPopup("Anda Tadi Sudah Melapor");
+            tampilkanNotifikasi("Anda Tadi Sudah Melapor", "Data Anda aman di database.");
+            disableTombol();
             return;
         }
 
@@ -136,48 +147,78 @@
             return;
         }
 
+        tampilkanNotifikasi("Mengambil Lokasi...", "Mohon tunggu sebentar...");
+
         navigator.geolocation.getCurrentPosition(async (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            const koordinat = `${lat}, ${lon}`;
+
             await db.collection("kehadiran").add({
                 nama: userName, email: userEmail, status: "HADIR",
-                koordinat: `${pos.coords.latitude}, ${pos.coords.longitude}`,
+                koordinat: koordinat,
                 tanggal: firebase.firestore.FieldValue.serverTimestamp(),
                 tanggal_str: new Date().toISOString().split('T')[0]
             });
+
+            localStorage.setItem("status_lapor_hari_ini", new Date().toISOString().split('T')[0]);
+            tampilkanNotifikasi("Terimakasih Atas Kehadiran Anda", `Lokasi: ${lat.toFixed(5)}, ${lon.toFixed(5)}`);
             tampilPopup("Terimakasih atas kehadirannya!");
-            setTimeout(() => window.location.href = "menu.html", 2500);
+            disableTombol();
+        }, () => {
+            tampilPopup("Gagal mengambil lokasi. Pastikan GPS aktif.");
         });
     }
 
-    // PROSES SHOW REASON (TIDAK HADIR)
+    // TAMPILKAN INPUT ALASAN
     async function showReason() {
-        const status = await getStatusHariIni();
-        if (status === "HADIR") {
-            tampilPopup("Anda Tadi sudah Melapora Hadir"); 
+        const status = await cekStatusLapor();
+        if (status === "SUDAH") {
+            tampilPopup("Anda Tadi Sudah Melapor");
+            disableTombol();
             return;
         }
-        if (status === "TIDAK HADIR") {
-            tampilPopup("Anda tadi sudah melapor!");
-            return;
-        }
-
         document.getElementById("reason-container").style.display = "block";
         document.getElementById("btnHadir").style.display = "none";
         document.getElementById("btnAbsen").style.display = "none";
     }
 
-    // PROSES KIRIM ALASAN
+    // PROSES TIDAK HADIR
     async function prosesTidakHadir() {
         const alasan = document.getElementById("alasan").value;
         if (!alasan) { tampilPopup("Wajib mengisi alasan!"); return; }
 
-        await db.collection("kehadiran").add({
-            nama: userName, email: userEmail, status: "TIDAK HADIR", alasan: alasan,
-            tanggal: firebase.firestore.FieldValue.serverTimestamp(),
-            tanggal_str: new Date().toISOString().split('T')[0]
+        tampilkanNotifikasi("Mengambil Lokasi...", "Menyimpan laporan...");
+
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+
+            await db.collection("kehadiran").add({
+                nama: userName, email: userEmail, status: "TIDAK HADIR", alasan: alasan,
+                koordinat: `${lat}, ${lon}`,
+                tanggal: firebase.firestore.FieldValue.serverTimestamp(),
+                tanggal_str: new Date().toISOString().split('T')[0]
+            });
+
+            localStorage.setItem("status_lapor_hari_ini", new Date().toISOString().split('T')[0]);
+            tampilkanNotifikasi("Laporan anda Sudah di Input", `Lokasi: ${lat.toFixed(5)}, ${lon.toFixed(5)}`);
+            tampilPopup("Laporan Anda sudah kami terima.");
+            disableTombol();
+            document.getElementById("reason-container").style.display = "none";
+        }, () => {
+            tampilPopup("Mohon aktifkan GPS untuk melaporkan alasan.");
         });
-        tampilPopup("Terimakasih sudah melapor.");
-        setTimeout(() => window.location.href = "menu.html", 2500);
     }
+
+    // SAAT HALAMAN DIBUKA
+    window.onload = async () => {
+        const status = await cekStatusLapor();
+        if (status === "SUDAH") {
+            tampilkanNotifikasi("Anda Tadi Sudah Melapor", "Laporan hari ini sudah masuk.");
+            disableTombol();
+        }
+    };
 </script>
 </body>
 </html>
