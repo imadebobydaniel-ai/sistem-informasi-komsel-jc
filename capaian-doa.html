@@ -46,15 +46,12 @@
         /* Modals */
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .popup { background: var(--putih); width: 100%; max-width: 400px; border-radius: 20px; padding: 20px; border-top: 6px solid var(--emas); }
-        .modal-notif { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 3000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: white; width: 100%; max-width: 320px; border-radius: 15px; text-align: center; padding: 25px; }
-        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-modal { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
-        .btn-confirm { background: var(--biru-tua); color: white; }
-        .btn-cancel { background: #eee; color: #666; }
-
+        
         .bottom-nav { width: 100%; background: var(--bg); padding: 15px 15px 40px 15px; display: flex; justify-content: center; margin-top: auto; }
         .btn-back { width: 100%; max-width: 600px; background: var(--biru-tua); color: white; text-decoration: none; font-size: 14px; font-weight: bold; padding: 15px; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        
+        input[type="text"], textarea { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; }
+        .btn-submit { width: 100%; padding: 15px; background: var(--biru-tua); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -91,6 +88,25 @@
     <div id="list-doa"></div>
 </div>
 
+<div id="pop-add" class="overlay">
+    <div class="popup">
+        <h3 style="text-align:center; color:var(--biru-tua)">Form Tiket Doa</h3>
+        <input type="text" id="add-nama" readonly>
+        <textarea id="add-doa" placeholder="Isi Pergumulan Doa..."></textarea>
+        <button class="btn-submit" onclick="simpanBaru()">KIRIM TIKET</button>
+        <p onclick="tutupPop()" style="text-align:center; cursor:pointer; color:#999; margin-top:10px;">Batal</p>
+    </div>
+</div>
+
+<div id="pop-edit" class="overlay">
+    <div class="popup">
+        <h3 style="text-align:center;">Edit Doa</h3>
+        <textarea id="ed-doa"></textarea>
+        <button class="btn-submit" onclick="simpanEdit()">SIMPAN PERUBAHAN</button>
+        <p onclick="tutupPop()" style="text-align:center; cursor:pointer; color:#999; margin-top:10px;">Batal</p>
+    </div>
+</div>
+
 <div class="bottom-nav">
     <a href="menu.html" class="btn-back"><i class="fa-solid fa-house"></i> KEMBALI KE MENU UTAMA</a>
 </div>
@@ -113,10 +129,10 @@
     let userNama = "I Made Boby"; 
     let selectedIDs = [];
 
-    // 1. MENGHIDUPKAN LOAD DATA (Menyesuaikan Filter "JC 5" pakai spasi)
+    // 1. LOAD DATA & STATISTIK
     function loadDoa() {
         db.collection("laporan_doa")
-          .where("jc", "==", "JC 5") // Harus pakai spasi agar terbaca 2 data
+          .where("jc", "==", "JC 5") 
           .orderBy("tglInput", "desc")
           .onSnapshot(snap => {
             let h = "";
@@ -146,35 +162,83 @@
                             <span class="status-tag" style="color:${d.terjawab ? '#28a745' : '#d68910'}">${d.terjawab ? 'Terjawab' : 'On Progress'}</span>
                         </div>
                         <span class="user-label">${d.nama}</span>
-                        <div class="text-label">${d.pokokDoa}</div>
-                        <span class="date-label"><i class="fa-regular fa-calendar-check"></i> Diinput: ${tglTampil}</span>
+                        <div class="text-label" id="text-${doc.id}">${d.pokokDoa}</div>
+                        <span class="date-label">Diinput: ${tglTampil}</span>
                         <div class="duration-label">SLA: ${diffDays} Hari</div>
                     </div>
                 </div>`;
             });
 
-            // UPDATE STATISTIK AGAR TIDAK 0
             document.getElementById("stat-total-doa").innerText = totalData;
             document.getElementById("stat-persen-terjawab").innerText = totalData > 0 ? Math.round((countTerjawab / totalData) * 100) + "%" : "0%";
             document.getElementById("stat-sla-rata").innerText = countTerjawab > 0 ? Math.round(totalSLA / countTerjawab) : 0;
-
             document.getElementById("list-doa").innerHTML = h || "<p style='text-align:center; padding:20px;'>Belum ada data tiket doa.</p>";
             cekStatus(); 
-        }, error => {
-            console.error("Firestore Error:", error);
         });
     }
 
-    // 2. MENGHIDUPKAN FUNGSI CHECKBOX & TOMBOL (TERJAWAB, EDIT, HAPUS)
+    // 2. FUNGSI ADD (TAMBAH)
+    function bukaAdd() {
+        document.getElementById('add-nama').value = userNama;
+        document.getElementById('add-doa').value = "";
+        document.getElementById('pop-add').style.display = 'flex';
+    }
+
+    function simpanBaru() {
+        const isi = document.getElementById('add-doa').value;
+        if(!isi) return alert("Mohon isi doa Anda");
+        const tid = "NK-DOA-" + Math.floor(100 + Math.random() * 899) + "-2026";
+        
+        db.collection("laporan_doa").add({
+            nama: userNama, pokokDoa: isi, jc: "JC 5", terjawab: false, status: "Proses",
+            tglInput: firebase.firestore.FieldValue.serverTimestamp(), ticketID: tid
+        }).then(() => tutupPop());
+    }
+
+    // 3. FUNGSI TERJAWAB (UPDATE)
+    function prosesTerjawab() {
+        if (selectedIDs.length === 0) return;
+        const batch = db.batch();
+        selectedIDs.forEach(id => {
+            batch.update(db.collection("laporan_doa").doc(id), {
+                terjawab: true, status: "Selesai",
+                tglTerjawab: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        });
+        batch.commit().then(() => { selectedIDs = []; cekStatus(); });
+    }
+
+    // 4. FUNGSI EDIT
+    function prosesEdit() {
+        if (selectedIDs.length !== 1) return;
+        const id = selectedIDs[0];
+        document.getElementById('ed-doa').value = document.getElementById(`text-${id}`).innerText;
+        document.getElementById('pop-edit').style.display = 'flex';
+    }
+
+    function simpanEdit() {
+        const id = selectedIDs[0];
+        db.collection("laporan_doa").doc(id).update({
+            pokokDoa: document.getElementById('ed-doa').value
+        }).then(() => { tutupPop(); selectedIDs = []; cekStatus(); });
+    }
+
+    // 5. FUNGSI HAPUS
+    function prosesHapus() {
+        if (selectedIDs.length === 0) return;
+        if (!confirm("Hapus data terpilih?")) return;
+        const batch = db.batch();
+        selectedIDs.forEach(id => batch.delete(db.collection("laporan_doa").doc(id)));
+        batch.commit().then(() => { selectedIDs = []; cekStatus(); });
+    }
+
+    // UTILITY
     function cekStatus() {
         const checked = document.querySelectorAll('.item-check:checked');
         selectedIDs = Array.from(checked).map(cb => cb.value);
-        
-        // Aktifkan tombol jika ada yang dicentang
         document.getElementById('act-terjawab').classList.toggle('active', selectedIDs.length > 0);
         document.getElementById('act-hapus').classList.toggle('active', selectedIDs.length > 0);
         document.getElementById('act-edit').classList.toggle('active', selectedIDs.length === 1);
-        
         document.getElementById('check-all').checked = (checked.length > 0 && checked.length === document.querySelectorAll('.item-check').length);
     }
 
@@ -183,14 +247,9 @@
         cekStatus();
     }
 
-    // Inisialisasi awal
-    window.onload = loadDoa;
+    function tutupPop() { document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); }
 
-    // Tambahkan fungsi pendukung (kosongkan sesuai kebutuhan logika kamu sebelumnya)
-    function prosesTerjawab() { /* Logika Terjawab */ }
-    function prosesEdit() { /* Logika Edit */ }
-    function prosesHapus() { /* Logika Hapus */ }
-    function bukaAdd() { /* Logika Add */ }
+    window.onload = loadDoa;
 </script>
 </body>
 </html>
