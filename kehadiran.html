@@ -218,6 +218,98 @@
             tampilkanNotifikasi("Anda Tadi Sudah Melapor", "Laporan hari ini sudah masuk.");
             disableTombol();
         }
+        // --- SCRIPT OPTIMASI KHUSUS HP ---
+    async function handleRegistrasi() {
+        const btn = document.getElementById("btnSubmit");
+        const fotoInput = document.getElementById("foto");
+        const fotoFile = fotoInput.files[0];
+
+        // Validasi Dasar
+        if(!document.getElementById("nama").value || !fotoFile) {
+            alert("Mohon lengkapi Nama dan Foto!");
+            return;
+        }
+
+        // CEK UKURAN FILE (Jika > 15MB, peringatkan user karena HP bisa lag)
+        if (fotoFile.size > 15 * 1024 * 1024) {
+            alert("Ukuran foto terlalu besar. Silakan gunakan foto yang lebih kecil atau kompres dulu.");
+            return;
+        }
+
+        btn.innerText = "Mengecilkan Foto... (Sabar ya)";
+        btn.disabled = true;
+
+        try {
+            const namaRaw = document.getElementById("nama").value.trim();
+            const namaNormal = namaRaw.split(' ').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            ).join(' ');
+
+            // PROSES KOMPRESI YANG LEBIH STABIL
+            const base64Foto = await imageToResizedBase64(fotoFile, 500); // Lebar 500px sudah cukup tajam
+
+            const userData = {
+                nama: namaNormal,
+                email: document.getElementById("email").value.trim().toLowerCase(),
+                whatsapp: document.getElementById("hp").value,
+                password: document.getElementById("pass").value,
+                alamat: document.getElementById("alamat").value,
+                goldarah: document.getElementById("darah").value,
+                jabatan: document.getElementById("jabatan").value,
+                komsel: document.getElementById("komsel").value,
+                nomor_komsel: document.getElementById("nk-display").value,
+                foto_profil: base64Foto, 
+                status: "Aktif",
+                tanggalDaftar: new Date().toLocaleString('id-ID')
+            };
+
+            await db.collection("users").add(userData);
+            
+            document.getElementById('pesan-sukses').innerHTML = `Berhasil!<br>Selamat Datang, <b>${namaNormal}</b>`;
+            document.getElementById('blocking-message').style.display = 'flex';
+
+        } catch (error) { 
+            console.error("Error Detail:", error);
+            alert("Gagal: " + error.message); 
+            btn.innerText = "DAFTAR SEKARANG";
+            btn.disabled = false;
+        }
+    }
+
+    function imageToResizedBase64(file, maxWidth) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (e) => {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Hitung Ratio agar foto tidak gepeng
+                    if (width > maxWidth) {
+                        height *= maxWidth / width;
+                        width = maxWidth;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Gambar ke canvas
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // KIRIM SEBAGAI JPEG (Kualitas 0.5 agar file sangat ringan, sekitar 50-100kb)
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
+                    resolve(dataUrl);
+                };
+                img.onerror = () => reject("Format gambar tidak didukung");
+            };
+            reader.onerror = () => reject("Gagal membaca file dari galeri/kamera");
+        });
+    }
     };
 </script>
 </body>
