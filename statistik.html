@@ -167,48 +167,53 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    // Pastikan fungsi ini dipanggil dengan filter yang benar
+    // SINKRONISASI DOA REALTIME DENGAN LOGIKA SLA
     function syncDoaRealtime() {
         const grupTerpilih = document.getElementById('select-komsel-doa').value;
         let query = db.collection("laporan_doa");
         
+        // Sesuaikan nama field 'jc' sesuai database kamu
         if (grupTerpilih !== "Semua") {
-            query = query.where("grupJC", "==", grupTerpilih);
+            query = query.where("jc", "==", grupTerpilih);
         }
 
         query.onSnapshot(snap => {
-            console.log("Data Doa Diterima:", snap.size);
             let total = snap.size;
-            let terjawab = 0;
-            let totalSLA = 0;
+            let terjawabCount = 0;
+            let totalHariSLA = 0;
 
             snap.forEach(doc => {
-                const d = doc.data();
-                if(d.status === "Terjawab") {
-                    terjawab++;
-                    if(d.tanggal_terjawab && d.timestamp) {
-                        const durasi = d.tanggal_terjawab.toDate() - d.timestamp.toDate();
-                        totalSLA += Math.floor(durasi / (1000 * 60 * 60 * 24));
-                    }
+                const data = doc.data();
+                
+                // Cek status terjawab
+                if(data.status === "Terjawab" || data.terjawab === true) {
+                    terjawabCount++;
+                    
+                    // Hitung SLA hari
+                    const tglAwal = data.tglInput ? data.tglInput.toDate() : new Date();
+                    const tglAkhir = data.tglTerjawab ? data.tglTerjawab.toDate() : new Date();
+                    
+                    const diffTime = Math.abs(tglAkhir - tglAwal);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    totalHariSLA += diffDays;
                 }
             });
 
-            const persen = total > 0 ? (terjawab / total * 100) : 0;
-            const rataSLA = terjawab > 0 ? Math.round(totalSLA / terjawab) : 0;
+            const persen = total > 0 ? (terjawabCount / total * 100) : 0;
+            const rataSLA = terjawabCount > 0 ? Math.round(totalHariSLA / terjawabCount) : 0;
 
+            // Update UI
             document.getElementById("total-doa").innerText = total;
             document.getElementById("avg-sla").innerText = rataSLA + " Hari";
             document.getElementById("text-doa-persen").innerText = persen.toFixed(1) + "%";
             document.getElementById("bar-doa-persen").style.width = persen + "%";
+            
         }, (err) => {
-            console.error("Firestore Error (Permission Denied?):", err);
-            if(err.code === "permission-denied") {
-                alert("Akses Database Ditolak. Harap periksa Firebase Rules Anda.");
-            }
+            console.error("Gagal sinkron statistik doa:", err);
         });
     }
 
-    // Fungsi-fungsi lainnya...
+    // Fungsi-fungsi lainnya tetap dipertahankan
     function syncKehadiranRealtime() {
         const selKomselHadir = document.getElementById('select-komsel-hadir').value;
         const perHadir = parseInt(document.getElementById('select-periode-hadir').value);
