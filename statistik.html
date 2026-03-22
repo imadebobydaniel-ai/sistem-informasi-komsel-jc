@@ -167,19 +167,17 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    // --- SINKRONISASI DOA REALTIME ---
+    // Pastikan fungsi ini dipanggil dengan filter yang benar
     function syncDoaRealtime() {
         const grupTerpilih = document.getElementById('select-komsel-doa').value;
-        
-        // Sesuaikan nama koleksi dengan Firestore Anda (laporan_doa)
         let query = db.collection("laporan_doa");
         
         if (grupTerpilih !== "Semua") {
-            // Memastikan filter sesuai dengan field 'grupJC' di database
             query = query.where("grupJC", "==", grupTerpilih);
         }
 
         query.onSnapshot(snap => {
+            console.log("Data Doa Diterima:", snap.size);
             let total = snap.size;
             let terjawab = 0;
             let totalSLA = 0;
@@ -198,16 +196,19 @@
             const persen = total > 0 ? (terjawab / total * 100) : 0;
             const rataSLA = terjawab > 0 ? Math.round(totalSLA / terjawab) : 0;
 
-            // Update UI menggunakan ID yang benar
             document.getElementById("total-doa").innerText = total;
             document.getElementById("avg-sla").innerText = rataSLA + " Hari";
             document.getElementById("text-doa-persen").innerText = persen.toFixed(1) + "%";
             document.getElementById("bar-doa-persen").style.width = persen + "%";
         }, (err) => {
-            console.error("Gagal load statistik doa:", err);
+            console.error("Firestore Error (Permission Denied?):", err);
+            if(err.code === "permission-denied") {
+                alert("Akses Database Ditolak. Harap periksa Firebase Rules Anda.");
+            }
         });
     }
 
+    // Fungsi-fungsi lainnya...
     function syncKehadiranRealtime() {
         const selKomselHadir = document.getElementById('select-komsel-hadir').value;
         const perHadir = parseInt(document.getElementById('select-periode-hadir').value);
