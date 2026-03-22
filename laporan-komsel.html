@@ -50,7 +50,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* Styling untuk Kartu Jawaban Doa Baru */
+        /* Styling untuk Kartu Jawaban Doa */
         #area-doa-terjawab { margin-top: 10px; }
         .card-laporan-doa {
             background: #f0fdf4;
@@ -281,15 +281,13 @@
         }
 
         try {
-            // Ambil data User secara otomatis berdasarkan Email Login
             const snap = await db.collection("users").where("email", "==", emailRaw.trim().toLowerCase()).get();
             
             if(!snap.empty) {
                 const userData = snap.docs[0].data();
-                userJC = String(userData.komsel);
+                userJC = String(userData.komsel); // Misal isinya "5" atau "JC 5"
                 userNama = userData.nama;
 
-                // Update Tampilan Header secara Otomatis
                 document.getElementById("label-jc").innerText = "ANALISA JC " + userJC;
                 document.getElementById("label-nama-user").innerText = "Petugas: " + userNama;
             } else {
@@ -304,16 +302,20 @@
         }
     }
 
+    // Fungsi perbaikan dengan pembersihan spasi (Regex) dan Firebase v8
     function muatDoaTerjawab() {
         if (!userJC) return;
         
+        // Nalar: Hapus spasi agar format seragam (misal "JC 5" jadi "JC5") untuk pencarian di database
+        const komselFix = ("JC" + userJC).replace(/\s+/g, '');
+        
         db.collection("laporan_doa")
             .where("terjawab", "==", true)
-            .where("jc", "==", "JC" + userJC) 
+            .where("jc", "==", komselFix) 
             .onSnapshot(snapshot => {
                 const reportArea = document.getElementById('area-doa-terjawab');
                 if (snapshot.empty) {
-                    reportArea.innerHTML = "<p style='text-align:center; font-size:11px; color:#999;'>Belum ada laporan doa terjawab.</p>";
+                    reportArea.innerHTML = "<p style='text-align:center; font-size:11px; color:#999;'>Belum ada laporan doa terjawab untuk " + komselFix + ".</p>";
                     return;
                 }
                 reportArea.innerHTML = "";
@@ -330,6 +332,8 @@
                         </div>
                     `;
                 });
+            }, err => {
+                console.error("Error muat doa:", err);
             });
     }
 
@@ -358,8 +362,11 @@
         const batasWaktu = new Date();
         batasWaktu.setMonth(batasWaktu.getMonth() - periode);
         
+        // Membersihkan input komsel juga di sini agar query laporan_bacaan aman
+        const komselClean = userJC.replace(/\s+/g, '');
+
         db.collection("laporan_bacaan")
-            .where("komsel", "==", userJC)
+            .where("komsel", "==", komselClean)
             .where("tanggal", ">=", firebase.firestore.Timestamp.fromDate(batasWaktu))
             .onSnapshot(snap => {
                 let html = "";
@@ -375,7 +382,7 @@
                 myChart.data.datasets[0].data = [pAlkitab, Math.min(pAlkitab+10, 95), 100-(pAlkitab+10)];
                 myChart.update();
                 document.getElementById("card-insight").style.display = "block";
-                document.getElementById("text-insight").innerText = pAlkitab > 50 ? "Komsel JC " + userJC + " Sehat." : "Perlu Follow up.";
+                document.getElementById("text-insight").innerText = pAlkitab > 50 ? "Komsel JC " + komselClean + " Sehat." : "Perlu Follow up.";
             });
     }
 
@@ -383,7 +390,6 @@
         const pass = document.getElementById("pks-password").value;
         if(pass === "rahasia123") {
             alert(`Sistem menyiapkan PDF untuk ${userNama} (JC ${userJC})...`);
-            // Logika JSPDF Anda...
         } else {
             alert("Password Salah!");
         }
