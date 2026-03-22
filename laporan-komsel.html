@@ -562,6 +562,31 @@
     doc.text("Laporan Analisis Perkembangan Komsel - Official Report", pageWidth / 2, 26, { align: "center" });
     doc.line(15, 30, pageWidth - 15, 30); // Garis horizontal
 
+       // --- 1. KOP SURAT & LOGO ---
+// Ganti URL di bawah dengan link logo GBI Anda yang asli (format PNG/JPG)
+const logoUrl = "logo_pondok.png"; 
+
+try {
+    // Menambahkan Image: doc.addImage(url, format, x, y, lebar, tinggi)
+    doc.addImage(logoUrl, 'PNG', 15, 12, 18, 18); 
+} catch (e) {
+    console.error("Gagal memuat logo:", e);
+    // Jika logo gagal, buat kotak biru sebagai cadangan agar layout tidak berantakan
+    doc.setFillColor(0, 86, 179);
+    doc.rect(15, 12, 15, 15, 'F');
+}
+
+doc.setFontSize(16);
+doc.setFont("helvetica", "bold");
+// Koordinat X digeser ke kanan (pageWidth / 2 + 10) agar tidak tertutup logo
+doc.text("GBI PONDOK PEMULIHAN PAPUA", pageWidth / 2 + 10, 20, { align: "center" });
+
+doc.setFontSize(10);
+doc.setFont("helvetica", "normal");
+doc.text("Laporan Analisis Perkembangan Komsel - Official Report", pageWidth / 2 + 10, 26, { align: "center" });
+doc.line(15, 32, pageWidth - 15, 32); // Garis horizontal
+       
+       
     let yPos = 40;
 
     // 2. DATA KOMSEL & ANALISIS AI
