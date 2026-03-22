@@ -74,6 +74,43 @@
         .footer-links a { color: #007bff; text-decoration: none; font-weight: bold; }
         .admin-link { display: block; margin-top: 15px; color: #888; text-decoration: none; font-size: 12px; }
         .admin-link:hover { text-decoration: underline; }
+
+        /* --- STYLE MODAL BARU --- */
+        .modal-overlay {
+            display: none; 
+            position: fixed;
+            z-index: 10000;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            width: 85%;
+            max-width: 350px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+            animation: slideDown 0.3s ease-out;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .btn-ok { 
+            background-color: #003366; 
+            color: white; 
+            border: none; 
+            padding: 12px 30px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            margin-top: 20px;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -101,6 +138,15 @@
         <a href="login_admin.html" class="admin-link">Masuk sebagai Admin</a>
     </div>
 
+    <div id="loginAlertModal" class="modal-overlay">
+        <div class="modal-content">
+            <i class="fa-solid fa-circle-exclamation" style="font-size: 40px; color: #e11d48; margin-bottom: 15px;"></i>
+            <h3 style="background: none; color: #333; text-shadow: none; padding: 0;">Pesan Sistem</h3>
+            <p id="alertMessage" style="color: #666; font-size: 14px; margin-top: 10px;">Email atau Password Salah! Pastikan penulisan sudah benar.</p>
+            <button id="closeAlert" class="btn-ok">OK</button>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
@@ -120,6 +166,20 @@
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.firestore();
+
+        // --- KONTROL MODAL ---
+        const alertModal = document.getElementById('loginAlertModal');
+        const alertText = document.getElementById('alertMessage');
+        const closeBtn = document.getElementById('closeAlert');
+
+        function tampilkanPesan(pesan) {
+            alertText.innerText = pesan;
+            alertModal.style.display = 'flex';
+        }
+
+        closeBtn.onclick = function() {
+            alertModal.style.display = 'none';
+        }
 
         // Fungsi Lihat Password
         function togglePassLogin() {
@@ -148,21 +208,17 @@
                     .get();
 
                 if (!snapshot.empty) {
-                    // Ambil data user (opsional jika ingin simpan Nama di localstorage)
                     const userData = snapshot.docs[0].data();
-                    
-                    // Simpan data ke session local
                     localStorage.setItem("userEmail", email);
                     localStorage.setItem("userName", userData.nama || "Anggota");
-                    
-                    // Redirect ke menu utama
                     window.location.href = "menu.html"; 
                 } else {
-                    alert("Email atau Password Salah! Pastikan penulisan sudah benar.");
+                    // MENGGUNAKAN MODAL BUKAN ALERT
+                    tampilkanPesan("Email atau Password Salah! Pastikan penulisan sudah benar.");
                 }
             } catch (err) {
                 console.error("Error Login: ", err);
-                alert("Gagal terhubung ke database. Periksa koneksi internet Anda.");
+                tampilkanPesan("Gagal terhubung ke database. Periksa koneksi internet Anda.");
             }
         });
     </script>
