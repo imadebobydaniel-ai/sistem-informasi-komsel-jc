@@ -30,7 +30,6 @@
             min-height: 50px;
         }
 
-        /* Checkbox All di dalam Padding Gold */
         .check-all-box {
             width: 20px;
             height: 20px;
@@ -61,8 +60,41 @@
         .user-label { font-weight: bold; color: var(--biru-tua); margin-bottom: 4px; display: block; }
         .text-label { font-size: 13px; color: #555; line-height: 1.4; }
 
+        /* Popups & Modals */
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .popup { background: var(--putih); width: 100%; max-width: 400px; border-radius: 20px; padding: 20px; border-top: 6px solid var(--emas); }
+        
+        /* Style untuk Custom Alert/Confirm Modal */
+        .modal-notif {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-content {
+            background: white;
+            width: 100%;
+            max-width: 320px;
+            border-radius: 15px;
+            text-align: center;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .modal-content i { font-size: 50px; margin-bottom: 15px; }
+        .icon-success { color: #28a745; }
+        .icon-error { color: #dc3545; }
+        .icon-confirm { color: var(--emas); }
+        .modal-title { font-weight: bold; font-size: 18px; margin-bottom: 10px; color: var(--biru-tua); }
+        .modal-text { font-size: 14px; color: #666; margin-bottom: 20px; }
+        .modal-buttons { display: flex; gap: 10px; }
+        .btn-modal { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-confirm { background: var(--biru-tua); color: white; }
+        .btn-cancel { background: #eee; color: #666; }
+
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--biru-tua); padding: 15px; text-align: center; }
         .btn-back { color: white; text-decoration: none; font-size: 13px; }
     </style>
@@ -88,6 +120,15 @@
 
 <div class="bottom-nav">
     <a href="menu.html" class="btn-back"><i class="fa-solid fa-house"></i> KEMBALI KE MENU UTAMA</a>
+</div>
+
+<div id="custom-modal" class="modal-notif">
+    <div class="modal-content">
+        <div id="modal-icon"></div>
+        <div class="modal-title" id="modal-title">Konfirmasi</div>
+        <div class="modal-text" id="modal-text">Apakah Anda yakin?</div>
+        <div class="modal-buttons" id="modal-footer"></div>
+    </div>
 </div>
 
 <div id="pop-add" class="overlay">
@@ -127,6 +168,37 @@
     let userNama = "I Made Boby"; 
     let selectedIDs = [];
 
+    // --- FUNGSI CUSTOM MODAL ---
+    function tampilModal({title, text, type, onConfirm}) {
+        const modal = document.getElementById('custom-modal');
+        const mTitle = document.getElementById('modal-title');
+        const mText = document.getElementById('modal-text');
+        const mIcon = document.getElementById('modal-icon');
+        const mFooter = document.getElementById('modal-footer');
+
+        mTitle.innerText = title;
+        mText.innerText = text;
+        
+        if(type === 'confirm') {
+            mIcon.innerHTML = '<i class="fa-solid fa-circle-question icon-confirm"></i>';
+            mFooter.innerHTML = `
+                <button class="btn-modal btn-cancel" onclick="tutupModal()">Batal</button>
+                <button class="btn-modal btn-confirm" id="modal-ok">Ya, Lanjutkan</button>
+            `;
+            document.getElementById('modal-ok').onclick = () => { onConfirm(); tutupModal(); };
+        } else if(type === 'error') {
+            mIcon.innerHTML = '<i class="fa-solid fa-circle-xmark icon-error"></i>';
+            mFooter.innerHTML = '<button class="btn-modal btn-confirm" onclick="tutupModal()">OK</button>';
+        } else {
+            mIcon.innerHTML = '<i class="fa-solid fa-circle-check icon-success"></i>';
+            mFooter.innerHTML = '<button class="btn-modal btn-confirm" onclick="tutupModal()">OK</button>';
+        }
+        modal.style.display = 'flex';
+    }
+
+    function tutupModal() { document.getElementById('custom-modal').style.display = 'none'; }
+
+    // --- LOGIKA UTAMA ---
     function loadDoa() {
         db.collection("saran_masukan").orderBy("timestamp", "desc").onSnapshot(snap => {
             let h = "";
@@ -155,10 +227,8 @@
     function cekStatus() {
         const checked = document.querySelectorAll('.item-check:checked');
         selectedIDs = Array.from(checked).map(cb => cb.value);
-        
         document.getElementById('act-terjawab').classList.toggle('active', selectedIDs.length > 0);
         document.getElementById('act-hapus').classList.toggle('active', selectedIDs.length > 0);
-        // Edit hanya aktif jika TEPAT 1 item dipilih
         document.getElementById('act-edit').classList.toggle('active', selectedIDs.length === 1);
     }
 
@@ -169,12 +239,16 @@
 
     async function simpanBaru() {
         const txt = document.getElementById("add-doa").value;
-        if(!txt) return alert("Isi doa kosong!");
+        if(!txt) {
+            tampilModal({ title: "Peringatan", text: "Isi doa tidak boleh kosong!", type: "error" });
+            return;
+        }
         await db.collection("saran_masukan").add({
             nama: userNama, isi_saran: txt, timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         tutupPop();
         document.getElementById("add-doa").value = "";
+        tampilModal({ title: "Berhasil", text: "Doa Anda telah dikirim.", type: "success" });
     }
 
     function prosesEdit() {
@@ -188,27 +262,37 @@
             isi_saran: document.getElementById("ed-doa").value
         });
         tutupPop();
+        tampilModal({ title: "Berhasil", text: "Perubahan telah disimpan.", type: "success" });
     }
 
     async function prosesHapus() {
         if(selectedIDs.length === 0) return;
-        if(confirm(`Hapus ${selectedIDs.length} doa terpilih?`)) {
-            for(let id of selectedIDs) {
-                await db.collection("saran_masukan").doc(id).delete();
+        tampilModal({
+            title: "Hapus Doa",
+            text: `Apakah Anda yakin ingin menghapus ${selectedIDs.length} doa terpilih?`,
+            type: "confirm",
+            onConfirm: async () => {
+                for(let id of selectedIDs) {
+                    await db.collection("saran_masukan").doc(id).delete();
+                }
+                tampilModal({ title: "Berhasil", text: "Data telah dihapus.", type: "success" });
             }
-        }
+        });
     }
 
     async function prosesTerjawab() {
         if(selectedIDs.length === 0) return;
-        alert(`${selectedIDs.length} Doa ditandai terjawab. Puji Tuhan!`);
         for(let id of selectedIDs) {
             await db.collection("saran_masukan").doc(id).update({ status: "Terjawab" });
         }
+        tampilModal({
+            title: "Puji Tuhan!",
+            text: `${selectedIDs.length} Doa telah ditandai sebagai terjawab.`,
+            type: "success"
+        });
     }
 
     function tutupPop() { document.querySelectorAll(".overlay").forEach(o => o.style.display="none"); }
-
     window.onload = loadDoa;
 </script>
 </body>
