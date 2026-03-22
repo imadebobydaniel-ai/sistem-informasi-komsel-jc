@@ -55,10 +55,17 @@
         /* Konten */
         .main-content { flex: 1; padding: 15px; }
         .doa-card { background: var(--putih); border-radius: 12px; padding: 15px; margin-bottom: 12px; display: flex; gap: 12px; border-left: 5px solid var(--emas); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .doa-checkbox { width: 20px; height: 20px; accent-color: var(--biru-tua); }
+        .doa-checkbox { width: 20px; height: 20px; accent-color: var(--biru-tua); margin-top: 5px; }
         .doa-info { flex: 1; }
         .user-label { font-weight: bold; color: var(--biru-tua); margin-bottom: 4px; display: block; }
         .text-label { font-size: 13px; color: #555; line-height: 1.4; }
+
+        /* Gaya tambahan untuk detail kartu */
+        .card-header-detail { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .ticket-no { background: #eef2f7; color: var(--biru-tua); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; border: 1px solid #d1d9e6; }
+        .status-tag { color: #d68910; font-size: 11px; font-weight: bold; font-style: italic; }
+        .date-label { font-size: 11px; color: #888; margin-top: 8px; display: block; }
+        .duration-label { background: #f9f9f9; padding: 5px 10px; border-radius: 6px; font-size: 11px; color: #666; display: block; margin-top: 8px; border: 1px solid #eee; }
 
         /* Popups & Modals */
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
@@ -94,17 +101,15 @@
         .btn-confirm { background: var(--biru-tua); color: white; }
         .btn-cancel { background: #eee; color: #666; }
 
-        /* PERBAIKAN: Container Navigasi Bawah dinaikkan */
         .bottom-nav { 
             width: 100%; 
             background: var(--bg); 
-            padding: 15px 15px 40px 15px; /* Padding bawah ditambah menjadi 40px agar naik */
+            padding: 15px 15px 40px 15px; 
             display: flex;
             justify-content: center; 
-            margin-top: auto; /* Memastikan tetap di bawah jika konten sedikit */
+            margin-top: auto;
         }
 
-        /* Tombol Kembali agar sinkron */
         .btn-back { 
             width: 100%;
             max-width: 600px; 
@@ -192,22 +197,60 @@
     let userNama = "I Made Boby"; 
     let selectedIDs = [];
 
+    // Fungsi menampilkan list doa dengan detail tambahan
+    function loadDoa() {
+        db.collection("saran_masukan").orderBy("timestamp", "desc").onSnapshot(snap => {
+            let h = "";
+            snap.forEach(doc => {
+                const d = doc.data();
+                const ts = d.timestamp ? d.timestamp.toDate() : new Date();
+                
+                // Format Tanggal
+                const tglInput = ts.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                
+                // Hitung Durasi (SLA)
+                const sekarang = new Date();
+                const diffTime = Math.abs(sekarang - ts);
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                
+                // Generate Nomor Tiket Otomatis
+                const ticketNo = `TKT-${ts.getFullYear()}${String(ts.getMonth() + 1).padStart(2, '0')}-${doc.id.substring(0, 4).toUpperCase()}`;
+
+                h += `
+                <div class="doa-card">
+                    <input type="checkbox" class="doa-checkbox item-check" value="${doc.id}" onchange="cekStatus()">
+                    <div class="doa-info">
+                        <div class="card-header-detail">
+                            <span class="ticket-no">${ticketNo}</span>
+                            <span class="status-tag">On Progress</span>
+                        </div>
+                        
+                        <span class="user-label">${d.nama}</span>
+                        <div class="text-label" id="t-${doc.id}">${d.isi_saran}</div>
+                        
+                        <span class="date-label"><i class="fa-regular fa-calendar-check"></i> Diinput: ${tglInput}</span>
+                        <div class="duration-label">
+                            <i class="fa-regular fa-clock"></i> SLA: ${diffDays} Hari berjalan
+                        </div>
+                    </div>
+                </div>`;
+            });
+            document.getElementById("list-doa").innerHTML = h || "<p style='text-align:center; color:#999'>Belum ada data.</p>";
+            cekStatus(); 
+        });
+    }
+
+    // Fungsi modal, checkbox, dan proses data (tetap sama)
     function tampilModal({title, text, type, onConfirm}) {
         const modal = document.getElementById('custom-modal');
         const mTitle = document.getElementById('modal-title');
         const mText = document.getElementById('modal-text');
         const mIcon = document.getElementById('modal-icon');
         const mFooter = document.getElementById('modal-footer');
-
-        mTitle.innerText = title;
-        mText.innerText = text;
-        
+        mTitle.innerText = title; mText.innerText = text;
         if(type === 'confirm') {
             mIcon.innerHTML = '<i class="fa-solid fa-circle-question icon-confirm"></i>';
-            mFooter.innerHTML = `
-                <button class="btn-modal btn-cancel" onclick="tutupModal()">Batal</button>
-                <button class="btn-modal btn-confirm" id="modal-ok">Ya, Lanjutkan</button>
-            `;
+            mFooter.innerHTML = `<button class="btn-modal btn-cancel" onclick="tutupModal()">Batal</button><button class="btn-modal btn-confirm" id="modal-ok">Ya, Lanjutkan</button>`;
             document.getElementById('modal-ok').onclick = () => { onConfirm(); tutupModal(); };
         } else if(type === 'error') {
             mIcon.innerHTML = '<i class="fa-solid fa-circle-xmark icon-error"></i>';
@@ -220,100 +263,14 @@
     }
 
     function tutupModal() { document.getElementById('custom-modal').style.display = 'none'; }
-
-    function loadDoa() {
-        db.collection("saran_masukan").orderBy("timestamp", "desc").onSnapshot(snap => {
-            let h = "";
-            snap.forEach(doc => {
-                const d = doc.data();
-                h += `
-                <div class="doa-card">
-                    <input type="checkbox" class="doa-checkbox item-check" value="${doc.id}" onchange="cekStatus()">
-                    <div class="doa-info">
-                        <span class="user-label">${d.nama}</span>
-                        <div class="text-label" id="t-${doc.id}">${d.isi_saran}</div>
-                    </div>
-                </div>`;
-            });
-            document.getElementById("list-doa").innerHTML = h || "<p style='text-align:center; color:#999'>Belum ada data.</p>";
-            cekStatus(); 
-        });
-    }
-
-    function toggleCheckAll(source) {
-        const checkboxes = document.querySelectorAll('.item-check');
-        checkboxes.forEach(cb => cb.checked = source.checked);
-        cekStatus();
-    }
-
-    function cekStatus() {
-        const checked = document.querySelectorAll('.item-check:checked');
-        selectedIDs = Array.from(checked).map(cb => cb.value);
-        document.getElementById('act-terjawab').classList.toggle('active', selectedIDs.length > 0);
-        document.getElementById('act-hapus').classList.toggle('active', selectedIDs.length > 0);
-        document.getElementById('act-edit').classList.toggle('active', selectedIDs.length === 1);
-    }
-
-    function bukaAdd() {
-        document.getElementById("pop-add").style.display = "flex";
-        document.getElementById("add-nama").value = userNama;
-    }
-
-    async function simpanBaru() {
-        const txt = document.getElementById("add-doa").value;
-        if(!txt) {
-            tampilModal({ title: "Peringatan", text: "Isi doa tidak boleh kosong!", type: "error" });
-            return;
-        }
-        await db.collection("saran_masukan").add({
-            nama: userNama, isi_saran: txt, timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        tutupPop();
-        document.getElementById("add-doa").value = "";
-        tampilModal({ title: "Berhasil", text: "Doa Anda telah dikirim.", type: "success" });
-    }
-
-    function prosesEdit() {
-        if(selectedIDs.length !== 1) return;
-        document.getElementById("pop-edit").style.display = "flex";
-        document.getElementById("ed-doa").value = document.getElementById(`t-${selectedIDs[0]}`).innerText;
-    }
-
-    async function simpanEdit() {
-        await db.collection("saran_masukan").doc(selectedIDs[0]).update({
-            isi_saran: document.getElementById("ed-doa").value
-        });
-        tutupPop();
-        tampilModal({ title: "Berhasil", text: "Perubahan telah disimpan.", type: "success" });
-    }
-
-    async function prosesHapus() {
-        if(selectedIDs.length === 0) return;
-        tampilModal({
-            title: "Hapus Doa",
-            text: `Apakah Anda yakin ingin menghapus ${selectedIDs.length} doa terpilih?`,
-            type: "confirm",
-            onConfirm: async () => {
-                for(let id of selectedIDs) {
-                    await db.collection("saran_masukan").doc(id).delete();
-                }
-                tampilModal({ title: "Berhasil", text: "Data telah dihapus.", type: "success" });
-            }
-        });
-    }
-
-    async function prosesTerjawab() {
-        if(selectedIDs.length === 0) return;
-        for(let id of selectedIDs) {
-            await db.collection("saran_masukan").doc(id).update({ status: "Terjawab" });
-        }
-        tampilModal({
-            title: "Puji Tuhan!",
-            text: `${selectedIDs.length} Doa telah ditandai sebagai terjawab.`,
-            type: "success"
-        });
-    }
-
+    function toggleCheckAll(source) { const checkboxes = document.querySelectorAll('.item-check'); checkboxes.forEach(cb => cb.checked = source.checked); cekStatus(); }
+    function cekStatus() { const checked = document.querySelectorAll('.item-check:checked'); selectedIDs = Array.from(checked).map(cb => cb.value); document.getElementById('act-terjawab').classList.toggle('active', selectedIDs.length > 0); document.getElementById('act-hapus').classList.toggle('active', selectedIDs.length > 0); document.getElementById('act-edit').classList.toggle('active', selectedIDs.length === 1); }
+    function bukaAdd() { document.getElementById("pop-add").style.display = "flex"; document.getElementById("add-nama").value = userNama; }
+    async function simpanBaru() { const txt = document.getElementById("add-doa").value; if(!txt) { tampilModal({ title: "Peringatan", text: "Isi doa tidak boleh kosong!", type: "error" }); return; } await db.collection("saran_masukan").add({ nama: userNama, isi_saran: txt, timestamp: firebase.firestore.FieldValue.serverTimestamp() }); tutupPop(); document.getElementById("add-doa").value = ""; tampilModal({ title: "Berhasil", text: "Doa Anda telah dikirim.", type: "success" }); }
+    function prosesEdit() { if(selectedIDs.length !== 1) return; document.getElementById("pop-edit").style.display = "flex"; document.getElementById("ed-doa").value = document.getElementById(`t-${selectedIDs[0]}`).innerText; }
+    async function simpanEdit() { await db.collection("saran_masukan").doc(selectedIDs[0]).update({ isi_saran: document.getElementById("ed-doa").value }); tutupPop(); tampilModal({ title: "Berhasil", text: "Perubahan telah disimpan.", type: "success" }); }
+    async function prosesHapus() { if(selectedIDs.length === 0) return; tampilModal({ title: "Hapus Doa", text: `Apakah Anda yakin ingin menghapus ${selectedIDs.length} doa terpilih?`, type: "confirm", onConfirm: async () => { for(let id of selectedIDs) { await db.collection("saran_masukan").doc(id).delete(); } tampilModal({ title: "Berhasil", text: "Data telah dihapus.", type: "success" }); } }); }
+    async function prosesTerjawab() { if(selectedIDs.length === 0) return; for(let id of selectedIDs) { await db.collection("saran_masukan").doc(id).update({ status: "Terjawab" }); } tampilModal({ title: "Puji Tuhan!", text: `${selectedIDs.length} Doa telah ditandai sebagai terjawab.`, type: "success" }); }
     function tutupPop() { document.querySelectorAll(".overlay").forEach(o => o.style.display="none"); }
     window.onload = loadDoa;
 </script>
