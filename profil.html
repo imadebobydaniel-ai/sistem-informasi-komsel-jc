@@ -20,7 +20,6 @@
         .data-value { font-size: 15px; color: var(--biru-tua); font-weight: 700; }
         .btn-back { background: var(--biru-tua); color: white; border: 2px solid var(--emas-lux); padding: 15px; border-radius: 50px; font-weight: 800; cursor: pointer; text-align: center; text-decoration: none; display: block; width: 85%; margin: 20px auto 0; }
         
-        /* Input file disembunyikan agar tidak merusak tampilan */
         #inputFoto { display: none; }
         #debug-msg { color: red; font-size: 12px; text-align: center; padding: 10px; font-weight: bold; }
     </style>
@@ -36,8 +35,8 @@
         <div class="photo-circle" onclick="document.getElementById('inputFoto').click()">
             <img id="view-foto" src="https://via.placeholder.com/150" alt="Foto Profil">
         </div>
-        <div class="edit-badge" onclick="document.getElementById('inputFoto').click()">
-            <i class="fa-solid fa-camera"></i>
+        <div class="edit-badge">
+            <i class="fa-solid fa-camera icon-kamera"></i>
         </div>
         
         <input type="file" id="inputFoto" accept="image/*" onchange="uploadFoto(this)">
@@ -74,6 +73,11 @@
     
     const userEmail = localStorage.getItem("userEmail");
     const debug = document.getElementById("debug-msg");
+
+    // FUNGSI ANDA: Klik ikon kamera memicu input file
+    document.querySelector('.icon-kamera').onclick = function() {
+        document.getElementById('inputFoto').click();
+    };
 
     if (!userEmail) {
         debug.innerText = "⚠️ ERROR: Silakan login ulang.";
