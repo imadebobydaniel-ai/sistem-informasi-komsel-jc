@@ -23,10 +23,10 @@
 
         /* --- STICKY HEADER --- */
         .sticky-wrapper {
-            position: -webkit-sticky; position: sticky;
-            top: 0; z-index: 1000;
-            background-color: var(--putih-bg);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+             position: -webkit-sticky; position: sticky;
+             top: 0; z-index: 1000;
+             background-color: var(--putih-bg);
+             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         .top-info-bar { 
@@ -102,15 +102,15 @@
            border-radius: 50px; text-decoration: none; font-size: 14px; 
            font-weight: bold; display: inline-block; margin-top: 40px; 
            border: 2px solid var(--emas-lux); margin-bottom: 30px;
+           cursor: pointer;
         }
 
-        /* Styling Tombol Admin agar Serasi */
         #admin-input-renungan {
-            display: none; background: var(--emas-lux); 
-            color: var(--biru-tua); padding: 8px 15px; 
-            border-radius: 10px; font-size: 11px; font-weight: 800;
-            text-decoration: none; margin-top: 15px;
-            border: 1px solid rgba(0,0,0,0.1);
+             display: none; background: var(--emas-lux); 
+             color: var(--biru-tua); padding: 8px 15px; 
+             border-radius: 10px; font-size: 11px; font-weight: 800;
+             text-decoration: none; margin-top: 15px;
+             border: 1px solid rgba(0,0,0,0.1);
         }
     </style>
 </head>
@@ -145,9 +145,7 @@
         <div class="menu-grid">
             <a href="profil.html" class="menu-box"><i class="fa-solid fa-user-shield"></i>Profil Saya</a>
             <a href="kehadiran.html" class="menu-box"><i class="fa-solid fa-calendar-check"></i>Kehadiran</a>
-            
             <a href="renungan.html" class="menu-box"><i class="fa-solid fa-book-open-reader"></i>Renungan</a>
-            
             <a href="baca-alkitab.html" class="menu-box"><i class="fa-solid fa-book-bible"></i>Laporan Baca</a>
             <a href="capaian-doa.html" class="menu-box"><i class="fa-solid fa-hands-praying"></i>Capaian DOA</a>
             <a href="statistik.html" class="menu-box"><i class="fa-solid fa-chart-pie"></i>Statistik</a>
@@ -183,40 +181,47 @@
 
         function syncUserData() {
             const userEmail = localStorage.getItem("userEmail");
-            if (!userEmail) { window.location.href = "index.html"; return; }
+            
+            if (!userEmail) { 
+                window.location.href = "index.html"; 
+                return; 
+            }
 
             db.collection("users").where("email", "==", userEmail).onSnapshot((querySnapshot) => {
                 if (!querySnapshot.empty) {
                     const data = querySnapshot.docs[0].data();
-                    localStorage.setItem("userName", data.nama);
-                    localStorage.setItem("userJC", data.komsel);
-
+                    
                     document.getElementById('disp_nama').innerText = data.nama || "User";
                     document.getElementById('disp_komsel').innerText = data.komsel ? "JC " + data.komsel : "KOMSEL JC";
-                    
-                    // VALIDASI JABATAN UNTUK TOMBOL ADMIN
-                    const btnAdmin = document.getElementById('admin-input-renungan');
-                    if (data.jabatan === "PKS" || data.jabatan === "Ketua Komsel") {
-                        btnAdmin.style.display = "inline-block";
-                    }
 
                     const photoImg = document.getElementById('user-photo');
                     const defaultIcon = document.getElementById('default-icon');
                     if (data.fotoUrl) { 
-                        photoImg.src = data.fotoUrl; photoImg.style.display = "block"; 
+                        photoImg.src = data.fotoUrl; 
+                        photoImg.style.display = "block"; 
                         defaultIcon.style.display = "none"; 
                     }
+
+                    const btnAdmin = document.getElementById('admin-input-renungan');
+                    if (btnAdmin && (data.jabatan === "PKS" || data.jabatan === "Ketua Komsel")) {
+                        btnAdmin.style.display = "inline-block";
+                    }
+                } else {
+                    console.log("Data user tidak ditemukan.");
                 }
+            }, (error) => {
+                console.error("Firestore Error:", error);
             });
         }
 
-        async function logoutDanHapusDevice() {
+        function logoutDanHapusDevice() {
             if (confirm("Keluar sistem?")) {
                 localStorage.clear();
                 window.location.href = "index.html";
             }
         }
 
+        // Jalankan Inisialisasi
         setInterval(updateWaktuDanRunningText, 1000);
         updateWaktuDanRunningText();
         syncUserData();
