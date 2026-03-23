@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        /* Reset & Base Style */
         :root {
             --biru-tua: #1a2a6c;
             --biru-safir: #0056b3;
@@ -17,8 +16,7 @@
         }
 
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             font-family: 'Segoe UI', Roboto, sans-serif;
             background: var(--putih-bg);
             color: var(--biru-tua);
@@ -26,187 +24,78 @@
         }
 
         .mobile-container {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            max-width: 500px;
-            margin: 0 auto;
-            background: #ffffff;
-            position: relative;
-            padding-bottom: 80px; 
+            display: flex; flex-direction: column;
+            min-height: 100vh; max-width: 500px;
+            margin: 0 auto; background: #ffffff;
+            position: relative; padding-bottom: 80px; 
         }
 
-        /* Header */
         .page-header {
-            background: var(--biru-tua);
-            color: white;
-            padding: 20px 15px;
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            background: var(--biru-tua); color: white;
+            padding: 20px 15px; text-align: center;
+            position: sticky; top: 0; z-index: 1000;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         .page-header h2 {
-            margin: 0;
-            font-size: 1.1rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 900;
+            margin: 0; font-size: 1.1rem;
+            text-transform: uppercase; letter-spacing: 2px; font-weight: 900;
         }
 
-        /* Search Box Modern */
-        .search-wrapper {
-            padding: 15px;
-            background: #fff;
-        }
-
+        .search-wrapper { padding: 15px; background: #fff; }
         .search-box {
-            position: relative;
-            display: flex;
-            align-items: center;
-            background: #f8f9fa;
-            border-radius: 50px;
-            padding: 8px 20px;
-            border: 1px solid #ddd;
-            transition: 0.3s;
-        }
-
-        .search-box:focus-within {
-            border-color: var(--biru-tua);
-            box-shadow: 0 0 12px rgba(26,42,108,0.15);
-        }
-
-        .search-icon {
-            color: var(--biru-tua);
-            margin-right: 12px;
-            font-size: 1.1rem;
+            display: flex; align-items: center;
+            background: #f8f9fa; border-radius: 50px;
+            padding: 8px 20px; border: 1px solid #ddd;
         }
 
         .search-box input {
-            border: none;
-            background: transparent;
-            outline: none;
-            width: 100%;
-            padding: 8px 0;
-            font-size: 14px;
-            font-weight: 600;
+            border: none; background: transparent; outline: none;
+            width: 100%; padding: 8px 0; font-size: 14px; font-weight: 600;
         }
 
-        /* Content Area */
-        .content-area {
-            padding: 10px 15px;
-            flex: 1;
-        }
+        .content-area { padding: 10px 15px; flex: 1; }
 
         .card-lacak {
-            background: white;
-            border-radius: 20px;
-            padding: 18px;
-            margin-bottom: 20px;
+            background: white; border-radius: 20px;
+            padding: 18px; margin-bottom: 20px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.06);
             border: 1px solid rgba(0,0,0,0.03);
-            transition: transform 0.2s;
         }
 
-        .info-nama {
-            font-weight: 800;
-            color: var(--biru-tua);
-            font-size: 17px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .status-online {
-            color: var(--hijau-online);
-            font-size: 12px;
-            font-weight: 700;
-            margin: 8px 0;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .coords {
-            font-size: 11px;
-            color: #888;
-            margin-bottom: 15px;
-            font-family: monospace;
-        }
+        .info-nama { font-weight: 800; font-size: 17px; display: flex; align-items: center; gap: 10px; }
+        .status-online { color: var(--hijau-online); font-size: 12px; font-weight: 700; margin: 8px 0; display: flex; align-items: center; gap: 5px; }
+        .coords { font-size: 11px; color: #888; margin-bottom: 15px; font-family: monospace; }
 
         .map-frame {
-            width: 100%;
-            height: 220px;
-            border-radius: 15px;
-            overflow: hidden;
-            border: 1px solid #eee;
-            margin-bottom: 15px;
+            width: 100%; height: 220px;
+            border-radius: 15px; overflow: hidden;
+            border: 1px solid #eee; margin-bottom: 15px;
         }
 
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
+        iframe { width: 100%; height: 100%; border: none; }
 
-        /* Tombol Navigasi Sesuai Request */
         .btn-navigasi {
-            width: 100%;
-            background: var(--biru-tua);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 12px;
-            font-weight: 800;
-            font-size: 13px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            text-transform: uppercase;
+            width: 100%; background: var(--biru-tua);
+            color: white; border: none; padding: 14px;
+            border-radius: 12px; font-weight: 800;
+            display: flex; justify-content: center; align-items: center;
+            gap: 10px; text-decoration: none; text-transform: uppercase; font-size: 13px;
         }
 
-        /* Bottom Navigation Bar */
         .bottom-bar {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 500px;
-            background: white;
-            padding: 12px 0;
-            border-top: 1px solid #eee;
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
-            z-index: 1000;
+            position: fixed; bottom: 0; left: 50%;
+            transform: translateX(-50%); width: 100%; max-width: 500px;
+            background: white; padding: 12px 0;
+            border-top: 1px solid #eee; z-index: 1000;
         }
 
         .btn-back {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            color: var(--biru-tua);
-            font-weight: 800;
-            font-size: 10px;
-            transition: 0.2s;
+            display: flex; flex-direction: column; align-items: center;
+            text-decoration: none; color: var(--biru-tua); font-weight: 800; font-size: 10px;
         }
 
-        .btn-back i {
-            font-size: 22px;
-            margin-bottom: 4px;
-        }
-
-        .no-data {
-            text-align: center;
-            padding: 50px 20px;
-            color: #999;
-            font-size: 14px;
-            font-weight: 600;
-        }
+        .no-data { text-align: center; padding: 50px 20px; color: #999; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -218,7 +107,7 @@
 
     <div class="search-wrapper">
         <div class="search-box">
-            <i class="fas fa-search search-icon"></i>
+            <i class="fas fa-search" style="margin-right:10px;"></i>
             <input type="text" id="memberSearch" placeholder="Cari nama domba/anggota..." onkeyup="filterMembers()">
         </div>
     </div>
@@ -229,7 +118,7 @@
 
     <footer class="bottom-bar">
         <a href="menu.html" class="btn-back">
-            <i class="fas fa-th-large"></i>
+            <i class="fas fa-th-large" style="font-size: 20px;"></i>
             <span>KEMBALI KE MENU</span>
         </a>
     </footer>
@@ -253,6 +142,7 @@
     }
     const db = firebase.firestore();
 
+    // 1. FUNGSI FILTER PENCARIAN
     function filterMembers() {
         let input = document.getElementById('memberSearch').value.toLowerCase();
         let cards = document.getElementsByClassName('card-lacak');
@@ -262,33 +152,54 @@
             let name = cards[i].getAttribute('data-name').toLowerCase();
             if (name.includes(input)) {
                 cards[i].style.display = "block";
-                cards[i].style.opacity = "1";
                 found = true;
             } else {
                 cards[i].style.display = "none";
             }
         }
         
-        const listContainer = document.getElementById('list-lacak');
         const existingMsg = document.getElementById('no-match-msg');
         if (!found && input !== "") {
             if (!existingMsg) {
                 const msg = document.createElement('div');
                 msg.id = "no-match-msg";
                 msg.className = "no-data";
-                msg.innerHTML = "Anggota tersebut tidak sedang aktif.";
-                listContainer.appendChild(msg);
+                msg.innerText = "Anggota tersebut tidak sedang aktif.";
+                document.getElementById('list-lacak').appendChild(msg);
             }
         } else if (existingMsg) {
             existingMsg.remove();
         }
     }
 
+    // 2. FUNGSI KIRIM LOKASI REALTIME (Agar user terdeteksi)
+    function mulaiTrackingRealtime() {
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition((position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                // Ambil email dari login, jika tidak ada pakai ID sementara
+                const userEmail = localStorage.getItem("userEmail") || "guest_user";
+                const userName = localStorage.getItem("userName") || "User JC";
+
+                db.collection("live_tracking").doc(userEmail).set({
+                    nama: userName,
+                    lat: lat,
+                    lng: lon,
+                    lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            }, (error) => {
+                console.error("GPS Error:", error);
+            }, { enableHighAccuracy: true });
+        }
+    }
+
+    // 3. FUNGSI MENDENGARKAN DATA DARI FIREBASE
     function listenLocation() {
         db.collection("live_tracking").onSnapshot((querySnapshot) => {
             const listContainer = document.getElementById('list-lacak');
             if (querySnapshot.empty) {
-                listContainer.innerHTML = "<div class='no-data'>Belum ada anggota yang membagikan lokasi.</div>";
+                listContainer.innerHTML = "<div class='no-data'>Belum ada anggota yang aktif.</div>";
                 return;
             }
 
@@ -297,32 +208,33 @@
                 const data = doc.data();
                 const lat = data.lat;
                 const lng = data.lng;
-                const nama = data.nama || "Jemaat JC 5";
-                const lastSeen = data.lastSeen ? new Date(data.lastSeen.seconds * 1000).toLocaleString('id-ID') : "Baru saja";
+                const nama = data.nama || "Anggota Komsel";
+                const lastSeen = data.lastSeen ? new Date(data.lastSeen.seconds * 1000).toLocaleTimeString() : "Baru saja";
 
-                // Memasukkan script navigasi sesuai request secara dinamis
                 htmlContent += `
                     <div class="card-lacak" data-name="${nama}">
                         <div class="info-nama"><i class="fas fa-user-circle"></i> ${nama}</div>
-                        <div class="status-online"><i class="fas fa-circle" style="font-size:8px;"></i> Terdeteksi: ${lastSeen}</div>
-                        <div class="coords">Koordinat: ${lat}, ${lng}</div>
+                        <div class="status-online"><i class="fas fa-circle" style="font-size:8px;"></i> Aktif: ${lastSeen}</div>
+                        <div class="coords">GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}</div>
                         
                         <div class="map-frame">
                             <iframe src="https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed"></iframe>
                         </div>
 
-                        <a href="google.navigation:q=${lat},${lng}" class="btn-navigasi">
-                            <i class="fas fa-directions"></i> BUKA NAVIGASI
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" class="btn-navigasi">
+                            <i class="fas fa-directions"></i> BUKA DI GOOGLE MAPS
                         </a>
                     </div>
                 `;
             });
             
             listContainer.innerHTML = htmlContent;
-            filterMembers();
+            filterMembers(); // Tetap terapkan filter jika user sedang mencari
         });
     }
 
+    // Jalankan aplikasi
+    mulaiTrackingRealtime();
     listenLocation();
 </script>
 
