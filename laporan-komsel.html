@@ -26,61 +26,68 @@
             color: #333;
         }
 
-        /* --- Style Kop Surat --- */
-        .kop-surat {
+        /* --- Style Kop Surat Baru --- */
+        .kop-surat-resmi {
             width: 100%;
-            font-family: Arial, Helvetica, sans-serif;
-            color: black;
+            font-family: Arial, sans-serif;
             margin-bottom: 20px;
             background: white;
-            padding: 15px;
-            border-radius: 20px 20px 0 0; /* Menyesuaikan dengan gaya card bawah */
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             box-sizing: border-box;
         }
 
-        .kop-container {
-            display: flex;
-            align-items: center;
+        .container-header {
+            display: flex; 
+            align-items: center; 
             padding-bottom: 10px;
         }
 
-        .kop-logo {
-            width: 60px; /* Ukuran disesuaikan untuk tampilan mobile */
+        .logo-box {
+            width: 70px; /* Ukuran disesuaikan untuk mobile */
+            margin-right: 15px; 
+        }
+
+        .logo-box img {
+            width: 100%;
             height: auto;
-            margin-right: 15px;
+            display: block;
         }
 
-        .kop-teks {
-            flex: 1;
+        .teks-box {
+            flex: 1; 
+            text-align: left; 
         }
 
-        .kop-teks h1 {
+        .nama-gereja {
             margin: 0;
-            font-size: 16px;
+            font-size: 18px; /* Disesuaikan agar pas di layar HP */
             font-weight: bold;
             text-transform: uppercase;
+            color: #000;
             line-height: 1.2;
         }
 
-        .kop-teks h2 {
+        .nama-pondok {
             margin: 2px 0;
-            font-size: 14px;
-            font-weight: normal;
-            line-height: 1.2;
+            font-size: 16px;
+            font-weight: bold;
+            color: #000;
         }
 
-        .kop-teks p {
+        .alamat {
             margin: 0;
-            font-size: 10px;
-            font-style: italic;
+            font-size: 11px;
+            color: #000;
+            line-height: 1.3;
         }
 
-        .kop-garis {
-            border: 0;
-            border-top: 2px solid black;
-            margin: 0;
-            padding: 0;
+        .garis-pembatas {
             width: 100%;
+            height: 2px;
+            background-color: black;
+            margin-top: 5px;
         }
         /* ------------------------ */
 
@@ -292,16 +299,19 @@
 <body>
 
 <div class="container">
-    <div class="kop-surat">
-        <div class="kop-container">
-            <img src="logo_pondok.png" alt="Logo Pondok" class="kop-logo">
-            <div class="kop-teks">
-                <h1>GEREJA BETHEL INDONESIA</h1>
-                <h2>Pondok Pemulihan Papua</h2>
-                <p>Jl. Kamp China, Kota Baru, Abepura - Jayapura</p>
+    <div class="kop-surat-resmi">
+        <div class="container-header">
+            <div class="logo-box">
+                <img src="logo_pondok.png" alt="Logo">
+            </div>
+            
+            <div class="teks-box">
+                <h1 class="nama-gereja">GEREJA BETHEL INDONESIA</h1>
+                <h2 class="nama-pondok">Pondok Pemulihan Papua</h2>
+                <p class="alamat">Jl. Kamp China, Kota Baru, Abepura - Jayapura</p>
             </div>
         </div>
-        <hr class="kop-garis">
+        <div class="garis-pembatas"></div>
     </div>
 
     <div class="card" style="background: var(--primary); color: white; border: none;">
