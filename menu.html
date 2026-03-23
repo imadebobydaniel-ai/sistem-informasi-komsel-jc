@@ -83,6 +83,50 @@
             position: relative;
            border-top: 4px solid var(--biru-safir);
         }
+
+        /* --- SCRIPT NOTIFIKASI BARU --- */
+        .notif-email-container {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .notif-email-container i {
+            font-size: 24px;
+            color: var(--emas-lux);
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+
+        /* Animasi Bergetar (Shake) */
+        @keyframes shake-email {
+            0% { transform: rotate(0deg); }
+            10% { transform: rotate(8deg); }
+            20% { transform: rotate(-8deg); }
+            30% { transform: rotate(8deg); }
+            40% { transform: rotate(-8deg); }
+            50% { transform: rotate(0deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        .shake-active {
+            animation: shake-email 1s infinite;
+        }
+
+        .notif-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: red;
+            color: white;
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        /* --- END SCRIPT NOTIFIKASI --- */
+
        .setting-icon-profile { position: absolute; top: 18px; right: 18px; color: var(--biru-tua); font-size: 22px; transition: 0.3s; }
        .setting-icon-profile:hover { transform: rotate(90deg); color: var(--emas-lux); }
         
@@ -123,7 +167,6 @@
            background: linear-gradient(135deg, var(--biru-safir), var(--hijau-zamrud));
            -webkit-background-clip: text;
            -webkit-text-fill-color: transparent;
-           /* Efek 3D Shadow */
            filter: drop-shadow(2px 4px 3px rgba(0,0,0,0.2));
         }
  
@@ -136,11 +179,10 @@
         
         .lacak-box i {
             color: #e11d48 !important;
-           background: none !important;
-           -webkit-text-fill-color: initial !important;
+            background: none !important;
+            -webkit-text-fill-color: initial !important;
         }
 
-        /* Styling Khusus Menu Informasi Kegiatan (3D Red) */
         .kegiatan-box i {
             background: linear-gradient(135deg, #ff416c, #ff4b2b) !important;
             -webkit-background-clip: text !important;
@@ -148,7 +190,6 @@
             filter: drop-shadow(3px 5px 4px rgba(225, 29, 72, 0.4)) !important;
         }
 
-        /* Styling Khusus Menu Input Renungan (3D Blue Ocean) */
         .renungan-box i {
             background: linear-gradient(135deg, var(--biru-safir), var(--biru-muda)) !important;
             -webkit-background-clip: text !important;
@@ -187,7 +228,13 @@
         <h3 class="org-title">Portal Komsel JC</h3>
  
         <div class="profile-section">
+            <div class="notif-email-container shake-active" onclick="bukaPesanKegiatan()">
+                <i class="fa-solid fa-envelope"></i>
+                <span class="notif-badge">1</span>
+            </div>
+
             <a href="setting.html" class="setting-icon-profile"><i class="fa-solid fa-gear"></i></a>
+            
             <div class="profile-img-container" id="photo-area">
                 <i class="fa-solid fa-circle-user" id="default-icon"></i>
                <img id="user-photo" src="" style="display: none;">
@@ -274,6 +321,16 @@
             const runningContent = `Shalom! ${dayName}, ${date} ${monthName} ${year} | ${time} WIT | SISTEM INFORMASI KOMSEL JC - PONDOK PEMULIHAN PAPUA | TETAP SEMANGAT MELAYANI TUHAN!`;
            document.getElementById('running-text').innerText = runningContent;
         }
+
+        // --- FUNGSI BUKA PESAN KEGIATAN ---
+        function bukaPesanKegiatan() {
+            // Menghilangkan efek getar setelah dibuka
+            const container = document.querySelector('.notif-email-container');
+            if(container) container.classList.remove('shake-active');
+            
+            // Arahkan ke halaman informasi kegiatan
+            window.location.href = "informasi-kegiatan.html"; 
+        }
  
         // 2. FUNGSI TRACKING GPS
         function aktifkanTrackingOtomatis() {
@@ -327,7 +384,7 @@
             });
         }
  
-        // 4. FUNGSI LOGOUT (PERBAIKAN TOTAL)
+        // 4. FUNGSI LOGOUT
         async function logoutDanHapusDevice() {
             const userEmail = localStorage.getItem("userEmail");
             const currentDeviceId = localStorage.getItem("myDeviceId");
