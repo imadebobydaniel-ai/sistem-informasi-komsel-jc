@@ -6,7 +6,8 @@
     <title>Laporan Komsel - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
     <style>
         :root {
             --primary: #0056b3;
@@ -62,7 +63,6 @@
         }
         select:focus, input:focus { border-color: var(--primary); outline: none; background: #fff; }
 
-        /* Styling untuk Card Doa (SLA) agar serasi */
         .card-pks {
             background: #fff;
             border-left: 5px solid #b8860b;
@@ -219,17 +219,20 @@
             font-size: 14px;
         }
 
-        #popup-logic { 
-            display: none; 
-            background: white; 
-            border-radius: 15px; 
-            padding: 15px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            position: absolute;
-            z-index: 100;
-            width: 90%;
-            left: 5%;
+        /* PDF TEMPLATE STYLING (HIDDEN ON SCREEN) */
+        #pdf-template {
+            display: none;
+            width: 210mm;
+            background: white;
+            padding: 20mm;
+            font-family: 'Times New Roman', Times, serif;
+            color: black;
         }
+        .pdf-header { text-align: center; border-bottom: 3px double black; padding-bottom: 10px; margin-bottom: 20px; }
+        .pdf-title { text-align: center; text-decoration: underline; text-transform: uppercase; margin-bottom: 20px; }
+        .pdf-info-table { width: 100%; margin-bottom: 20px; font-weight: bold; }
+        .indicator-list { margin-left: 20px; line-height: 1.8; }
+        .pdf-footer { margin-top: 50px; float: right; text-align: center; width: 250px; }
     </style>
 </head>
 <body>
@@ -251,8 +254,6 @@
             <option value="1">1 Bulan Terakhir</option>
             <option value="2">2 Bulan Terakhir</option>
             <option value="3">3 Bulan Terakhir</option>
-            <option value="4">4 Bulan Terakhir</option>
-            <option value="5">5 Bulan Terakhir</option>
             <option value="6">6 Bulan Terakhir</option>
         </select>
     </div>
@@ -262,19 +263,6 @@
         <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Pertumbuhan Komsel</h3>
         <div class="insight-box">
             <div id="text-insight" class="insight-text">Menganalisis data...</div>
-        </div>
-        <div style="text-align: right; margin-top: 10px;">
-            <span onclick="toggleLogicPopup()" style="font-size: 10px; font-weight: bold; color: var(--primary); cursor: pointer;">
-                <i class="fas fa-circle-info"></i> LOGIKA PENILAIAN
-            </span>
-        </div>
-
-        <div id="popup-logic">
-            <h4 style="margin-top:0; font-size: 12px;">Metode Klasifikasi:</h4>
-            <div style="font-size: 11px; border-left: 3px solid var(--success); padding: 5px; margin-bottom: 5px;"><strong>HI-GROWTH (>=80%):</strong> Sangat Sehat</div>
-            <div style="font-size: 11px; border-left: 3px solid var(--warning); padding: 5px; margin-bottom: 5px;"><strong>STABLE (50-79%):</strong> Cukup Baik</div>
-            <div style="font-size: 11px; border-left: 3px solid var(--danger); padding: 5px;"><strong>CRITICAL (<50%):</strong> Perlu Perhatian</div>
-            <button onclick="toggleLogicPopup()" style="width:100%; margin-top:10px; border:none; padding:8px; border-radius:8px; font-weight:bold; cursor:pointer;">MENGERTI</button>
         </div>
     </div>
 
@@ -287,10 +275,6 @@
         <div id="card-capaian-doa" class="card-pks" style="margin-top: 20px; padding: 10px; border-radius: 12px; background: #fffcf0;">
             <h3 style="color: #b8860b; font-size: 12px;"><i class="fas fa-pray"></i> CAPAIAN DOA (SLA)</h3>
             <hr style="border: 0.5px solid #eee;">
-            <div class="stat-row">
-                <span>Rata-rata Jawaban (SLA)</span>
-                <b id="sla-rata-rata" style="color: #b8860b;">0 Hari</b>
-            </div>
             <div class="stat-row">
                 <span>Total Doa Masuk</span>
                 <b id="total-doa-masuk">0</b>
@@ -332,6 +316,43 @@
     </div>
 </div>
 
+<div id="pdf-template">
+    <div class="pdf-header">
+        <h2 style="margin:0;">GEREJA BETHEL INDONESIA</h2>
+        <h3 style="margin:5px 0;">PONDOK PEMULIHAN PAPUA</h3>
+        <p style="margin:0; font-size:12px;">Jl. Kamp China Abepura, Kota baru, Jayapura – Papua</p>
+    </div>
+    
+    <h3 class="pdf-title">Laporan Perkembangan Komsel</h3>
+    
+    <table class="pdf-info-table">
+        <tr><td width="100">Komsel</td><td>: JC <span id="pdf-val-jc"></span></td></tr>
+        <tr><td>Hal</td><td>: Laporan Perkembangan Komsel</td></tr>
+        <tr><td>Periode</td><td>: <span id="pdf-val-periode"></span></td></tr>
+    </table>
+
+    <p>Dengan Hormat, berikut kami melaporkan perkembangan komsel kami dari perkembangan segi rohani dan juga karakter sebagai Pemimpin dan Kepala Keluarga.</p>
+
+    <div class="indicator-list">
+        <p>1. Daftar Nama Pelaporan Pembacaan Alkitab: <b>Tersedia di Lampiran</b></p>
+        <p>2. Daftar Kehadiran Komsel: <b>Tersedia di Lampiran</b></p>
+        <p>3. Daftar Ketidakhadiran Komsel: <b>Tersedia di Lampiran</b></p>
+        <p>4. Daftar List Doa yang masuk di sistem: <b id="pdf-val-doa-masuk">0</b></p>
+        <p>5. Daftar Doa yang sudah terjawab: <b id="pdf-val-doa-jawab">0</b></p>
+        <p>6. Insight dari AI: <br><i id="pdf-val-insight"></i></p>
+        <p>7. Lampiran Grafik Capaian dan Pertumbuhan: <b>Terlampir</b></p>
+    </div>
+
+    <p style="margin-top:30px;">Demikian laporan ini dibuat atas dasar yang sebenarnya. Atas perhatian dan kerjasamanya diucapkan terimakasih.</p>
+
+    <div class="pdf-footer">
+        <p>Jayapura, <span id="pdf-val-tanggal"></span></p>
+        <p>Ketua Komsel JC <span id="pdf-val-jc-sign"></span></p>
+        <br><br><br>
+        <p><strong id="pdf-val-nama-ketua">(Nama Ketua)</strong></p>
+    </div>
+</div>
+
 <div id="modal-log" class="modal-overlay" onclick="toggleLogModal(false)">
     <div class="modal-content" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -348,7 +369,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    // Konfigurasi Firebase Anda
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -363,8 +383,9 @@
 
     let myChart;
     let userJC = "";
+    let userName = "";
     let unsubBacaan = null;
-    let unsubDoa = null; // Listener untuk Doa
+    let unsubDoa = null;
 
     async function init() {
         let emailRaw = localStorage.getItem("userEmail") || "imade.bobydaniel@gmail.com";
@@ -373,61 +394,38 @@
         try {
             const snap = await db.collection("users").where("email", "==", email).get();
             if(!snap.empty) {
-                userJC = String(snap.docs[0].data().komsel);
+                const userData = snap.docs[0].data();
+                userJC = String(userData.komsel);
+                userName = userData.nama;
                 document.getElementById("label-jc").innerText = "ANALISA JC " + userJC;
                 initChart();
                 sinkronisasiRealtime();
-                listenToCapaianDoa(); // Jalankan listener Doa
+                listenToCapaianDoa();
             }
         } catch (e) { console.error(e); }
     }
 
-    // FUNGSI LISTEN TO CAPAIAN DOA (REALTIME)
     function listenToCapaianDoa() {
         if (unsubDoa) unsubDoa();
-        
-        // Memantau koleksi laporan_doa
         unsubDoa = db.collection("laporan_doa").onSnapshot((snapshot) => {
             let totalDoa = 0;
             let dijawabCount = 0;
-
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                // Filter hanya untuk grup JC yang sesuai dengan user (Misal: JC 5)
                 if (data.jc === "JC " + userJC || data.jc === userJC) {
                     totalDoa++;
-                    if (data.terjawab === true) {
-                        dijawabCount++;
-                    }
+                    if (data.terjawab === true) dijawabCount++;
                 }
             });
-
-            // Hitung Persentase
             const persentase = totalDoa > 0 ? (dijawabCount / totalDoa) * 100 : 0;
-
-            // Update ke UI secara Real-time
             document.getElementById("total-doa-masuk").innerText = totalDoa;
             document.getElementById("persentase-dijawab").innerText = persentase.toFixed(1) + "%";
             document.getElementById("progress-doa-bar").style.width = persentase + "%";
             
-            console.log("Doa Update:", userJC, "Total:", totalDoa, "Dijawab:", dijawabCount);
+            // Simpan variabel untuk PDF
+            window.lastTotalDoa = totalDoa;
+            window.lastDoaJawab = dijawabCount;
         });
-    }
-
-    function toggleLogModal(show) {
-        document.getElementById("modal-log").style.display = show ? "flex" : "none";
-    }
-
-    function toggleLogicPopup() {
-        const p = document.getElementById("popup-logic");
-        p.style.display = (p.style.display === "none" || p.style.display === "") ? "block" : "none";
-    }
-
-    function togglePass() {
-        const i = document.getElementById("pks-password");
-        const t = document.getElementById("togglePass");
-        if(i.type === "password") { i.type = "text"; t.className = "fa-solid fa-eye-slash"; }
-        else { i.type = "password"; t.className = "fa-solid fa-eye"; }
     }
 
     function initChart() {
@@ -444,17 +442,12 @@
                     barThickness: 40
                 }]
             },
-            options: { 
-                maintainAspectRatio: false, 
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, max: 100 } } 
-            }
+            options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100 } } }
         });
     }
 
     function sinkronisasiRealtime() {
         if (unsubBacaan) unsubBacaan();
-
         const periode = parseInt(document.getElementById("filter-periode").value);
         const batasWaktu = new Date();
         batasWaktu.setMonth(batasWaktu.getMonth() - periode);
@@ -466,31 +459,24 @@
             .onSnapshot(snap => {
                 let html = "";
                 let countAlkitab = 0;
-
                 snap.forEach(doc => {
                     const d = doc.data();
                     countAlkitab++;
                     const tgl = d.tanggal.toDate().toLocaleDateString('id-ID', {day:'2-digit', month:'short'});
-                    html += `
-                        <div class="mutasi-item" data-nama="${d.nama}" data-bacaan="${d.pasal_utama}">
-                            <div class="mutasi-date">${tgl}</div>
-                            <div class="mutasi-info">
-                                <div class="mutasi-name">${d.nama}</div>
-                                <div class="mutasi-desc">${d.pasal_utama || 'Baca Firman'}</div>
-                            </div>
-                            <div class="mutasi-status"><i class="fas fa-check-circle"></i></div>
-                        </div>`;
+                    html += `<div class="mutasi-item">
+                        <div class="mutasi-date">${tgl}</div>
+                        <div class="mutasi-info">
+                            <div class="mutasi-name">${d.nama}</div>
+                            <div class="mutasi-desc">${d.pasal_utama || 'Baca Firman'}</div>
+                        </div>
+                        <div class="mutasi-status"><i class="fas fa-check-circle"></i></div>
+                    </div>`;
                 });
-
-                document.getElementById("mutasi-list").innerHTML = html || '<p style="text-align:center;font-size:12px;color:#999;">Belum ada aktifitas.</p>';
-                
+                document.getElementById("mutasi-list").innerHTML = html || '<p style="text-align:center;">Belum ada aktifitas.</p>';
                 const target = 20 * (periode * 4); 
                 const persenAlkitab = Math.min(Math.round((countAlkitab/target)*100), 100);
-                
                 const persenHadir = Math.min(persenAlkitab + 15, 95); 
-                const persenAbsen = 100 - persenHadir;
-
-                myChart.data.datasets[0].data = [persenAlkitab, persenHadir, persenAbsen];
+                myChart.data.datasets[0].data = [persenAlkitab, persenHadir, 100 - persenHadir];
                 myChart.update();
                 generateInsight(persenAlkitab);
             });
@@ -499,29 +485,50 @@
     function generateInsight(persen) {
         document.getElementById("card-insight").style.display = "block";
         const txt = document.getElementById("text-insight");
-        if (persen >= 80) txt.innerText = "Komsel JC " + userJC + " dalam performa puncak. Kerohanian jemaat melalui Alkitab sangat kuat.";
-        else if (persen >= 50) txt.innerText = "Stabilitas JC " + userJC + " terjaga. Disarankan penguatan mentoring personal.";
-        else txt.innerText = "Perhatian: Partisipasi rendah. Segera lakukan follow-up atau visitasi jemaat JC " + userJC;
+        let msg = "";
+        if (persen >= 80) msg = "Komsel JC " + userJC + " dalam performa puncak. Kerohanian jemaat sangat kuat.";
+        else if (persen >= 50) msg = "Stabilitas JC " + userJC + " terjaga. Disarankan penguatan mentoring personal.";
+        else msg = "Perhatian: Partisipasi rendah. Segera lakukan follow-up jemaat JC " + userJC;
+        txt.innerText = msg;
+        window.lastInsight = msg;
     }
 
-    // Fungsi Validasi & PDF Tetap Sama
+    function toggleLogModal(show) { document.getElementById("modal-log").style.display = show ? "flex" : "none"; }
+    function togglePass() {
+        const i = document.getElementById("pks-password");
+        i.type = i.type === "password" ? "text" : "password";
+    }
+
     async function validateAndExport() {
         const pass = document.getElementById("pks-password").value;
-        const items = document.querySelectorAll(".mutasi-item");
-        if(!pass || pass !== "rahasia123") { alert("Password Otoritas Salah!"); return; }
-        if (items.length === 0) { alert("Tidak ada data untuk laporan."); return; }
-        alert("Menghasilkan Laporan PDF Resmi...");
-        // ... (Kode PDF Anda dilanjutkan di sini) ...
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const pageWidth = doc.internal.pageSize.getWidth();
-        doc.setFontSize(16);
-        doc.text("GBI PONDOK PEMULIHAN PAPUA", pageWidth / 2, 18, { align: "center" });
-        doc.setFontSize(10);
-        doc.text("Laporan Perkembangan Komsel JC " + userJC, pageWidth / 2, 24, { align: "center" });
-        doc.line(15, 28, pageWidth - 15, 28);
-        doc.text("Laporan Doa: " + document.getElementById("total-doa-masuk").innerText + " masuk, " + document.getElementById("persentase-dijawab").innerText + " dijawab.", 15, 40);
-        doc.save(`Laporan_JC${userJC}_${Date.now()}.pdf`);
+        if(pass !== "pks123") { alert("Password Otoritas Salah!"); return; }
+
+        const template = document.getElementById("pdf-template");
+        
+        // Isi data dinamis ke template PDF
+        document.getElementById("pdf-val-jc").innerText = userJC;
+        document.getElementById("pdf-val-jc-sign").innerText = userJC;
+        document.getElementById("pdf-val-periode").innerText = document.getElementById("filter-periode").options[document.getElementById("filter-periode").selectedIndex].text;
+        document.getElementById("pdf-val-doa-masuk").innerText = window.lastTotalDoa || 0;
+        document.getElementById("pdf-val-doa-jawab").innerText = window.lastDoaJawab || 0;
+        document.getElementById("pdf-val-insight").innerText = window.lastInsight || "-";
+        document.getElementById("pdf-val-tanggal").innerText = new Date().toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
+        document.getElementById("pdf-val-nama-ketua").innerText = "(" + userName + ")";
+
+        template.style.display = "block";
+
+        const opt = {
+            margin: 10,
+            filename: `Laporan_JC${userJC}_Official.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(template).save().then(() => {
+            template.style.display = "none";
+            alert("Laporan PDF Berhasil Diunduh.");
+        });
     }
 
     window.onload = init;
