@@ -126,6 +126,16 @@
     <a href="menu.html" class="btn-back"><i class="fa-solid fa-house"></i> KEMBALI KE MENU</a>
 </div>
 
+<div id="modal-global" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
+    <div style="background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; width: 100%;">
+        <i id="icon-modal" class="fa-solid fa-circle-check" style="font-size: 50px; color: #28a745; margin-bottom: 15px;"></i>
+        <h3 id="judul-modal" style="color: #333; margin-top: 0;">Terimakasih Atas Laporan Anda</h3>
+        <p id="status-laporan" style="font-weight: bold; color: #28a745; margin-bottom: 5px;"></p>
+        <p id="display-gps-global" style="font-size: 12px; color: #666; margin-bottom: 20px;"></p>
+        <button onclick="tutupPopupGlobal()" style="width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer;">OK</button>
+    </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
@@ -144,6 +154,37 @@
     const userEmail = localStorage.getItem("userEmail") || "guest@gmail.com";
     const userName = localStorage.getItem("userName") || "User";
 
+    // Fungsi Popup Global
+    function tampilkanPopupKonfirmasi(jenisHadir, lat, lon) {
+        const modal = document.getElementById('modal-global');
+        const judul = document.getElementById('judul-modal');
+        const status = document.getElementById('status-laporan');
+        const gps = document.getElementById('display-gps-global');
+        const icon = document.getElementById('icon-modal');
+
+        if (jenisHadir === "HADIR") {
+            judul.innerText = "Terimakasih Atas Laporan Anda";
+            status.innerText = "Status: SAYA HADIR";
+            status.style.color = "#28a745"; 
+            icon.style.color = "#28a745";
+            icon.className = "fa-solid fa-circle-check";
+        } else {
+            judul.innerText = "Laporan Ketidakhadiran Terkirim";
+            status.innerText = "Status: TIDAK HADIR";
+            status.style.color = "#dc3545"; 
+            icon.style.color = "#dc3545";
+            icon.className = "fa-solid fa-circle-xmark";
+        }
+
+        gps.innerText = "Lokasi GPS: " + lat.toFixed(6) + ", " + lon.toFixed(6);
+        modal.style.display = 'flex';
+    }
+
+    function tutupPopupGlobal() {
+        document.getElementById('modal-global').style.display = 'none';
+        location.reload(); 
+    }
+
     function updateUIStatus(judul, deskripsi) {
         const display = document.getElementById("status-display");
         const title = document.getElementById("status-title");
@@ -152,20 +193,6 @@
         display.style.display = "block";
         title.innerText = judul;
         desc.innerText = deskripsi;
-        
-        // Mematikan tombol agar tidak melapor berkali-kali
-        document.getElementById("btnHadir").disabled = true;
-        document.getElementById("btnAbsen").disabled = true;
-        document.getElementById("btnHadir").style.opacity = "0.5";
-        document.getElementById("btnAbsen").style.opacity = "0.5";
-        document.getElementById("reason-container").style.display = "none";
-        
-        // Atur warna judul berdasarkan pesan
-        if (judul.includes("Terimakasih")) {
-            title.style.color = "#00a884"; // Hijau
-        } else if (judul.includes("Tadi Sudah")) {
-            title.style.color = "#003366"; // Biru Tua
-        }
     }
 
     function tampilkanInputAlasan() {
@@ -183,14 +210,12 @@
             return;
         }
 
-        // Tampilkan loading sementara di block display
         updateUIStatus("Sedang Memproses...", "Mengambil koordinat lokasi...");
 
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(async (position) => {
                 const lat = position.coords.latitude;
                 const lon = position.coords.longitude;
-                const lokasiString = `Lokasi GPS: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
 
                 try {
                     await db.collection("kehadiran").add({
@@ -205,9 +230,9 @@
 
                     localStorage.setItem("lapor_" + todayStr, "true");
                     
-                    // Pesan sesuai permintaan: "Terimakasih Atas Laporan Anda"
-                    const pesanJudul = "Terimakasih Atas Laporan Anda";
-                    updateUIStatus(pesanJudul, lokasiString);
+                    // SEMBUNYIKAN STATUS LOADING DAN TAMPILKAN POPUP
+                    document.getElementById("status-display").style.display = "none";
+                    tampilkanPopupKonfirmasi(tipe, lat, lon);
 
                 } catch (e) {
                     updateUIStatus("Gagal Mengirim", e.message);
@@ -223,7 +248,12 @@
     window.onload = () => {
         const todayStr = new Date().toISOString().split('T')[0];
         if (localStorage.getItem("lapor_" + todayStr)) {
+            // Jika sudah melapor, kita langsung beri tahu lewat UI
             updateUIStatus("Anda Tadi Sudah Melapor", "Laporan hari ini sudah masuk.");
+            document.getElementById("btnHadir").disabled = true;
+            document.getElementById("btnAbsen").disabled = true;
+            document.getElementById("btnHadir").style.opacity = "0.5";
+            document.getElementById("btnAbsen").style.opacity = "0.5";
         }
     };
 </script>
