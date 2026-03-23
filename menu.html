@@ -76,7 +76,7 @@
         .profile-section h2 { margin: 8px 0 2px 0; font-size: 24px; color: var(--biru-tua); font-weight: 800; }
         .profile-section p { margin: 0; color: var(--hijau-zamrud); font-weight: bold; font-size: 14px; }
 
-        /* MENU GRID 3D */
+        /* MENU GRID */
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; padding-top: 15px; }
         .menu-box { 
            background: white; padding: 22px 10px; border-radius: 20px; 
@@ -84,25 +84,14 @@
            text-decoration: none; color: var(--biru-tua); font-weight: 800; font-size: 12px; 
            box-shadow: 0 6px 15px rgba(0,0,0,0.08); transition: 0.3s;
         }
-        .menu-box:active { transform: scale(0.95); box-shadow: inset 4px 4px 8px rgba(0,0,0,0.1); }
-        .menu-box i { 
-           font-size: 32px; margin-bottom: 12px; 
-           background: linear-gradient(135deg, var(--biru-safir), var(--hijau-zamrud));
-           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-           filter: drop-shadow(2px 4px 3px rgba(0,0,0,0.2)); 
-        }
-
-        .icon-special { 
-           background: linear-gradient(135deg, var(--emas-lux), #fff3a0) !important;
-           -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important;
-        }
+        .menu-box:active { transform: scale(0.95); }
+        .menu-box i { font-size: 32px; margin-bottom: 12px; color: var(--biru-safir); }
 
         .btn-logout { 
            background: var(--biru-tua); color: #fff; padding: 14px 40px; 
            border-radius: 50px; text-decoration: none; font-size: 14px; 
-           font-weight: bold; display: inline-block; margin-top: 40px; 
-           border: 2px solid var(--emas-lux); margin-bottom: 30px;
-           cursor: pointer;
+           font-weight: bold; display: inline-block; margin: 40px 0;
+           border: 2px solid var(--emas-lux); cursor: pointer;
         }
 
         #admin-input-renungan {
@@ -110,7 +99,6 @@
              color: var(--biru-tua); padding: 8px 15px; 
              border-radius: 10px; font-size: 11px; font-weight: 800;
              text-decoration: none; margin-top: 15px;
-             border: 1px solid rgba(0,0,0,0.1);
         }
     </style>
 </head>
@@ -149,18 +137,17 @@
             <a href="baca-alkitab.html" class="menu-box"><i class="fa-solid fa-book-bible"></i>Laporan Baca</a>
             <a href="capaian-doa.html" class="menu-box"><i class="fa-solid fa-hands-praying"></i>Capaian DOA</a>
             <a href="statistik.html" class="menu-box"><i class="fa-solid fa-chart-pie"></i>Statistik</a>
-            <a href="leaderboard.html" class="menu-box"><i class="fa-solid fa-crown icon-special"></i>Peringkat JC</a>
-            <a href="lacak-domba.html" class="menu-box" style="color:#e11d48;"><i class="fa-solid fa-map-location-dot" style="background:none;-webkit-text-fill-color:initial;color:#e11d48;"></i>Lacak Domba</a>
-            <a href="javascript:location.reload()" class="menu-box" style="color: #28a745;"><i class="fa-solid fa-arrows-rotate" style="background:none;-webkit-text-fill-color:initial;color:#28a745;"></i>Refresh</a>
-            <a href="saran.html" class="menu-box"><i class="fa-solid fa-comment-dots"></i>Saran</a>
+            <a href="leaderboard.html" class="menu-box"><i class="fa-solid fa-crown"></i>Peringkat JC</a>
+            <a href="lacak-domba.html" class="menu-box"><i class="fa-solid fa-map-location-dot"></i>Lacak Domba</a>
         </div>
-        <div class="btn-logout" onclick="logoutDanHapusDevice()">KELUAR SISTEM</div>
+        <div class="btn-logout" onclick="logout()">KELUAR SISTEM</div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
+        // 1. Konfigurasi Firebase
         const firebaseConfig = { 
             apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
             authDomain: "boby-apps-project.firebaseapp.com", 
@@ -170,18 +157,21 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        function updateWaktuDanRunningText() {
+        // 2. Fungsi Update Waktu (Agar tidak macet di 00:00:00)
+        function updateWaktu() {
             const now = new Date();
-            const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-            const time = now.toLocaleTimeString('id-ID', { hour12: false });
-            document.getElementById('display-tanggal').innerText = `${days[now.getDay()]}, ${now.getDate()}-${now.getMonth()+1}-${now.getFullYear()}`;
-            document.getElementById('digital-clock').innerText = `${time} WIT`;
-            document.getElementById('running-text').innerText = `Shalom! Selamat melayani di Pondok Pemulihan Papua | Jam: ${time} WIT`;
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const tgl = now.toLocaleDateString('id-ID', options);
+            const jam = now.toLocaleTimeString('id-ID', { hour12: false });
+            
+            document.getElementById('display-tanggal').innerText = tgl;
+            document.getElementById('digital-clock').innerText = jam + " WIT";
+            document.getElementById('running-text').innerText = `Shalom! Selamat melayani di Pondok Pemulihan Papua | ${tgl} | ${jam} WIT`;
         }
 
+        // 3. Fungsi Ambil Data User
         function syncUserData() {
             const userEmail = localStorage.getItem("userEmail");
-            
             if (!userEmail) { 
                 window.location.href = "index.html"; 
                 return; 
@@ -190,40 +180,34 @@
             db.collection("users").where("email", "==", userEmail).onSnapshot((querySnapshot) => {
                 if (!querySnapshot.empty) {
                     const data = querySnapshot.docs[0].data();
-                    
                     document.getElementById('disp_nama').innerText = data.nama || "User";
                     document.getElementById('disp_komsel').innerText = data.komsel ? "JC " + data.komsel : "KOMSEL JC";
 
-                    const photoImg = document.getElementById('user-photo');
-                    const defaultIcon = document.getElementById('default-icon');
-                    if (data.fotoUrl) { 
-                        photoImg.src = data.fotoUrl; 
-                        photoImg.style.display = "block"; 
-                        defaultIcon.style.display = "none"; 
+                    if (data.fotoUrl) {
+                        const img = document.getElementById('user-photo');
+                        img.src = data.fotoUrl;
+                        img.style.display = "block";
+                        document.getElementById('default-icon').style.display = "none";
                     }
 
-                    const btnAdmin = document.getElementById('admin-input-renungan');
-                    if (btnAdmin && (data.jabatan === "PKS" || data.jabatan === "Ketua Komsel")) {
-                        btnAdmin.style.display = "inline-block";
+                    // Cek Jabatan Admin
+                    if (data.jabatan === "PKS" || data.jabatan === "Ketua Komsel") {
+                        document.getElementById('admin-input-renungan').style.display = "inline-block";
                     }
-                } else {
-                    console.log("Data user tidak ditemukan.");
                 }
-            }, (error) => {
-                console.error("Firestore Error:", error);
             });
         }
 
-        function logoutDanHapusDevice() {
-            if (confirm("Keluar sistem?")) {
+        function logout() {
+            if (confirm("Keluar dari sistem?")) {
                 localStorage.clear();
                 window.location.href = "index.html";
             }
         }
 
-        // Jalankan Inisialisasi
-        setInterval(updateWaktuDanRunningText, 1000);
-        updateWaktuDanRunningText();
+        // 4. Jalankan Fungsi
+        setInterval(updateWaktu, 1000);
+        updateWaktu();
         syncUserData();
     </script>
 </body>
