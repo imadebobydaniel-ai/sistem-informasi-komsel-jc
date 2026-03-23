@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Kegiatan - Komsel JC</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --biru-tua: #003366;
+            --biru-safir: #0056b3;
+            --merah-notif: #e11d48;
+            --hijau-zamrud: #2ecc71;
+            --putih-bg: #f4f7fa;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background: var(--putih-bg); margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 5px solid var(--merah-notif); }
+        
+        h2 { color: var(--biru-tua); text-align: center; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        
+        .btn-send { background: var(--merah-notif); color: white; border: none; padding: 15px; width: 100%; border-radius: 50px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-back { display: block; text-align: center; margin-top: 15px; color: var(--biru-tua); text-decoration: none; font-weight: bold; }
+
+        .history-section { margin-top: 30px; border-top: 2px dashed #ddd; padding-top: 20px; }
+        .info-card { background: #fff5f5; border-left: 5px solid var(--merah-notif); padding: 15px; border-radius: 10px; margin-bottom: 15px; position: relative; }
+        .info-card h4 { margin: 0; color: var(--merah-notif); }
+        .info-card p { margin: 5px 0; font-size: 13px; }
+        .delete-btn { position: absolute; top: 10px; right: 10px; color: #ccc; cursor: pointer; }
+        .delete-btn:hover { color: var(--merah-notif); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2><i class="fa-solid fa-bullhorn"></i> Info Kegiatan Baru</h2>
+    
+    <div class="form-group">
+        <label>Kategori Kegiatan</label>
+        <select id="kategori">
+            <option value="Ibadah">Ibadah Komsel</option>
+            <option value="Penting">Pesan Penting</option>
+            <option value="Sosialisasi">Sosialisasi / Kerja Bakti</option>
+            <option value="Latihan">Latihan Musik/Worship</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Judul Informasi</label>
+        <input type="text" id="judul" placeholder="Contoh: Perubahan Jam Ibadah">
+    </div>
+
+    <div class="form-group">
+        <label>Lokasi (Opsional)</label>
+        <input type="text" id="lokasi" placeholder="Contoh: Rumah Kel. Boby">
+    </div>
+
+    <div class="form-group">
+        <label>Detail Informasi</label>
+        <textarea id="detail" placeholder="Tuliskan detail pengumuman di sini..."></textarea>
+    </div>
+
+    <button class="btn-send" onclick="kirimPengumuman()">
+        <i class="fa-solid fa-paper-plane"></i> KIRIM & NOTIFIKASI
+    </button>
+    
+    <a href="menu.html" class="btn-back"><i class="fa-solid fa-circle-arrow-left"></i> Kembali ke Menu</a>
+
+    <div class="history-section">
+        <h3>Riwayat Informasi</h3>
+        <div id="list-pengumuman">
+            </div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<script>
+    const firebaseConfig = { 
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
+        authDomain: "boby-apps-project.firebaseapp.com", 
+        projectId: "boby-apps-project", 
+        storageBucket: "boby-apps-project.appspot.com", 
+        messagingSenderId: "125984859692", 
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // FUNGSI KIRIM PENGUMUMAN
+    async function kirimPengumuman() {
+        const kategori = document.getElementById('kategori').value;
+        const judul = document.getElementById('judul').value;
+        const lokasi = document.getElementById('lokasi').value;
+        const detail = document.getElementById('detail').value;
+
+        if(!judul || !detail) { alert("Harap isi Judul dan Detail!"); return; }
+
+        try {
+            await db.collection("pengumuman_komsel").add({
+                kategori: kategori,
+                judul: judul,
+                lokasi: lokasi,
+                detail: detail,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                pemicuNotif: Date.now() // Ini yang akan memicu suara di HP anggota
+            });
+            
+            alert("Pengumuman Terkirim! Notifikasi akan berbunyi di HP anggota.");
+            resetForm();
+        } catch (e) { console.error(e); }
+    }
+
+    // LOAD RIWAYAT
+    function loadHistory() {
+        db.collection("pengumuman_komsel").orderBy("createdAt", "desc").limit(5).onSnapshot((querySnapshot) => {
+            const listDiv = document.getElementById('list-pengumuman');
+            listDiv.innerHTML = "";
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                listDiv.innerHTML += `
+                    <div class="info-card">
+                        <i class="fa-solid fa-trash delete-btn" onclick="hapusInfo('${doc.id}')"></i>
+                        <h4>[${data.kategori}] ${data.judul}</h4>
+                        <p><strong>Lokasi:</strong> ${data.lokasi || '-'}</p>
+                        <p>${data.detail}</p>
+                    </div>
+                `;
+            });
+        });
+    }
+
+    async function hapusInfo(id) {
+        if(confirm("Hapus pengumuman ini?")) {
+            await db.collection("pengumuman_komsel").doc(id).delete();
+        }
+    }
+
+    function resetForm() {
+        document.getElementById('judul').value = "";
+        document.getElementById('lokasi').value = "";
+        document.getElementById('detail').value = "";
+    }
+
+    loadHistory();
+</script>
+</body>
+</html>
