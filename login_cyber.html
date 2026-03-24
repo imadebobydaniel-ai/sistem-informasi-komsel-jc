@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cybernet Admin Access - Pondok Pemulihan Papua</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* --- STYLING UTAMA & CYBERNET ELEMENTS --- */
+        :root {
+            --cyan-neon: #00ffff;
+            --blue-neon: #007bff;
+            --dark-bg: #050505;
+            --panel-bg: rgba(10, 10, 10, 0.85); /* Semi transparan */
+            --glow-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+        }
+
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark-bg);
+            color: #fff;
+            overflow: hidden; /* Mencegah scroll pada background video */
+        }
+
+        /* --- BACKGROUND VIDEO (FULL PAGE ROBOT WAR) --- */
+        #bg-video {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            z-index: -100; /* Letakkan jauh di belakang konten */
+            filter: brightness(0.4) saturate(1.2) contrast(1.1); /* Efek gelap & dramatis */
+            object-fit: cover;
+        }
+
+        /* --- EFEK GRID CYBERNET --- */
+        .cyber-grid {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(0deg, transparent 24%, rgba(0, 255, 255, .05) 25%, rgba(0, 255, 255, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 255, .05) 75%, rgba(0, 255, 255, .05) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, rgba(0, 255, 255, .05) 25%, rgba(0, 255, 255, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 255, .05) 75%, rgba(0, 255, 255, .05) 76%, transparent 77%, transparent);
+            background-size: 50px 50px;
+            z-index: -50;
+            pointer-events: none; /* Klik bisa menembus grid */
+        }
+
+        /* --- CONTAINER UTAMA LOGIN PANEL --- */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            perspective: 1000px; /* Untuk efek 3D shadow */
+        }
+
+        .cyber-panel {
+            background-color: var(--panel-bg);
+            padding: 40px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 420px;
+            text-align: center;
+            box-shadow: 
+                0 0 20px rgba(0, 255, 255, 0.2), /* Glow luar lembut */
+                0 0 5px rgba(0, 255, 255, 0.4) inset; /* Glow dalam */
+            border: 2px solid var(--cyan-neon);
+            position: relative;
+            backdrop-filter: blur(10px); /* Efek kaca buram */
+        }
+
+        /* --- EFEK SCANLINE CYBERNET --- */
+        .cyber-panel::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1) 1px, transparent 1px, transparent 2px);
+            pointer-events: none;
+            border-radius: 18px;
+        }
+
+        /* --- STYLING HEADER & JUDUL --- */
+        .header-icon {
+            font-size: 60px;
+            color: var(--cyan-neon);
+            text-shadow: 0 0 15px var(--cyan-neon);
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: var(--cyan-neon);
+            text-transform: uppercase;
+            text-shadow: 0 0 10px var(--cyan-neon);
+        }
+
+        .subtitle {
+            color: #aaa;
+            margin-bottom: 40px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* --- STYLING INPUT FIELD (CYBER STYLE) --- */
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--cyan-neon);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 5px var(--cyan-neon);
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper i.fa-solid {
+            position: absolute;
+            left: 15px;
+            color: #555;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px 15px 15px 45px; /* Beri ruang kiri untuk ikon */
+            background-color: rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+            border-radius: 10px;
+            box-sizing: border-box;
+            outline: none;
+            color: #fff;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        /* Efek Fokus Input (Neon Glow) */
+        input:focus {
+            border-color: var(--cyan-neon);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        input:focus + i.fa-solid {
+            color: var(--cyan-neon); /* Ikon ikut menyala */
+        }
+
+        /* Styling Mata (Tampilkan Password) */
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #555;
+            transition: color 0.3s;
+            z-index: 10;
+        }
+
+        .toggle-password:hover {
+            color: #fff;
+        }
+
+        /* --- STYLING TOMBOL LOGOUT (CYBER BUTTON) --- */
+        .btn-cyber {
+            width: 100%;
+            padding: 16px;
+            background-color: transparent;
+            color: var(--cyan-neon);
+            border: 2px solid var(--cyan-neon);
+            border-radius: 10px;
+            font-weight: 900;
+            font-size: 16px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        /* Efek Hover Tombol (Isi Neon) */
+        .btn-cyber:hover {
+            background-color: var(--cyan-neon);
+            color: #000;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+        }
+
+        /* Efek Glitch saat Tombol Ditekan */
+        .btn-cyber:active {
+            animation: glitch 0.3s infinite;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(2px, 1px) rotate(0deg); }
+            50% { transform: translate(-1px, -1px) rotate(1deg); }
+            100% { transform: translate(1px, 2px) rotate(-1deg); }
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 30px;
+            color: #666;
+            text-decoration: none;
+            font-size: 12px;
+            transition: color 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .back-link:hover {
+            color: #fff;
+        }
+
+        /* --- STYLING NOTIFIKASI MODAL (CYBER STYLE) --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--panel-bg);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            width: 85%;
+            max-width: 320px;
+            border: 2px solid;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .btn-modal {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            transition: 0.3s;
+            border: none;
+        }
+
+        /* --- CSS Khusus Tampilan Video Latar --- */
+        #bg-video-source {
+            /* Ganti tautan video perang robot layar penuh Anda di bawah ini */
+            src: url('https://files.catbox.moe/oasbvw.mp4'); 
+            type: video/mp4;
+        }
+    </style>
+</head>
+<body>
+
+    <video autoplay loop muted playsinline id="bg-video">
+        <source src="https://files.catbox.moe/oasbvw.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <div class="cyber-grid"></div>
+
+    <div class="login-container">
+        <div class="cyber-panel">
+            <div class="header-icon"><i class="fa-solid fa-server"></i></div>
+            <h2>Cybernet Access</h2>
+            <p class="subtitle">Secure Administrator Portal</p>
+
+            <form id="cyberLoginForm">
+                <div class="form-group">
+                    <label>Admin Username</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-id-card-clip"></i>
+                        <input type="text" id="cyberUser" placeholder="ENTER USERNAME" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Admin Password</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-key"></i>
+                        <input type="password" id="cyberPass" placeholder="ENTER PASSWORD" required>
+                        <i class="fa-solid fa-eye toggle-password" id="toggleEye" onclick="togglePasswordVisibility()"></i>
+                    </div>
+                </div>
+                <button type="submit" class="btn-cyber">Verify Access</button>
+            </form>
+
+            <a href="login.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Return to Member Login</a>
+        </div>
+    </div>
+
+    <div id="cyberModal" class="modal-overlay">
+        <div class="modal-content" id="modalBorder">
+            <i id="modalIcon" class="fa-solid" style="font-size: 50px; margin-bottom: 20px;"></i>
+            <h3 id="modalTitle" style="margin: 0; color: #fff;">Status</h3>
+            <p id="modalMsg" style="color: #aaa; font-size: 14px; margin-top: 10px;"></p>
+            <button id="closeModal" class="btn-modal">Acknowledge</button>
+        </div>
+    </div>
+
+    <script>
+        // --- KONFIGURASI DATA LOGIN ADMIN (HARDCODED) ---
+        // Sesuai permintaan Anda, data ini disimpan langsung di dalam kode.
+        const VALID_USERNAME = "admin";
+        const VALID_PASSWORD = "bukadong821";
+
+        // --- AMBIL ELEMEN HTML ---
+        const loginForm = document.getElementById('cyberLoginForm');
+        const modal = document.getElementById('cyberModal');
+        const modalIcon = document.getElementById('modalIcon');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMsg = document.getElementById('modalMsg');
+        const modalBtn = document.getElementById('closeModal');
+        const modalBorder = document.getElementById('modalBorder');
+
+        // --- FUNGSI TAMPILKAN/SEMBUNYIKAN PASSWORD ---
+        function togglePasswordVisibility() {
+            const passInput = document.getElementById('cyberPass');
+            const eyeIcon = document.getElementById('toggleEye');
+            if (passInput.type === 'password') {
+                passInput.type = 'text'; // Tampilkan password
+                eyeIcon.classList.replace('fa-eye', 'fa-eye-slash'); // Ganti ikon mata coret
+            } else {
+                passInput.type = 'password'; // Sembunyikan password
+                eyeIcon.classList.replace('fa-eye-slash', 'fa-eye'); // Ganti ikon mata terbuka
+            }
+        }
+
+        // --- FUNGSI TAMPILKAN MODAL NOTIFIKASI (CYBER STYLE) ---
+        function showCyberNotification(type, title, message) {
+            modalMsg.innerText = message;
+            modalTitle.innerText = title;
+
+            // Atur gaya berdasarkan tipe (Success atau Error)
+            if (type === 'success') {
+                modalIcon.className = "fa-solid fa-shield-check"; // Ikon perisai centang
+                modalIcon.style.color = "#2ecc71"; // Warna hijau neon
+                modalBtn.style.backgroundColor = "#2ecc71";
+                modalBorder.style.borderColor = "#2ecc71"; // Border modal hijau
+            } else {
+                modalIcon.className = "fa-solid fa-bug"; // Ikon bug/error
+                modalIcon.style.color = "#e74c3c"; // Warna merah neon
+                modalBtn.style.backgroundColor = "#e74c3c";
+                modalBorder.style.borderColor = "#e74c3c"; // Border modal merah
+            }
+            modal.style.display = 'flex'; // Tampilkan modal
+        }
+
+        // --- TUTUP MODAL SAAT TOMBOL DIKLIK ---
+        modalBtn.onclick = () => modal.style.display = 'none';
+
+        // --- LOGIKA SUBMIT LOGIN (PEMERIKSAAN OFFLINE) ---
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Mencegah reload halaman
+
+            const userInput = document.getElementById('cyberUser').value.trim();
+            const passInput = document.getElementById('cyberPass').value.trim();
+
+            // Memeriksa data langsung di dalam kode (STANDALONE)
+            if (userInput === VALID_USERNAME && passInput === VALID_PASSWORD) {
+                // LOGIN BERHASIL
+                showCyberNotification('success', 'Access Granted', 'Administrator verified. Redirecting...');
+                setTimeout(() => {
+                    // Ganti nama file di bawah ini sesuai nama file dashboard Anda
+                    window.location.href = "dashboard_admin.html"; 
+                }, 2000);
+            } else {
+                // LOGIN GAGAL
+                showCyberNotification('error', 'Access Denied', 'Authentication failed. Incorrect Username or Password.');
+            }
+        });
+    </script>
+</body>
+</html>
