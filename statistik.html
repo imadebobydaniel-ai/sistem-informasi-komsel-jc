@@ -83,7 +83,10 @@
         <div class="card-header"><i class="fa-solid fa-calendar-check"></i> STATISTIK KEHADIRAN</div>
         <div class="flex-row">
             <div class="input-box"><label>Pilih Komsel</label>
-                <select id="select-komsel-hadir" onchange="syncKehadiranRealtime()"><option>JC 1</option><option>JC 2</option><option>JC 3</option><option>JC 4</option><option selected>JC 5</option><option>JC 6</option></select>
+                <select id="select-komsel-hadir" onchange="syncKehadiranRealtime()">
+                    <option value="JC 1">JC 1</option><option value="JC 2">JC 2</option><option value="JC 3">JC 3</option>
+                    <option value="JC 4">JC 4</option><option value="JC 5" selected>JC 5</option><option value="JC 6">JC 6</option>
+                </select>
             </div>
             <div class="input-box"><label>Periode</label>
                 <select id="select-periode-hadir" onchange="syncKehadiranRealtime()"><option value="1">1 Bulan</option><option value="3">3 Bulan</option></select>
@@ -122,9 +125,9 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-// --- 1. KONFIGURASI (PASTIKAN DATA INI BENAR) ---
+// --- 1. KONFIGURASI FIREBASE ---
 const firebaseConfig = {
-    apiKey: "AIzaSy...", // Masukkan API Key Anda
+    apiKey: "AIzaSy...", // GANTI DENGAN API KEY ANDA
     authDomain: "boby-apps-project.firebaseapp.com",
     projectId: "boby-apps-project",
     storageBucket: "boby-apps-project.appspot.com",
@@ -135,23 +138,25 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// --- 2. FUNGSI ALKITAB ---
+// --- 2. FUNGSI ALKITAB (Koleksi: laporan_bacaan) ---
 function syncCapaianRealtime() {
     const selKomsel = document.getElementById('select-komsel-alkitab').value;
     const periode = parseInt(document.getElementById('select-periode-alkitab').value);
     const limitDate = new Date();
     limitDate.setMonth(limitDate.getMonth() - periode);
 
-    db.collection("alkitab_reports").onSnapshot(snap => {
+    db.collection("laporan_bacaan").onSnapshot(snap => {
         let totalGlobal = 0, doneGlobal = 0;
         let totalKomsel = 0, doneKomsel = 0;
 
         snap.forEach(doc => {
             const d = doc.data();
             const tgl = d.tanggal?.toDate ? d.tanggal.toDate() : new Date(d.tanggal);
+            
             if (tgl >= limitDate) {
                 totalGlobal++;
                 if (d.status === "Selesai") doneGlobal++;
+                
                 if (d.komsel === selKomsel) {
                     totalKomsel++;
                     if (d.status === "Selesai") doneKomsel++;
@@ -159,8 +164,8 @@ function syncCapaianRealtime() {
             }
         });
 
-        const pKomsel = totalKomsel > 0 ? (doneKomsel / totalKomsel * 100).toFixed(1) : 0;
-        const pGlobal = totalGlobal > 0 ? (doneGlobal / totalGlobal * 100).toFixed(1) : 0;
+        const pKomsel = totalKomsel > 0 ? (doneKomsel / totalKomsel * 100).toFixed(1) : "0.0";
+        const pGlobal = totalGlobal > 0 ? (doneGlobal / totalGlobal * 100).toFixed(1) : "0.0";
 
         document.getElementById('text-capaian-komsel').innerText = pKomsel + "%";
         document.getElementById('bar-capaian-komsel').style.width = pKomsel + "%";
@@ -169,10 +174,11 @@ function syncCapaianRealtime() {
     });
 }
 
-// --- 3. FUNGSI DOA (SLA) ---
+// --- 3. FUNGSI DOA (Koleksi: laporan_doa) ---
 function syncDoaRealtime() {
     const selKomsel = document.getElementById('select-komsel-doa').value;
-    db.collection("prayers").onSnapshot(snap => {
+    
+    db.collection("laporan_doa").onSnapshot(snap => {
         let count = 0, totalSLA = 0, dijawab = 0;
 
         snap.forEach(doc => {
@@ -189,8 +195,8 @@ function syncDoaRealtime() {
             }
         });
 
-        const avgSLA = dijawab > 0 ? (totalSLA / dijawab).toFixed(1) : 0;
-        const pDijawab = count > 0 ? (dijawab / count * 100).toFixed(1) : 0;
+        const avgSLA = dijawab > 0 ? (totalSLA / dijawab).toFixed(1) : "0";
+        const pDijawab = count > 0 ? (dijawab / count * 100).toFixed(1) : "0.0";
 
         document.getElementById('stat-sla-hari').innerText = avgSLA + " Hari";
         document.getElementById('stat-persen-dijawab').innerText = pDijawab + "%";
@@ -198,7 +204,7 @@ function syncDoaRealtime() {
     });
 }
 
-// --- 4. FUNGSI KEHADIRAN ---
+// --- 4. FUNGSI KEHADIRAN (Koleksi: kehadiran) ---
 function syncKehadiranRealtime() {
     const selKomsel = document.getElementById('select-komsel-hadir').value;
     const periode = parseInt(document.getElementById('select-periode-hadir').value);
@@ -215,13 +221,13 @@ function syncKehadiranRealtime() {
                 if (d.status === "Hadir") hadir++;
             }
         });
-        const persen = total > 0 ? (hadir / total * 100).toFixed(1) : 0;
+        const persen = total > 0 ? (hadir / total * 100).toFixed(1) : "0.0";
         document.getElementById('text-hadir-komsel').innerText = persen + "%";
         document.getElementById('bar-hadir-komsel').style.width = persen + "%";
     });
 }
 
-// --- 5. FUNGSI GOLONGAN DARAH ---
+// --- 5. FUNGSI GOLONGAN DARAH (Koleksi: users) ---
 function syncGoldarRealtime() {
     const filter = document.getElementById('select-komsel-goldar').value;
     db.collection("users").onSnapshot(snap => {
@@ -230,8 +236,6 @@ function syncGoldarRealtime() {
         snap.forEach(doc => {
             const d = doc.data();
             let k = String(d.komsel || "").trim();
-            if (!k.includes("JC")) k = "JC " + k;
-
             if (filter === "Semua Komsel" || k === filter) {
                 usersData.push(d);
                 const g = (d.golongan_darah || d.golDarah || "").toUpperCase().trim();
@@ -255,19 +259,25 @@ function openUserDetail(type, filter, data) {
     list.innerHTML = "";
     
     const filtered = data.filter(u => (u.golongan_darah || u.golDarah || "").toUpperCase().trim() === type);
-    if (filtered.length === 0) list.innerHTML = "<p style='text-align:center'>Tidak ada data.</p>";
-    else {
+    if (filtered.length === 0) {
+        list.innerHTML = "<p style='text-align:center'>Tidak ada data.</p>";
+    } else {
         filtered.forEach(u => {
             const item = document.createElement('div');
             item.className = 'user-list-item';
-            item.innerHTML = `<img src="${u.foto_url || 'https://via.placeholder.com/45'}"><div class="user-info-text"><p class="user-name">${u.nama || 'Tanpa Nama'}</p><p class="user-jc">${u.komsel || '-'}</p></div>`;
+            item.innerHTML = `
+                <img src="${u.foto_url || 'https://via.placeholder.com/45'}">
+                <div class="user-info-text">
+                    <p class="user-name">${u.nama || 'Tanpa Nama'}</p>
+                    <p class="user-jc">${u.komsel || '-'}</p>
+                </div>`;
             list.appendChild(item);
         });
     }
     document.getElementById('modal-goldar').style.display = 'flex';
 }
 
-// --- INISIALISASI ---
+// --- INISIALISASI SAAT HALAMAN DIBUKA ---
 window.onload = () => {
     syncCapaianRealtime();
     syncDoaRealtime();
@@ -275,5 +285,6 @@ window.onload = () => {
     syncGoldarRealtime();
 };
 </script>
+
 </body>
 </html>
