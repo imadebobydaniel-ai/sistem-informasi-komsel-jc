@@ -97,6 +97,7 @@
         }
 
         .btn-submit:hover { background: #0056b3; }
+        .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
 
         .table-responsive {
             background: white;
@@ -119,9 +120,10 @@
 
         .badge-gambar { background: #e3f2fd; color: #1976d2; }
         .badge-video { background: #fff3e0; color: #f57c00; }
-        .badge-audio { background: #f3e5f5; color: #7b1fa2; }
-        .badge-pdf { background: #ffebee; color: #c62828; }
-        .badge-teks { background: #e8f5e9; color: #2e7d32; }
+        .badge-mp4_player { background: #e8f5e9; color: #2e7d32; }
+        .badge-avi_player { background: #f3e5f5; color: #7b1fa2; }
+        .badge-avsec_player { background: #ffebee; color: #c62828; }
+        .badge-teks { background: #eeeeee; color: #333333; }
 
         .btn-action {
             border: none;
@@ -160,18 +162,19 @@
             <div class="form-group">
                 <label>Tipe Media</label>
                 <select id="tipeMedia" onchange="updateInputMedia()">
-                    <option value="gambar">Gambar (Poster/Foto)</option>
-                    <option value="video">Video (YouTube/Link)</option>
-                    <option value="audio">Audio (MP3/Podcast)</option>
-                    <option value="pdf">Dokumen PDF</option>
+                    <option value="gambar">Gambar (Poster/Upload)</option>
+                    <option value="video">Video (YouTube/Link URL)</option>
+                    <option value="mp4_player">MP4 Player (Upload Video)</option>
+                    <option value="avi_player">AVI Player (Upload Video)</option>
+                    <option value="avsec_player">AVSEC Player (Upload Video)</option>
                     <option value="teks">Text World (Artikel/Berita)</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label id="labelMedia">URL Gambar (Host Luar)</label>
+                <label id="labelMedia">Upload File Gambar (.jpg, .png)</label>
                 <div id="inputMediaWrapper">
-                    <input type="text" id="inputMedia" placeholder="https://link-gambar.com/foto.jpg" required>
+                    <input type="file" id="inputMedia" accept="image/*" required>
                 </div>
             </div>
 
@@ -215,6 +218,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
 <script>
     const firebaseConfig = {
@@ -228,64 +232,96 @@
 
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
+    const storage = firebase.storage();
 
-    // 1. FUNGSI UPDATE INPUT DINAMIS
+    // 1. UPDATE INPUT DINAMIS BERDASARKAN TIPE
     function updateInputMedia() {
         const tipe = document.getElementById('tipeMedia').value;
         const wrapper = document.getElementById('inputMediaWrapper');
         const label = document.getElementById('labelMedia');
 
-        if (tipe === 'teks') {
-            label.innerText = "Isi Artikel Lengkap";
-            wrapper.innerHTML = `<textarea id="inputMedia" rows="5" placeholder="Tulis artikel lengkap di sini..." required></textarea>`;
-        } else if (tipe === 'video') {
-            label.innerText = "Link YouTube / Video";
-            wrapper.innerHTML = `<input type="text" id="inputMedia" placeholder="https://www.youtube.com/watch?v=..." required>`;
-        } else if (tipe === 'audio') {
-            label.innerText = "URL File Audio (MP3)";
-            wrapper.innerHTML = `<input type="text" id="inputMedia" placeholder="https://link-audio.com/file.mp3" required>`;
-        } else if (tipe === 'pdf') {
-            label.innerText = "URL File PDF";
-            wrapper.innerHTML = `<input type="text" id="inputMedia" placeholder="https://link-dokumen.com/file.pdf" required>`;
-        } else {
-            label.innerText = "URL Gambar (Host luar)";
-            wrapper.innerHTML = `<input type="text" id="inputMedia" placeholder="https://link-gambar.com/foto.jpg" required>`;
+        wrapper.innerHTML = ''; // Reset
+
+        switch (tipe) {
+            case 'video':
+                label.innerText = "Link URL YouTube";
+                wrapper.innerHTML = `<input type="text" id="inputMedia" placeholder="https://www.youtube.com/watch?v=..." required>`;
+                break;
+            case 'gambar':
+                label.innerText = "Upload File Poster/Gambar (.jpg, .png)";
+                wrapper.innerHTML = `<input type="file" id="inputMedia" accept="image/*" required>`;
+                break;
+            case 'mp4_player':
+                label.innerText = "Upload File Video MP4";
+                wrapper.innerHTML = `<input type="file" id="inputMedia" accept="video/mp4" required>`;
+                break;
+            case 'avi_player':
+                label.innerText = "Upload File Video AVI";
+                wrapper.innerHTML = `<input type="file" id="inputMedia" accept=".avi" required>`;
+                break;
+            case 'avsec_player':
+                label.innerText = "Upload File Video AVSEC";
+                wrapper.innerHTML = `<input type="file" id="inputMedia" accept="video/*" required>`;
+                break;
+            case 'teks':
+                label.innerText = "Isi Artikel Lengkap";
+                wrapper.innerHTML = `<textarea id="inputMedia" rows="5" placeholder="Tulis artikel lengkap di sini..." required></textarea>`;
+                break;
         }
     }
 
-    // 2. FUNGSI SIMPAN DATA
+    // 2. FUNGSI SIMPAN DATA (UPLOAD KE STORAGE & SIMPAN FIRESTORE)
     document.getElementById('mediaForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('btnSubmit');
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sedang Mengunggah...';
 
         const judul = document.getElementById('judul').value;
         const tipe = document.getElementById('tipeMedia').value;
-        const inputMedia = document.getElementById('inputMedia').value;
         const deskripsi = document.getElementById('deskripsi').value;
+        const inputElement = document.getElementById('inputMedia');
+        let finalUrl = "";
 
         try {
+            // Logika jika input berupa FILE (bukan YouTube/Teks)
+            if (inputElement.files && inputElement.files[0]) {
+                const file = inputElement.files[0];
+                const fileName = Date.now() + "_" + file.name;
+                const storageRef = storage.ref('portal_media/' + fileName);
+                
+                // Upload ke Storage
+                await storageRef.put(file);
+                finalUrl = await storageRef.getDownloadURL();
+            } else {
+                // Ambil nilai teks (untuk YouTube atau Teks Artikel)
+                finalUrl = inputElement.value;
+            }
+
+            // Simpan ke Firestore
             await db.collection("portal_media").add({
                 judul: judul,
                 tipe: tipe,
-                url: inputMedia,
+                url: finalUrl,
                 deskripsi: deskripsi,
                 tanggal: new Date().toLocaleDateString('id-ID'),
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
-            alert("Konten berhasil dipublikasikan!");
+
+            alert("Konten berhasil diunggah!");
             e.target.reset();
             updateInputMedia();
             loadMedia();
         } catch (error) {
-            alert("Gagal menyimpan data: " + error.message);
+            console.error(error);
+            alert("Gagal mengunggah: " + error.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Publikasikan ke Portal';
         }
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Publikasikan ke Portal';
     });
 
-    // 3. FUNGSI AMBIL DATA
+    // 3. FUNGSI LOAD DATA KE TABEL
     async function loadMedia() {
         const list = document.getElementById('mediaList');
         try {
@@ -306,7 +342,7 @@
                     <tr>
                         <td>${data.tanggal}</td>
                         <td><strong>${data.judul}</strong></td>
-                        <td><span class="badge ${badgeClass}">${data.tipe}</span></td>
+                        <td><span class="badge ${badgeClass}">${data.tipe.replace('_', ' ')}</span></td>
                         <td><span style="color:var(--success); font-weight:bold;">● Aktif</span></td>
                         <td style="text-align: center;">
                             <button class="btn-action btn-delete" onclick="deleteMedia('${id}')">
@@ -323,7 +359,7 @@
 
     // 4. FUNGSI HAPUS DATA
     async function deleteMedia(id) {
-        if(confirm("Apakah Anda yakin ingin menghapus konten ini?")) {
+        if(confirm("Hapus konten ini?")) {
             try {
                 await db.collection("portal_media").doc(id).delete();
                 loadMedia();
