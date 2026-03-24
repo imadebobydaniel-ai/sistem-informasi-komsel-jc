@@ -121,6 +121,7 @@
             transition: 0.3s;
         }
 
+        /* News Slider Styling */
         .news-slider {
             width: 100%;
             height: 100%;
@@ -132,22 +133,16 @@
             z-index: 1;
         }
 
-        /* Video & Image Style */
-        .video-container, .image-slide { width: 100%; height: 100%; object-fit: cover; border-radius: 25px; }
-        iframe { width: 100%; height: 100%; border: none; }
-
-        .text-news-container { padding: 20px; text-align: center; color: white; width: 100%; }
-        .text-news-container h4 { color: var(--emas-lux); margin-bottom: 10px; font-size: 14px; }
-
-        .media-caption {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            background: rgba(0,0,0,0.6);
+        .portal-container { width: 100%; padding: 20px; text-align: center; color: white; }
+        
+        .news-item {
+            animation: fadeIn 0.8s ease-in;
             color: white;
-            padding: 8px;
-            font-size: 11px;
-            text-align: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* Profile Internal Styles */
@@ -253,8 +248,11 @@
             </div>
 
             <div id="media-display-area" class="news-slider">
-                <div id="loading-media" style="color: var(--emas-lux);">
-                    <i class="fas fa-spinner fa-spin"></i> Memuat Informasi...
+                <div class="portal-container" id="newsSlider">
+                    <div class="news-item">
+                        <i class="fas fa-spinner fa-spin" style="color: var(--emas-lux);"></i>
+                        <p style="color: white; font-size: 12px;">Memuat informasi terbaru...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -294,45 +292,41 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 2. LOGIKA MEDIA INFORMASI (VIDEO/IMAGE/TEXT)
-        function loadMediaInformasi() {
-            const mediaArea = document.getElementById('media-display-area');
+        // 2. LOGIKA MEDIA INFORMASI (BERITA TERBARU)
+        async function displayLatestNews() {
+            const sliderContainer = document.getElementById('newsSlider');
+            
+            try {
+                // Ambil 1 data terbaru dari koleksi portal_media
+                const snapshot = await db.collection("portal_media")
+                                       .orderBy("timestamp", "desc")
+                                       .limit(1)
+                                       .get();
 
-            db.collection("pengumuman_komsel")
-              .where("active", "==", true)
-              .limit(1) 
-              .onSnapshot((querySnapshot) => {
-                if (querySnapshot.empty) {
-                    mediaArea.innerHTML = "<p style='color:white; font-size:12px;'>Belum ada pengumuman terbaru.</p>";
+                if (snapshot.empty) {
+                    sliderContainer.innerHTML = `
+                        <div class="news-item">
+                            <small style="color: #ffc107;">BERITA TERKINI</small>
+                            <p style="color: white; font-size: 13px;">Belum ada pengumuman terbaru.</p>
+                        </div>`;
                     return;
                 }
 
-                querySnapshot.forEach((doc) => {
+                snapshot.forEach((doc) => {
                     const data = doc.data();
-                    let htmlContent = "";
-
-                    if (data.type === "video") {
-                        const videoId = data.content.split('v=')[1] || data.content.split('/').pop();
-                        htmlContent = `
-                            <div class="video-container">
-                                <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=0&mute=1" allowfullscreen></iframe>
-                            </div>`;
-                    } 
-                    else if (data.type === "image") {
-                        htmlContent = `
-                            <img src="${data.content}" class="image-slide">
-                            <div class="media-caption">${data.judul || 'Informasi Kegiatan'}</div>`;
-                    } 
-                    else if (data.type === "text") {
-                        htmlContent = `
-                            <div class="text-news-container">
-                                <h4><i class="fas fa-bullhorn"></i> PENGUMUMAN</h4>
-                                <marquee scrollamount="5"><h3>${data.content}</h3></marquee>
-                            </div>`;
-                    }
-                    mediaArea.innerHTML = htmlContent;
+                    sliderContainer.innerHTML = `
+                        <div class="news-item" onclick="window.location.href='${data.url}'" style="cursor:pointer">
+                            <small style="color: #ffc107; font-weight: bold; letter-spacing: 1px;">BERITA TERKINI</small>
+                            <h3 style="margin: 8px 0; font-size: 18px; color: #fff;">${data.judul}</h3>
+                            <p style="font-size: 13px; opacity: 0.9; color: #eee;">${data.deskripsi || 'Klik untuk lihat detail'}</p>
+                            <div style="margin-top: 10px; font-size: 10px; color: var(--emas-lux);">${data.tanggal || ''}</div>
+                        </div>
+                    `;
                 });
-            });
+            } catch (error) {
+                console.error("Error loading news:", error);
+                sliderContainer.innerHTML = "<p style='color:red;'>Gagal memuat berita.</p>";
+            }
         }
 
         // 3. LOGIKA UI & TIME
@@ -384,10 +378,12 @@
         function executeLogout() { localStorage.clear(); window.location.href = "index.html"; }
 
         // Start App
-        setInterval(updateWaktuDanRunningText, 1000);
-        updateWaktuDanRunningText();
-        syncUserData();
-        loadMediaInformasi();
+        window.onload = function() {
+            updateWaktuDanRunningText();
+            setInterval(updateWaktuDanRunningText, 1000);
+            syncUserData();
+            displayLatestNews();
+        };
 
     </script>
 </body>
