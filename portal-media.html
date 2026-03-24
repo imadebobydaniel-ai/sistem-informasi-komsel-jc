@@ -193,9 +193,9 @@
             </div>
 
             <div class="form-group">
-                <label id="labelMedia">URL Media / Link</label>
+                <label id="labelMedia">URL Gambar (Host Luar)</label>
                 <div id="inputMediaWrapper">
-                    <input type="text" id="inputMedia" placeholder="https://..." required>
+                    <input type="text" id="inputMedia" placeholder="https://link-gambar.com/foto.jpg" required>
                 </div>
             </div>
 
@@ -241,7 +241,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    // Konfigurasi Firebase Anda
+    // Konfigurasi Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -254,29 +254,41 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    // Fungsi Update Input Berdasarkan Tipe
+    // FUNGSI UPDATE INPUT DINAMIS
     function updateInputMedia() {
         const tipe = document.getElementById('tipeMedia').value;
         const wrapper = document.getElementById('inputMediaWrapper');
         const label = document.getElementById('labelMedia');
 
-        if (tipe === 'video') {
-            label.innerText = "Link YouTube / Video";
-            wrapper.innerHTML = '<input type="text" id="inputMedia" placeholder="Tempel link video di sini..." required>';
-        } 
-        else if (tipe === 'teks') {
-            label.innerText = "Isi Berita Lengkap";
-            wrapper.innerHTML = '<textarea id="inputMedia" rows="5" placeholder="Tulis artikel di sini..." required></textarea>';
-        }
-        else {
-            // Untuk gambar, audio, pdf sementara menggunakan input teks (URL)
-            // Jika ingin upload file asli, gunakan input type="file" dan Firebase Storage
-            label.innerText = "Link / URL " + tipe.charAt(0).toUpperCase() + tipe.slice(1);
-            wrapper.innerHTML = '<input type="text" id="inputMedia" placeholder="https://..." required>';
+        switch (tipe) {
+            case 'gambar':
+                label.innerText = "URL Gambar (Host luar)";
+                wrapper.innerHTML = `<input type="text" id="inputMedia" placeholder="https://link-gambar.com/foto.jpg" required>`;
+                break;
+                
+            case 'video':
+                label.innerText = "Link YouTube / Video";
+                wrapper.innerHTML = `<input type="text" id="inputMedia" placeholder="https://www.youtube.com/watch?v=..." required>`;
+                break;
+                
+            case 'pdf':
+                label.innerText = "Upload File PDF";
+                wrapper.innerHTML = `<input type="file" id="inputMedia" accept="application/pdf" required>`;
+                break;
+                
+            case 'audio':
+                label.innerText = "Upload File Audio (MP3)";
+                wrapper.innerHTML = `<input type="file" id="inputMedia" accept="audio/*" required>`;
+                break;
+                
+            case 'teks':
+                label.innerText = "Isi Artikel Lengkap";
+                wrapper.innerHTML = `<textarea id="inputMedia" rows="5" placeholder="Tulis artikel lengkap di sini..." required></textarea>`;
+                break;
         }
     }
 
-    // Fungsi Simpan Data
+    // FUNGSI SIMPAN DATA
     document.getElementById('mediaForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('btnSubmit');
@@ -285,21 +297,24 @@
 
         const judul = document.getElementById('judul').value;
         const tipe = document.getElementById('tipeMedia').value;
-        const urlContent = document.getElementById('inputMedia').value;
+        const inputElement = document.getElementById('inputMedia');
         const deskripsi = document.getElementById('deskripsi').value;
+
+        // Logika pengambilan nilai (jika file, ambil namanya; jika teks/url, ambil nilainya)
+        let contentValue = (tipe === 'pdf' || tipe === 'audio') ? inputElement.files[0].name : inputElement.value;
 
         try {
             await db.collection("portal_media").add({
                 judul: judul,
                 tipe: tipe,
-                url: urlContent,
+                url: contentValue, // Simpan nama file atau URL/Teks
                 deskripsi: deskripsi,
                 tanggal: new Date().toLocaleDateString('id-ID'),
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
             alert("Konten berhasil dipublikasikan!");
             e.target.reset();
-            updateInputMedia(); // Kembalikan label ke default
+            updateInputMedia(); // Reset input ke default (gambar)
             loadMedia();
         } catch (error) {
             console.error(error);
@@ -309,7 +324,7 @@
         btn.innerHTML = '<i class="fas fa-paper-plane"></i> Publikasikan ke Portal';
     });
 
-    // Fungsi Ambil Data
+    // FUNGSI AMBIL DATA
     async function loadMedia() {
         const list = document.getElementById('mediaList');
         try {
@@ -324,8 +339,6 @@
             snapshot.forEach((doc) => {
                 const data = doc.data();
                 const id = doc.id;
-                
-                // Class badge disesuaikan dengan value tipe (huruf kecil)
                 const badgeClass = "badge-" + data.tipe;
 
                 list.innerHTML += `
@@ -348,7 +361,7 @@
         }
     }
 
-    // Fungsi Hapus Data
+    // FUNGSI HAPUS DATA
     async function deleteMedia(id) {
         if(confirm("Apakah Anda yakin ingin menghapus konten ini?")) {
             try {
@@ -360,7 +373,6 @@
         }
     }
 
-    // Jalankan saat halaman dibuka
     window.onload = loadMedia;
 </script>
 </body>
