@@ -59,7 +59,6 @@
 
         .timestamp { font-size: 11px; color: #999; font-style: italic; display: block; margin-top: 8px; }
         
-        /* NEW CUSTOM MODAL STYLES */
         .notification-overlay {
             display: none; position: fixed; top: 0; left: 0;
             width: 100%; height: 100%; background: rgba(0, 51, 102, 0.85);
@@ -91,8 +90,7 @@
         <i id="modal-icon" class="fa-solid fa-circle-info" style="font-size: 45px; color: var(--biru-tua); margin-bottom: 15px; display: block;"></i>
         <h3 id="modal-title" style="margin: 0 0 10px 0; color: var(--biru-tua); font-size: 18px;">Notifikasi</h3>
         <p id="modal-msg" style="font-size: 14px; color: #555; margin-bottom: 20px; line-height: 1.5;">Pesan di sini...</p>
-        <div id="modal-buttons" style="display: flex; gap: 10px; justify-content: center;">
-            </div>
+        <div id="modal-buttons" style="display: flex; gap: 10px; justify-content: center;"></div>
     </div>
 </div>
 
@@ -144,7 +142,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
 <script>
-    // Konfigurasi Firebase
+    // 1. KONFIGURASI FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -159,10 +157,112 @@
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
-    var db = firebase.firestore();
+    const db = firebase.firestore();
     let editID = null;
 
-    // --- FUNGSI UTAMA MODAL CUSTOM (PENGGANTI ALERT & CONFIRM) ---
+    // 2. KONFIGURASI PASSWORD
+    const PASS_ADMIN = "bukadong821";
+    const PASS_PKS = "PKS"; 
+
+    // 3. FUNGSI CEK AKSES (LOGIN)
+    function cekAkses() {
+        const passInput = document.getElementById('pass-input').value;
+
+        if (passInput === PASS_ADMIN || passInput === PASS_PKS) {
+            document.getElementById('login-overlay').style.display = 'none';
+            sessionStorage.setItem("akses_komsel", "true");
+            tampilkanModal({ 
+                judul: "Akses Diberikan", 
+                pesan: "Selamat datang, Anda login sebagai " + (passInput === PASS_ADMIN ? "Admin" : "Ketua Komsel"), 
+                ikon: "fa-user-shield", 
+                warnaIkon: "var(--biru-safir)",
+                tipe: "toast" 
+            });
+        } else {
+            tampilkanModal({ 
+                judul: "Akses Ditolak", 
+                pesan: "Password Salah! Hanya PKS dan Admin yang dapat masuk.", 
+                ikon: "fa-circle-xmark", 
+                warnaIkon: "var(--merah-notif)" 
+            });
+        }
+    }
+
+    // Jalankan cek status saat load halaman
+    if (sessionStorage.getItem("akses_komsel") === "true") {
+        document.getElementById('login-overlay').style.display = 'none';
+    }
+
+    // 4. FUNGSI PROSES DATA (KIRIM/EDIT)
+    async function prosesData() {
+        if (sessionStorage.getItem("akses_komsel") !== "true") {
+            document.getElementById('login-overlay').style.display = 'flex';
+            return;
+        }
+
+        const kategori = document.getElementById('kategori').value;
+        const judul = document.getElementById('judul').value;
+        const lokasi = document.getElementById('lokasi').value;
+        const detail = document.getElementById('detail').value;
+
+        if(!judul || !detail) { 
+            tampilkanModal({ 
+                judul: "Data Tidak Lengkap", 
+                pesan: "Harap isi Judul dan Detail informasi kegiatan.", 
+                ikon: "fa-triangle-exclamation", 
+                warnaIkon: "#f39c12" 
+            });
+            return; 
+        }
+
+        const btn = document.getElementById('btn-submit');
+        const btnText = document.getElementById('btn-text');
+        btn.disabled = true;
+        btnText.innerText = "MENGIRIM...";
+
+        try {
+            const dataObj = {
+                kategori, judul, lokasi, detail,
+                lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            if (editID) {
+                await db.collection("pengumuman_komsel").doc(editID).update(dataObj);
+                showCustomNotif("Berhasil Diupdate", "fa-pen-to-square");
+            } else {
+                dataObj.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                await db.collection("pengumuman_komsel").add(dataObj);
+                showCustomNotif("Berhasil Dikirim ke Jemaat", "fa-circle-check");
+            }
+            resetForm();
+        } catch (e) {
+            tampilkanModal({ judul: "Gagal Kirim", pesan: e.message, ikon: "fa-bug", warnaIkon: "red" });
+        } finally {
+            btn.disabled = false;
+            btnText.innerText = editID ? "SIMPAN PERUBAHAN" : "KIRIM SEKARANG";
+        }
+    }
+
+    // 5. FUNGSI HAPUS
+    async function hapusInfo(id) {
+        tampilkanModal({
+            judul: "Konfirmasi Hapus",
+            pesan: "Apakah Anda yakin ingin menghapus pengumuman ini? Data yang dihapus tidak bisa dikembalikan.",
+            ikon: "fa-trash-can",
+            warnaIkon: "#e11d48",
+            tipe: "konfirmasi",
+            aksiYa: async () => {
+                try {
+                    await db.collection("pengumuman_komsel").doc(id).delete();
+                    showCustomNotif("Data telah dihapus", "fa-trash-can");
+                } catch (e) { 
+                    tampilkanModal({ judul: "Gagal", pesan: e.message, ikon: "fa-circle-xmark", warnaIkon: "red" });
+                }
+            }
+        });
+    }
+
+    // 6. FUNGSI UI (MODAL, ACCORDION, RESET, LOAD)
     function tampilkanModal({ judul, pesan, ikon, warnaIkon, tipe, aksiYa }) {
         const modal = document.getElementById('custom-modal');
         const mTitle = document.getElementById('modal-title');
@@ -190,72 +290,21 @@
         modal.style.display = 'flex';
     }
 
-    function tutupModal() {
-        document.getElementById('custom-modal').style.display = 'none';
-    }
+    function tutupModal() { document.getElementById('custom-modal').style.display = 'none'; }
 
     function showCustomNotif(m, i) {
-        tampilkanModal({
-            judul: "Selesai",
-            pesan: m,
-            ikon: i || "fa-circle-check",
-            warnaIkon: "var(--hijau-zamrud)",
-            tipe: "toast"
-        });
+        tampilkanModal({ judul: "Selesai", pesan: m, ikon: i || "fa-circle-check", warnaIkon: "var(--hijau-zamrud)", tipe: "toast" });
     }
 
-    // --- FUNGSI SISTEM ---
-    function cekAkses() {
-        const pass = document.getElementById('pass-input').value;
-        const pksPass = "PKS"; 
-        const adminPass = "bukadong821";
-
-        if (pass === pksPass || pass === adminPass) {
-            document.getElementById('login-overlay').style.display = 'none';
-            sessionStorage.setItem("akses_komsel", "true");
-        } else {
-            tampilkanModal({ judul: "Akses Ditolak", pesan: "Password Salah!", ikon: "fa-circle-xmark", warnaIkon: "var(--merah-notif)" });
-        }
-    }
-
-    if (sessionStorage.getItem("akses_komsel") === "true") {
-        document.getElementById('login-overlay').style.display = 'none';
-    }
-
-    async function prosesData() {
-        const kategori = document.getElementById('kategori').value;
-        const judul = document.getElementById('judul').value;
-        const lokasi = document.getElementById('lokasi').value;
-        const detail = document.getElementById('detail').value;
-
-        if(!judul || !detail) { 
-            tampilkanModal({ judul: "Peringatan", pesan: "Harap isi Judul dan Detail!", ikon: "fa-triangle-exclamation", warnaIkon: "#f39c12" });
-            return; 
-        }
-
-        const btn = document.getElementById('btn-submit');
-        btn.disabled = true;
-
-        try {
-            const dataObj = {
-                kategori, judul, lokasi, detail,
-                lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
-            };
-
-            if (editID) {
-                await db.collection("pengumuman_komsel").doc(editID).update(dataObj);
-                showCustomNotif("Berhasil Diupdate", "fa-pen-to-square");
-            } else {
-                dataObj.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-                await db.collection("pengumuman_komsel").add(dataObj);
-                showCustomNotif("Berhasil Dikirim", "fa-circle-check");
-            }
-            resetForm();
-        } catch (e) {
-            tampilkanModal({ judul: "Error", pesan: e.message, ikon: "fa-bug", warnaIkon: "red" });
-        } finally {
-            btn.disabled = false;
-        }
+    function resetForm() {
+        editID = null;
+        document.getElementById('judul').value = "";
+        document.getElementById('lokasi').value = "";
+        document.getElementById('detail').value = "";
+        document.getElementById('form-title').innerText = "Info Kegiatan Baru";
+        document.getElementById('btn-text').innerText = "KIRIM SEKARANG";
+        document.getElementById('btn-submit').style.background = "var(--merah-notif)";
+        document.getElementById('btn-cancel-edit').style.display = "none";
     }
 
     function loadHistory() {
@@ -283,10 +332,10 @@
                             <span class="timestamp"><i class="fa-regular fa-clock"></i> ${t}</span>
                             <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
                             <div style="display: flex; gap: 20px; justify-content: flex-end;">
-                                <span class="edit-btn" style="cursor:pointer; font-size: 13px;" onclick="isiDataEdit('${doc.id}', '${d.kategori}', '${d.judul}', '${d.lokasi}', \`${safeDetail}\`)">
+                                <span style="cursor:pointer; font-size: 13px;" onclick="isiDataEdit('${doc.id}', '${d.kategori}', '${d.judul}', '${d.lokasi}', \`${safeDetail}\`)">
                                     <i class="fa-solid fa-pen-to-square"></i> Edit
                                 </span>
-                                <span class="delete-btn" style="cursor:pointer; font-size: 13px;" onclick="hapusInfo('${doc.id}')">
+                                <span style="cursor:pointer; font-size: 13px; color:red;" onclick="hapusInfo('${doc.id}')">
                                     <i class="fa-solid fa-trash"></i> Hapus
                                 </span>
                             </div>
@@ -297,10 +346,8 @@
     }
 
     function toggleAccordion(header) {
-        const content = header.nextElementSibling;
-        const icon = header.querySelector('.chevron');
-        content.classList.toggle('active');
-        icon.classList.toggle('rotate');
+        header.nextElementSibling.classList.toggle('active');
+        header.querySelector('.chevron').classList.toggle('rotate');
     }
 
     function isiDataEdit(id, kat, jud, lok, det) {
@@ -314,36 +361,6 @@
         document.getElementById('btn-submit').style.background = "var(--biru-safir)";
         document.getElementById('btn-cancel-edit').style.display = "block";
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function resetForm() {
-        editID = null;
-        document.getElementById('judul').value = "";
-        document.getElementById('lokasi').value = "";
-        document.getElementById('detail').value = "";
-        document.getElementById('form-title').innerText = "Info Kegiatan Baru";
-        document.getElementById('btn-text').innerText = "KIRIM SEKARANG";
-        document.getElementById('btn-submit').style.background = "var(--merah-notif)";
-        document.getElementById('btn-cancel-edit').style.display = "none";
-    }
-
-    // --- FUNGSI HAPUS DENGAN MODAL CUSTOM ---
-    async function hapusInfo(id) {
-        tampilkanModal({
-            judul: "Konfirmasi Hapus",
-            pesan: "Apakah Anda yakin ingin menghapus pengumuman ini? Data yang dihapus tidak bisa dikembalikan.",
-            ikon: "fa-trash-can",
-            warnaIkon: "#e11d48",
-            tipe: "konfirmasi",
-            aksiYa: async () => {
-                try {
-                    await db.collection("pengumuman_komsel").doc(id).delete();
-                    showCustomNotif("Data telah dihapus", "fa-trash-can");
-                } catch (e) { 
-                    tampilkanModal({ judul: "Gagal", pesan: e.message, ikon: "fa-circle-xmark", warnaIkon: "red" });
-                }
-            }
-        });
     }
 
     loadHistory();
