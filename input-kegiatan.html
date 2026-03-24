@@ -33,14 +33,12 @@
         .info-card p { margin: 5px 0; font-size: 13px; }
         .timestamp { font-size: 11px; color: #999; font-style: italic; display: block; margin-top: 8px; }
         
-        /* Tombol Aksi di Card */
         .card-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 12px; }
         .action-btn { cursor: pointer; font-size: 14px; transition: 0.2s; }
         .edit-btn { color: var(--biru-safir); }
         .delete-btn { color: #ccc; }
         .delete-btn:hover { color: var(--merah-notif); }
 
-        /* Notification Overlay */
         .notification-overlay {
             display: none; position: fixed; top: 0; left: 0;
             width: 100%; height: 100%; background: rgba(0, 51, 102, 0.8);
@@ -109,24 +107,27 @@
     </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
 <script>
-    const firebaseConfig = { 
-        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
-        authDomain: "boby-apps-project.firebaseapp.com", 
-        projectId: "boby-apps-project", 
-        storageBucket: "boby-apps-project.appspot.com", 
-        messagingSenderId: "125984859692", 
-        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
+    // Konfigurasi milik Boby
+    const firebaseConfig = {
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+        authDomain: "boby-apps-project.firebaseapp.com",
+        databaseURL: "https://boby-apps-project-default-rtdb.firebaseio.com",
+        projectId: "boby-apps-project",
+        storageBucket: "boby-apps-project.firebasestorage.app",
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389",
+        measurementId: "G-X14300RJL4"
     };
+
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    let editID = null; // Menyimpan ID dokumen saat mode edit
+    let editID = null;
 
-    // FUNGSI UTAMA (HANDLE TAMBAH & EDIT)
     async function prosesData() {
         const kategori = document.getElementById('kategori').value;
         const judul = document.getElementById('judul').value;
@@ -141,26 +142,21 @@
                 judul: judul,
                 lokasi: lokasi,
                 detail: detail,
-                lastUpdate: firebase.firestore.FieldValue.serverTimestamp(),
-                pemicuNotif: Date.now() 
+                lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
             };
 
             if (editID) {
-                // Update Data Lama
                 await db.collection("pengumuman_komsel").doc(editID).update(dataObj);
                 showCustomNotif("Data Berhasil Diperbarui", "fa-pen-to-square");
             } else {
-                // Tambah Data Baru
                 dataObj.createdAt = firebase.firestore.FieldValue.serverTimestamp();
                 await db.collection("pengumuman_komsel").add(dataObj);
                 showCustomNotif("Informasi Anda telah dikirim", "fa-circle-check");
             }
-
             resetForm();
         } catch (e) { alert("Error: " + e.message); }
     }
 
-    // MODAL NOTIFIKASI
     function showCustomNotif(msg, icon) {
         document.getElementById('notif-msg').innerText = msg;
         document.getElementById('notif-icon').className = "fa-solid " + icon;
@@ -169,15 +165,13 @@
         setTimeout(() => { notif.style.display = 'none'; }, 2500);
     }
 
-    // LOAD DATA DENGAN FORMAT TANGGAL
     function loadHistory() {
         db.collection("pengumuman_komsel").orderBy("lastUpdate", "desc").limit(10).onSnapshot((querySnapshot) => {
             const listDiv = document.getElementById('list-pengumuman');
             listDiv.innerHTML = "";
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                // Format Waktu Indonesia
-                const waktu = data.lastUpdate ? data.lastUpdate.toDate().toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }) : 'Menunggu...';
+                const waktu = data.lastUpdate ? data.lastUpdate.toDate().toLocaleString('id-ID') : 'Baru saja...';
                 
                 listDiv.innerHTML += `
                     <div class="info-card">
@@ -188,22 +182,19 @@
                         <h4>[${data.kategori}] ${data.judul}</h4>
                         <p><strong>Lokasi:</strong> ${data.lokasi || '-'}</p>
                         <p>${data.detail}</p>
-                        <span class="timestamp"><i class="fa-regular fa-clock"></i> Terakhir: ${waktu} WIB</span>
+                        <span class="timestamp"><i class="fa-regular fa-clock"></i> ${waktu}</span>
                     </div>
                 `;
             });
         });
     }
 
-    // MASUKKAN DATA KE FORM UNTUK EDIT
     function isiDataEdit(id, kat, jud, lok, det) {
         editID = id;
         document.getElementById('kategori').value = kat;
         document.getElementById('judul').value = jud;
         document.getElementById('lokasi').value = lok;
         document.getElementById('detail').value = det;
-        
-        // Ubah UI Form
         document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Edit Informasi`;
         document.getElementById('btn-text').innerText = "SIMPAN PERUBAHAN";
         document.getElementById('btn-submit').style.background = "var(--biru-safir)";
@@ -211,7 +202,6 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // RESET FORM
     function resetForm() {
         editID = null;
         document.getElementById('judul').value = "";
@@ -223,9 +213,8 @@
         document.getElementById('btn-cancel-edit').style.display = "none";
     }
 
-    // HAPUS DATA
     async function hapusInfo(id) {
-        if(confirm("Apakah Anda yakin ingin menghapus pengumuman ini secara permanen?")) {
+        if(confirm("Hapus pengumuman ini?")) {
             await db.collection("pengumuman_komsel").doc(id).delete();
             showCustomNotif("Data telah dihapus", "fa-trash-can");
         }
