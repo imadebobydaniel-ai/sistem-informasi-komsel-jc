@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Portal Media</title>
+    <link rel="stylesheet" href="css/style.css"> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Portal Media</h1>
+            <p>Manajemen Konten Berita & Media Pondok Pemulihan</p>
+            <button onclick="window.location.href='admin.html'" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
+            </button>
+        </header>
+
+        <section class="form-section card">
+            <h3><i class="fas fa-plus-circle"></i> Tambah Konten Baru</h3>
+            <form id="mediaForm">
+                <div class="input-group">
+                    <label>Judul Konten/Berita</label>
+                    <input type="text" id="judulMedia" placeholder="Contoh: Kegiatan Ibadah Raya" required>
+                </div>
+                <div class="input-group">
+                    <label>Tipe Media</label>
+                    <select id="tipeMedia">
+                        <option value="gambar">Gambar (Poster/Foto)</option>
+                        <option value="video">Video (Link YouTube/Drive)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>URL Media / Deskripsi</label>
+                    <textarea id="urlMedia" placeholder="Tempel link video atau deskripsi singkat berita di sini" required></textarea>
+                </div>
+                <button type="submit" class="btn-save">Publikasikan Ke Portal</button>
+            </form>
+        </section>
+
+        <section class="table-section card">
+            <h3><i class="fas fa-list"></i> Daftar Konten Terbit</h3>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tgl Terbit</th>
+                            <th>Judul</th>
+                            <th>Tipe</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mediaList">
+                        </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="js/media-handler.js"></script>
+</body>
+</html>
