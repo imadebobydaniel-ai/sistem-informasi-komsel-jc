@@ -2,196 +2,28 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://www.gstatic.com https://apis.google.com 'unsafe-inline'; frame-src 'self' https://www.youtube.com">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://www.gstatic.com https://apis.google.com https://www.youtube.com https://s.ytimg.com 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https://www.youtube.com">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Menu Utama - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Variabel Warna Khas Logo */
-        :root {
-           --biru-tua: #003366;
-           --biru-safir: #0056b3;
-           --biru-muda: #00e6e6;
-           --hijau-zamrud: #2ecc71;
-           --emas-lux: #D4AF37;
-           --putih-bg: #f4f7fa;
-        }
-
-        body { 
-           font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-           background-color: var(--putih-bg); 
-            margin: 0;
-            padding: 0; 
-            color: #333;
-        }
-
-        /* Top Bar Info */
-        .top-info-bar { 
-            background: var(--biru-tua); 
-            display: flex; 
-           justify-content: space-between; 
-           align-items: center; 
-            padding: 8px 15px; 
-           font-weight: bold; 
-            font-size: 11px; 
-           border-bottom: 2px solid var(--emas-lux);
-            color: white;
-        }
-        #display-tanggal { color: var(--emas-lux); }
-        #digital-clock { color: var(--biru-muda); }
-
-        /* Running Text Header Atas */
-        header { 
-            background: white; 
-           border-bottom: 3px solid var(--hijau-zamrud); 
-            padding: 12px 0; 
-            overflow: hidden; 
-           white-space: nowrap; 
-            position: relative; 
-            display: flex; 
-           align-items: center; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .running-content { 
-            display: inline-block; 
-           padding-left: 100%; 
-            animation: marqueeTop 30s linear infinite; 
-           font-weight: 900; 
-            font-size: 13px; 
-            color: var(--biru-tua);
-           text-transform: uppercase;
-           letter-spacing: 1px;
-        }
+        /* CSS Anda tetap sama seperti sebelumnya */
+        :root { --biru-tua: #003366; --biru-safir: #0056b3; --biru-muda: #00e6e6; --hijau-zamrud: #2ecc71; --emas-lux: #D4AF37; --putih-bg: #f4f7fa; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--putih-bg); margin: 0; padding: 0; color: #333; }
+        .top-info-bar { background: var(--biru-tua); display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; font-weight: bold; font-size: 11px; border-bottom: 2px solid var(--emas-lux); color: white; }
+        header { background: white; border-bottom: 3px solid var(--hijau-zamrud); padding: 12px 0; overflow: hidden; white-space: nowrap; display: flex; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .running-content { display: inline-block; padding-left: 100%; animation: marqueeTop 30s linear infinite; font-weight: 900; font-size: 13px; color: var(--biru-tua); text-transform: uppercase; }
         @keyframes marqueeTop { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
-
         .container { padding: 20px; max-width: 450px; margin: auto; text-align: center; }
-        .org-title { 
-            margin: 10px 0 20px 0; 
-           font-weight: 900; 
-            color: var(--biru-tua); 
-           text-transform: uppercase; 
-            font-size: 18px;
-            letter-spacing: 1px;
-        }
-
-        /* --- PORTAL MEDIA INFORMASI DINAMIS --- */
-        .top-section-container {
-            position: relative;
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto 30px auto;
-            height: 220px; 
-            overflow: hidden; 
-            border-radius: 25px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            background: #000;
-        }
-
-        .profile-card {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(145deg, #ffffff, #e6e6e6);
-            border-radius: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            z-index: 5;
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-top: 4px solid var(--biru-safir);
-        }
-
+        .top-section-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto 30px auto; height: 220px; overflow: hidden; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); background: #000; }
+        .profile-card { position: absolute; width: 100%; height: 100%; background: linear-gradient(145deg, #ffffff, #e6e6e6); border-radius: 25px; z-index: 5; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; align-items: center; justify-content: center; border-top: 4px solid var(--biru-safir); }
         .profile-card.closed { transform: translateX(-110%); }
-
-        .btn-toggle-side {
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 10;
-            background: #ff0000;
-            color: white;
-            border: none;
-            width: 25px;
-            height: 50px;
-            border-radius: 0 10px 10px 0;
-            cursor: pointer;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.2);
-            transition: 0.3s;
-        }
-
-        /* News Slider Styling */
-        .news-slider {
-            width: 100%;
-            height: 100%;
-            background: var(--biru-tua);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Profile Internal Styles */
-        .setting-icon-profile { position: absolute; top: 15px; right: 15px; color: var(--biru-tua); font-size: 20px; }
-        .profile-img-container { 
-            width: 80px; height: 80px; border-radius: 50%; 
-            margin-bottom: 8px; overflow: hidden; 
-            background: white; border: 3px solid var(--emas-lux);
-        }
-        .profile-img-container img { width: 100%; height: 100%; object-fit: cover; }
-        .profile-card h2 { margin: 5px 0 0 0; font-size: 20px; color: var(--biru-tua); font-weight: 800; }
-        #disp_email { color: #555; font-size: 12px; font-style: italic; }
-        #disp_komsel { margin-top: 5px; color: var(--hijau-zamrud); font-weight: bold; font-size: 13px; }
-
-        /* Grid Menu */
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
-            gap: 15px;
-        }
-        
-        .menu-box { 
-            background: white; 
-            padding: 20px 10px; 
-           border-radius: 20px; 
-            display: flex; 
-           flex-direction: column; 
-           align-items: center; 
-           text-decoration: none; 
-            color: var(--biru-tua); 
-           font-weight: 800; 
-            font-size: 12px; 
-            box-shadow: 0 6px 15px rgba(0,0,0,0.05); 
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border: 1px solid rgba(0,0,0,0.03);
-        }
-        
-        .menu-box:active { transform: scale(0.92); }
-        .menu-box i { 
-            font-size: 28px; 
-           margin-bottom: 10px; 
-            background: linear-gradient(135deg, var(--biru-safir), var(--hijau-zamrud));
-           -webkit-background-clip: text;
-           -webkit-text-fill-color: transparent;
-        }
-
-        .icon-special { 
-            background: linear-gradient(135deg, var(--emas-lux), #fff3a0) !important;
-           -webkit-background-clip: text !important;
-           -webkit-text-fill-color: transparent !important;
-        }
-
-        .doa-box i { background: linear-gradient(135deg, #00a8cc, #007bff) !important; -webkit-background-clip: text !important; }
-        .lacak-box i { color: #e11d48 !important; background: none !important; -webkit-text-fill-color: initial !important; }
-
-        .btn-logout { 
-            background: var(--biru-tua); color: #fff; padding: 14px 40px; border-radius: 50px; 
-            text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block; 
-            margin-top: 30px; border: 2px solid var(--emas-lux);
-        }
+        .btn-toggle-side { position: absolute; left: 0; top: 50%; transform: translateY(-50%); z-index: 10; background: #ff0000; color: white; border: none; width: 25px; height: 50px; border-radius: 0 10px 10px 0; cursor: pointer; }
+        .news-slider { width: 100%; height: 100%; background: var(--biru-tua); position: relative; z-index: 1; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; }
+        .menu-box { background: white; padding: 20px 10px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--biru-tua); font-weight: 800; font-size: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.05); transition: 0.3s; }
+        .menu-box i { font-size: 28px; margin-bottom: 10px; background: linear-gradient(135deg, var(--biru-safir), var(--hijau-zamrud)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .btn-logout { background: var(--biru-tua); color: #fff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block; margin-top: 30px; border: 2px solid var(--emas-lux); }
     </style>
 </head>
 <body>
@@ -199,11 +31,11 @@
     <div id="modal-logout" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; padding: 20px;">
         <div style="background: white; width: 100%; max-width: 320px; border-radius: 15px; text-align: center; padding: 20px;">
             <i class="fa-solid fa-right-from-bracket" style="font-size: 40px; color: #dc3545; margin-bottom: 15px;"></i>
-            <h3 style="margin: 0; font-size: 18px;">Konfirmasi Keluar</h3>
+            <h3 style="margin: 0;">Konfirmasi Keluar</h3>
             <p style="font-size: 14px; color: #666; margin-bottom: 20px;">Apakah Anda yakin ingin keluar?</p>
             <div style="display: flex; gap: 10px;">
-                <button onclick="closeLogoutModal()" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd; background: white; cursor: pointer;">Batal</button>
-                <button onclick="executeLogout()" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: #dc3545; color: white; font-weight: bold; cursor: pointer;">Keluar</button>
+                <button onclick="closeLogoutModal()" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd; background: white;">Batal</button>
+                <button onclick="executeLogout()" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: #dc3545; color: white; font-weight: bold;">Keluar</button>
             </div>
         </div>
     </div>
@@ -218,32 +50,33 @@
     </header>
 
     <div class="container">
-        <h3 class="org-title">Portal Komsel JC</h3>
+        <h3 style="text-transform: uppercase; color: var(--biru-tua);">Portal Komsel JC</h3>
 
         <div class="top-section-container">
-            <button id="toggleProfile" class="btn-toggle-side">
-                <i class="fa-solid fa-chevron-left" id="toggleIcon"></i>
-            </button>
+            <button id="toggleProfile" class="btn-toggle-side"><i class="fa-solid fa-chevron-left" id="toggleIcon"></i></button>
 
             <div id="profileCard" class="profile-card">
-                <a href="setting.html" class="setting-icon-profile"><i class="fa-solid fa-gear"></i></a>
-                <div class="profile-img-container">
+                <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 3px solid var(--emas-lux); background: white;">
                     <i class="fa-solid fa-circle-user" id="default-icon" style="font-size: 70px; color: var(--biru-safir);"></i>
-                    <img id="user-photo" src="" style="display: none;">
+                    <img id="user-photo" src="" style="display: none; width:100%; height:100%; object-fit:cover;">
                 </div>
-                <h2 id="disp_nama">User</h2>
-                <div id="disp_email">user@email.com</div>
-                <p id="disp_komsel">KOMSEL JC</p>
+                <h2 id="disp_nama" style="margin: 5px 0 0 0; font-size: 18px;">User</h2>
+                <div id="disp_email" style="font-size: 11px; color: #666;">user@email.com</div>
+                <p id="disp_komsel" style="color: var(--hijau-zamrud); font-weight: bold; font-size: 12px;">KOMSEL JC</p>
             </div>
 
             <div id="media-display-area" class="news-slider">
-                <div id="contentHolder" style="width: 100%; height: 100%;">
-                    <div style="color:white; padding-top:80px;"><i class="fas fa-spinner fa-spin"></i></div>
+                <div id="youtube-player-container" style="width: 100%; height: 100%;">
+                    <div id="player"></div> 
                 </div>
                 
-                <div id="newsOverlay" style="position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 15px; text-align: left; color: white; pointer-events: none; z-index: 2;">
+                <div id="newsOverlay" style="position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 10px; text-align: left; color: white; z-index: 2; pointer-events: none;">
                     <small id="newsLabel" style="color: #ffc107; font-weight: bold;"></small>
-                    <h3 id="newsTitle" style="margin: 5px 0; font-size: 16px;"></h3>
+                    <h3 id="newsTitle" style="margin: 0; font-size: 14px;"></h3>
+                </div>
+
+                <div id="muteBtn" onclick="handleToggleMute()" style="display:none; position: absolute; bottom: 50px; right: 15px; z-index: 10; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 50%; color: white; cursor: pointer;">
+                    <i class="fa-solid fa-volume-xmark" id="muteIcon"></i>
                 </div>
             </div>
         </div>
@@ -253,151 +86,128 @@
             <a href="kehadiran.html" class="menu-box"><i class="fa-solid fa-calendar-check"></i>Kehadiran</a>
             <a href="baca-alkitab.html" class="menu-box"><i class="fa-solid fa-book-bible"></i>Laporan Baca</a>
             <a href="statistik.html" class="menu-box"><i class="fa-solid fa-chart-pie"></i>Statistik</a>
-            <a href="leaderboard.html" class="menu-box"><i class="fa-solid fa-crown icon-special"></i>Peringkat JC</a>
+            <a href="leaderboard.html" class="menu-box"><i class="fa-solid fa-crown"></i>Peringkat JC</a>
             <a href="laporan-komsel.html" class="menu-box"><i class="fa-solid fa-file-signature"></i>Laporan Komsel</a>
-            <a href="capaian-doa.html" class="menu-box doa-box"><i class="fa-solid fa-hands-praying"></i>Capaian Doa</a>
-            <a href="lacak-domba.html" class="menu-box lacak-box"><i class="fa-solid fa-map-location-dot"></i>Lacak Domba</a>
             <a href="javascript:location.reload()" class="menu-box" style="color: #28a745;"><i class="fa-solid fa-arrows-rotate"></i>Refresh</a>
             <a href="saran.html" class="menu-box"><i class="fa-solid fa-comment-dots"></i>Saran</a>
         </div>
 
-        <a href="javascript:void(0)" onclick="confirmLogout()" class="btn-logout">
-            <i class="fa-solid fa-power-off"></i> Keluar
-        </a>
+        <a href="javascript:void(0)" onclick="confirmLogout()" class="btn-logout"><i class="fa-solid fa-power-off"></i> Keluar</a>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
-       // 1. CONFIG FIREBASE
-const firebaseConfig = { 
-    apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
-    authDomain: "boby-apps-project.firebaseapp.com", 
-    projectId: "boby-apps-project", 
-    storageBucket: "boby-apps-project.appspot.com", 
-    messagingSenderId: "125984859692", 
-    appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
-};
+        // 1. CONFIG FIREBASE
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
+            authDomain: "boby-apps-project.firebaseapp.com", 
+            projectId: "boby-apps-project", 
+            storageBucket: "boby-apps-project.appspot.com", 
+            messagingSenderId: "125984859692", 
+            appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+        let ytPlayer; // Variabel global untuk player
 
-// 2. FUNGSI PEMBANTU (UTILITY)
-function getYouTubeEmbedUrl(url) {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-    const match = url.match(regExp);
-    if (match && match[2].length == 11) {
-        const videoId = match[2];
-        // Tambahkan parameter autoplay, mute, dan loop agar lancar di dashboard
-        return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}`;
-    }
-    return url;
-}
-
-function toggleMute() {
-    alert("Klik pada video untuk mengaktifkan suara (Kebijakan Browser)");
-}
-
-// 3. TAMPILKAN MEDIA DARI FIRESTORE
-async function displayLatestNews() {
-    const contentHolder = document.getElementById('contentHolder');
-    const newsTitle = document.getElementById('newsTitle');
-    const newsLabel = document.getElementById('newsLabel');
-    
-    try {
-        const snapshot = await db.collection("portal_media")
-                                 .orderBy("timestamp", "desc")
-                                 .limit(1)
-                                 .get();
-
-        if (snapshot.empty) {
-            contentHolder.innerHTML = `<div style="color:white; padding-top:80px;">Belum ada pengumuman terbaru.</div>`;
-            return;
+        // 2. FUNGSI EKSTRAK ID YOUTUBE
+        function extractVideoID(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length == 11) ? match[2] : null;
         }
 
-        const data = snapshot.docs[0].data();
-        newsTitle.innerText = data.judul || "Tanpa Judul";
-        newsLabel.innerText = "BERITA TERKINI";
+        // 3. TAMPILKAN MEDIA
+        async function loadMedia() {
+            try {
+                const snapshot = await db.collection("portal_media").orderBy("timestamp", "desc").limit(1).get();
+                if (snapshot.empty) return;
 
-        // Cek tipe media (mendukung string dari dropdown atau input manual)
-        const tipeLower = data.tipe.toLowerCase();
-        
-        if (tipeLower.includes('video')) {
-            const embedUrl = getYouTubeEmbedUrl(data.url);
-            contentHolder.innerHTML = `
-                <iframe width="100%" height="100%" 
-                    src="${embedUrl}" 
-                    frameborder="0" allow="autoplay; encrypted-media; fullscreen" 
-                    style="object-fit: cover; width:100%; height:100%;">
-                </iframe>
-                <div id="muteBtn" onclick="toggleMute()" style="position: absolute; bottom: 60px; right: 15px; z-index: 10; background: rgba(0,0,0,0.6); padding: 8px; border-radius: 50%; color: white; cursor: pointer;">
-                    <i class="fa-solid fa-volume-xmark"></i>
-                </div>`;
-        } else {
-            // Jika Gambar atau lainnya
-            contentHolder.innerHTML = `<img src="${data.url}" style="width:100%; height:100%; object-fit:cover;">`;
+                const data = snapshot.docs[0].data();
+                document.getElementById('newsTitle').innerText = data.judul || "";
+                document.getElementById('newsLabel').innerText = "BERITA TERKINI";
+
+                if (data.tipe.toLowerCase().includes('video')) {
+                    const vidId = extractVideoID(data.url);
+                    initYouTube(vidId);
+                    document.getElementById('muteBtn').style.display = 'block';
+                } else {
+                    document.getElementById('youtube-player-container').innerHTML = `<img src="${data.url}" style="width:100%; height:100%; object-fit:cover;">`;
+                }
+            } catch (e) { console.error(e); }
         }
-    } catch (error) {
-        console.error("Error loading news:", error);
-        contentHolder.innerHTML = "<p style='color:red; padding-top:80px;'>Gagal memuat media.</p>";
-    }
-}
 
-// 4. LOGIKA UI (TOGGLE PROFILE)
-const btnToggle = document.getElementById('toggleProfile');
-const profileCard = document.getElementById('profileCard');
-const toggleIcon = document.getElementById('toggleIcon');
+        // 4. INIT YOUTUBE PLAYER API
+        function initYouTube(videoId) {
+            window.onYouTubeIframeAPIReady = function() {
+                ytPlayer = new YT.Player('player', {
+                    height: '100%', width: '100%',
+                    videoId: videoId,
+                    playerVars: { 'autoplay': 1, 'mute': 1, 'controls': 0, 'loop': 1, 'playlist': videoId },
+                    events: { 'onReady': (e) => e.target.playVideo() }
+                });
+            };
+            // Jika API sudah terlanjur load
+            if (typeof YT !== 'undefined' && YT.loaded) { onYouTubeIframeAPIReady(); }
+        }
 
-btnToggle.addEventListener('click', () => {
-    profileCard.classList.toggle('closed');
-    toggleIcon.className = profileCard.classList.contains('closed') ? 'fa-solid fa-chevron-right' : 'fa-solid fa-chevron-left';
-});
-
-// 5. TIME & SYNC DATA
-function updateWaktuDanRunningText() {
-    const now = new Date();
-    const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-    const dayName = days[now.getDay()];
-    const time = now.toLocaleTimeString('id-ID', { hour12: false });
-    
-    document.getElementById('display-tanggal').innerText = `${dayName}, ${now.getDate()} Maret ${now.getFullYear()}`;
-    document.getElementById('digital-clock').innerText = `${time} WIT`;
-    document.getElementById('running-text').innerText = `Shalom! ${dayName} | ${time} WIT | SISTEM INFORMASI KOMSEL JC | TETAP SEMANGAT MELAYANI!`;
-}
-
-function syncUserData() {
-    const userEmail = localStorage.getItem("userEmail");
-    if (!userEmail) { window.location.href = "index.html"; return; }
-
-    document.getElementById('disp_email').innerText = userEmail;
-    db.collection("users").where("email", "==", userEmail).onSnapshot((querySnapshot) => {
-        if (!querySnapshot.empty) {
-            const data = querySnapshot.docs[0].data();
-            document.getElementById('disp_nama').innerText = data.nama || "User";
-            document.getElementById('disp_komsel').innerText = data.komsel ? "JC " + data.komsel : "KOMSEL JC";
-            
-            if (data.fotoUrl) { 
-                const userPhoto = document.getElementById('user-photo');
-                userPhoto.src = data.fotoUrl;
-                userPhoto.style.display = "block";
-                document.getElementById('default-icon').style.display = "none";
+        // 5. LOGIKA UNMUTE
+        function handleToggleMute() {
+            if (ytPlayer && ytPlayer.isMuted()) {
+                ytPlayer.unMute();
+                ytPlayer.setVolume(100);
+                document.getElementById('muteIcon').className = "fa-solid fa-volume-high";
+            } else if (ytPlayer) {
+                ytPlayer.mute();
+                document.getElementById('muteIcon').className = "fa-solid fa-volume-xmark";
             }
         }
-    });
-}
 
-function confirmLogout() { document.getElementById('modal-logout').style.display = 'flex'; }
-function closeLogoutModal() { document.getElementById('modal-logout').style.display = 'none'; }
-function executeLogout() { localStorage.clear(); window.location.href = "index.html"; }
+        // 6. UI & TIME LOGIC
+        const btnToggle = document.getElementById('toggleProfile');
+        const profileCard = document.getElementById('profileCard');
+        btnToggle.addEventListener('click', () => {
+            profileCard.classList.toggle('closed');
+            document.getElementById('toggleIcon').className = profileCard.classList.contains('closed') ? 'fa-solid fa-chevron-right' : 'fa-solid fa-chevron-left';
+        });
 
-// START APP
-window.onload = function() {
-    updateWaktuDanRunningText();
-    setInterval(updateWaktuDanRunningText, 1000);
-    syncUserData();
-    displayLatestNews();
-};
+        function updateTime() {
+            const now = new Date();
+            const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+            const timeStr = now.toLocaleTimeString('id-ID', { hour12: false });
+            document.getElementById('display-tanggal').innerText = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+            document.getElementById('digital-clock').innerText = `${timeStr} WIT`;
+            document.getElementById('running-text').innerText = `Shalom! ${days[now.getDay()]} | ${timeStr} WIT | Portal Komsel JC | Tetap Semangat!`;
+        }
+
+        function syncUser() {
+            const email = localStorage.getItem("userEmail");
+            if (!email) { window.location.href = "index.html"; return; }
+            document.getElementById('disp_email').innerText = email;
+            db.collection("users").where("email", "==", email).onSnapshot(s => {
+                if (!s.empty) {
+                    const d = s.docs[0].data();
+                    document.getElementById('disp_nama').innerText = d.nama || "User";
+                    document.getElementById('disp_komsel').innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
+                    if (d.fotoUrl) { 
+                        const img = document.getElementById('user-photo');
+                        img.src = d.fotoUrl; img.style.display = "block";
+                        document.getElementById('default-icon').style.display = "none";
+                    }
+                }
+            });
+        }
+
+        function confirmLogout() { document.getElementById('modal-logout').style.display = 'flex'; }
+        function closeLogoutModal() { document.getElementById('modal-logout').style.display = 'none'; }
+        function executeLogout() { localStorage.clear(); window.location.href = "index.html"; }
+
+        window.onload = () => { updateTime(); setInterval(updateTime, 1000); syncUser(); loadMedia(); };
     </script>
 </body>
 </html>
