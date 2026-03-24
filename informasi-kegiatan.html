@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Komsel JC</title>
+    <title>Detail Pengumuman - Komsel JC</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <style>
         :root {
@@ -15,147 +15,63 @@
             --emas-lux: #D4AF37;
             --putih-bg: #f4f7fa;
         }
-
-        body { font-family: sans-serif; background-color: var(--putih-bg); }
-
-        /* Styling Modal Popup */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 9999;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(4px);
-        }
-
-        .modal-content {
-            background: white;
-            width: 90%;
-            max-width: 400px;
-            border-radius: 20px;
-            overflow: hidden;
-            border-top: 6px solid var(--emas-lux);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            animation: popIn 0.3s ease-out;
-        }
-
-        @keyframes popIn {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .modal-header {
-            background: var(--biru-tua);
-            color: white;
-            padding: 20px;
-            text-align: center;
-            position: relative;
-        }
-
-        .modal-body { padding: 25px; color: #333; line-height: 1.6; }
-
-        .btn-tutup {
-            background: var(--biru-tua);
-            color: white;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        hr { border: 0.5px solid #eee; margin: 15px 0; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--putih-bg); margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { color: var(--biru-tua); margin-bottom: 10px; font-size: 24px; }
+        #kategori-tag { background: var(--emas-lux); color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        #isi-pengumuman-full { margin-top: 25px; line-height: 1.8; color: #444; white-space: pre-wrap; font-size: 16px; }
+        .btn-back { display: inline-block; margin-top: 30px; text-decoration: none; color: var(--biru-tua); font-weight: bold; border: 2px solid var(--biru-tua); padding: 10px 20px; border-radius: 8px; transition: 0.3s; }
+        .btn-back:hover { background: var(--biru-tua); color: white; }
     </style>
 </head>
 <body>
 
-    <div style="padding: 20px; max-width: 600px; margin: auto;">
-        <h1 id="judul-pengumuman">Judul Pengumuman</h1>
-        <span id="kategori-tag" style="background: var(--emas-lux); color: white; padding: 5px 10px; border-radius: 5px; font-size: 0.8em;">Kategori</span>
-        <p id="isi-pengumuman-full" style="margin-top: 20px; white-space: pre-wrap;">Memuat isi pengumuman...</p>
-    </div>
-
-    <div id="modalPesan" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <i class="fa-solid fa-envelope-open-text" style="font-size: 40px;"></i>
-                <h3 style="margin: 10px 0 0 0;">Pengumuman Baru</h3>
-            </div>
-            <div id="konten-pengumuman" class="modal-body">
-                <p>Sedang mengambil pesan terbaru...</p>
-            </div>
-            <div style="padding: 15px; text-align: center; background: #f4f4f4;">
-                <button class="btn-tutup" onclick="tutupModal()">Tutup</button>
-            </div>
-        </div>
+    <div class="container">
+        <span id="kategori-tag">Memuat...</span>
+        <h1 id="judul-pengumuman">Sedang Memuat Judul...</h1>
+        <hr>
+        <p id="isi-pengumuman-full">Memuat isi pengumuman surgawi...</p>
+        
+        <a href="menu.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Kembali ke Menu</a>
     </div>
 
     <script>
-        // 1. CONFIG FIREBASE
+        // 1. CONFIG FIREBASE (Gunakan Config dari Project Settings kamu)
         const firebaseConfig = {
             apiKey: "AIzaSy...", 
-            authDomain: "komsel-jc.firebaseapp.com",
-            databaseURL: "https://komsel-jc-default-rtdb.firebaseio.com",
-            projectId: "komsel-jc",
-            storageBucket: "komsel-jc.appspot.com",
-            messagingSenderId: "...",
-            appId: "..."
+            authDomain: "boby-apps-project.firebaseapp.com",
+            projectId: "boby-apps-project",
+            storageBucket: "boby-apps-project.appspot.com",
+            messagingSenderId: "125984859692",
+            appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
         };
 
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
-        const database = firebase.database();
+        const db = firebase.firestore(); // Menggunakan Firestore
 
-        // 2. LOGIKA LOAD DATA BERDASARKAN ID URL (Script yang Kamu Masukkan)
+        // 2. AMBIL ID DARI URL
         const urlParams = new URLSearchParams(window.location.search);
         const pesanId = urlParams.get('id');
 
         if (pesanId) {
-            // Ambil data spesifik berdasarkan ID dari Realtime Database
-            database.ref('kegiatan/' + pesanId).once('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
+            // Ambil data spesifik dari koleksi 'pengumuman_komsel'
+            db.collection("pengumuman_komsel").doc(pesanId).get().then((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
                     document.getElementById('judul-pengumuman').innerText = data.judul || "Tanpa Judul";
                     document.getElementById('isi-pengumuman-full').innerText = data.detail || "Tidak ada detail.";
                     document.getElementById('kategori-tag').innerText = data.kategori || "Umum";
                 } else {
-                    document.getElementById('isi-pengumuman-full').innerText = "Pesan tidak ditemukan.";
+                    document.getElementById('isi-pengumuman-full').innerText = "Maaf, pengumuman tidak ditemukan.";
                 }
+            }).catch((error) => {
+                console.error("Error:", error);
+                document.getElementById('isi-pengumuman-full').innerText = "Gagal memuat data dari server.";
             });
         } else {
-            // Jika buka langsung tanpa ID, panggil fungsi load terbaru
-            loadTerbaru(); 
-        }
-
-        // 3. Fungsi Load Pesan Paling Baru
-        function loadTerbaru() {
-            database.ref('kegiatan').limitToLast(1).once('value', (snapshot) => {
-                snapshot.forEach((childSnapshot) => {
-                    const data = childSnapshot.val();
-                    document.getElementById('judul-pengumuman').innerText = data.judul;
-                    document.getElementById('isi-pengumuman-full').innerText = data.detail;
-                    document.getElementById('kategori-tag').innerText = data.kategori;
-                });
-            });
-        }
-
-        // 4. Fungsi Modal (Opsional untuk interaksi lain)
-        function bukaPesanKegiatan() {
-            document.getElementById('modalPesan').style.display = 'flex';
-        }
-
-        function tutupModal() {
-            document.getElementById('modalPesan').style.display = 'none';
-        }
-
-        window.onclick = function(event) {
-            if (event.target == document.getElementById('modalPesan')) {
-                tutupModal();
-            }
+            document.getElementById('isi-pengumuman-full').innerText = "Pesan tidak valid. Silakan kembali ke menu utama.";
         }
     </script>
 </body>
