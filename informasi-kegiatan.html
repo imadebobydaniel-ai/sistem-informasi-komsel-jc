@@ -36,43 +36,48 @@
     </div>
 
     <script>
-        // 1. CONFIG FIREBASE (Gunakan Config dari Project Settings kamu)
-        const firebaseConfig = {
-            apiKey: "AIzaSy...", 
-            authDomain: "boby-apps-project.firebaseapp.com",
-            projectId: "boby-apps-project",
-            storageBucket: "boby-apps-project.appspot.com",
-            messagingSenderId: "125984859692",
-            appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
-        };
+     // 1. Konfigurasi Firebase (Gunakan dari Project Settings kamu)
+const firebaseConfig = {
+    apiKey: "AIzaSy...", 
+    authDomain: "boby-apps-project.firebaseapp.com",
+    projectId: "boby-apps-project", // Pastikan ini benar
+    storageBucket: "boby-apps-project.appspot.com",
+    messagingSenderId: "125984859692",
+    appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+};
 
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const db = firebase.firestore(); // Menggunakan Firestore
+// Inisialisasi Firebase
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 
-        // 2. AMBIL ID DARI URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const pesanId = urlParams.get('id');
+// GUNAKAN FIRESTORE (PENTING!)
+const db = firebase.firestore(); 
 
-        if (pesanId) {
-            // Ambil data spesifik dari koleksi 'pengumuman_komsel'
-            db.collection("pengumuman_komsel").doc(pesanId).get().then((doc) => {
-                if (doc.exists) {
-                    const data = doc.data();
-                    document.getElementById('judul-pengumuman').innerText = data.judul || "Tanpa Judul";
-                    document.getElementById('isi-pengumuman-full').innerText = data.detail || "Tidak ada detail.";
-                    document.getElementById('kategori-tag').innerText = data.kategori || "Umum";
-                } else {
-                    document.getElementById('isi-pengumuman-full').innerText = "Maaf, pengumuman tidak ditemukan.";
-                }
-            }).catch((error) => {
-                console.error("Error:", error);
-                document.getElementById('isi-pengumuman-full').innerText = "Gagal memuat data dari server.";
-            });
+// 2. Ambil ID dari URL
+const urlParams = new URLSearchParams(window.location.search);
+const pesanId = urlParams.get('id');
+
+if (pesanId) {
+    // Ambil dokumen spesifik dari koleksi 'pengumuman_komsel'
+    db.collection("pengumuman_komsel").doc(pesanId).get().then((doc) => {
+        if (doc.exists) {
+            const data = doc.data();
+            
+            // Masukkan data ke elemen HTML
+            document.getElementById('judul-pengumuman').innerText = data.judul || "Tanpa Judul";
+            document.getElementById('kategori-tag').innerText = data.kategori || "Umum";
+            document.getElementById('isi-pengumuman-full').innerText = data.detail || "Tidak ada detail.";
         } else {
-            document.getElementById('isi-pengumuman-full').innerText = "Pesan tidak valid. Silakan kembali ke menu utama.";
+            document.getElementById('isi-pengumuman-full').innerText = "Maaf, pengumuman tidak ditemukan di database.";
         }
+    }).catch((error) => {
+        console.error("Error Firestore:", error);
+        document.getElementById('isi-pengumuman-full').innerText = "Terjadi kesalahan saat mengambil data.";
+    });
+} else {
+    document.getElementById('isi-pengumuman-full').innerText = "ID Pesan tidak valid.";
+}
     </script>
 </body>
 </html>
