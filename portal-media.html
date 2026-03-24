@@ -23,12 +23,8 @@
             color: var(--dark);
         }
 
-        .container {
-            max-width: 1000px;
-            margin: auto;
-        }
+        .container { max-width: 1000px; margin: auto; }
 
-        /* Header & Nav */
         .header {
             display: flex;
             justify-content: space-between;
@@ -52,7 +48,6 @@
 
         .btn-back:hover { color: var(--primary); }
 
-        /* Card Form */
         .card {
             background: white;
             padding: 25px;
@@ -71,7 +66,6 @@
             padding-bottom: 10px;
         }
 
-        /* Form Styling */
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; }
         
@@ -104,7 +98,6 @@
 
         .btn-submit:hover { background: #0056b3; }
 
-        /* Table Styling */
         .table-responsive {
             background: white;
             border-radius: 15px;
@@ -112,26 +105,10 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: var(--primary); color: white; padding: 15px; text-align: left; font-size: 14px; }
+        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 14px; }
 
-        th {
-            background: var(--primary);
-            color: white;
-            padding: 15px;
-            text-align: left;
-            font-size: 14px;
-        }
-
-        td {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-        }
-
-        /* Badge Styling */
         .badge {
             padding: 5px 10px;
             border-radius: 20px;
@@ -157,7 +134,6 @@
 
         .btn-delete { color: var(--danger); }
         .btn-delete:hover { transform: scale(1.2); }
-
     </style>
 </head>
 <body>
@@ -241,7 +217,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    // Konfigurasi Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -254,41 +229,31 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    // FUNGSI UPDATE INPUT DINAMIS
+    // 1. FUNGSI UPDATE INPUT DINAMIS
     function updateInputMedia() {
         const tipe = document.getElementById('tipeMedia').value;
         const wrapper = document.getElementById('inputMediaWrapper');
         const label = document.getElementById('labelMedia');
 
-        switch (tipe) {
-            case 'gambar':
-                label.innerText = "URL Gambar (Host luar)";
-                wrapper.innerHTML = `<input type="text" id="inputMedia" placeholder="https://link-gambar.com/foto.jpg" required>`;
-                break;
-                
-            case 'video':
-                label.innerText = "Link YouTube / Video";
-                wrapper.innerHTML = `<input type="text" id="inputMedia" placeholder="https://www.youtube.com/watch?v=..." required>`;
-                break;
-                
-            case 'pdf':
-                label.innerText = "Upload File PDF";
-                wrapper.innerHTML = `<input type="file" id="inputMedia" accept="application/pdf" required>`;
-                break;
-                
-            case 'audio':
-                label.innerText = "Upload File Audio (MP3)";
-                wrapper.innerHTML = `<input type="file" id="inputMedia" accept="audio/*" required>`;
-                break;
-                
-            case 'teks':
-                label.innerText = "Isi Artikel Lengkap";
-                wrapper.innerHTML = `<textarea id="inputMedia" rows="5" placeholder="Tulis artikel lengkap di sini..." required></textarea>`;
-                break;
+        if (tipe === 'teks') {
+            label.innerText = "Isi Artikel Lengkap";
+            wrapper.innerHTML = `<textarea id="inputMedia" rows="5" placeholder="Tulis artikel lengkap di sini..." required></textarea>`;
+        } else if (tipe === 'video') {
+            label.innerText = "Link YouTube / Video";
+            wrapper.innerHTML = `<input type="text" id="inputMedia" placeholder="https://www.youtube.com/watch?v=..." required>`;
+        } else if (tipe === 'audio') {
+            label.innerText = "URL File Audio (MP3)";
+            wrapper.innerHTML = `<input type="text" id="inputMedia" placeholder="https://link-audio.com/file.mp3" required>`;
+        } else if (tipe === 'pdf') {
+            label.innerText = "URL File PDF";
+            wrapper.innerHTML = `<input type="text" id="inputMedia" placeholder="https://link-dokumen.com/file.pdf" required>`;
+        } else {
+            label.innerText = "URL Gambar (Host luar)";
+            wrapper.innerHTML = `<input type="text" id="inputMedia" placeholder="https://link-gambar.com/foto.jpg" required>`;
         }
     }
 
-    // FUNGSI SIMPAN DATA
+    // 2. FUNGSI SIMPAN DATA
     document.getElementById('mediaForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('btnSubmit');
@@ -297,34 +262,30 @@
 
         const judul = document.getElementById('judul').value;
         const tipe = document.getElementById('tipeMedia').value;
-        const inputElement = document.getElementById('inputMedia');
+        const inputMedia = document.getElementById('inputMedia').value;
         const deskripsi = document.getElementById('deskripsi').value;
-
-        // Logika pengambilan nilai (jika file, ambil namanya; jika teks/url, ambil nilainya)
-        let contentValue = (tipe === 'pdf' || tipe === 'audio') ? inputElement.files[0].name : inputElement.value;
 
         try {
             await db.collection("portal_media").add({
                 judul: judul,
                 tipe: tipe,
-                url: contentValue, // Simpan nama file atau URL/Teks
+                url: inputMedia,
                 deskripsi: deskripsi,
                 tanggal: new Date().toLocaleDateString('id-ID'),
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
             alert("Konten berhasil dipublikasikan!");
             e.target.reset();
-            updateInputMedia(); // Reset input ke default (gambar)
+            updateInputMedia();
             loadMedia();
         } catch (error) {
-            console.error(error);
             alert("Gagal menyimpan data: " + error.message);
         }
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-paper-plane"></i> Publikasikan ke Portal';
     });
 
-    // FUNGSI AMBIL DATA
+    // 3. FUNGSI AMBIL DATA
     async function loadMedia() {
         const list = document.getElementById('mediaList');
         try {
@@ -348,7 +309,7 @@
                         <td><span class="badge ${badgeClass}">${data.tipe}</span></td>
                         <td><span style="color:var(--success); font-weight:bold;">● Aktif</span></td>
                         <td style="text-align: center;">
-                            <button class="btn-action btn-delete" onclick="deleteMedia('${id}')" title="Hapus">
+                            <button class="btn-action btn-delete" onclick="deleteMedia('${id}')">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </td>
@@ -356,12 +317,11 @@
                 `;
             });
         } catch (e) { 
-            console.error(e); 
             list.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Gagal memuat data.</td></tr>';
         }
     }
 
-    // FUNGSI HAPUS DATA
+    // 4. FUNGSI HAPUS DATA
     async function deleteMedia(id) {
         if(confirm("Apakah Anda yakin ingin menghapus konten ini?")) {
             try {
