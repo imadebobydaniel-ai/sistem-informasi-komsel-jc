@@ -51,7 +51,7 @@
            align-items: center; 
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-       .running-content { 
+        .running-content { 
             display: inline-block; 
            padding-left: 100%; 
             animation: marquee 30s linear infinite; 
@@ -70,11 +70,11 @@
             color: var(--biru-tua); 
            text-transform: uppercase; 
             font-size: 18px;
-           letter-spacing: 1px;
+            letter-spacing: 1px;
         }
 
         /* Profile Section */
-       .profile-section { 
+        .profile-section { 
             background: linear-gradient(145deg, #ffffff, #e6e6e6);
             padding: 25px; 
            border-radius: 25px; 
@@ -83,28 +83,27 @@
             position: relative;
             border-top: 4px solid var(--biru-safir);
         }
-       .setting-icon-profile { position: absolute; top: 18px; right: 18px; color: var(--biru-tua); font-size: 22px; transition: 0.3s; }
-       .setting-icon-profile:hover { transform: rotate(90deg); color: var(--emas-lux); }
+        .setting-icon-profile { position: absolute; top: 18px; right: 18px; color: var(--biru-tua); font-size: 22px; transition: 0.3s; }
+        .setting-icon-profile:hover { transform: rotate(90deg); color: var(--emas-lux); }
         
-       .profile-img-container { 
+        .profile-img-container { 
             width: 90px; height: 90px; border-radius: 50%; 
             margin: 0 auto 12px auto; overflow: hidden; 
             display: flex; align-items: center; justify-content: center; 
             background: white; border: 3px solid var(--emas-lux);
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-       .profile-img-container img { width: 100%; height: 100%; object-fit: cover; }
-       .profile-section i.fa-circle-user { font-size: 85px; color: var(--biru-safir); }
+        .profile-img-container img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-section i.fa-circle-user { font-size: 85px; color: var(--biru-safir); }
         
-       .profile-section h2 { margin: 8px 0 2px 0; font-size: 24px; color: var(--biru-tua); font-weight: 800; }
-       
-       /* Styling tambahan untuk Email di Profil */
-       #disp_email { margin-bottom: 8px; color: #555; font-size: 13px; font-style: italic; }
-       
-       .profile-section p { margin: 0; color: var(--hijau-zamrud); font-weight: bold; font-size: 14px; text-transform: uppercase; }
+        .profile-section h2 { margin: 8px 0 2px 0; font-size: 24px; color: var(--biru-tua); font-weight: 800; }
+        #disp_email { margin-bottom: 8px; color: #555; font-size: 13px; font-style: italic; }
+        .profile-section p { margin: 0; color: var(--hijau-zamrud); font-weight: bold; font-size: 14px; text-transform: uppercase; }
 
         /* Grid Menu */
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+        
+        /* Base Menu Box Style (Disesuaikan agar seragam) */
         .menu-box { 
             background: white; 
             padding: 22px 10px; 
@@ -119,18 +118,23 @@
             box-shadow: 0 6px 15px rgba(0,0,0,0.05); 
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             border: 1px solid rgba(0,0,0,0.03);
+            cursor: pointer;
         }
-       .menu-box:active { transform: scale(0.92); }
+        
+        .menu-box:active { transform: scale(0.92); }
+        .menu-box:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+
+        /* Icon 3D Effects */
         .menu-box i { 
             font-size: 30px; 
            margin-bottom: 12px; 
             background: linear-gradient(135deg, var(--biru-safir), var(--hijau-zamrud));
            -webkit-background-clip: text;
            -webkit-text-fill-color: transparent;
-            /* Efek 3D Shadow */
             filter: drop-shadow(2px 4px 3px rgba(0,0,0,0.2));
         }
 
+        /* Variasi Warna Ikon Khusus */
         .icon-special { 
             background: linear-gradient(135deg, var(--emas-lux), #fff3a0) !important;
            -webkit-background-clip: text !important;
@@ -155,6 +159,14 @@
            -webkit-background-clip: text !important;
            -webkit-text-fill-color: transparent !important;
             filter: drop-shadow(3px 5px 4px rgba(0, 86, 179, 0.3)) !important;
+        }
+
+        /* Styling Ikon Doa (Sesuai masukan Anda) */
+        .doa-box i {
+            background: linear-gradient(135deg, #00a8cc, #007bff) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2)) !important;
         }
 
         .btn-logout { 
@@ -223,14 +235,13 @@
                 <i class="fa-solid fa-file-signature"></i>Laporan Komsel
             </a>
             
-            <a href="input-kegiatan.html" class="menu-box kegiatan-box">
+            <a href="informasi-kegiatan.html" class="menu-box kegiatan-box">
                 <i class="fa-solid fa-tower-broadcast"></i>Informasi Kegiatan
             </a>
-            <div class="menu-item" onclick="window.location.href='capaian-doa.html'">
-    <div class="icon-container">
-        <i class="fa-solid fa-hands-praying"></i> </div>
-    <span>Capaian Doa</span>
-</div>
+
+            <a href="capaian-doa.html" class="menu-box doa-box">
+                <i class="fa-solid fa-hands-praying"></i>Capaian Doa
+            </a>
 
             <a href="lacak-domba.html" class="menu-box lacak-box">
                 <i class="fa-solid fa-map-location-dot"></i>Lacak Domba
@@ -310,7 +321,6 @@
             const userEmail = localStorage.getItem("userEmail");
             if (!userEmail) { window.location.href = "index.html"; return; }
 
-            // Update Email di UI segera setelah login
             document.getElementById('disp_email').innerText = userEmail;
 
           db.collection("users").where("email", "==", userEmail).onSnapshot((querySnapshot) => {
@@ -321,7 +331,7 @@
 
                   document.getElementById('disp_nama').innerText = data.nama || "User";
                   document.getElementById('disp_komsel').innerText = data.komsel ? "JC " + data.komsel : "KOMSEL JC";
-                  // Update email dari Firestore (jika ada data email berbeda)
+                  
                   if(data.email) document.getElementById('disp_email').innerText = data.email;
                     
                   const photoImg = document.getElementById('user-photo');
@@ -339,7 +349,7 @@
             });
         }
 
-        // 4. FUNGSI LOGOUT (PERBAIKAN TOTAL)
+        // 4. FUNGSI LOGOUT
         async function logoutDanHapusDevice() {
             const userEmail = localStorage.getItem("userEmail");
             const currentDeviceId = localStorage.getItem("myDeviceId");
@@ -351,7 +361,7 @@
                       if (!snapshot.empty) {
                           const docId = snapshot.docs[0].id;
                           await db.collection("users").doc(docId).update({
-                                deviceIds: firebase.firestore.FieldValue.arrayRemove(currentDeviceId)
+                              deviceIds: firebase.firestore.FieldValue.arrayRemove(currentDeviceId)
                           });
                       }
                     }
@@ -364,7 +374,6 @@
             }
         }
 
-        // JALANKAN SEMUA FUNGSI
       setInterval(updateWaktuDanRunningText, 1000);
       updateWaktuDanRunningText();
        syncUserData();
