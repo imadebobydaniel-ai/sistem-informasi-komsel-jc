@@ -7,27 +7,61 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --biru-tua: #003366; --merah-notif: #e11d48; --putih-bg: #f4f7fa; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--putih-bg); margin: 0; padding: 20px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--putih-bg); margin: 0; padding: 15px; }
         .container { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 5px solid var(--merah-notif); }
         .form-group { margin-bottom: 15px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
-        input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-        .btn-send { background: var(--merah-notif); color: white; border: none; padding: 15px; width: 100%; border-radius: 50px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        .btn-send { background: var(--merah-notif); color: white; border: none; padding: 15px; width: 100%; border-radius: 50px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; }
         
-        /* Riwayat Informasi Styling */
+        /* Riwayat Styling */
         .history-item { background: #fff; border-left: 5px solid var(--merah-notif); padding: 15px; border-radius: 10px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .history-item h4 { margin: 0 0 5px 0; color: var(--merah-notif); }
-        .history-item p { margin: 5px 0; font-size: 14px; color: #333; }
-        .history-item .meta { font-size: 11px; color: #888; margin-top: 10px; }
+        
+        /* CUSTOM MODAL (BLOCK DISPLAY) FOR MOBILE */
+        .modal-overlay { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0, 51, 102, 0.9); z-index: 9999; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;
+        }
+        .modal-box { 
+            background: white; padding: 25px; border-radius: 20px; text-align: center; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+        }
+        .modal-box i { font-size: 40px; color: var(--merah-notif); margin-bottom: 15px; }
+        .modal-box input { margin-top: 15px; text-align: center; border: 2px solid #eee; }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-confirm { background: var(--merah-notif); color: white; border: none; padding: 12px; flex: 1; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .btn-cancel { background: #eee; color: #666; border: none; padding: 12px; flex: 1; border-radius: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
+
+<div id="modal-password" class="modal-overlay">
+    <div class="modal-box">
+        <i class="fa-solid fa-shield-halved"></i>
+        <h3 style="margin:0">Verifikasi Akses</h3>
+        <p style="font-size: 13px; color: #666;">Masukkan password Admin/PKS untuk memproses data.</p>
+        <input type="password" id="input-pass-custom" placeholder="Password">
+        <div class="modal-buttons">
+            <button class="btn-cancel" onclick="closeModal('modal-password')">BATAL</button>
+            <button class="btn-confirm" onclick="konfirmasiKirim()">KIRIM</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-notif" class="modal-overlay">
+    <div class="modal-box">
+        <i id="notif-icon" class="fa-solid fa-circle-check"></i>
+        <h3 id="notif-title" style="margin:0">Sukses</h3>
+        <p id="notif-msg" style="font-size: 14px; color: #666;">Pesan...</p>
+        <button class="btn-send" onclick="location.reload()" style="margin-top: 15px;">OKE</button>
+    </div>
+</div>
 
 <div class="container">
     <h2><i class="fa-solid fa-bullhorn"></i> Info Kegiatan Baru</h2>
     
     <div class="form-group">
-        <label>Kategori Kegiatan</label>
+        <label>Kategori</label>
         <select id="kategori">
             <option value="Ibadah">Ibadah Komsel</option>
             <option value="Penting">Pesan Penting</option>
@@ -36,7 +70,7 @@
     </div>
 
     <div class="form-group">
-        <label>Judul Informasi</label>
+        <label>Judul</label>
         <input type="text" id="judul" placeholder="Contoh: Perubahan Jam Ibadah">
     </div>
 
@@ -46,16 +80,16 @@
     </div>
 
     <div class="form-group">
-        <label>Detail Informasi</label>
-        <textarea id="detail" rows="4" placeholder="Tuliskan detail pengumuman di sini..."></textarea>
+        <label>Detail</label>
+        <textarea id="detail" rows="4" placeholder="Tuliskan detail pengumuman..."></textarea>
     </div>
 
-    <button class="btn-send" onclick="prosesData()">
+    <button class="btn-send" onclick="bukaVerifikasi()">
         <i class="fa-solid fa-paper-plane"></i> KIRIM SEKARANG
     </button>
 
     <div style="margin-top: 30px;">
-        <h3><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Informasi</h3>
+        <h3><i class="fa-solid fa-clock-rotate-left"></i> Riwayat</h3>
         <div id="list-pengumuman">Memuat data...</div>
     </div>
 </div>
@@ -64,7 +98,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
 <script>
-    // 1. CONFIG FIREBASE ANDA
+    // 1. CONFIG FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -76,62 +110,65 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // 2. FUNGSI KIRIM (PASSWORD BARU MUNCUL DI SINI)
-    async function prosesData() {
+    // 2. LOGIKA MODAL
+    function bukaVerifikasi() {
         const judul = document.getElementById('judul').value;
         const detail = document.getElementById('detail').value;
-
-        if(!judul || !detail) {
-            alert("Judul dan Detail tidak boleh kosong!");
-            return;
+        if(!judul || !detail) { 
+            alert("Harap isi Judul dan Detail!"); 
+            return; 
         }
+        document.getElementById('modal-password').style.display = 'flex';
+    }
 
-        // MUNCULKAN KOTAK PASSWORD SAAT KLIK KIRIM
-        const passwordInput = prompt("Data siap dikirim. Masukkan password Admin/PKS:");
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        if (passwordInput === "bukadong821" || passwordInput === "PKS") {
+    async function konfirmasiKirim() {
+        const pass = document.getElementById('input-pass-custom').value;
+        if (pass === "bukadong821" || pass === "PKS") {
+            closeModal('modal-password');
             try {
                 await db.collection("pengumuman_komsel").add({
                     kategori: document.getElementById('kategori').value,
-                    judul: judul,
+                    judul: document.getElementById('judul').value,
                     lokasi: document.getElementById('lokasi').value,
-                    detail: detail,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    detail: document.getElementById('detail').value,
                     lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                alert("✅ Berhasil! Informasi telah diterbitkan.");
-                location.reload(); // Refresh halaman agar form bersih
-            } catch (error) {
-                alert("Gagal mengirim ke database: " + error.message);
+                showNotif("✅ Berhasil!", "Informasi kegiatan telah diterbitkan ke aplikasi.", "fa-circle-check");
+            } catch (e) {
+                showNotif("Gagal", e.message, "fa-circle-xmark");
             }
-        } else if (passwordInput !== null) {
-            alert("⚠️ Password SALAH! Akses ditolak.");
+        } else {
+            alert("Password Salah!");
         }
     }
 
-    // 3. MENAMPILKAN RIWAYAT
+    function showNotif(title, msg, icon) {
+        document.getElementById('notif-title').innerText = title;
+        document.getElementById('notif-msg').innerText = msg;
+        document.getElementById('notif-icon').className = "fa-solid " + icon;
+        document.getElementById('modal-notif').style.display = 'flex';
+    }
+
+    // 3. LOAD RIWAYAT
     function loadHistory() {
         db.collection("pengumuman_komsel").orderBy("lastUpdate", "desc").onSnapshot(snap => {
             const listDiv = document.getElementById('list-pengumuman');
             listDiv.innerHTML = "";
             snap.forEach(doc => {
                 const d = doc.data();
-                const tgl = d.lastUpdate ? new Date(d.lastUpdate.seconds * 1000).toLocaleString('id-ID') : 'Baru saja';
-                
                 listDiv.innerHTML += `
                     <div class="history-item">
                         <h4>[${d.kategori}] ${d.judul}</h4>
-                        <p><i class="fa-solid fa-location-dot"></i> ${d.lokasi || '-'}</p>
+                        <p style="font-size:13px; color:#666;"><i class="fa-solid fa-location-dot"></i> ${d.lokasi || '-'}</p>
                         <p>${d.detail}</p>
-                        <div class="meta">${tgl}</div>
                     </div>`;
             });
         });
     }
 
-    // Jalankan load riwayat saat halaman dibuka
     window.onload = loadHistory;
 </script>
-
 </body>
 </html>
