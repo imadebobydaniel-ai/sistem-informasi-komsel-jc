@@ -127,7 +127,7 @@
 <script>
 // --- 1. KONFIGURASI FIREBASE ---
 const firebaseConfig = {
-    apiKey: "AIzaSy...", // GANTI DENGAN API KEY ANDA
+    apiKey: "AIzaSy...", // PASTIKAN API KEY BENAR
     authDomain: "boby-apps-project.firebaseapp.com",
     projectId: "boby-apps-project",
     storageBucket: "boby-apps-project.appspot.com",
@@ -137,6 +137,13 @@ const firebaseConfig = {
 
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+
+// --- HELPER: UPDATE PROGRESS BAR ---
+function updateBar(textId, barId, total, done) {
+    const persen = total > 0 ? (done / total * 100).toFixed(1) : "0.0";
+    document.getElementById(textId).innerText = persen + "%";
+    document.getElementById(barId).style.width = persen + "%";
+}
 
 // --- 2. FUNGSI ALKITAB ---
 function syncCapaianRealtime() {
@@ -151,27 +158,20 @@ function syncCapaianRealtime() {
 
         snap.forEach(doc => {
             const d = doc.data();
-            // Handling format tanggal agar tidak error
             const tgl = d.tanggal?.toDate ? d.tanggal.toDate() : new Date(d.tanggal);
             
             if (tgl >= limitDate) {
                 totalGlobal++;
                 if (d.status === "Selesai") doneGlobal++;
                 
-                if (String(d.komsel).trim() === selKomsel.trim()) {
+                if (String(d.komsel || "").trim() === selKomsel.trim()) {
                     totalKomsel++;
                     if (d.status === "Selesai") doneKomsel++;
                 }
             }
         });
-
-        const pKomsel = totalKomsel > 0 ? (doneKomsel / totalKomsel * 100).toFixed(1) : "0.0";
-        const pGlobal = totalGlobal > 0 ? (doneGlobal / totalGlobal * 100).toFixed(1) : "0.0";
-
-        document.getElementById('text-capaian-komsel').innerText = pKomsel + "%";
-        document.getElementById('bar-capaian-komsel').style.width = pKomsel + "%";
-        document.getElementById('text-capaian-global').innerText = pGlobal + "%";
-        document.getElementById('bar-capaian-global').style.width = pGlobal + "%";
+        updateBar('text-capaian-komsel', 'bar-capaian-komsel', totalKomsel, doneKomsel);
+        updateBar('text-capaian-global', 'bar-capaian-global', totalGlobal, doneGlobal);
     });
 }
 
@@ -184,22 +184,21 @@ function syncDoaRealtime() {
 
         snap.forEach(doc => {
             const d = doc.data();
-            if (selKomsel === "Semua" || String(d.komsel).trim() === selKomsel.trim()) {
+            if (selKomsel === "Semua" || String(d.komsel || "").trim() === selKomsel.trim()) {
                 count++;
                 if (d.status === "Dijawab") {
                     dijawab++;
                     if (d.waktu_jawab && d.waktu_masuk) {
-                        const diff = (d.waktu_jawab.toDate() - d.waktu_masuk.toDate()) / (1000 * 3600 * 24);
-                        totalSLA += diff;
+                        const tJawab = d.waktu_jawab.toDate ? d.waktu_jawab.toDate() : new Date(d.waktu_jawab);
+                        const tMasuk = d.waktu_masuk.toDate ? d.waktu_masuk.toDate() : new Date(d.waktu_masuk);
+                        totalSLA += (tJawab - tMasuk) / (1000 * 3600 * 24);
                     }
                 }
             }
         });
 
-        const avgSLA = dijawab > 0 ? (totalSLA / dijawab).toFixed(1) : "0";
         const pDijawab = count > 0 ? (dijawab / count * 100).toFixed(1) : "0.0";
-
-        document.getElementById('stat-sla-hari').innerText = avgSLA + " Hari";
+        document.getElementById('stat-sla-hari').innerText = dijawab > 0 ? (totalSLA / dijawab).toFixed(1) + " Hari" : "0 Hari";
         document.getElementById('stat-persen-dijawab').innerText = pDijawab + "%";
         document.getElementById('progress-doa').style.width = pDijawab + "%";
     });
@@ -217,14 +216,12 @@ function syncKehadiranRealtime() {
         snap.forEach(doc => {
             const d = doc.data();
             const tgl = d.tanggal?.toDate ? d.tanggal.toDate() : new Date(d.tanggal);
-            if (String(d.komsel).trim() === selKomsel.trim() && tgl >= limitDate) {
+            if (String(d.komsel || "").trim() === selKomsel.trim() && tgl >= limitDate) {
                 total++;
                 if (d.status === "Hadir") hadir++;
             }
         });
-        const persen = total > 0 ? (hadir / total * 100).toFixed(1) : "0.0";
-        document.getElementById('text-hadir-komsel').innerText = persen + "%";
-        document.getElementById('bar-hadir-komsel').style.width = persen + "%";
+        updateBar('text-hadir-komsel', 'bar-hadir-komsel', total, hadir);
     });
 }
 
@@ -236,7 +233,7 @@ function syncGoldarRealtime() {
         let usersData = [];
         snap.forEach(doc => {
             const d = doc.data();
-            let k = String(d.komsel || "").trim();
+            const k = String(d.komsel || "").trim();
             if (filter === "Semua Komsel" || k === filter) {
                 usersData.push(d);
                 const g = (d.golongan_darah || d.golDarah || "").toUpperCase().trim();
@@ -279,7 +276,7 @@ function openUserDetail(type, filter, data) {
     document.getElementById('modal-goldar').style.display = 'flex';
 }
 
-// --- INISIALISASI ---
+// --- INISIALISASI SAAT HALAMAN DIBUKA ---
 window.onload = () => {
     syncCapaianRealtime();
     syncDoaRealtime();
