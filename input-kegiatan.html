@@ -114,7 +114,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
 <script>
-    // 1. FIREBASE CONFIG
+    // 1. FIREBASE CONFIG (Tetap gunakan config Anda yang sudah ada)
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -127,62 +127,72 @@
     const db = firebase.firestore();
     let editID = null;
 
-    // 2. FUNGSI LIHAT PASSWORD (MATA)
-    const togglePassword = document.querySelector('#togglePassword');
-    const passwordInput = document.querySelector('#pass-input');
-
-    togglePassword.addEventListener('click', function () {
-        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-        passwordInput.setAttribute('type', type);
-        this.classList.toggle('fa-eye-slash');
-    });
-
-    // 3. PROTEKSI & LOGIN
-    function proteksiAktif() {
-        if (sessionStorage.getItem("akses_komsel") !== "true") {
-            document.getElementById('login-overlay').style.display = 'flex';
-            return false;
-        }
-        document.getElementById('login-overlay').style.display = 'none';
-        return true;
-    }
-
-    function cekAkses() {
-        const input = document.getElementById('pass-input').value;
-        if (input === "bukadong821" || input === "PKS") {
-            sessionStorage.setItem("akses_komsel", "true");
-            proteksiAktif();
-            alert("Berhasil Masuk!");
-        } else {
-            sessionStorage.removeItem("akses_komsel");
-            alert("Password Salah!");
-        }
-    }
-
-    // 4. PROSES DATA (KIRIM/EDIT)
+    // 2. FUNGSI KIRIM DATA (DENGAN CEK PASSWORD DI AKHIR)
     async function prosesData() {
-        if (!proteksiAktif()) return;
-
         const kategori = document.getElementById('kategori').value;
         const judul = document.getElementById('judul').value;
         const lokasi = document.getElementById('lokasi').value;
         const detail = document.getElementById('detail').value;
 
-        if(!judul || !detail) { alert("Isi Judul & Detail!"); return; }
+        // Validasi form kosong
+        if(!judul || !detail) {
+            alert("Harap isi Judul dan Detail pengumuman!");
+            return;
+        }
 
-        try {
-            const dataObj = { kategori, judul, lokasi, detail, lastUpdate: firebase.firestore.FieldValue.serverTimestamp() };
-            if (editID) {
-                await db.collection("pengumuman_komsel").doc(editID).update(dataObj);
-            } else {
-                dataObj.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-                await db.collection("pengumuman_komsel").add(dataObj);
+        // --- PROSES MINTA PASSWORD DIMULAI DI SINI ---
+        const passwordInput = prompt("Data sudah siap. Silakan masukkan password Admin atau PKS untuk memverifikasi pengiriman:");
+        
+        const PASS_ADMIN = "bukadong821";
+        const PASS_PKS = "PKS";
+
+        if (passwordInput === PASS_ADMIN || passwordInput === PASS_PKS) {
+            // JIKA PASSWORD BENAR, LANJUT KIRIM KE FIREBASE
+            try {
+                const dataObj = { 
+                    kategori, 
+                    judul, 
+                    lokasi, 
+                    detail, 
+                    lastUpdate: firebase.firestore.FieldValue.serverTimestamp() 
+                };
+
+                if (editID) {
+                    await db.collection("pengumuman_komsel").doc(editID).update(dataObj);
+                    alert("✅ Perubahan berhasil disimpan!");
+                } else {
+                    dataObj.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                    await db.collection("pengumuman_komsel").add(dataObj);
+                    alert("✅ Pengumuman berhasil dikirim!");
+                }
+                
+                resetForm(); // Bersihkan form setelah sukses
+            } catch (e) {
+                alert("❌ Gagal mengirim data: " + e.message);
             }
-            location.reload();
-        } catch (e) { alert("Error: " + e.message); }
+        } else if (passwordInput === null) {
+            // Jika user menekan 'Cancel' pada kotak password
+            return; 
+        } else {
+            // Jika password salah
+            alert("⚠️ Password Salah! Anda tidak memiliki akses untuk mengirim informasi ini.");
+        }
     }
 
-    // 5. LOAD RIWAYAT
+    // 3. FUNGSI HAPUS (JUGA MINTA PASSWORD)
+    async function hapusInfo(id) {
+        const passwordInput = prompt("Masukkan password Admin/PKS untuk menghapus data:");
+        if (passwordInput === "bukadong821" || passwordInput === "PKS") {
+            if (confirm("Apakah Anda benar-benar ingin menghapus pengumuman ini?")) {
+                await db.collection("pengumuman_komsel").doc(id).delete();
+                alert("Data berhasil dihapus.");
+            }
+        } else {
+            alert("Password salah. Penghapusan dibatalkan.");
+        }
+    }
+
+    // 4. LOAD RIWAYAT (Tetap seperti biasa)
     function loadHistory() {
         db.collection("pengumuman_komsel").orderBy("lastUpdate", "desc").onSnapshot(snap => {
             const listDiv = document.getElementById('list-pengumuman');
@@ -197,28 +207,29 @@
                         </div>
                         <div class="accordion-content">
                             <p>${d.detail}</p>
-                            <button onclick="hapusInfo('${doc.id}')" style="color:red; border:none; background:none; cursor:pointer;">Hapus</button>
+                            <small>Lokasi: ${d.lokasi || '-'}</small><br><br>
+                            <button onclick="isiDataEdit('${doc.id}', '${d.kategori}', '${d.judul}', '${d.lokasi}', \`${d.detail}\`)" style="color: blue; border:none; background:none; cursor:pointer; margin-right:15px;">Edit</button>
+                            <button onclick="hapusInfo('${doc.id}')" style="color: red; border:none; background:none; cursor:pointer;">Hapus</button>
                         </div>
                     </div>`;
             });
         });
     }
 
-    async function hapusInfo(id) {
-        if (!proteksiAktif()) return;
-        if (confirm("Hapus data ini?")) {
-            await db.collection("pengumuman_komsel").doc(id).delete();
-        }
-    }
-
     function toggleAccordion(el) { el.nextElementSibling.classList.toggle('active'); }
     function resetForm() { location.reload(); }
+    
+    function isiDataEdit(id, kat, jud, lok, det) {
+        editID = id;
+        document.getElementById('kategori').value = kat;
+        document.getElementById('judul').value = jud;
+        document.getElementById('lokasi').value = lok;
+        document.getElementById('detail').value = det;
+        document.getElementById('form-title').innerHTML = "✏️ Edit Pengumuman";
+        window.scrollTo(0,0);
+    }
 
-    // RUN ON LOAD
-    window.onload = function() {
-        proteksiAktif();
-        loadHistory();
-    };
+    window.onload = loadHistory;
 </script>
 </body>
 </html>
