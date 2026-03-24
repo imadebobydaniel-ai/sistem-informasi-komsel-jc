@@ -74,7 +74,7 @@
         }
  
         /* Profile Section */
-       .profile-section { 
+        .profile-section { 
            background: linear-gradient(145deg, #ffffff, #e6e6e6);
             padding: 25px; 
            border-radius: 25px; 
@@ -84,7 +84,7 @@
            border-top: 4px solid var(--biru-safir);
         }
 
-        /* --- SCRIPT NOTIFIKASI BARU --- */
+        /* Notifikasi Email */
         .notif-email-container {
             position: absolute;
             top: 15px;
@@ -99,7 +99,6 @@
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
         }
 
-        /* Animasi Bergetar (Shake) */
         @keyframes shake-email {
             0% { transform: rotate(0deg); }
             10% { transform: rotate(8deg); }
@@ -125,71 +124,133 @@
             border-radius: 50%;
             border: 2px solid white;
         }
-        /* --- END SCRIPT NOTIFIKASI --- */
 
-       .setting-icon-profile { position: absolute; top: 18px; right: 18px; color: var(--biru-tua); font-size: 22px; transition: 0.3s; }
-       .setting-icon-profile:hover { transform: rotate(90deg); color: var(--emas-lux); }
+        /* --- STYLING MODAL POPUP --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 51, 102, 0.4);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes bounceIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--biru-tua), #00509d);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+            border-bottom: 4px solid var(--emas-lux);
+        }
+
+        .modal-body {
+            padding: 25px;
+            color: #333;
+            background: #fff;
+            text-align: left; /* Agar info-item rapi */
+        }
+
+        .info-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid var(--emas-lux);
+        }
+
+        .btn-close-popup {
+            background: var(--biru-tua);
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0,51,102,0.3);
+        }
+
+        .btn-close-popup:hover {
+            background: var(--emas-lux);
+            transform: translateY(-2px);
+        }
+
+        /* Grid Menu & Elements */
+        .setting-icon-profile { position: absolute; top: 18px; right: 18px; color: var(--biru-tua); font-size: 22px; transition: 0.3s; }
+        .setting-icon-profile:hover { transform: rotate(90deg); color: var(--emas-lux); }
         
-       .profile-img-container { 
+        .profile-img-container { 
             width: 90px; height: 90px; border-radius: 50%; 
             margin: 0 auto 12px auto; overflow: hidden; 
             display: flex; align-items: center; justify-content: center; 
-           background: white; border: 3px solid var(--emas-lux);
-           box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            background: white; border: 3px solid var(--emas-lux);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-       .profile-img-container img { width: 100%; height: 100%; object-fit: cover; }
-       .profile-section i.fa-circle-user { font-size: 85px; color: var(--biru-safir); }
+        .profile-img-container img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-section i.fa-circle-user { font-size: 85px; color: var(--biru-safir); }
         
-       .profile-section h2 { margin: 8px 0 2px 0; font-size: 24px; color: var(--biru-tua); font-weight: 800; }
-       .profile-section p { margin: 0; color: var(--hijau-zamrud); font-weight: bold; font-size: 14px; text-transform: uppercase; }
+        .profile-section h2 { margin: 8px 0 2px 0; font-size: 24px; color: var(--biru-tua); font-weight: 800; }
+        .profile-section p { margin: 0; color: var(--hijau-zamrud); font-weight: bold; font-size: 14px; text-transform: uppercase; }
  
-        /* Grid Menu */
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
         .menu-box { 
-           background: white; 
+            background: white; 
             padding: 22px 10px; 
-           border-radius: 20px; 
+            border-radius: 20px; 
             display: flex; 
-           flex-direction: column; 
-           align-items: center; 
-           text-decoration: none; 
+            flex-direction: column; 
+            align-items: center; 
+            text-decoration: none; 
             color: var(--biru-tua); 
-           font-weight: 800; 
+            font-weight: 800; 
             font-size: 12px; 
-           box-shadow: 0 6px 15px rgba(0,0,0,0.05); 
-           transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.05); 
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             border: 1px solid rgba(0,0,0,0.03);
         }
-       .menu-box:active { transform: scale(0.92); }
+        .menu-box:active { transform: scale(0.92); }
         .menu-box i { 
             font-size: 30px; 
-           margin-bottom: 12px; 
-           background: linear-gradient(135deg, var(--biru-safir), var(--hijau-zamrud));
-           -webkit-background-clip: text;
-           -webkit-text-fill-color: transparent;
-           filter: drop-shadow(2px 4px 3px rgba(0,0,0,0.2));
+            margin-bottom: 12px; 
+            background: linear-gradient(135deg, var(--biru-safir), var(--hijau-zamrud));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(2px 4px 3px rgba(0,0,0,0.2));
         }
  
-        /* Icon Khusus & Lacak Domba */
         .icon-special { 
-           background: linear-gradient(135deg, var(--emas-lux), #fff3a0) !important;
-           -webkit-background-clip: text !important;
-           -webkit-text-fill-color: transparent !important;
+            background: linear-gradient(135deg, var(--emas-lux), #fff3a0) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
         }
         
-        .lacak-box i {
-            color: #e11d48 !important;
-            background: none !important;
-            -webkit-text-fill-color: initial !important;
-        }
-
+        .lacak-box i { color: #e11d48 !important; background: none !important; -webkit-text-fill-color: initial !important; }
         .kegiatan-box i {
             background: linear-gradient(135deg, #ff416c, #ff4b2b) !important;
             -webkit-background-clip: text !important;
             -webkit-text-fill-color: transparent !important;
             filter: drop-shadow(3px 5px 4px rgba(225, 29, 72, 0.4)) !important;
         }
-
         .renungan-box i {
             background: linear-gradient(135deg, var(--biru-safir), var(--biru-muda)) !important;
             -webkit-background-clip: text !important;
@@ -198,18 +259,18 @@
         }
  
         .btn-logout { 
-           background: var(--biru-tua); 
+            background: var(--biru-tua); 
             color: #fff; 
             padding: 14px 40px; 
-           border-radius: 50px; 
-           text-decoration: none; 
+            border-radius: 50px; 
+            text-decoration: none; 
             font-size: 14px; 
-           font-weight: bold; 
+            font-weight: bold; 
             display: inline-block; 
-           margin-top: 40px; 
+            margin-top: 40px; 
             border: 2px solid var(--emas-lux);
-           box-shadow: 0 4px 15px rgba(0,51,102,0.3);
-           transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0,51,102,0.3);
+            transition: 0.3s;
             cursor: pointer;
         }
     </style>
@@ -237,58 +298,46 @@
             
             <div class="profile-img-container" id="photo-area">
                 <i class="fa-solid fa-circle-user" id="default-icon"></i>
-               <img id="user-photo" src="" style="display: none;">
+                <img id="user-photo" src="" style="display: none;">
            </div>
             <h2 id="disp_nama">User</h2>
             <p id="disp_komsel">KOMSEL JC</p>
         </div>
  
         <div class="menu-grid">
-            <a href="profil.html" class="menu-box">
-                <i class="fa-solid fa-user-shield"></i>Profil Saya
-            </a>
-            <a href="kehadiran.html" class="menu-box">
-                <i class="fa-solid fa-calendar-check"></i>Kehadiran
-            </a>
-            <a href="baca-alkitab.html" class="menu-box">
-                <i class="fa-solid fa-book-bible"></i>Laporan Baca
-            </a>
-
-            <a href="input-renungan.html" class="menu-box renungan-box">
-                <i class="fa-solid fa-book-open-reader"></i>Input Renungan
-            </a>
-
-            <a href="statistik.html" class="menu-box">
-                <i class="fa-solid fa-chart-pie"></i>Statistik
-            </a>
-            <a href="leaderboard.html" class="menu-box">
-                <i class="fa-solid fa-crown icon-special"></i>Peringkat JC
-            </a>
-            <a href="laporan-komsel.html" class="menu-box">
-                <i class="fa-solid fa-file-signature"></i>Laporan Komsel
-            </a>
-            
-            <a href="input-kegiatan.html" class="menu-box kegiatan-box">
-                <i class="fa-solid fa-tower-broadcast"></i>Informasi Kegiatan
-            </a>
-
-            <a href="lacak-domba.html" class="menu-box lacak-box">
-                <i class="fa-solid fa-map-location-dot"></i>Lacak Domba
-            </a>
- 
-            <a href="javascript:location.reload()" class="menu-box" style="color: #28a745;">
-                <i class="fa-solid fa-arrows-rotate"></i>Refresh
-            </a>
-            <a href="saran.html" class="menu-box">
-                <i class="fa-solid fa-comment-dots"></i>Saran
-            </a>
+            <a href="profil.html" class="menu-box"><i class="fa-solid fa-user-shield"></i>Profil Saya</a>
+            <a href="kehadiran.html" class="menu-box"><i class="fa-solid fa-calendar-check"></i>Kehadiran</a>
+            <a href="baca-alkitab.html" class="menu-box"><i class="fa-solid fa-book-bible"></i>Laporan Baca</a>
+            <a href="input-renungan.html" class="menu-box renungan-box"><i class="fa-solid fa-book-open-reader"></i>Input Renungan</a>
+            <a href="statistik.html" class="menu-box"><i class="fa-solid fa-chart-pie"></i>Statistik</a>
+            <a href="leaderboard.html" class="menu-box"><i class="fa-solid fa-crown icon-special"></i>Peringkat JC</a>
+            <a href="laporan-komsel.html" class="menu-box"><i class="fa-solid fa-file-signature"></i>Laporan Komsel</a>
+            <a href="input-kegiatan.html" class="menu-box kegiatan-box"><i class="fa-solid fa-tower-broadcast"></i>Informasi Kegiatan</a>
+            <a href="lacak-domba.html" class="menu-box lacak-box"><i class="fa-solid fa-map-location-dot"></i>Lacak Domba</a>
+            <a href="javascript:location.reload()" class="menu-box" style="color: #28a745;"><i class="fa-solid fa-arrows-rotate"></i>Refresh</a>
+            <a href="saran.html" class="menu-box"><i class="fa-solid fa-comment-dots"></i>Saran</a>
         </div>
  
         <div class="btn-logout" onclick="logoutDanHapusDevice()">KELUAR SISTEM</div>
     </div>
+
+    <div id="modalPengumuman" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="fa-solid fa-envelope-open-text" style="font-size: 50px; margin-bottom: 10px;"></i>
+                <h3 style="margin: 0; letter-spacing: 1px;">Pesan Untuk Boby</h3>
+            </div>
+            <div id="isiModal" class="modal-body">
+                <p style="text-align:center;">Memuat pesan surgawi...</p>
+            </div>
+            <div style="padding-bottom: 25px; text-align: center;">
+                <button class="btn-close-popup" onclick="tutupModal()">Tutup Pesan</button>
+            </div>
+        </div>
+    </div>
  
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script> <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
  
     <script>
         // CONFIG FIREBASE
@@ -302,6 +351,7 @@
         };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const database = firebase.database(); // Inisialisasi Realtime Database untuk script popup
  
         // 1. FUNGSI UPDATE WAKTU
         function updateWaktuDanRunningText() {
@@ -322,14 +372,47 @@
            document.getElementById('running-text').innerText = runningContent;
         }
 
-        // --- FUNGSI BUKA PESAN KEGIATAN ---
+        /* --- FUNGSI MODAL POPUP --- */
         function bukaPesanKegiatan() {
-            // Menghilangkan efek getar setelah dibuka
-            const container = document.querySelector('.notif-email-container');
-            if(container) container.classList.remove('shake-active');
+            const modal = document.getElementById('modalPengumuman');
+            const konten = document.getElementById('isiModal');
             
-            // Arahkan ke halaman informasi kegiatan
-            window.location.href = "informasi-kegiatan.html"; 
+            modal.style.display = 'flex';
+            const notifContainer = document.querySelector('.notif-email-container');
+            if(notifContainer) notifContainer.classList.remove('shake-active');
+
+            // Ambil data terbaru dari Firebase Realtime Database
+            database.ref('kegiatan').limitToLast(1).once('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    const key = Object.keys(data)[0];
+                    const info = data[key];
+                    
+                    konten.innerHTML = `
+                        <div class="info-item">
+                            <small style="color: var(--emas-lux); font-weight: bold;">KATEGORI</small>
+                            <div style="font-weight: bold; font-size: 1.1em;">${info.kategori}</div>
+                        </div>
+                        <div class="info-item">
+                            <small style="color: var(--emas-lux); font-weight: bold;">JUDUL</small>
+                            <div style="font-weight: bold;">${info.judul}</div>
+                        </div>
+                        <div class="info-item">
+                            <small style="color: var(--emas-lux); font-weight: bold;">LOKASI & DETAIL</small>
+                            <div style="font-size: 0.95em;">${info.lokasi || '-'}<br><i>${info.detail}</i></div>
+                        </div>
+                        <p style="font-size: 0.7em; color: #999; text-align: right; margin: 0;">
+                            <i class="fa-regular fa-clock"></i> ${info.timestamp || ''}
+                        </p>
+                    `;
+                } else {
+                    konten.innerHTML = "<p style='text-align:center;'>Belum ada pengumuman terbaru.</p>";
+                }
+            });
+        }
+
+        function tutupModal() {
+            document.getElementById('modalPengumuman').style.display = 'none';
         }
  
         // 2. FUNGSI TRACKING GPS
