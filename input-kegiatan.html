@@ -21,20 +21,20 @@
         h2 { color: var(--biru-tua); text-align: center; margin-bottom: 20px; }
         .form-group { margin-bottom: 15px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
-        input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-family: inherit; }
+        input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-family: inherit; font-size: 14px; }
         
         .btn-send { background: var(--merah-notif); color: white; border: none; padding: 15px; width: 100%; border-radius: 50px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s; }
         .btn-send:active { transform: scale(0.95); }
-        .btn-back { display: block; text-align: center; margin-top: 15px; color: var(--biru-tua); text-decoration: none; font-weight: bold; }
+        .btn-back { display: block; text-align: center; margin-top: 15px; color: var(--biru-tua); text-decoration: none; font-weight: bold; font-size: 14px; }
 
         .history-section { margin-top: 30px; border-top: 2px dashed #ddd; padding-top: 20px; }
         .info-card { background: #fff5f5; border-left: 5px solid var(--merah-notif); padding: 15px; border-radius: 10px; margin-bottom: 15px; position: relative; }
-        .info-card h4 { margin: 0; color: var(--merah-notif); padding-right: 50px; }
-        .info-card p { margin: 5px 0; font-size: 13px; }
+        .info-card h4 { margin: 0; color: var(--merah-notif); padding-right: 60px; font-size: 16px; }
+        .info-card p { margin: 5px 0; font-size: 13px; line-height: 1.4; }
         .timestamp { font-size: 11px; color: #999; font-style: italic; display: block; margin-top: 8px; }
         
         .card-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 12px; }
-        .action-btn { cursor: pointer; font-size: 14px; transition: 0.2s; }
+        .action-btn { cursor: pointer; font-size: 16px; transition: 0.2s; }
         .edit-btn { color: var(--biru-safir); }
         .delete-btn { color: #ccc; }
         .delete-btn:hover { color: var(--merah-notif); }
@@ -46,10 +46,10 @@
         }
         .notification-block {
             background: white; padding: 30px; border-radius: 20px; text-align: center;
-            max-width: 320px; border-top: 5px solid var(--emas-lux); animation: slideIn 0.3s ease;
+            max-width: 280px; border-top: 5px solid var(--emas-lux); animation: slideIn 0.3s ease;
         }
-        .notification-block i { font-size: 50px; color: var(--hijau-zamrud); margin-bottom: 15px; display: block; }
-        .notification-block p { font-weight: 800; color: var(--biru-tua); margin: 0; }
+        .notification-block i { font-size: 40px; color: var(--hijau-zamrud); margin-bottom: 15px; display: block; }
+        .notification-block p { font-weight: bold; color: var(--biru-tua); margin: 0; }
 
         @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
@@ -59,7 +59,7 @@
 <div id="notif-container" class="notification-overlay">
     <div class="notification-block">
         <i id="notif-icon" class="fa-solid fa-circle-check"></i>
-        <p id="notif-msg">Terimakasih Informasi Anda telah dikirim</p>
+        <p id="notif-msg">Informasi Berhasil Dikirim</p>
     </div>
 </div>
 
@@ -83,27 +83,27 @@
 
     <div class="form-group">
         <label>Lokasi (Opsional)</label>
-        <input type="text" id="lokasi" placeholder="Contoh: di gereja">
+        <input type="text" id="lokasi" placeholder="Contoh: di rumah Boby">
     </div>
 
     <div class="form-group">
         <label>Detail Informasi</label>
-        <textarea id="detail" rows="3" placeholder="Tuliskan detail pengumuman di sini..."></textarea>
+        <textarea id="detail" rows="4" placeholder="Tuliskan detail pengumuman di sini..."></textarea>
     </div>
 
     <button class="btn-send" id="btn-submit" onclick="prosesData()">
-        <i class="fa-solid fa-paper-plane"></i> <span id="btn-text">KIRIM & NOTIFIKASI</span>
+        <i class="fa-solid fa-paper-plane"></i> <span id="btn-text">KIRIM SEKARANG</span>
     </button>
     
     <button id="btn-cancel-edit" style="display:none; background:#666; margin-top:10px;" class="btn-send" onclick="resetForm()">
         BATAL EDIT
     </button>
 
-    <a href="menu.html" class="btn-back"><i class="fa-solid fa-circle-arrow-left"></i> Kembali ke Menu</a>
+    <a href="menu.html" class="btn-back"><i class="fa-solid fa-circle-arrow-left"></i> Kembali ke Menu Utama</a>
 
     <div class="history-section">
-        <h3>Riwayat Informasi</h3>
-        <div id="list-pengumuman"></div>
+        <h3><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Informasi</h3>
+        <div id="list-pengumuman">Memuat data...</div>
     </div>
 </div>
 
@@ -111,7 +111,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
 <script>
-    // Konfigurasi milik Boby
+    // Konfigurasi Firebase I Made Boby
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -123,18 +123,28 @@
         measurementId: "G-X14300RJL4"
     };
 
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    // Inisialisasi Firebase
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.firestore();
-
     let editID = null;
 
+    // Fungsi Kirim & Update Data
     async function prosesData() {
         const kategori = document.getElementById('kategori').value;
         const judul = document.getElementById('judul').value;
         const lokasi = document.getElementById('lokasi').value;
         const detail = document.getElementById('detail').value;
 
-        if(!judul || !detail) { alert("Harap isi Judul dan Detail!"); return; }
+        if(!judul || !detail) { 
+            alert("Judul dan Detail tidak boleh kosong!"); 
+            return; 
+        }
+
+        const btnSubmit = document.getElementById('btn-submit');
+        btnSubmit.disabled = true;
+        btnSubmit.style.opacity = "0.7";
 
         try {
             const dataObj = {
@@ -151,10 +161,16 @@
             } else {
                 dataObj.createdAt = firebase.firestore.FieldValue.serverTimestamp();
                 await db.collection("pengumuman_komsel").add(dataObj);
-                showCustomNotif("Informasi Anda telah dikirim", "fa-circle-check");
+                showCustomNotif("Informasi Berhasil Dikirim", "fa-circle-check");
             }
             resetForm();
-        } catch (e) { alert("Error: " + e.message); }
+        } catch (e) { 
+            console.error("Firebase Error: ", e);
+            alert("Gagal memproses data: " + e.message); 
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.style.opacity = "1";
+        }
     }
 
     function showCustomNotif(msg, icon) {
@@ -162,30 +178,42 @@
         document.getElementById('notif-icon').className = "fa-solid " + icon;
         const notif = document.getElementById('notif-container');
         notif.style.display = 'flex';
-        setTimeout(() => { notif.style.display = 'none'; }, 2500);
+        setTimeout(() => { notif.style.display = 'none'; }, 2000);
     }
 
+    // Fungsi Load Riwayat secara Real-time
     function loadHistory() {
         db.collection("pengumuman_komsel").orderBy("lastUpdate", "desc").limit(10).onSnapshot((querySnapshot) => {
             const listDiv = document.getElementById('list-pengumuman');
+            if (querySnapshot.empty) {
+                listDiv.innerHTML = "<p style='text-align:center; color:#999;'>Belum ada informasi.</p>";
+                return;
+            }
+            
             listDiv.innerHTML = "";
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                const waktu = data.lastUpdate ? data.lastUpdate.toDate().toLocaleString('id-ID') : 'Baru saja...';
+                const waktu = data.lastUpdate ? data.lastUpdate.toDate().toLocaleString('id-ID') : 'Memproses...';
                 
+                // Menangani karakter backtick agar tidak error di template literal
+                const safeDetail = data.detail.replace(/`/g, '\\`');
+
                 listDiv.innerHTML += `
                     <div class="info-card">
                         <div class="card-actions">
-                            <i class="fa-solid fa-pen-to-square action-btn edit-btn" onclick="isiDataEdit('${doc.id}', '${data.kategori}', '${data.judul}', '${data.lokasi}', \`${data.detail}\`)"></i>
+                            <i class="fa-solid fa-pen-to-square action-btn edit-btn" onclick="isiDataEdit('${doc.id}', '${data.kategori}', '${data.judul}', '${data.lokasi}', \`${safeDetail}\`)"></i>
                             <i class="fa-solid fa-trash action-btn delete-btn" onclick="hapusInfo('${doc.id}')"></i>
                         </div>
                         <h4>[${data.kategori}] ${data.judul}</h4>
-                        <p><strong>Lokasi:</strong> ${data.lokasi || '-'}</p>
+                        <p><strong><i class="fa-solid fa-location-dot"></i></strong> ${data.lokasi || '-'}</p>
                         <p>${data.detail}</p>
                         <span class="timestamp"><i class="fa-regular fa-clock"></i> ${waktu}</span>
                     </div>
                 `;
             });
+        }, (error) => {
+            console.error("Listen error:", error);
+            document.getElementById('list-pengumuman').innerHTML = "Gagal memuat riwayat.";
         });
     }
 
@@ -208,18 +236,21 @@
         document.getElementById('lokasi').value = "";
         document.getElementById('detail').value = "";
         document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-bullhorn"></i> Info Kegiatan Baru`;
-        document.getElementById('btn-text').innerText = "KIRIM & NOTIFIKASI";
+        document.getElementById('btn-text').innerText = "KIRIM SEKARANG";
         document.getElementById('btn-submit').style.background = "var(--merah-notif)";
         document.getElementById('btn-cancel-edit').style.display = "none";
     }
 
     async function hapusInfo(id) {
-        if(confirm("Hapus pengumuman ini?")) {
-            await db.collection("pengumuman_komsel").doc(id).delete();
-            showCustomNotif("Data telah dihapus", "fa-trash-can");
+        if(confirm("Apakah Anda yakin ingin menghapus pengumuman ini?")) {
+            try {
+                await db.collection("pengumuman_komsel").doc(id).delete();
+                showCustomNotif("Data telah dihapus", "fa-trash-can");
+            } catch (e) { alert("Gagal menghapus: " + e.message); }
         }
     }
 
+    // Jalankan fungsi saat halaman dibuka
     loadHistory();
 </script>
 </body>
