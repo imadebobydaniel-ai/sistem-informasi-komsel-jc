@@ -33,28 +33,21 @@
             padding: 12px 0; 
             overflow: hidden; 
             white-space: nowrap; 
-            position: relative;
-            height: 20px;
             display: flex; 
             align-items: center; 
             box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            height: 20px;
         }
-
         .running-content { 
             display: inline-block; 
-            position: absolute;
             padding-left: 100%; 
-            animation: marqueeTop 20s linear infinite; 
+            animation: marqueeTop 30s linear infinite; 
             font-weight: 900; 
             font-size: 13px; 
             color: white; 
             text-transform: uppercase; 
         }
-
-        @keyframes marqueeTop { 
-            0% { transform: translateX(0); } 
-            100% { transform: translateX(-100%); } 
-        }
+        @keyframes marqueeTop { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
         .container { padding: 20px; max-width: 450px; margin: auto; text-align: center; }
         .top-section-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto 30px auto; height: 220px; overflow: hidden; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); background: #000; }
@@ -67,43 +60,102 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             border-top: 4px solid var(--biru-safir); 
         }
-        .profile-card.closed { transform: translateX(-100%); }
+        .profile-card.closed { transform: translateX(-110%); }
+
+        .email-btn { position: absolute; top: 15px; right: 15px; cursor: pointer; z-index: 20; }
+        .email-icon { font-size: 22px; color: var(--biru-tua); transition: 0.3s; }
+        #email-badge {
+            position: absolute; top: -8px; right: -8px; background: red; color: white;
+            font-size: 10px; padding: 2px 6px; border-radius: 50%; font-weight: bold; display: none;
+        }
+        @keyframes shake {
+            0% { transform: rotate(0deg); } 10% { transform: rotate(-10deg); } 20% { transform: rotate(10deg); }
+            30% { transform: rotate(-10deg); } 40% { transform: rotate(10deg); } 50% { transform: rotate(0deg); }
+        }
+        .vibrate { animation: shake 0.5s infinite; color: var(--emas-lux) !important; }
+
+        .popup-inbox {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center;
+        }
+        .inbox-content {
+            background: white; width: 90%; max-width: 380px; border-radius: 20px; padding: 20px; max-height: 80vh; overflow-y: auto;
+            animation: fadeIn 0.3s;
+        }
+        .msg-item {
+            padding: 12px; border-bottom: 1px solid #eee; text-align: left; cursor: pointer; transition: 0.2s;
+        }
+        .msg-item:hover { background: #f1f1f1; }
+        .msg-item b { display: block; color: var(--biru-tua); font-size: 14px; }
+        .msg-item small { color: #888; font-size: 11px; }
 
         .btn-toggle-side { 
             position: absolute; left: 0; top: 50%; transform: translateY(-50%); 
             z-index: 10; background: #ff0000; color: white; border: none; 
             width: 30px; height: 60px; border-radius: 0 15px 15px 0; 
-            cursor: pointer; transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
+            cursor: pointer; transition: 0.3s;
         }
-
-        /* Styling Media Display */
-        .news-slider { width: 100%; height: 100%; background: #000; position: relative; z-index: 1; }
-        #text-info-display {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: none; flex-direction: column; justify-content: center; align-items: center;
-            color: white; padding: 20px; box-sizing: border-box;
-            background: linear-gradient(rgba(0,51,102,0.8), rgba(0,0,0,0.9));
-        }
+        .news-slider { width: 100%; height: 100%; background: var(--biru-tua); position: relative; z-index: 1; }
 
         .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         .menu-box { background: white; padding: 20px 10px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--biru-tua); font-weight: 800; font-size: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.05); transition: 0.3s; }
+        .menu-box:active { transform: scale(0.95); }
         .menu-box i { font-size: 28px; margin-bottom: 10px; background: linear-gradient(135deg, var(--biru-safir), var(--hijau-zamrud)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        .email-btn { position: absolute; top: 15px; right: 15px; cursor: pointer; z-index: 20; }
-        #email-badge { position: absolute; top: -8px; right: -8px; background: red; color: white; font-size: 10px; padding: 2px 6px; border-radius: 50%; display: none; }
-        .vibrate { animation: shake 0.5s infinite; color: var(--emas-lux) !important; }
-        @keyframes shake { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } }
+        .btn-logout { background: var(--biru-tua); color: #fff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block; margin-top: 30px; border: 2px solid var(--emas-lux); }
+        #admin-badge { display: none; background: red; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; margin-top: 5px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
+    <div id="modal-logout" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 4000; justify-content: center; align-items: center; padding: 20px;">
+        <div style="background: white; width: 100%; max-width: 320px; border-radius: 15px; text-align: center; padding: 20px;">
+            <i class="fa-solid fa-right-from-bracket" style="font-size: 40px; color: #dc3545; margin-bottom: 15px;"></i>
+            <h3 style="margin: 0;">Konfirmasi Keluar</h3>
+            <p style="font-size: 14px; color: #666; margin-bottom: 20px;">Apakah Anda yakin ingin keluar?</p>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="closeLogoutModal()" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd; background: white;">Batal</button>
+                <button onclick="executeLogout()" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: #dc3545; color: white; font-weight: bold;">Keluar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="popup-inbox" class="popup-inbox">
+        <div class="inbox-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--emas-lux); padding-bottom: 10px; margin-bottom: 15px;">
+                <h3 style="margin:0; color:var(--biru-tua);"><i class="fas fa-envelope-open"></i> Inbox JC</h3>
+                <i class="fas fa-times" onclick="tutupInbox()" style="cursor:pointer; font-size:20px; color:red;"></i>
+            </div>
+            <div id="list-pesan">
+                <p style="font-size:12px; color:#999;">Memuat pesan...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="announcementModal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6); align-items:center; justify-content:center;">
+        <div style="background:white; width:90%; max-width:400px; border-radius:15px; overflow:hidden; box-shadow:0 5px 15px rgba(0,0,0,0.3); animation: fadeIn 0.3s;">
+            <div style="background:#003366; color:white; padding:15px; text-align:center; position:relative;">
+                <h3 id="modalTitle" style="margin:0; font-size:1.1rem;">Judul Pesan</h3>
+                <span onclick="closeModal()" style="position:absolute; right:15px; top:12px; cursor:pointer; font-size:1.5rem;">&times;</span>
+            </div>
+            <div style="padding:20px; color:#333; line-height:1.5; max-height:300px; overflow-y:auto;">
+                <p id="modalBody">Memuat isi pesan...</p>
+            </div>
+            <div style="padding:15px; text-align:center; border-top:1px solid #eee;">
+                <button onclick="closeModal()" style="background:#003366; color:white; border:none; padding:10px 25px; border-radius:5px; cursor:pointer; width:100%;">Tutup</button>
+            </div>
+        </div>
+    </div>
+
     <div class="top-info-bar">
-        <div id="display-tanggal">Memuat...</div>
+        <div id="display-tanggal">Memuat Tanggal...</div>
         <div id="digital-clock">00:00:00 WIT</div>
     </div>
 
     <header>
-        <div id="running-text" class="running-content">Selamat Datang di Portal Komsel JC</div>
+        <div id="running-text" class="running-content">Memuat data sistem...</div>
     </header>
 
     <div class="container">
@@ -111,15 +163,17 @@
 
         <div class="top-section-container">
             <div id="profileCard" class="profile-card">
-                <div class="email-btn" onclick="location.href='inbox.html'">
-                    <i class="fas fa-envelope" id="icon-mail" style="font-size: 22px; color: var(--biru-tua);"></i>
+                <div class="email-btn" onclick="bukaInbox()">
+                    <i class="fas fa-envelope email-icon" id="icon-mail"></i>
                     <span id="email-badge">0</span>
                 </div>
+
                 <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 3px solid var(--emas-lux); background: white; display: flex; align-items: center; justify-content: center;">
                     <i class="fa-solid fa-circle-user" id="default-icon" style="font-size: 70px; color: var(--biru-safir);"></i>
-                    <img id="user-photo" style="display: none; width:100%; height:100%; object-fit:cover;">
+                    <img id="user-photo" src="" style="display: none; width:100%; height:100%; object-fit:cover;">
                 </div>
                 <h2 id="disp_nama" style="margin: 5px 0 0 0; font-size: 18px;">Memuat...</h2>
+                <div id="admin-badge">ADMIN ACCESS</div>
                 <div id="disp_email" style="font-size: 11px; color: #666;">...</div>
                 <p id="disp_komsel" style="color: var(--hijau-zamrud); font-weight: bold; font-size: 12px;">KOMSEL JC</p>
             </div>
@@ -128,13 +182,9 @@
                 <i class="fa-solid fa-chevron-left" id="toggleIcon"></i>
             </button>
 
-            <div class="news-slider">
+            <div id="media-display-area" class="news-slider">
                 <div id="youtube-player-container" style="width: 100%; height: 100%;">
                     <div id="player"></div> 
-                </div>
-                <div id="text-info-display">
-                    <h4 id="text-title" style="margin:0; color:var(--emas-lux);">INFO TERKINI</h4>
-                    <p id="text-body" style="font-size:13px; margin-top:10px;">Memuat informasi...</p>
                 </div>
             </div>
         </div>
@@ -146,14 +196,17 @@
             <a href="statistik.html" class="menu-box"><i class="fa-solid fa-chart-pie"></i>Statistik</a>
             <a href="leaderboard.html" class="menu-box"><i class="fa-solid fa-crown"></i>Peringkat JC</a>
             <a href="laporan-komsel.html" class="menu-box"><i class="fa-solid fa-file-signature"></i>Laporan Komsel</a>
+            <a href="lacak-domba.html" class="menu-box"><i class="fa-solid fa-map-location-dot"></i>Lacak Domba</a>
+            <a href="capaian-doa.html" class="menu-box"><i class="fa-solid fa-hands-praying"></i>Capaian Doa</a>
+            <a href="javascript:location.reload()" class="menu-box" style="color: #28a745;"><i class="fa-solid fa-arrows-rotate"></i>Refresh</a>
+            <a href="saran.html" class="menu-box"><i class="fa-solid fa-comment-dots"></i>Saran</a>
         </div>
 
-        <a href="#" onclick="logout()" class="btn-logout" style="margin-top:20px; display:inline-block; color:red; text-decoration:none; font-weight:bold;"><i class="fa-solid fa-power-off"></i> Keluar</a>
+        <a href="javascript:void(0)" onclick="confirmLogout()" class="btn-logout"><i class="fa-solid fa-power-off"></i> Keluar</a>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
         const firebaseConfig = { 
@@ -167,95 +220,128 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        let player;
-        
-        // Callback saat YouTube IFrame API siap
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('player', {
-                height: '100%',
-                width: '100%',
-                videoId: '', // Akan diisi dari Firebase
-                playerVars: { 'autoplay': 1, 'mute': 1, 'loop': 1, 'playlist': '' },
-                events: { 'onReady': onPlayerReady }
+        // Ambil Running Text dari Firebase
+        function syncRunningText() {
+            db.collection("settings").doc("running_text").onSnapshot(doc => {
+                if(doc.exists) document.getElementById('running-text').innerText = doc.data().text;
             });
         }
 
-        function onPlayerReady(event) {
-            loadMainMedia();
-        }
+        // Monitoring Inbox
+        function monitorEmailInbox(userJC, userEmail) {
+            db.collection("pengumuman_komsel")
+              .orderBy("timestamp", "desc")
+              .onSnapshot(snapshot => {
+                let unreadCount = 0;
+                const listDiv = document.getElementById('list-pesan');
+                if(!listDiv) return;
+                listDiv.innerHTML = "";
 
-        // Fungsi Mengambil Media dari Firebase
-        function loadMainMedia() {
-            db.collection("media_utama").doc("config").onSnapshot(doc => {
-                const textDisplay = document.getElementById('text-info-display');
-                const ytDisplay = document.getElementById('youtube-player-container');
-
-                if (doc.exists) {
+                snapshot.forEach(doc => {
                     const data = doc.data();
-                    
-                    if (data.tipe === "video") {
-                        textDisplay.style.display = "none";
-                        ytDisplay.style.display = "block";
-                        const videoId = extractVideoID(data.url);
-                        if (player && player.loadVideoById) {
-                            player.loadVideoById({ videoId: videoId });
-                        }
-                    } else {
-                        // Tampilkan Informasi Berbasis Teks
-                        ytDisplay.style.display = "none";
-                        textDisplay.style.display = "flex";
-                        document.getElementById('text-title').innerText = data.judul || "INFO";
-                        document.getElementById('text-body').innerText = data.isi || "";
+                    const target = data.target || data.target_jc; 
+                    if (target === "Semua JC" || target === userJC || (Array.isArray(target) && target.includes(userJC))) {
+                        const sudahDibaca = data.sudahDibaca || [];
+                        const isUnread = !sudahDibaca.includes(userEmail);
+                        if (isUnread) unreadCount++;
+                        
+                        const itemStyle = isUnread ? "background:#fff9e6; border-left:4px solid var(--emas-lux); font-weight:bold;" : "background:#fff; border-left:4px solid #eee;";
+
+                        listDiv.innerHTML += `
+                            <div class="msg-item" onclick="bacaDetailPesan('${doc.id}', '${userEmail}')" style="${itemStyle}">
+                                <b>${data.judul} ${isUnread ? '<span style="color:red; font-size:9px;">(BARU)</span>' : ''}</b>
+                                <small>${data.timestamp ? data.timestamp.toDate().toLocaleDateString('id-ID') : '-'} • ${isUnread ? 'Belum Dibaca' : 'Sudah Dibaca'}</small>
+                            </div>`;
                     }
+                });
+
+                const icon = document.getElementById('icon-mail');
+                const badge = document.getElementById('email-badge');
+                if (unreadCount > 0) {
+                    icon.classList.add('vibrate');
+                    badge.style.display = 'block'; badge.innerText = unreadCount;
+                } else {
+                    icon.classList.remove('vibrate');
+                    badge.style.display = 'none';
                 }
             });
         }
 
-        function extractVideoID(url) {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : null;
+        async function bacaDetailPesan(docId, userEmail) {
+            await db.collection("pengumuman_komsel").doc(docId).update({
+                sudahDibaca: firebase.firestore.FieldValue.arrayUnion(userEmail)
+            });
+            tutupInbox();
+            openAnnouncement(docId);
         }
 
-        // Sinkronisasi Data User
+        function openAnnouncement(id) {
+            const modal = document.getElementById('announcementModal');
+            modal.style.display = 'flex';
+            db.collection("pengumuman_komsel").doc(id).get().then((doc) => {
+                if (doc.exists) {
+                    document.getElementById('modalTitle').innerText = doc.data().judul;
+                    document.getElementById('modalBody').innerHTML = doc.data().isi || doc.data().pesan;
+                }
+            });
+        }
+
+        function bukaInbox() { document.getElementById('popup-inbox').style.display = 'flex'; }
+        function tutupInbox() { document.getElementById('popup-inbox').style.display = 'none'; }
+        function closeModal() { document.getElementById('announcementModal').style.display = 'none'; }
+
         function syncUser() {
             const email = localStorage.getItem("userEmail");
-            if (email) {
+            const isAdmin = localStorage.getItem("adminLoggedIn");
+            const imgElement = document.getElementById('user-photo');
+            const iconElement = document.getElementById('default-icon');
+
+            if (isAdmin === "true") {
+                document.getElementById('disp_nama').innerText = "Administrator";
+                document.getElementById('disp_email').innerText = "System Access Active";
+                document.getElementById('admin-badge').style.display = "inline-block";
+                document.getElementById('disp_komsel').innerText = "ALL KOMSEL";
+                monitorEmailInbox("Semua JC", "admin@system.com");
+            } else if (email) {
+                document.getElementById('disp_email').innerText = email;
                 db.collection("users").where("email", "==", email).onSnapshot(s => {
                     if (!s.empty) {
                         const d = s.docs[0].data();
                         document.getElementById('disp_nama').innerText = d.nama || "User";
-                        document.getElementById('disp_email').innerText = email;
-                        if (d.fotoUrl) {
-                            document.getElementById('user-photo').src = d.fotoUrl;
-                            document.getElementById('user-photo').style.display = "block";
-                            document.getElementById('default-icon').style.display = "none";
+                        document.getElementById('disp_komsel').innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
+                        monitorEmailInbox(String(d.komsel), email);
+                        if (d.fotoUrl) { 
+                            imgElement.src = d.fotoUrl; 
+                            imgElement.style.display = "block";
+                            iconElement.style.display = "none";
                         }
                     }
                 });
             }
         }
 
-        // Toggle Profil
-        document.getElementById('toggleProfile').addEventListener('click', () => {
-            const card = document.getElementById('profileCard');
-            card.classList.toggle('closed');
-            document.getElementById('toggleIcon').className = card.classList.contains('closed') ? "fa-solid fa-chevron-right" : "fa-solid fa-chevron-left";
-        });
-
-        // Jam & Tanggal
         function updateTime() {
             const now = new Date();
-            document.getElementById('display-tanggal').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
-            document.getElementById('digital-clock').innerText = now.toLocaleTimeString('id-ID') + " WIT";
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('display-tanggal').innerText = now.toLocaleDateString('id-ID', options);
+            document.getElementById('digital-clock').innerText = now.toLocaleTimeString('id-ID', { hour12: false }) + " WIT";
         }
 
-        window.onload = () => {
-            syncUser();
-            setInterval(updateTime, 1000);
-        };
+        function confirmLogout() { document.getElementById('modal-logout').style.display = 'flex'; }
+        function closeLogoutModal() { document.getElementById('modal-logout').style.display = 'none'; }
+        function executeLogout() { localStorage.clear(); window.location.href = "login.html"; }
 
-        function logout() { localStorage.clear(); window.location.href="login.html"; }
+        window.onload = () => { 
+            updateTime(); setInterval(updateTime, 1000); 
+            syncUser(); syncRunningText();
+            const btnToggle = document.getElementById('toggleProfile');
+            const profileCard = document.getElementById('profileCard');
+            const toggleIcon = document.getElementById('toggleIcon');
+            btnToggle.addEventListener('click', () => {
+                profileCard.classList.toggle('closed');
+                toggleIcon.className = profileCard.classList.contains('closed') ? "fa-solid fa-chevron-right" : "fa-solid fa-chevron-left";
+            });
+        };
     </script>
 </body>
 </html>
