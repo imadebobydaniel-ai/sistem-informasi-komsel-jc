@@ -56,7 +56,6 @@
             width: 30px; height: 60px; border-radius: 0 15px 15px 0; 
             cursor: pointer; transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
         }
-        /* Tombol tetap di kiri saat kartu tertutup */
         .profile-card.closed ~ .btn-toggle-side { left: 0; }
 
         .news-slider { width: 100%; height: 100%; background: var(--biru-tua); position: relative; z-index: 1; }
@@ -158,7 +157,7 @@
         const db = firebase.firestore();
         let ytPlayer; 
 
-        // Fungsi Sync User
+        // 1. Fungsi Sinkronisasi User
         function syncUser() {
             const email = localStorage.getItem("userEmail");
             const isAdmin = localStorage.getItem("adminLoggedIn");
@@ -185,36 +184,56 @@
             }
         }
 
-        // Fungsi Load Media Berita
-        async function loadMedia() {
-            try {
-                const snapshot = await db.collection("portal_media").orderBy("timestamp", "desc").limit(1).get();
-                if (snapshot.empty) {
-                    document.getElementById('running-text').innerText = "Selamat Datang di Portal JC Papua";
-                    return;
-                }
-                const data = snapshot.docs[0].data();
-                document.getElementById('newsTitle').innerText = data.judul || "";
-                document.getElementById('newsLabel').innerText = "BERITA TERKINI";
-                document.getElementById('running-text').innerText = data.judul || "Aplikasi Siap Digunakan";
-                updateMainPlayer(data);
-            } catch (e) { console.error(e); }
-        }
-
+        // 2. Fungsi Utama Pemutar Media (Versi Rapih)
         function updateMainPlayer(data) {
             const container = document.getElementById('youtube-player-container'); 
             const muteBtn = document.getElementById('muteBtn');
             const tipe = data.tipe ? data.tipe.toLowerCase() : "";
 
+            muteBtn.style.display = 'none';
+            container.innerHTML = "";
+
             if (tipe.includes('video')) {
                 container.innerHTML = `<div id="player"></div>`;
                 initYouTube(extractVideoID(data.url));
                 muteBtn.style.display = 'block';
+            } else if (tipe.includes('audio')) {
+                container.innerHTML = `
+                    <div style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg, #003366, #0056b3); color:white; border-radius:20px; padding:20px;">
+                        <i class="fa-solid fa-music" style="font-size:50px; margin-bottom:15px; color:var(--emas-lux);"></i>
+                        <audio controls style="width:100%;">
+                            <source src="${data.url}" type="audio/mpeg">
+                        </audio>
+                        <p style="margin-top:10px; font-size:12px;">Konten Audio Pondok Pemulihan</p>
+                    </div>`;
+            } else if (tipe.includes('teks') || tipe.includes('artikel')) {
+                const isi = data.isi_artikel || data.deskripsi || "Tidak ada detail teks.";
+                container.innerHTML = `
+                    <div style="width:100%; height:100%; background:white; color:#333; padding:15px; overflow-y:auto; border-radius:20px; text-align:left; font-size:13px; line-height:1.5; border:1px solid #ddd;">
+                        ${isi}
+                    </div>`;
             } else {
-                container.innerHTML = `<img src="${data.url}" style="width:100%;height:100%;object-fit:cover;border-radius:20px;">`;
+                container.innerHTML = `<img src="${data.url}" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">`;
             }
         }
 
+        // 3. Fungsi Ambil Data dari Firestore
+        async function loadMedia() {
+            try {
+                const snapshot = await db.collection("portal_media").orderBy("timestamp", "desc").limit(1).get();
+                if (snapshot.empty) {
+                    document.getElementById('running-text').innerText = "Selamat Datang di Portal JC";
+                    return;
+                }
+                const data = snapshot.docs[0].data();
+                document.getElementById('newsTitle').innerText = data.judul || "";
+                document.getElementById('newsLabel').innerText = "BERITA TERKINI";
+                document.getElementById('running-text').innerText = data.judul || "";
+                updateMainPlayer(data);
+            } catch (e) { console.error("Error loading media:", e); }
+        }
+
+        // 4. Utility Functions (YouTube & Time)
         function extractVideoID(url) {
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
             const match = url.match(regExp);
@@ -256,25 +275,21 @@
         function closeLogoutModal() { document.getElementById('modal-logout').style.display = 'none'; }
         function executeLogout() { localStorage.clear(); window.location.href = "login.html"; }
 
-        // Window Load
+        // 5. Window Load Initialization
         window.onload = () => { 
             updateTime(); 
             setInterval(updateTime, 1000); 
             syncUser(); 
             loadMedia(); 
 
-            // Fitur Toggle Kartu Profil
+            // Logic Toggle Kartu Profil
             const btnToggle = document.getElementById('toggleProfile');
             const profileCard = document.getElementById('profileCard');
             const toggleIcon = document.getElementById('toggleIcon');
 
             btnToggle.addEventListener('click', () => {
                 profileCard.classList.toggle('closed');
-                if (profileCard.classList.contains('closed')) {
-                    toggleIcon.className = "fa-solid fa-chevron-right";
-                } else {
-                    toggleIcon.className = "fa-solid fa-chevron-left";
-                }
+                toggleIcon.className = profileCard.classList.contains('closed') ? "fa-solid fa-chevron-right" : "fa-solid fa-chevron-left";
             });
         };
     </script>
