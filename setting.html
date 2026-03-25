@@ -106,7 +106,13 @@
         </button>
     </div>
 
-    <a href="menu.html" style="display: block; text-align: center; margin-top: 25px; text-decoration: none; color: var(--biru-utama); font-weight: bold;">← Kembali ke Menu</a>
+    <div style="margin-top: 25px;">
+        <a href="profil.html" class="btn-back" style="text-decoration: none;">
+            <button style="width: 100%; padding: 10px; background: white; border: 2px solid red; color: red; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                ← Kembali ke Profil
+            </button>
+        </a>
+    </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -131,7 +137,6 @@
         document.getElementById("timerLogout").value = localStorage.getItem("setTimer") || "0";
     };
 
-    // --- FUNGSI TAMPILAN NOTIFIKASI KUSTOM ---
     function jalankanNotif(icon, warna, judul, sub, modeConfirm = false) {
         document.getElementById("notif-icon").className = "fa-solid " + icon;
         document.getElementById("notif-icon").style.color = warna;
@@ -150,15 +155,12 @@
         document.getElementById("notif-block").style.display = "none";
     }
 
-    // --- 1. SIMPAN PREFERENSI ---
     function updatePreferensi() {
         localStorage.setItem("setSuara", document.getElementById("notifSound").checked);
         localStorage.setItem("setTimer", document.getElementById("timerLogout").value);
-        
         jalankanNotif("fa-sliders", "#2ecc71", "Preferensi Disimpan", "Pengaturan suara & waktu logout berhasil diperbarui.");
     }
 
-    // --- 2. UPDATE AKUN (EMAIL & PASSWORD) ---
     async function updateAkun() {
         const nEmail = document.getElementById("newEmail").value;
         const nPass = document.getElementById("newPassword").value;
@@ -177,7 +179,6 @@
         } catch (e) { jalankanNotif("fa-circle-xmark", "#dc3545", "Gagal", e.message); }
     }
 
-    // --- 3. PROSES HAPUS AKUN ---
     function konfirmasiHapus() {
         jalankanNotif("fa-triangle-exclamation", "#dc3545", "Hapus Akun?", "Apakah anda yakin akan menghapus akun secara permanen?", true);
     }
