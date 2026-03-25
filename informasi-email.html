@@ -3,104 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Informasi Email - Admin</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Detail Informasi Email - Komsel JC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
     <style>
-        :root { --primary: #003366; --gold: #D4AF37; --light: #f4f7f6; --danger: #dc3545; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--light); padding: 20px; color: #333; }
-        .container { max-width: 1000px; margin: auto; }
-        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 5px solid var(--primary); }
-        
-        h2 { color: var(--primary); margin-top: 0; font-size: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
-        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        
-        .jc-selector { display: flex; gap: 12px; flex-wrap: wrap; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
-        .jc-option { display: flex; align-items: center; gap: 5px; cursor: pointer; font-size: 13px; }
-
-        .btn-send { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        .btn-send:hover { background: #002244; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-
-        /* Table Log Style */
-        .table-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; font-size: 13px; }
-        table th { background: #f1f1f1; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; }
-        table td { padding: 10px; border-bottom: 1px solid #eee; }
-        
-        .badge-file { background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-size: 11px; color: #666; }
-        .btn-action { padding: 5px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-right: 5px; }
-        .btn-edit { background: var(--gold); color: white; }
-        .btn-delete { background: var(--danger); color: white; }
+        :root { 
+            --primary: #003366; 
+            --bg: #f4f7f6; 
+        }
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background: var(--bg); 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+        }
+        .container { 
+            width: 90%; 
+            max-width: 500px; 
+            background: white; 
+            padding: 25px; 
+            border-radius: 15px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+            border-top: 6px solid var(--primary); 
+        }
+        h1 { 
+            color: var(--primary); 
+            font-size: 20px; 
+            margin-bottom: 5px; 
+        }
+        .date { 
+            font-size: 12px; 
+            color: #888; 
+            margin-bottom: 20px; 
+        }
+        .content { 
+            line-height: 1.6; 
+            color: #444; 
+            font-size: 15px; 
+            white-space: pre-wrap; 
+        }
+        .attachment { 
+            margin-top: 20px; 
+            padding: 10px; 
+            background: #eef2f7; 
+            border-radius: 8px; 
+            font-size: 13px; 
+        }
+        .attachment a { 
+            color: var(--primary); 
+            font-weight: bold; 
+            text-decoration: none; 
+        }
+        .btn-back { 
+            display: block; 
+            text-align: center; 
+            margin-top: 30px; 
+            padding: 12px; 
+            background: var(--primary); 
+            color: white; 
+            border-radius: 8px; 
+            text-decoration: none; 
+            font-weight: bold; 
+            transition: 0.3s;
+        }
+        .btn-back:hover {
+            background: #002244;
+        }
+        .loading { 
+            text-align: center; 
+            color: #666; 
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="card">
-        <h2><i class="fas fa-envelope-open-text"></i> Portal Informasi Email (Broadcast)</h2>
+<div class="container" id="main-container">
+    <div id="loader" class="loading">Menghubungkan ke sistem informasi-email...</div>
+    
+    <div id="display-area" style="display:none;">
+        <h1 id="view-judul"></h1>
+        <div class="date" id="view-tanggal"></div>
+        <div class="content" id="view-isi"></div>
         
-        <input type="hidden" id="editDocId">
-
-        <div class="form-group">
-            <label>Judul Informasi</label>
-            <input type="text" id="infoJudul" placeholder="Contoh: Pengumuman Ibadah Minggu">
+        <div id="view-file" class="attachment" style="display:none;">
+            📎 Lampiran: <a id="file-link" target="_blank">Lihat File Lampiran</a>
         </div>
-
-        <div class="form-group">
-            <label>Target JC (Tujuan)</label>
-            <div class="jc-selector">
-                <label class="jc-option"><input type="checkbox" id="checkAllJC" onclick="toggleAllJC(this)"> <b>Pilih Semua</b></label>
-                <label class="jc-option"><input type="checkbox" class="jc-checkbox" value="1"> JC 1</label>
-                <label class="jc-option"><input type="checkbox" class="jc-checkbox" value="2"> JC 2</label>
-                <label class="jc-option"><input type="checkbox" class="jc-checkbox" value="3"> JC 3</label>
-                <label class="jc-option"><input type="checkbox" class="jc-checkbox" value="4"> JC 4</label>
-                <label class="jc-option"><input type="checkbox" class="jc-checkbox" value="5"> JC 5</label>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>Lampiran File (JPG, PNG, PDF)</label>
-            <input type="file" id="infoFile" accept=".jpg,.png,.pdf">
-            <small style="color: #888;">*Kosongkan jika hanya ingin mengirim teks.</small>
-        </div>
-
-        <div class="form-group">
-            <label>Isi Pesan</label>
-            <textarea id="infoPesan" rows="4" placeholder="Tuliskan detail informasi..."></textarea>
-        </div>
-
-        <button class="btn-send" id="btnSubmit" onclick="prosesData()"><i class="fas fa-paper-plane"></i> Publikasikan Informasi</button>
-        <button class="btn-send" id="btnCancelEdit" style="display:none; background:#666;" onclick="resetForm()">Batal Edit</button>
-    </div>
-
-    <div class="card">
-        <h2><i class="fas fa-history"></i> Log Informasi Terkirim</h2>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" id="mainCheckAll" onclick="selectAllLog(this)"></th>
-                        <th>Tanggal</th>
-                        <th>Judul</th>
-                        <th>Target</th>
-                        <th>File</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="logTableBody"></tbody>
-            </table>
-        </div>
+        
+        <a href="menu.html" class="btn-back">Tutup Informasi</a>
     </div>
 </div>
 
 <script>
-    // Konfigurasi Firebase
+    // Konfigurasi Firebase (Sesuai dengan project Boby Apps)
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -110,119 +110,62 @@
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
 
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    // Inisialisasi Firebase
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.firestore();
-    const storage = firebase.storage();
 
-    function toggleAllJC(source) {
-        document.querySelectorAll('.jc-checkbox').forEach(cb => cb.checked = source.checked);
-    }
+    async function loadInformasiEmail() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('id');
 
-    function selectAllLog(source) {
-        document.querySelectorAll('.log-checkbox').forEach(cb => cb.checked = source.checked);
-    }
-
-    // Fungsi Utama: Simpan atau Update
-    async function prosesData() {
-        const judul = document.getElementById('infoJudul').value;
-        const pesan = document.getElementById('infoPesan').value;
-        const targetJC = Array.from(document.querySelectorAll('.jc-checkbox:checked')).map(cb => cb.value);
-        const fileInput = document.getElementById('infoFile');
-        const editId = document.getElementById('editDocId').value;
-
-        if (!judul || !pesan || targetJC.length === 0) {
-            alert("Harap lengkapi Judul, Pesan, dan Target!");
+        if (!id) {
+            document.getElementById('loader').innerText = "Error: ID Informasi tidak ditemukan.";
             return;
         }
 
-        document.getElementById('btnSubmit').innerText = "Sedang Memproses...";
-        document.getElementById('btnSubmit').disabled = true;
-
-        let fileUrl = "";
-        let fileName = "";
-
-        // Logika Upload File jika ada
-        if (fileInput.files[0]) {
-            const file = fileInput.files[0];
-            const storageRef = storage.ref(`informasi_files/${Date.now()}_${file.name}`);
-            await storageRef.put(file);
-            fileUrl = await storageRef.getDownloadURL();
-            fileName = file.name;
-        }
-
-        const payload = {
-            judul: judul,
-            detail: pesan,
-            target_jc: targetJC,
-            fileUrl: fileUrl,
-            fileName: fileName,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            sudahDibaca: [] 
-        };
-
         try {
-            if (editId) {
-                // Update Data
-                await db.collection("pengumuman_komsel").doc(editId).update(payload);
-                alert("Informasi Berhasil Diupdate!");
-            } else {
-                // Simpan Baru
-                await db.collection("pengumuman_komsel").add(payload);
-                alert("Informasi Berhasil Terkirim!");
-            }
-            resetForm();
-        } catch (e) { console.error(e); alert("Terjadi kesalahan."); }
-    }
-
-    // Load Data ke Tabel
-    db.collection("pengumuman_komsel").orderBy("timestamp", "desc").onSnapshot(snapshot => {
-        const tbody = document.getElementById('logTableBody');
-        tbody.innerHTML = "";
-        snapshot.forEach(doc => {
-            const d = doc.data();
-            const date = d.timestamp ? d.timestamp.toDate().toLocaleDateString('id-ID') : '-';
-            const fileTag = d.fileUrl ? `<span class="badge-file"><i class="fas fa-file"></i> Ada</span>` : '-';
+            // Mengambil data dari koleksi pengumuman_komsel sesuai database Anda
+            const doc = await db.collection("pengumuman_komsel").doc(id).get();
             
-            tbody.innerHTML += `
-                <tr>
-                    <td><input type="checkbox" class="log-checkbox"></td>
-                    <td>${date}</td>
-                    <td><b>${d.judul}</b></td>
-                    <td>JC ${d.target_jc.join(', ')}</td>
-                    <td>${fileTag}</td>
-                    <td>
-                        <button class="btn-action btn-edit" onclick="prepareEdit('${doc.id}', '${d.judul}', '${d.detail}')"><i class="fas fa-edit"></i></button>
-                        <button class="btn-action btn-delete" onclick="hapusInfo('${doc.id}')"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>`;
-        });
-    });
+            if (doc.exists) {
+                const data = doc.data();
+                
+                // Isi data ke elemen HTML
+                document.getElementById('view-judul').innerText = data.judul;
+                document.getElementById('view-tanggal').innerText = data.timestamp ? 
+                    data.timestamp.toDate().toLocaleString('id-ID', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }) : '-';
+                document.getElementById('view-isi').innerText = data.detail;
+                
+                // Cek jika ada lampiran file
+                if (data.fileUrl) {
+                    document.getElementById('view-file').style.display = 'block';
+                    document.getElementById('file-link').href = data.fileUrl;
+                }
 
-    function prepareEdit(id, judul, detail) {
-        document.getElementById('editDocId').value = id;
-        document.getElementById('infoJudul').value = judul;
-        document.getElementById('infoPesan').value = detail;
-        document.getElementById('btnSubmit').innerHTML = "<i class='fas fa-save'></i> Simpan Perubahan";
-        document.getElementById('btnSubmit').disabled = false;
-        document.getElementById('btnCancelEdit').style.display = "block";
-        window.scrollTo(0,0);
-    }
-
-    function resetForm() {
-        document.getElementById('editDocId').value = "";
-        document.getElementById('infoJudul').value = "";
-        document.getElementById('infoPesan').value = "";
-        document.getElementById('infoFile').value = "";
-        document.getElementById('btnSubmit').innerHTML = "<i class='fas fa-paper-plane'></i> Publikasikan Informasi";
-        document.getElementById('btnSubmit').disabled = false;
-        document.getElementById('btnCancelEdit').style.display = "none";
-    }
-
-    async function hapusInfo(id) {
-        if (confirm("Hapus informasi ini dari sistem?")) {
-            await db.collection("pengumuman_komsel").doc(id).delete();
+                // Sembunyikan loader dan tampilkan konten
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('display-area').style.display = 'block';
+            } else {
+                document.getElementById('loader').innerText = "Informasi tidak ditemukan di database.";
+            }
+        } catch (error) {
+            console.error("Kesalahan Firebase:", error);
+            document.getElementById('loader').innerText = "Gagal memuat informasi-email.html";
         }
     }
+
+    // Jalankan fungsi saat halaman terbuka
+    window.onload = loadInformasiEmail;
 </script>
+
 </body>
 </html>
