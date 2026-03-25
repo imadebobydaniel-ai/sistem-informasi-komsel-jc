@@ -11,52 +11,28 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
     <style>
-        :root { 
-            --primary: #007bff; 
-            --dark: #333; 
-            --light: #f4f7f6; 
-            --success: #28a745;
-        }
+        :root { --primary: #007bff; --dark: #333; --light: #f4f7f6; --success: #28a745; --danger: #dc3545; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--light); padding: 20px; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: var(--dark); }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2, h3 { text-align: center; color: var(--dark); }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
         input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        textarea { height: 100px; }
         
-        /* Style untuk Media Upload */
-        .media-upload-area { background: #f9f9f9; padding: 15px; border: 2px dashed #ccc; border-radius: 10px; text-align: center; }
-        .file-info { font-size: 12px; color: #666; margin-top: 5px; }
+        .progress-container { display: none; width: 100%; background: #e0e0e0; border-radius: 8px; margin: 15px 0; overflow: hidden; }
+        .progress-bar { width: 0%; height: 12px; background: var(--success); transition: width 0.3s; }
+        .progress-text { font-size: 12px; text-align: center; margin-top: 5px; font-weight: bold; }
 
-        /* Style Progress Bar */
-        .progress-container {
-            display: none;
-            width: 100%;
-            background-color: #e0e0e0;
-            border-radius: 8px;
-            margin: 15px 0;
-            overflow: hidden;
-        }
-        .progress-bar {
-            width: 0%;
-            height: 12px;
-            background-color: var(--success);
-            transition: width 0.3s;
-        }
-        .progress-text {
-            font-size: 12px;
-            text-align: center;
-            margin-top: 5px;
-            color: #555;
-            font-weight: bold;
-        }
-
-        .btn-send { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        .btn-send:disabled { background: #ccc; cursor: not-allowed; }
-        .btn-outline-primary { border: 2px solid var(--primary); color: var(--primary); padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; background: none; transition: 0.3s; }
-        .btn-active { background: var(--primary) !important; color: white !important; }
-        .d-flex { display: flex; gap: 10px; }
+        .btn-send { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        /* Log Table Style */
+        .log-section { margin-top: 40px; border-top: 2px solid #eee; pt: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background: #f8f9fa; }
+        .btn-edit { color: var(--primary); cursor: pointer; margin-right: 10px; border: none; background: none; }
+        .btn-delete { color: var(--danger); cursor: pointer; border: none; background: none; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; color: white; }
     </style>
 </head>
 <body>
@@ -64,9 +40,10 @@
 <div class="container">
     <h2><i class="fas fa-bullhorn"></i> Kirim Informasi Kegiatan</h2>
     
+    <input type="hidden" id="editId">
     <div class="form-group">
         <label>Judul Pengumuman</label>
-        <input type="text" id="judul" placeholder="Contoh: Jadwal Ibadah Raya">
+        <input type="text" id="judul" placeholder="Judul...">
     </div>
 
     <div class="form-group">
@@ -75,17 +52,13 @@
             <option value="Penting">Penting</option>
             <option value="Kegiatan">Kegiatan</option>
             <option value="Umum">Umum</option>
-            <option value="Mendesak">Mendesak</option>
         </select>
     </div>
 
     <div class="form-group">
-        <label>Target Pengiriman</label>
-        <div class="d-flex mb-2">
-            <button type="button" id="btnAllJC" class="btn-outline-primary">Ke Semua JC (JC1-JC5)</button>
-        </div>
+        <label>Target</label>
         <select id="targetJC">
-            <option value="" selected disabled>-- Pilih Parsial (JC1-JC5) --</option>
+            <option value="Semua JC">Semua JC</option>
             <option value="JC1">JC 1</option>
             <option value="JC2">JC 2</option>
             <option value="JC3">JC 3</option>
@@ -95,44 +68,40 @@
     </div>
 
     <div class="form-group">
-        <label>Tipe Media</label>
-        <select id="tipeMedia" onchange="toggleUploadInput()">
-            <option value="text">Hanya Pesan Teks</option>
-            <option value="image">Gambar (PNG/JPG)</option>
-            <option value="pdf">Dokumen PDF</option>
-            <option value="audio">Audio</option>
-            <option value="video">Video</option>
-        </select>
-    </div>
-
-    <div id="uploadSection" class="form-group" style="display: none;">
-        <div class="media-upload-area">
-            <label id="labelUpload">Pilih File</label>
-            <input type="file" id="fileMedia" accept="">
-            <div class="file-info" id="fileLimitInfo">Batas ukuran file: 20MB</div>
-        </div>
-    </div>
-
-    <div class="form-group">
-        <label>Isi Detail Informasi</label>
-        <textarea id="detail" placeholder="Tuliskan detail informasi di sini..."></textarea>
+        <label>Isi Detail</label>
+        <textarea id="detail"></textarea>
     </div>
 
     <div id="progressArea" class="progress-container">
         <div id="progressBar" class="progress-bar"></div>
-        <div id="progressText" class="progress-text">Mengunggah: 0%</div>
+        <div id="progressText" class="progress-text">0%</div>
     </div>
 
-    <button id="btnSubmit" class="btn-send" onclick="kirimData()">
+    <button id="btnSubmit" class="btn-send" onclick="handleSimpan()">
         <i class="fas fa-paper-plane"></i> Publikasikan Sekarang
     </button>
-    
-    <a href="admin.html" style="display:block; text-align:center; margin-top:15px; text-decoration:none; color:#777;">
-        <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
-    </a>
+
+    <div class="log-section">
+        <h3><i class="fas fa-history"></i> Log Pengiriman</h3>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Judul</th>
+                        <th>Target</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="logTableBody">
+                    </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <script>
+    // Konfigurasi Firebase (Gunakan milik Anda)
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -141,108 +110,84 @@
         messagingSenderId: "125984859692",
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
-
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const storage = firebase.storage();
 
-    let targetStatus = "";
-    const btnAllJC = document.getElementById('btnAllJC');
-    const selectJC = document.getElementById('targetJC');
+    // 1. TAMPILKAN LOG SECARA REAL-TIME
+    db.collection("pengumuman_komsel").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
+        const tbody = document.getElementById('logTableBody');
+        tbody.innerHTML = "";
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            const date = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleDateString('id-ID') : '-';
+            
+            tbody.innerHTML += `
+                <tr>
+                    <td>${date}</td>
+                    <td><b>${data.judul}</b></td>
+                    <td><span class="badge" style="background:#6c757d">${data.target}</span></td>
+                    <td>
+                        <button class="btn-edit" onclick="isiFormEdit('${doc.id}')"><i class="fas fa-edit"></i></button>
+                        <button class="btn-delete" onclick="hapusLog('${doc.id}')"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `;
+        });
+    });
 
-    btnAllJC.onclick = () => { 
-        targetStatus = "Semua JC"; 
-        btnAllJC.classList.add('btn-active'); 
-        selectJC.value = ""; 
-    };
+    // 2. FUNGSI SIMPAN (TAMBAH / EDIT)
+    async function handleSimpan() {
+        const id = document.getElementById('editId').value;
+        const btn = document.getElementById('btnSubmit');
+        const data = {
+            judul: document.getElementById('judul').value,
+            kategori: document.getElementById('kategori').value,
+            detail: document.getElementById('detail').value,
+            target: document.getElementById('targetJC').value,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp() // Tanggal Otomatis
+        };
 
-    selectJC.onchange = () => { 
-        targetStatus = ""; 
-        btnAllJC.classList.remove('btn-active'); 
-    };
+        if(!data.judul || !data.detail) return alert("Isi semua field!");
 
-    function toggleUploadInput() {
-        const tipe = document.getElementById('tipeMedia').value;
-        const section = document.getElementById('uploadSection');
-        const fileInput = document.getElementById('fileMedia');
-        
-        if (tipe === 'text') {
-            section.style.display = 'none';
-        } else {
-            section.style.display = 'block';
-            if(tipe === 'image') fileInput.accept = "image/png, image/jpeg";
-            else if(tipe === 'pdf') fileInput.accept = ".pdf";
-            else if(tipe === 'audio') fileInput.accept = "audio/*";
-            else if(tipe === 'video') fileInput.accept = "video/*";
+        btn.disabled = true;
+        try {
+            if(id) {
+                await db.collection("pengumuman_komsel").doc(id).update(data);
+                alert("Data diperbarui!");
+            } else {
+                await db.collection("pengumuman_komsel").add(data);
+                alert("Data berhasil dikirim!");
+            }
+            resetForm();
+        } catch (e) { alert("Gagal: " + e.message); }
+        btn.disabled = false;
+    }
+
+    // 3. FUNGSI EDIT (ISI BALIK KE FORM)
+    async function isiFormEdit(id) {
+        const doc = await db.collection("pengumuman_komsel").doc(id).get();
+        const data = doc.data();
+        document.getElementById('editId').value = id;
+        document.getElementById('judul').value = data.judul;
+        document.getElementById('kategori').value = data.kategori;
+        document.getElementById('detail').value = data.detail;
+        document.getElementById('targetJC').value = data.target;
+        document.getElementById('btnSubmit').innerHTML = "<i class='fas fa-save'></i> Simpan Perubahan";
+        window.scrollTo(0,0);
+    }
+
+    // 4. FUNGSI HAPUS
+    async function hapusLog(id) {
+        if(confirm("Hapus informasi ini?")) {
+            await db.collection("pengumuman_komsel").doc(id).delete();
         }
     }
 
-    async function kirimData() {
-        const btn = document.getElementById('btnSubmit');
-        const progressArea = document.getElementById('progressArea');
-        const progressBar = document.getElementById('progressBar');
-        const progressText = document.getElementById('progressText');
-
-        const judul = document.getElementById('judul').value;
-        const kategori = document.getElementById('kategori').value;
-        const detail = document.getElementById('detail').value;
-        const tipeMedia = document.getElementById('tipeMedia').value;
-        const file = document.getElementById('fileMedia').files[0];
-        const targetFinal = targetStatus || selectJC.value;
-
-        if(!judul || !detail || !targetFinal) {
-            alert("Harap lengkapi Judul, Detail, dan Target Pengiriman!");
-            return;
-        }
-
-        if(tipeMedia !== 'text' && !file) {
-            alert("Silakan pilih file terlebih dahulu!");
-            return;
-        }
-
-        btn.disabled = true;
-        btn.innerHTML = "<i class='fas fa-spinner fa-spin'></i> Memproses...";
-        let mediaUrl = "";
-
-        try {
-            if (tipeMedia !== 'text' && file) {
-                progressArea.style.display = 'block';
-                const storageRef = storage.ref(`media_pengumuman/${Date.now()}_${file.name}`);
-                const uploadTask = storageRef.put(file);
-
-                await new Promise((resolve, reject) => {
-                    uploadTask.on('state_changed', 
-                        (snapshot) => {
-                            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                            progressBar.style.width = progress + '%';
-                            progressText.innerText = "Mengunggah: " + Math.round(progress) + "%";
-                        }, 
-                        (error) => { reject(error); }, 
-                        async () => {
-                            mediaUrl = await uploadTask.snapshot.ref.getDownloadURL();
-                            resolve();
-                        }
-                    );
-                });
-            }
-
-            progressText.innerText = "Finalisasi Data...";
-            await db.collection("pengumuman_komsel").add({
-                judul, kategori, detail, target: targetFinal,
-                tipeMedia, mediaUrl,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                sudahDibaca: false
-            });
-
-            alert("Informasi berhasil dipublikasikan ke " + targetFinal);
-            location.reload();
-        } catch (error) {
-            console.error(error);
-            alert("Terjadi kesalahan sistem.");
-            btn.disabled = false;
-            btn.innerHTML = "<i class='fas fa-paper-plane'></i> Publikasikan Sekarang";
-            progressArea.style.display = 'none';
-        }
+    function resetForm() {
+        document.getElementById('editId').value = "";
+        document.getElementById('judul').value = "";
+        document.getElementById('detail').value = "";
+        document.getElementById('btnSubmit').innerHTML = "<i class='fas fa-paper-plane'></i> Publikasikan Sekarang";
     }
 </script>
 </body>
