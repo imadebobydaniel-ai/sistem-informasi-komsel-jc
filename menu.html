@@ -177,34 +177,45 @@
         }
         const db = firebase.firestore();
 
-        // --- MEDIA PLAYER LISTENER (KOREKSI LOGIKA) ---
+        // --- MEDIA PLAYER & RUNNING TEXT LISTENER ---
         function inisialisasiMediaPlayer() {
-            const container = document.getElementById("media-display-area"); 
-            
+            const container = document.getElementById("media-display-area");
+            const runningText = document.getElementById("running-text");
+
             db.collection("media_player").where("active", "==", true).onSnapshot((snapshot) => {
                 if (snapshot.empty) {
                     container.innerHTML = "<p style='color:white; padding-top:80px;'>Tidak ada konten aktif</p>";
+                    runningText.innerText = "SELAMAT DATANG DI PONDOK PEMULIHAN PAPUA"; 
                     return;
                 }
 
-                let contentHTML = ""; 
+                let htmlUntukMedia = "";
+                let teksUntukRunning = "";
+
                 snapshot.forEach((doc) => {
                     const data = doc.data();
                     if (data.type === "youtube") {
-                        contentHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${data.content}?autoplay=1&mute=1" frameborder="0" allowfullscreen></iframe>`;
+                        htmlUntukMedia = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${data.content}?autoplay=1&mute=1" frameborder="0" allowfullscreen></iframe>`;
                     } else if (data.type === "image") {
-                        contentHTML = `<img src="${data.content}" style="width:100%; height:100%; object-fit:cover; border-radius:25px;">`;
-                    } else if (data.type === "text") {
-                        contentHTML = `
-                            <div style="display:flex; align-items:center; justify-content:center; height:100%; padding:20px; color:white; background:var(--biru-safir); text-align:center; border-radius:25px;">
-                                <h3>${data.content}</h3>
-                            </div>`;
+                        htmlUntukMedia = `<img src="${data.content}" style="width:100%; height:100%; object-fit:cover; border-radius:25px;">`;
+                    }
+                    
+                    if (data.type === "text") {
+                        teksUntukRunning = data.content;
                     }
                 });
-                container.innerHTML = contentHTML; 
+
+                if (htmlUntukMedia !== "") container.innerHTML = htmlUntukMedia;
+                
+                if (teksUntukRunning !== "") {
+                    runningText.innerText = teksUntukRunning;
+                } else {
+                    runningText.innerText = "PONDOK PEMULIHAN PAPUA - PULIH, BANGKIT, JADI BERKAT";
+                }
+
             }, (error) => {
-                console.error("Firestore Error: ", error); 
-                container.innerHTML = `<p style='color:white; padding-top:50px;'>Error: ${error.message}</p>`;
+                console.error("Firestore Error: ", error);
+                runningText.innerText = "Koneksi Bermasalah...";
             });
         }
 
@@ -283,8 +294,9 @@
                         document.getElementById('disp_email').innerText = email;
                         document.getElementById('disp_komsel').innerText = "JC " + (d.komsel || "");
                         if (d.fotoUrl) { 
-                            document.getElementById('user-photo').src = d.fotoUrl; 
-                            document.getElementById('user-photo').style.display = "block"; 
+                            const uPhoto = document.getElementById('user-photo');
+                            uPhoto.src = d.fotoUrl; 
+                            uPhoto.style.display = "block"; 
                             document.getElementById('default-icon').style.display = "none";
                         }
                         monitorEmailInbox(String(d.komsel), email);
@@ -316,10 +328,12 @@
             
             const btnToggle = document.getElementById('toggleProfile');
             const profileCard = document.getElementById('profileCard');
-            btnToggle.addEventListener('click', () => {
-                profileCard.classList.toggle('closed');
-                document.getElementById('toggleIcon').className = profileCard.classList.contains('closed') ? "fa-solid fa-chevron-right" : "fa-solid fa-chevron-left";
-            });
+            if(btnToggle) {
+                btnToggle.addEventListener('click', () => {
+                    profileCard.classList.toggle('closed');
+                    document.getElementById('toggleIcon').className = profileCard.classList.contains('closed') ? "fa-solid fa-chevron-right" : "fa-solid fa-chevron-left";
+                });
+            }
         };
     </script>
 </body>
