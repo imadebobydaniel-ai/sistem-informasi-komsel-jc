@@ -219,24 +219,36 @@
         const db = firebase.firestore();
         let ytPlayer;
 
-        // --- MANAJEMEN INBOX (VERSI STABIL) ---
-        db.collection("pengumuman_komsel").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
+        // --- MANAJEMEN INBOX (VERSI DEBUGGING) ---
+        db.collection("pengumuman_komsel").onSnapshot((snapshot) => {
             const listDiv = document.getElementById('inbox-list');
             listDiv.innerHTML = "";
             let unread = 0;
 
             if (snapshot.empty) {
-                listDiv.innerHTML = "<p style='text-align:center; padding:20px;'>Tidak ada pesan.</p>";
+                listDiv.innerHTML = "<p style='text-align:center; padding:20px;'>Tidak ada pesan di database.</p>";
+                return;
             }
 
             snapshot.forEach((doc) => {
                 const data = doc.data();
+                console.log("Data dari Firebase:", data); // LIHAT DI KONSOL (F12)
+                
                 unread++;
                 
-                // Cek multi-field agar tidak undefined
-                const kontenPesan = data.isi || data.isi_pesan || data.pesan || data.content || "Tidak ada detail pesan.";
-                const judulPesan = data.judul || "Tanpa Judul";
-                const tanggalPesan = data.timestamp ? data.timestamp.toDate().toLocaleDateString('id-ID') : 'Baru';
+                // Teknik "Brute Force" mencari isi pesan di semua field yang mungkin
+                const kontenPesan = data.isi || data.pesan || data.isi_pesan || data.content || data.detail || "Isi pesan kosong di database.";
+                const judulPesan = data.judul || data.subject || "Tanpa Judul";
+                
+                // Penanganan tanggal yang lebih aman
+                let tanggalPesan = "Baru";
+                if (data.timestamp) {
+                    try {
+                        tanggalPesan = data.timestamp.toDate().toLocaleDateString('id-ID');
+                    } catch(e) {
+                        tanggalPesan = data.timestamp; // Jika timestamp berupa string biasa
+                    }
+                }
 
                 const item = document.createElement('div');
                 item.className = "msg-item";
@@ -247,9 +259,12 @@
                     </div>
                 `;
                 
-                // Listener klik untuk membuka detail
                 item.addEventListener('click', () => {
-                    tampilkanDetail(judulPesan, kontenPesan);
+                    console.log("Membuka pesan:", judulPesan);
+                    const modal = document.getElementById('message-modal');
+                    document.getElementById('modal-title').innerText = judulPesan;
+                    document.getElementById('modal-body').innerHTML = kontenPesan; 
+                    modal.style.display = 'block';
                 });
                 
                 listDiv.appendChild(item);
@@ -265,21 +280,10 @@
                 badge.style.display = "none";
                 iconMail.classList.remove('vibrate');
             }
-        }, (error) => {
-            console.error("Gagal memuat pesan:", error);
+        }, (err) => {
+            console.error("FIREBASE ERROR:", err.message);
+            document.getElementById('inbox-list').innerHTML = `<p style='color:red; padding:20px;'>Error: ${err.message}</p>`;
         });
-
-        function tampilkanDetail(judul, isi) {
-            const modal = document.getElementById('message-modal');
-            const titleEl = document.getElementById('modal-title');
-            const bodyEl = document.getElementById('modal-body');
-
-            if (modal && titleEl && bodyEl) {
-                titleEl.innerText = judul;
-                bodyEl.innerHTML = isi; // Gunakan innerHTML agar support formatting pesan
-                modal.style.display = 'block';
-            }
-        }
 
         // --- SISTEM UTILITAS ---
         function syncUser() {
@@ -333,7 +337,7 @@
             document.getElementById('digital-clock').innerText = now.toLocaleTimeString('id-ID') + " WIT";
         }
 
-        // --- EVENT LISTENERS (CSP FRIENDLY) ---
+        // --- EVENT LISTENERS ---
         window.onload = () => {
             updateTime(); 
             setInterval(updateTime, 1000); 
@@ -341,7 +345,6 @@
             
             document.getElementById('running-text').innerText = "Selamat Datang di Sistem Informasi Komsel JC Papua | Copyright 2026";
             
-            // Toggle Profile Card
             const btnToggle = document.getElementById('toggleProfile');
             const card = document.getElementById('profileCard');
             if (btnToggle) {
@@ -351,7 +354,6 @@
                 });
             }
 
-            // Modal & Inbox Controls
             document.getElementById('close-modal-btn').addEventListener('click', () => {
                 document.getElementById('message-modal').style.display = 'none';
             });
