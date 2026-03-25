@@ -96,7 +96,6 @@
         }
         .msg-item:hover { background: #f9fbff; }
 
-        /* MODAL PESAN (SCRIPT BARU) */
         #message-modal {
             display: none; position: fixed; z-index: 4000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7);
         }
@@ -220,7 +219,7 @@
         const db = firebase.firestore();
         let ytPlayer;
 
-        // --- MANAJEMEN INBOX ---
+        // --- MANAJEMEN INBOX (VERSI PERBAIKAN) ---
         db.collection("pengumuman_komsel").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
             const listDiv = document.getElementById('inbox-list');
             listDiv.innerHTML = "";
@@ -230,16 +229,26 @@
                 const data = doc.data();
                 unread++;
                 
+                const kontenPesan = data.isi || data.isi_pesan || data.pesan || "Tidak ada detail pesan.";
+                const judulPesan = data.judul || "Tanpa Judul";
+
                 const item = document.createElement('div');
                 item.className = "msg-item";
-                item.innerHTML = `<strong>${data.judul}</strong><br><small>${data.timestamp ? data.timestamp.toDate().toLocaleDateString() : 'Baru'}</small>`;
-                item.onclick = () => tampilkanDetail(data.judul, data.isi || data.isi_pesan);
+                item.innerHTML = `
+                    <div style="display: flex; flex-direction: column;">
+                        <strong style="color: var(--biru-tua);">${judulPesan}</strong>
+                        <small style="color: #888;">${data.timestamp ? data.timestamp.toDate().toLocaleDateString('id-ID') : 'Baru'}</small>
+                    </div>
+                `;
+                
+                item.onclick = () => tampilkanDetail(judulPesan, kontenPesan);
                 listDiv.appendChild(item);
             });
 
             const badge = document.getElementById('email-badge');
             if(unread > 0) { 
-                badge.style.display = "block"; badge.innerText = unread;
+                badge.style.display = "block"; 
+                badge.innerText = unread;
                 document.getElementById('icon-mail').classList.add('vibrate');
             }
         });
@@ -278,7 +287,6 @@
             }
         }
 
-        // YouTube Logic
         function onYouTubeIframeAPIReady() {
             db.collection("portal_media").orderBy("timestamp", "desc").limit(1).get().then(snap => {
                 if(!snap.empty) {
