@@ -108,7 +108,16 @@
 </head>
 <body>
 
-    <audio id="notifSound" src="https://www.soundjay.com/buttons/beep-01a.mp3" preload="auto"></audio>
+    <div id="popupNotif" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
+        <div style="background: white; width: 100%; max-width: 320px; border-radius: 15px; text-align: center; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); border-top: 5px solid #0056b3;">
+            <i class="fa-solid fa-bell" style="font-size: 40px; color: #0056b3; margin-bottom: 15px;"></i>
+            <h3 id="popJudul" style="margin: 0; color: #333; font-size: 1.2rem;">Info Baru!</h3>
+            <p id="popIsi" style="color: #666; font-size: 14px; margin: 15px 0;"></p>
+            <button onclick="tutupPopupNotif()" style="background: #0056b3; color: white; border: none; padding: 10px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; width: 100%;">OKE</button>
+        </div>
+    </div>
+
+    <audio id="notifAudio" src="https://www.soundjay.com/buttons/beep-01a.mp3" preload="auto"></audio>
 
     <div id="modal-logout" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 4000; justify-content: center; align-items: center; padding: 20px;">
         <div style="background: white; width: 100%; max-width: 320px; border-radius: 15px; text-align: center; padding: 20px;">
@@ -214,10 +223,31 @@
         const db = firebase.firestore();
         let ytPlayer; 
 
-        // Notifikasi Izin
-        if (Notification.permission !== 'granted') {
-            Notification.requestPermission();
+        // --- FUNGSI POPUP NOTIFIKASI KUSTOM ---
+        function tutupPopupNotif() {
+            document.getElementById('popupNotif').style.display = 'none';
         }
+
+        // Pantau Pengumuman dari Firebase
+        db.collection("pengumuman")
+            .orderBy("createdAt", "desc")
+            .limit(1)
+            .onSnapshot((snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === "added") {
+                        const data = change.doc.data();
+                        
+                        // 1. Jalankan Suara
+                        const suara = document.getElementById('notifAudio');
+                        if(suara) suara.play().catch(e => console.log("Audio play blocked"));
+
+                        // 2. Tampilkan Popup Kustom
+                        document.getElementById('popJudul').innerText = data.judul || "Info Baru!";
+                        document.getElementById('popIsi').innerText = data.isi || "Ada informasi baru untuk Anda.";
+                        document.getElementById('popupNotif').style.display = 'flex';
+                    }
+                });
+            });
 
         function handleToggleMute() {
             if (ytPlayer && typeof ytPlayer.isMuted === 'function') {
@@ -231,7 +261,6 @@
             }
         }
 
-        // --- MONITOR INBOX DENGAN NOTIFIKASI SUARA & BANNER ---
         function monitorEmailInbox(userJC, userEmail) {
             db.collection("pengumuman_komsel")
               .orderBy("timestamp", "desc")
@@ -241,7 +270,6 @@
                 if(!listDiv) return;
                 listDiv.innerHTML = "";
 
-                // Pesan Sambutan
                 const hasReadWelcome = localStorage.getItem("welcomeRead_" + userEmail);
                 if (!hasReadWelcome) unreadCount++;
 
@@ -254,30 +282,6 @@
                 
                 listDiv.innerHTML += welcomeItem;
 
-                // Logika Deteksi Perubahan Data Baru untuk Notif Banner & Suara
-                snapshot.docChanges().forEach(change => {
-                    if (change.type === "added") {
-                        const data = change.doc.data();
-                        const target = data.target || data.target_jc;
-                        
-                        // Cek apakah user adalah target pengumuman
-                        if (target === "Semua JC" || target === userJC) {
-                             // Jalankan Suara
-                             const sound = document.getElementById('notifSound');
-                             if(sound) sound.play().catch(e => console.log("Audio play blocked"));
-
-                             // Jalankan Banner Notifikasi
-                             if (Notification.permission === 'granted') {
-                                new Notification("Info JC Baru!", {
-                                    body: data.judul,
-                                    icon: 'logo_pondok.png'
-                                });
-                             }
-                        }
-                    }
-                });
-
-                // Muat Pesan dari Firestore ke UI
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     const target = data.target || data.target_jc; 
@@ -300,7 +304,6 @@
                     }
                 });
 
-                // Update Badge & Getar Icon Mail
                 const icon = document.getElementById('icon-mail');
                 const badge = document.getElementById('email-badge');
                 if (unreadCount > 0) {
