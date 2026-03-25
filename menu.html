@@ -26,77 +26,40 @@
         }
 
         body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--putih-bg); margin: 0; padding: 0; color: #333; overflow-x: hidden; }
+        
+        /* Utility */
         .top-info-bar { background: var(--biru-tua); display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; font-weight: bold; font-size: 11px; border-bottom: 2px solid var(--emas-lux); color: white; }
         
-        header { 
-            background: var(--biru-tua); 
-            border-bottom: 3px solid var(--hijau-zamrud); 
-            padding: 12px 0; 
-            overflow: hidden; 
-            white-space: nowrap; 
-            display: flex; 
-            align-items: center; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
-        }
-        .running-content { 
-            display: inline-block; 
-            padding-left: 100%; 
-            animation: marqueeTop 30s linear infinite; 
-            font-weight: 900; 
-            font-size: 13px; 
-            color: white; 
-            text-transform: uppercase; 
-        }
+        header { background: var(--biru-tua); border-bottom: 3px solid var(--hijau-zamrud); padding: 12px 0; overflow: hidden; white-space: nowrap; display: flex; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .running-content { display: inline-block; padding-left: 100%; animation: marqueeTop 30s linear infinite; font-weight: 900; font-size: 13px; color: white; text-transform: uppercase; }
         @keyframes marqueeTop { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
         .container { padding: 20px; max-width: 450px; margin: auto; text-align: center; }
-        .top-section-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto 30px auto; height: 220px; overflow: hidden; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); background: #000; }
         
-        .profile-card { 
-            position: absolute; width: 100%; height: 100%; 
-            background: linear-gradient(145deg, #ffffff, #e6e6e6); 
-            border-radius: 25px; z-index: 5; 
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            border-top: 4px solid var(--biru-safir); 
-        }
+        /* Top Section & Slider */
+        .top-section-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto 30px auto; height: 220px; overflow: hidden; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); background: #000; }
+        .profile-card { position: absolute; width: 100%; height: 100%; background: linear-gradient(145deg, #ffffff, #e6e6e6); border-radius: 25px; z-index: 5; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; align-items: center; justify-content: center; border-top: 4px solid var(--biru-safir); }
         .profile-card.closed { transform: translateX(-100%); }
+        .btn-toggle-side { position: absolute; left: 0; top: 50%; transform: translateY(-50%); z-index: 10; background: #ff0000; color: white; border: none; width: 30px; height: 60px; border-radius: 0 15px 15px 0; cursor: pointer; transition: 0.3s; }
 
+        /* Inbox Styling */
         .email-btn { position: absolute; top: 15px; right: 15px; cursor: pointer; z-index: 20; }
         .email-icon { font-size: 22px; color: var(--biru-tua); transition: 0.3s; }
-        #email-badge {
-            position: absolute; top: -8px; right: -8px; background: red; color: white;
-            font-size: 10px; padding: 2px 6px; border-radius: 50%; font-weight: bold; display: none;
-        }
-        @keyframes shake {
-            0% { transform: rotate(0deg); } 10% { transform: rotate(-10deg); } 20% { transform: rotate(10deg); }
-            30% { transform: rotate(-10deg); } 40% { transform: rotate(10deg); } 50% { transform: rotate(0deg); }
-        }
+        #email-badge { position: absolute; top: -8px; right: -8px; background: red; color: white; font-size: 10px; padding: 2px 6px; border-radius: 50%; font-weight: bold; display: none; }
         .vibrate { animation: shake 0.5s infinite; color: var(--emas-lux) !important; }
+        @keyframes shake { 0% { transform: rotate(0deg); } 10% { transform: rotate(-10deg); } 20% { transform: rotate(10deg); } 30% { transform: rotate(-10deg); } 40% { transform: rotate(10deg); } 50% { transform: rotate(0deg); } }
 
-        .popup-inbox {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center;
-        }
-        .inbox-content {
-            background: white; width: 90%; max-width: 380px; border-radius: 20px; padding: 20px; max-height: 80vh; overflow-y: auto;
-        }
-        .msg-item {
-            padding: 12px; border-bottom: 1px solid #eee; text-align: left; cursor: pointer; transition: 0.2s;
-        }
-        .msg-item:hover { background: #f1f1f1; }
+        .popup-inbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center; }
+        .inbox-content { background: white; width: 90%; max-width: 380px; border-radius: 20px; padding: 20px; max-height: 80vh; display: flex; flex-direction: column; }
+        #list-pesan { flex: 1; overflow-y: auto; padding-right: 5px; margin-top: 10px; }
+        .msg-item { display: flex; align-items: center; gap: 10px; padding: 12px; border-bottom: 1px solid #eee; text-align: left; transition: 0.2s; }
+        .msg-content-wrapper { flex: 1; cursor: pointer; }
         .msg-item b { display: block; color: var(--biru-tua); font-size: 14px; }
         .msg-item small { color: #888; font-size: 11px; }
+        .inbox-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 2px solid #eee; margin-top: 10px; }
+        .btn-delete-selected { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 12px; }
 
-        .btn-toggle-side { 
-            position: absolute; left: 0; top: 50%; transform: translateY(-50%); 
-            z-index: 10; background: #ff0000; color: white; border: none; 
-            width: 30px; height: 60px; border-radius: 0 15px 15px 0; 
-            cursor: pointer; transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
-        }
-        .profile-card.closed ~ .btn-toggle-side { left: 0; }
-        .news-slider { width: 100%; height: 100%; background: var(--biru-tua); position: relative; z-index: 1; }
-
+        /* Menu Grid */
         .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         .menu-box { background: white; padding: 20px 10px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--biru-tua); font-weight: 800; font-size: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.05); transition: 0.3s; }
         .menu-box:active { transform: scale(0.95); }
@@ -122,12 +85,25 @@
 
     <div id="popup-inbox" class="popup-inbox">
         <div class="inbox-content">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--emas-lux); padding-bottom: 10px; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--emas-lux); padding-bottom: 10px; margin-bottom: 10px;">
                 <h3 style="margin:0; color:var(--biru-tua);"><i class="fas fa-envelope-open"></i> Inbox JC</h3>
                 <i class="fas fa-times" onclick="tutupInbox()" style="cursor:pointer; font-size:20px; color:red;"></i>
             </div>
+            
+            <div style="text-align: left; padding: 5px 0; display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)">
+                <label for="selectAll" style="font-size: 12px; font-weight: bold;">Pilih Semua</label>
+            </div>
+
             <div id="list-pesan">
                 <p style="font-size:12px; color:#999;">Memuat pesan...</p>
+            </div>
+
+            <div class="inbox-footer">
+                <span style="font-size: 11px; color: #666;">Pondok Pemulihan Papua</span>
+                <button class="btn-delete-selected" onclick="hapusPesanTerpilih()">
+                    <i class="fas fa-trash"></i> Hapus
+                </button>
             </div>
         </div>
     </div>
@@ -150,7 +126,7 @@
                     <i class="fas fa-envelope email-icon" id="icon-mail"></i>
                     <span id="email-badge">0</span>
                 </div>
-
+                
                 <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 3px solid var(--emas-lux); background: white; display: flex; align-items: center; justify-content: center;">
                     <i class="fa-solid fa-circle-user" id="default-icon" style="font-size: 70px; color: var(--biru-safir);"></i>
                     <img id="user-photo" src="" style="display: none; width:100%; height:100%; object-fit:cover;">
@@ -200,6 +176,7 @@
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
+        // --- KONFIGURASI FIREBASE ---
         const firebaseConfig = { 
             apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
             authDomain: "boby-apps-project.firebaseapp.com", 
@@ -212,19 +189,7 @@
         const db = firebase.firestore();
         let ytPlayer; 
 
-        function handleToggleMute() {
-            if (ytPlayer && typeof ytPlayer.isMuted === 'function') {
-                if (ytPlayer.isMuted()) {
-                    ytPlayer.unMute();
-                    document.getElementById('muteIcon').className = "fa-solid fa-volume-high";
-                } else {
-                    ytPlayer.mute();
-                    document.getElementById('muteIcon').className = "fa-solid fa-volume-xmark";
-                }
-            }
-        }
-
-        // --- MONITOR INBOX DENGAN VIRTUAL WELCOME MESSAGE ---
+        // --- FUNGSI INBOX ---
         function monitorEmailInbox(userJC, userEmail) {
             db.collection("pengumuman_komsel")
               .orderBy("timestamp", "desc")
@@ -234,20 +199,20 @@
                 if(!listDiv) return;
                 listDiv.innerHTML = "";
 
-                // 1. Tambahkan Pesan Sambutan Default (Virtual)
+                // Pesan Sambutan Virtual
                 const hasReadWelcome = localStorage.getItem("welcomeRead_" + userEmail);
-                if (!hasReadWelcome) unreadCount++;
+                if (!hasReadWelcome) {
+                    unreadCount++;
+                    listDiv.innerHTML += `
+                        <div class="msg-item" style="background:#fff9e6; border-left:4px solid var(--emas-lux);">
+                            <input type="checkbox" disabled>
+                            <div class="msg-content-wrapper" onclick="bacaWelcome('${userEmail}')">
+                                <b>Selamat Datang! <span style="color:red; font-size:9px;">(BARU)</span></b>
+                                <small>Sistem • Belum Dibaca</small>
+                            </div>
+                        </div>`;
+                }
 
-                const welcomeItem = `
-                    <div class="msg-item" onclick="bacaWelcome('${userEmail}')" 
-                         style="${!hasReadWelcome ? 'background:#fff9e6; border-left:4px solid var(--emas-lux); font-weight:bold;' : 'background:#fff; border-left:4px solid #eee;'}">
-                        <b>Selamat Datang! ${!hasReadWelcome ? '<span style="color:red; font-size:9px;">(BARU)</span>' : ''}</b>
-                        <small>Sistem • ${!hasReadWelcome ? 'Belum Dibaca' : 'Sudah Dibaca'}</small>
-                    </div>`;
-                
-                listDiv.innerHTML += welcomeItem;
-
-                // 2. Muat Pesan dari Firestore
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     const target = data.target || data.target_jc; 
@@ -255,22 +220,19 @@
                     if (target === "Semua JC" || target === userJC || (Array.isArray(target) && target.includes(userJC))) {
                         const sudahDibaca = data.sudahDibaca || [];
                         const isUnread = !sudahDibaca.includes(userEmail);
-                        
                         if (isUnread) unreadCount++;
 
-                        const itemStyle = isUnread 
-                            ? "background:#fff9e6; border-left:4px solid var(--emas-lux); font-weight:bold;" 
-                            : "background:#fff; border-left:4px solid #eee;";
-
                         listDiv.innerHTML += `
-                            <div class="msg-item" onclick="bacaDetailPesan('${doc.id}', '${userEmail}')" style="${itemStyle}">
-                                <b>${data.judul} ${isUnread ? '<span style="color:red; font-size:9px;">(BARU)</span>' : ''}</b>
-                                <small>${data.timestamp ? data.timestamp.toDate().toLocaleDateString('id-ID') : '-'} • ${isUnread ? 'Belum Dibaca' : 'Sudah Dibaca'}</small>
+                            <div class="msg-item" style="${isUnread ? 'background:#fff9e6; border-left:4px solid var(--emas-lux);' : 'background:#fff;'}">
+                                <input type="checkbox" class="msg-checkbox" value="${doc.id}">
+                                <div class="msg-content-wrapper" onclick="bacaDetailPesan('${doc.id}', '${userEmail}')">
+                                    <b>${data.judul} ${isUnread ? '<span style="color:red; font-size:9px;">(BARU)</span>' : ''}</b>
+                                    <small>${data.timestamp ? data.timestamp.toDate().toLocaleDateString('id-ID') : '-'} • ${isUnread ? 'Belum Dibaca' : 'Sudah Dibaca'}</small>
+                                </div>
                             </div>`;
                     }
                 });
 
-                // Update Badge & Getar
                 const icon = document.getElementById('icon-mail');
                 const badge = document.getElementById('email-badge');
                 if (unreadCount > 0) {
@@ -284,10 +246,23 @@
             });
         }
 
-        // Fungsi khusus untuk membaca pesan sambutan pertama kali
+        function toggleSelectAll(source) {
+            const checkboxes = document.querySelectorAll('.msg-checkbox');
+            checkboxes.forEach(cb => cb.checked = source.checked);
+        }
+
+        async function hapusPesanTerpilih() {
+            const selected = document.querySelectorAll('.msg-checkbox:checked');
+            if (selected.length === 0) return alert("Pilih pesan yang ingin dihapus");
+            if (confirm(`Hapus ${selected.length} pesan dari tampilan?`)) {
+                selected.forEach(cb => cb.closest('.msg-item').remove());
+                alert("Terhapus dari tampilan sementara.");
+            }
+        }
+
         function bacaWelcome(userEmail) {
             localStorage.setItem("welcomeRead_" + userEmail, "true");
-            alert("Selamat Datang Di Aplikasi Sistem Informasi Integrasi Komsel JC. Semoga Anda Diberkati Dengan Adanya Aplikasi Ini. Tuhan Yesus Memberkati.");
+            alert("Selamat Datang Di Aplikasi Komsel JC. Semoga Diberkati!");
             location.reload(); 
         }
 
@@ -296,14 +271,14 @@
                 await db.collection("pengumuman_komsel").doc(docId).update({
                     sudahDibaca: firebase.firestore.FieldValue.arrayUnion(userEmail)
                 });
-            } catch (e) { console.error("Gagal update status baca:", e); }
-            
-            window.location.href = "detail-pengumuman.html?id=" + docId;
+                window.location.href = "detail-pengumuman.html?id=" + docId;
+            } catch (e) { console.error(e); }
         }
 
         function bukaInbox() { document.getElementById('popup-inbox').style.display = 'flex'; }
         function tutupInbox() { document.getElementById('popup-inbox').style.display = 'none'; }
 
+        // --- FUNGSI SISTEM ---
         function syncUser() {
             const email = localStorage.getItem("userEmail");
             const isAdmin = localStorage.getItem("adminLoggedIn");
@@ -312,15 +287,8 @@
 
             if (isAdmin === "true") {
                 document.getElementById('disp_nama').innerText = "Administrator";
-                document.getElementById('disp_email').innerText = "System Access Active";
                 document.getElementById('admin-badge').style.display = "inline-block";
-                document.getElementById('disp_komsel').innerText = "ALL KOMSEL";
-                imgElement.style.display = "none";
-                iconElement.style.display = "block";
-                
-                // Admin juga bisa lihat inbox (semua pesan)
                 monitorEmailInbox("Semua JC", "admin@system.com");
-                
             } else if (email) {
                 document.getElementById('disp_email').innerText = email;
                 db.collection("users").where("email", "==", email).onSnapshot(s => {
@@ -328,68 +296,13 @@
                         const d = s.docs[0].data();
                         document.getElementById('disp_nama').innerText = d.nama || "User";
                         document.getElementById('disp_komsel').innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
-                        
                         monitorEmailInbox(String(d.komsel), email);
-
                         if (d.fotoUrl) { 
-                            imgElement.src = d.fotoUrl; 
-                            imgElement.style.display = "block";
-                            iconElement.style.display = "none";
+                            imgElement.src = d.fotoUrl; imgElement.style.display = "block"; iconElement.style.display = "none";
                         }
                     }
                 });
             }
-        }
-
-        function updateMainPlayer(data) {
-            const container = document.getElementById('youtube-player-container'); 
-            const muteBtn = document.getElementById('muteBtn');
-            const tipe = data.tipe ? data.tipe.toLowerCase() : "";
-            muteBtn.style.display = 'none';
-            container.innerHTML = "";
-            
-            if (tipe.includes('video')) {
-                container.innerHTML = `<div id="player"></div>`;
-                initYouTube(extractVideoID(data.url));
-                muteBtn.style.display = 'block';
-            } else if (tipe.includes('audio')) {
-                container.innerHTML = `<div style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg, #003366, #0056b3); color:white; border-radius:20px; padding:20px;"><i class="fa-solid fa-music" style="font-size:50px; margin-bottom:15px; color:var(--emas-lux);"></i><audio controls style="width:100%;"><source src="${data.url}" type="audio/mpeg"></audio></div>`;
-            } else {
-                container.innerHTML = `<img src="${data.url}" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">`;
-            }
-        }
-
-        async function loadMedia() {
-            try {
-                const snapshot = await db.collection("portal_media").orderBy("timestamp", "desc").limit(1).get();
-                if (!snapshot.empty) {
-                    const data = snapshot.docs[0].data();
-                    document.getElementById('newsTitle').innerText = data.judul || "";
-                    document.getElementById('newsLabel').innerText = "BERITA TERKINI";
-                    updateMainPlayer(data);
-                }
-                document.getElementById('running-text').innerText = "Selamat Datang di Sistem Informasi & Integrasi Komsel JC | Digitalisasi Monitoring Pertumbuhan Iman Realtime | Copyright @imadeboby 2026";
-            } catch (e) { console.error("Error loading media:", e); }
-        }
-
-        function extractVideoID(url) {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length == 11) ? match[2] : null;
-        }
-
-        function initYouTube(videoId) {
-            if (typeof YT === 'undefined' || !YT.loaded) {
-                window.onYouTubeIframeAPIReady = () => createPlayer(videoId);
-            } else { createPlayer(videoId); }
-        }
-
-        function createPlayer(videoId) {
-            ytPlayer = new YT.Player('player', {
-                height: '100%', width: '100%', videoId: videoId,
-                playerVars: { 'autoplay': 1, 'mute': 1, 'controls': 0, 'loop': 1, 'playlist': videoId },
-                events: { 'onReady': (e) => e.target.playVideo() }
-            });
         }
 
         function updateTime() {
@@ -399,23 +312,34 @@
             document.getElementById('digital-clock').innerText = now.toLocaleTimeString('id-ID', { hour12: false }) + " WIT";
         }
 
+        function handleToggleMute() {
+            if (ytPlayer && typeof ytPlayer.isMuted === 'function') {
+                if (ytPlayer.isMuted()) {
+                    ytPlayer.unMute();
+                    document.getElementById('muteIcon').className = "fa-solid fa-volume-high";
+                } else {
+                    ytPlayer.mute();
+                    document.getElementById('muteIcon').className = "fa-solid fa-volume-xmark";
+                }
+            }
+        }
+
         function confirmLogout() { document.getElementById('modal-logout').style.display = 'flex'; }
         function closeLogoutModal() { document.getElementById('modal-logout').style.display = 'none'; }
         function executeLogout() { localStorage.clear(); window.location.href = "login.html"; }
 
+        // --- INITIALIZATION ---
         window.onload = () => { 
             updateTime(); 
             setInterval(updateTime, 1000); 
             syncUser(); 
-            loadMedia(); 
-
+            
+            // Toggle Profile logic
             const btnToggle = document.getElementById('toggleProfile');
             const profileCard = document.getElementById('profileCard');
-            const toggleIcon = document.getElementById('toggleIcon');
-
             btnToggle.addEventListener('click', () => {
                 profileCard.classList.toggle('closed');
-                toggleIcon.className = profileCard.classList.contains('closed') ? "fa-solid fa-chevron-right" : "fa-solid fa-chevron-left";
+                document.getElementById('toggleIcon').className = profileCard.classList.contains('closed') ? "fa-solid fa-chevron-right" : "fa-solid fa-chevron-left";
             });
         };
     </script>
