@@ -104,6 +104,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
+    // 1. Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -115,6 +116,7 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
+    // 2. Real-time Clock
     function updateClock() {
         const now = new Date();
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -123,6 +125,7 @@
     setInterval(updateClock, 1000);
     updateClock();
 
+    // 3. Password Toggle
     document.getElementById('eyeIcon').addEventListener('click', function() {
         const passInput = document.getElementById('pass');
         passInput.type = passInput.type === 'password' ? 'text' : 'password';
@@ -130,6 +133,7 @@
         this.classList.toggle('fa-eye-slash');
     });
 
+    // 4. Generate Auto NK
     async function updateNKPreview() {
         const jc = document.getElementById("komsel").value;
         const nkInput = document.getElementById("nk-display");
@@ -142,12 +146,24 @@
         } catch (e) { nkInput.value = "Error koneksi"; }
     }
 
+    // 5. Main Registration Function (FIXED)
     async function handleRegistrasi() {
         const btn = document.getElementById("btnSubmit");
+        
+        // Ambil Data dari Form
         const nama = document.getElementById("nama").value;
+        const email = document.getElementById("email").value.trim().toLowerCase();
+        const hp = document.getElementById("hp").value;
+        const pass = document.getElementById("pass").value;
+        const alamat = document.getElementById("alamat").value;
+        const darah = document.getElementById("darah").value; // ID 'darah' sudah sesuai HTML
+        const jabatan = document.getElementById("jabatan").value;
+        const komsel = document.getElementById("komsel").value;
+        const nk = document.getElementById("nk-display").value;
 
-        if(!nama || !document.getElementById("email").value || !document.getElementById("hp").value) {
-            alert("Harap lengkapi semua data!");
+        // Validasi Sederhana
+        if(!nama || !email || !hp || !darah || !pass || !komsel) {
+            alert("Harap lengkapi semua data termasuk Golongan Darah!");
             return;
         }
 
@@ -157,23 +173,26 @@
         try {
             const userData = {
                 nama: nama,
-                email: document.getElementById("email").value.trim().toLowerCase(),
-                whatsapp: document.getElementById("hp").value,
-                password: document.getElementById("pass").value,
-                alamat: document.getElementById("alamat").value,
-                goldarah: document.getElementById("darah").value,
-                jabatan: document.getElementById("jabatan").value,
-                komsel: document.getElementById("komsel").value,
-                nomor_komsel: document.getElementById("nk-display").value,
-                foto_profil: "", // Kosongkan karena fitur upload dihapus
+                email: email,
+                whatsapp: hp,
+                password: pass,
+                alamat: alamat,
+                goldarah: darah, // Menyimpan ke field 'goldarah' di Firebase
+                jabatan: jabatan,
+                komsel: komsel,
+                nomor_komsel: nk,
+                foto_profil: "", 
                 status: "Aktif",
                 tanggalDaftar: new Date().toLocaleString('id-ID')
             };
 
             await db.collection("users").add(userData);
+            
+            // Tampilkan Pesan Sukses
             document.getElementById('blocking-message').style.display = 'flex';
+            
         } catch (error) { 
-            alert("Gagal: " + error.message); 
+            alert("Gagal menyimpan data: " + error.message); 
             btn.innerText = "DAFTAR SEKARANG";
             btn.disabled = false;
         }
