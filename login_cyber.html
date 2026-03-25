@@ -75,7 +75,7 @@
         label { display: block; margin-bottom: 10px; font-size: 11px; font-weight: bold; color: var(--cyan-neon); text-transform: uppercase; }
         .input-wrapper { position: relative; display: flex; align-items: center; }
         .input-wrapper i.fa-solid { position: absolute; left: 15px; color: #555; font-size: 16px; transition: 0.3s; }
-        input { width: 100%; padding: 15px 15px 15px 45px; background-color: rgba(0, 0, 0, 0.5); border: 1px solid #333; border-radius: 10px; color: #fff; outline: none; transition: 0.3s; }
+        input { width: 100%; padding: 15px 15px 15px 45px; background-color: rgba(0, 0, 0, 0.5); border: 1px solid #333; border-radius: 10px; color: #fff; outline: none; transition: 0.3s; box-sizing: border-box; }
         input:focus { border-color: var(--cyan-neon); box-shadow: 0 0 10px rgba(0, 255, 255, 0.3); }
         input:focus + i.fa-solid { color: var(--cyan-neon); }
         .toggle-password { position: absolute; right: 15px; cursor: pointer; color: #555; }
@@ -91,8 +91,12 @@
 
         /* --- MODAL GENERATE ADMIN --- */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(8px); z-index: 10000; justify-content: center; align-items: center; }
-        .modal-content { background: var(--panel-bg); padding: 30px; border-radius: 20px; width: 85%; max-width: 350px; border: 2px solid var(--cyan-neon); text-align: center; box-shadow: 0 0 20px var(--cyan-neon); }
-        .btn-modal-action { width: 100%; padding: 12px; border-radius: 8px; margin-top: 15px; cursor: pointer; font-weight: bold; border: none; }
+        .modal-content { background: var(--panel-bg); padding: 30px; border-radius: 20px; width: 85%; max-width: 380px; border: 2px solid var(--cyan-neon); text-align: center; box-shadow: 0 0 20px var(--cyan-neon); }
+        .btn-modal-action { width: 100%; padding: 12px; border-radius: 8px; margin-top: 15px; cursor: pointer; font-weight: bold; border: none; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* --- LOG BOX --- */
+        #resultLog { display: none; margin-top: 20px; padding: 15px; background: rgba(0, 255, 255, 0.1); border: 1px dashed var(--cyan-neon); border-radius: 10px; text-align: left; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -129,7 +133,7 @@
             </form>
 
             <button class="btn-generate" onclick="openGenModal()">
-                <i class="fa-solid fa-user-plus"></i> Generate Admin Account
+                <i class="fa-solid fa-user-plus"></i> Create New Admin Account
             </button>
 
             <a href="login.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Return to Member Login</a>
@@ -138,24 +142,34 @@
 
     <div id="genModal" class="modal-overlay">
         <div class="modal-content">
-            <h3 style="color: var(--cyan-neon); margin-top: 0;">CREATE NEW ADMIN</h3>
-            <p style="font-size: 11px; color: #888; margin-bottom: 20px;">Otorisasi diperlukan untuk membuat akses baru.</p>
+            <h3 style="color: var(--cyan-neon); margin-top: 0; letter-spacing: 2px;">ADMIN GENERATOR</h3>
+            <p style="font-size: 11px; color: #888; margin-bottom: 20px;">Lengkapi data di bawah untuk membuat akses admin baru.</p>
             
             <div class="form-group">
-                <input type="text" id="newAdminUser" placeholder="NEW USERNAME" style="padding-left: 15px;">
+                <input type="text" id="newName" placeholder="NAMA LENGKAP" style="padding-left: 15px;">
             </div>
             <div class="form-group">
-                <div class="input-wrapper">
-                    <input type="password" id="newAdminPass" placeholder="NEW PASSWORD" style="padding-left: 15px;">
-                    <i class="fa-solid fa-eye toggle-password" id="toggleEyeGen" onclick="togglePasswordVisibility('newAdminPass', 'toggleEyeGen')"></i>
-                </div>
+                <input type="text" id="newAdminUser" placeholder="USERNAME" style="padding-left: 15px;">
             </div>
             <div class="form-group">
-                <input type="password" id="authKey" placeholder="SECRET ACCESS KEY" style="padding-left: 15px; border-color: #ff0055;">
+                <input type="password" id="newAdminPass" placeholder="PASSWORD" style="padding-left: 15px;">
+            </div>
+            <div class="form-group">
+                <input type="password" id="confirmPass" placeholder="MASUKAN PASSWORD YANG SAMA" style="padding-left: 15px;">
             </div>
 
-            <button class="btn-modal-action" onclick="processGenerate()" style="background: var(--cyan-neon); color: #000;">GENERATE ACCESS</button>
-            <button class="btn-modal-action" onclick="closeGenModal()" style="background: transparent; color: #666;">CANCEL</button>
+            <button class="btn-modal-action" onclick="generateSimpel()" style="background: var(--cyan-neon); color: #000;">GENERATE ACCESS</button>
+            
+            <div id="resultLog">
+                <p style="color: #2ecc71; font-weight: bold; font-size: 12px; margin: 0 0 10px 0;">✔ Selamat! User dan Password Anda telah jadi:</p>
+                <div style="font-family: monospace; font-size: 12px; color: #fff; line-height: 1.6;">
+                    <div>NAME: <span id="logName" style="color: var(--cyan-neon);"></span></div>
+                    <div>USER: <span id="logUser" style="color: var(--cyan-neon);"></span></div>
+                    <div>PASS: <span id="logPass" style="color: var(--cyan-neon);"></span></div>
+                </div>
+            </div>
+
+            <button class="btn-modal-action" onclick="closeGenModal()" style="background: transparent; color: #666; font-size: 11px; border: 1px solid #333;">CLOSE</button>
         </div>
     </div>
 
@@ -172,7 +186,6 @@
         // Data login default
         const VALID_USERNAME = "admin";
         const VALID_PASSWORD = "bukadong821";
-        const SECRET_AUTH_KEY = "RAHASIA_JC_2026"; // Ganti ini untuk keamanan pendaftaran
 
         function togglePasswordVisibility(inputId, eyeId) {
             const passInput = document.getElementById(inputId);
@@ -187,7 +200,43 @@
         }
 
         function openGenModal() { document.getElementById('genModal').style.display = 'flex'; }
-        function closeGenModal() { document.getElementById('genModal').style.display = 'none'; }
+        
+        function closeGenModal() { 
+            document.getElementById('genModal').style.display = 'none';
+            document.getElementById('resultLog').style.display = 'none';
+            // Reset form input
+            document.getElementById('newName').value = "";
+            document.getElementById('newAdminUser').value = "";
+            document.getElementById('newAdminPass').value = "";
+            document.getElementById('confirmPass').value = "";
+        }
+
+        // FUNGSI GENERATE SIMPEL (Sesuai Permintaan)
+        function generateSimpel() {
+            const nama = document.getElementById('newName').value;
+            const user = document.getElementById('newAdminUser').value;
+            const pass = document.getElementById('newAdminPass').value;
+            const confirm = document.getElementById('confirmPass').value;
+            const logBox = document.getElementById('resultLog');
+
+            if (!nama || !user || !pass) {
+                alert("Mohon lengkapi semua kolom!");
+                return;
+            }
+
+            if (pass !== confirm) {
+                alert("Password tidak cocok! Masukan password yang sama.");
+                return;
+            }
+
+            // Isi data ke Log
+            document.getElementById('logName').innerText = nama;
+            document.getElementById('logUser').innerText = user;
+            document.getElementById('logPass').innerText = pass;
+            
+            // Tampilkan Log
+            logBox.style.display = 'block';
+        }
 
         function showCyberNotification(type, title, message) {
             const modal = document.getElementById('cyberModal');
@@ -216,27 +265,6 @@
 
         document.getElementById('closeModal').onclick = () => document.getElementById('cyberModal').style.display = 'none';
 
-        // PROSES GENERATE ADMIN BARU (Simulasi/Firestore)
-        function processGenerate() {
-            const newUser = document.getElementById('newAdminUser').value;
-            const newPass = document.getElementById('newAdminPass').value;
-            const authKey = document.getElementById('authKey').value;
-
-            if (!newUser || !newPass) {
-                alert("Lengkapi data admin baru!");
-                return;
-            }
-
-            if (authKey !== SECRET_AUTH_KEY) {
-                showCyberNotification('error', 'Unauthorized', 'Secret Access Key salah! Anda tidak diizinkan membuat admin.');
-                return;
-            }
-
-            // Di sini Anda bisa menambahkan kode db.collection("admin_users").add({...}) jika menggunakan Firebase
-            showCyberNotification('success', 'Success', 'Admin User ' + newUser + ' berhasil dibuat.');
-            closeGenModal();
-        }
-
         // LOGIN SUBMIT
         document.getElementById('cyberLoginForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -245,7 +273,7 @@
 
             if (user === VALID_USERNAME && pass === VALID_PASSWORD) {
                 showCyberNotification('success', 'Access Granted', 'Administrator verified. Redirecting...');
-                setTimeout(() => { window.location.href = "admin.html"; }, 2000);
+                setTimeout(() => { window.location.href = "menu.html"; }, 2000);
             } else {
                 showCyberNotification('error', 'Access Denied', 'Authentication failed.');
             }
