@@ -192,9 +192,6 @@
                     <small id="newsLabel" style="color: #ffc107; font-weight: bold;"></small>
                     <h3 id="newsTitle" style="margin: 0; font-size: 14px;"></h3>
                 </div>
-                <div id="muteBtn" onclick="handleToggleMute()" style="display:none; position: absolute; bottom: 50px; right: 15px; z-index: 10; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 50%; color: white; cursor: pointer;">
-                    <i class="fa-solid fa-volume-xmark" id="muteIcon"></i>
-                </div>
             </div>
         </div>
 
@@ -229,7 +226,6 @@
         };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        let ytPlayer; 
 
         // Fungsi Membuka Pop-up & Ambil Data Firebase
         function openAnnouncement(id) {
@@ -299,22 +295,30 @@
             });
         }
 
+        // Fungsi Baca Pesan (Script Baru dimasukkan di sini)
         async function bacaDetailPesan(docId, userEmail) {
             try {
-                // Update status baca di Firebase
+                // 1. Update status baca di Firebase
                 await db.collection("pengumuman_komsel").doc(docId).update({
                     sudahDibaca: firebase.firestore.FieldValue.arrayUnion(userEmail)
                 });
-            } catch (e) { console.error("Gagal update status baca:", e); }
-            
-            // Panggil Fungsi Pop-up
-            openAnnouncement(docId);
+                
+                // 2. Tutup dulu inbox-nya supaya popup detail kelihatan jelas
+                tutupInbox();
+
+                // 3. Panggil Fungsi Pop-up detail
+                openAnnouncement(docId);
+            } catch (e) { 
+                console.error("Gagal update status baca:", e); 
+                // Tetap buka pesan meski update status gagal
+                tutupInbox();
+                openAnnouncement(docId);
+            }
         }
 
         function bukaInbox() { document.getElementById('popup-inbox').style.display = 'flex'; }
         function tutupInbox() { document.getElementById('popup-inbox').style.display = 'none'; }
 
-        // --- Sisanya adalah fungsi bawaan yang sudah ada ---
         function syncUser() {
             const email = localStorage.getItem("userEmail");
             const isAdmin = localStorage.getItem("adminLoggedIn");
@@ -335,6 +339,8 @@
                         document.getElementById('disp_nama').innerText = d.nama || "User";
                         document.getElementById('disp_komsel').innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
                         monitorEmailInbox(String(d.komsel), email);
+
+                        // --- Bagian foto profil ---
                         if (d.fotoUrl) { 
                             imgElement.src = d.fotoUrl; 
                             imgElement.style.display = "block";
