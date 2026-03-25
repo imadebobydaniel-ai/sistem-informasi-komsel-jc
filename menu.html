@@ -2,7 +2,6 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://www.gstatic.com https://apis.google.com https://www.youtube.com https://s.ytimg.com 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https://www.youtube.com">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Menu Utama - Pondok Pemulihan Papua</title>
     
@@ -104,6 +103,9 @@
 
         .btn-logout { background: var(--biru-tua); color: #fff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block; margin-top: 30px; border: 2px solid var(--emas-lux); }
         #admin-badge { display: none; background: red; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; margin-top: 5px; }
+
+        /* Animation Pop-up */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -130,6 +132,21 @@
             </div>
             <div id="list-pesan">
                 <p style="font-size:12px; color:#999;">Memuat pesan...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="announcementModal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6); align-items:center; justify-content:center;">
+        <div style="background:white; width:90%; max-width:400px; border-radius:15px; overflow:hidden; box-shadow:0 5px 15px rgba(0,0,0,0.3); animation: fadeIn 0.3s;">
+            <div style="background:#003366; color:white; padding:15px; text-align:center; position:relative;">
+                <h3 id="modalTitle" style="margin:0; font-size:1.1rem;">Judul Pesan</h3>
+                <span onclick="closeModal()" style="position:absolute; right:15px; top:12px; cursor:pointer; font-size:1.5rem;">&times;</span>
+            </div>
+            <div style="padding:20px; color:#333; line-height:1.5; max-height:300px; overflow-y:auto;">
+                <p id="modalBody">Memuat isi pesan...</p>
+            </div>
+            <div style="padding:15px; text-align:center; border-top:1px solid #eee;">
+                <button onclick="closeModal()" style="background:#003366; color:white; border:none; padding:10px 25px; border-radius:5px; cursor:pointer; width:100%;">Oke, Saya Mengerti</button>
             </div>
         </div>
     </div>
@@ -214,22 +231,34 @@
         const db = firebase.firestore();
         let ytPlayer; 
 
-        if (Notification.permission !== 'granted') {
-            Notification.requestPermission();
-        }
+        // Fungsi Membuka Pop-up & Ambil Data Firebase
+        function openAnnouncement(id) {
+            const modal = document.getElementById('announcementModal');
+            const title = document.getElementById('modalTitle');
+            const body = document.getElementById('modalBody');
 
-        function handleToggleMute() {
-            if (ytPlayer && typeof ytPlayer.isMuted === 'function') {
-                if (ytPlayer.isMuted()) {
-                    ytPlayer.unMute();
-                    document.getElementById('muteIcon').className = "fa-solid fa-volume-high";
+            modal.style.display = 'flex';
+            body.innerText = "Sedang mengambil detail pesan...";
+
+            db.collection("pengumuman_komsel").doc(id).get().then((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    title.innerText = data.judul;
+                    body.innerHTML = data.isi || data.pesan || "Tidak ada detail pesan.";
                 } else {
-                    ytPlayer.mute();
-                    document.getElementById('muteIcon').className = "fa-solid fa-volume-xmark";
+                    body.innerText = "Maaf, data tidak ditemukan.";
                 }
-            }
+            }).catch((error) => {
+                console.error("Error:", error);
+                body.innerText = "Gagal memuat pesan.";
+            });
         }
 
+        function closeModal() {
+            document.getElementById('announcementModal').style.display = 'none';
+        }
+
+        // Monitoring Inbox
         function monitorEmailInbox(userJC, userEmail) {
             db.collection("pengumuman_komsel")
               .orderBy("timestamp", "desc")
@@ -239,34 +268,6 @@
                 if(!listDiv) return;
                 listDiv.innerHTML = "";
 
-                const hasReadWelcome = localStorage.getItem("welcomeRead_" + userEmail);
-                if (!hasReadWelcome) unreadCount++;
-
-                const welcomeItem = `
-                    <div class="msg-item" onclick="bacaWelcome('${userEmail}')" 
-                         style="${!hasReadWelcome ? 'background:#fff9e6; border-left:4px solid var(--emas-lux); font-weight:bold;' : 'background:#fff; border-left:4px solid #eee;'}">
-                        <b>Selamat Datang! ${!hasReadWelcome ? '<span style="color:red; font-size:9px;">(BARU)</span>' : ''}</b>
-                        <small>Sistem • ${!hasReadWelcome ? 'Belum Dibaca' : 'Sudah Dibaca'}</small>
-                    </div>`;
-                listDiv.innerHTML += welcomeItem;
-
-                snapshot.docChanges().forEach(change => {
-                    if (change.type === "added") {
-                        const data = change.doc.data();
-                        const target = data.target || data.target_jc;
-                        if (target === "Semua JC" || target === userJC) {
-                             const sound = document.getElementById('notifSound');
-                             if(sound) sound.play().catch(e => console.log("Audio play blocked"));
-                             if (Notification.permission === 'granted') {
-                                new Notification("Info JC Baru!", {
-                                    body: data.judul,
-                                    icon: 'logo_pondok.png'
-                                });
-                             }
-                        }
-                    }
-                });
-
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     const target = data.target || data.target_jc; 
@@ -274,6 +275,7 @@
                         const sudahDibaca = data.sudahDibaca || [];
                         const isUnread = !sudahDibaca.includes(userEmail);
                         if (isUnread) unreadCount++;
+                        
                         const itemStyle = isUnread ? "background:#fff9e6; border-left:4px solid var(--emas-lux); font-weight:bold;" : "background:#fff; border-left:4px solid #eee;";
 
                         listDiv.innerHTML += `
@@ -297,24 +299,22 @@
             });
         }
 
-        function bacaWelcome(userEmail) {
-            localStorage.setItem("welcomeRead_" + userEmail, "true");
-            alert("Selamat Datang Di Aplikasi Sistem Informasi Integrasi Komsel JC. Semoga Anda Diberkati.");
-            location.reload(); 
-        }
-
         async function bacaDetailPesan(docId, userEmail) {
             try {
+                // Update status baca di Firebase
                 await db.collection("pengumuman_komsel").doc(docId).update({
                     sudahDibaca: firebase.firestore.FieldValue.arrayUnion(userEmail)
                 });
             } catch (e) { console.error("Gagal update status baca:", e); }
-            window.location.href = "detail-pengumuman.html?id=" + docId;
+            
+            // Panggil Fungsi Pop-up
+            openAnnouncement(docId);
         }
 
         function bukaInbox() { document.getElementById('popup-inbox').style.display = 'flex'; }
         function tutupInbox() { document.getElementById('popup-inbox').style.display = 'none'; }
 
+        // --- Sisanya adalah fungsi bawaan yang sudah ada ---
         function syncUser() {
             const email = localStorage.getItem("userEmail");
             const isAdmin = localStorage.getItem("adminLoggedIn");
@@ -326,8 +326,6 @@
                 document.getElementById('disp_email').innerText = "System Access Active";
                 document.getElementById('admin-badge').style.display = "inline-block";
                 document.getElementById('disp_komsel').innerText = "ALL KOMSEL";
-                imgElement.style.display = "none";
-                iconElement.style.display = "block";
                 monitorEmailInbox("Semua JC", "admin@system.com");
             } else if (email) {
                 document.getElementById('disp_email').innerText = email;
@@ -347,57 +345,6 @@
             }
         }
 
-        function updateMainPlayer(data) {
-            const container = document.getElementById('youtube-player-container'); 
-            const muteBtn = document.getElementById('muteBtn');
-            const tipe = data.tipe ? data.tipe.toLowerCase() : "";
-            muteBtn.style.display = 'none';
-            container.innerHTML = "";
-            
-            if (tipe.includes('video')) {
-                container.innerHTML = `<div id="player"></div>`;
-                initYouTube(extractVideoID(data.url));
-                muteBtn.style.display = 'block';
-            } else if (tipe.includes('audio')) {
-                container.innerHTML = `<div style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg, #003366, #0056b3); color:white; border-radius:20px; padding:20px;"><i class="fa-solid fa-music" style="font-size:50px; margin-bottom:15px; color:var(--emas-lux);"></i><audio controls style="width:100%;"><source src="${data.url}" type="audio/mpeg"></audio></div>`;
-            } else {
-                container.innerHTML = `<img src="${data.url}" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">`;
-            }
-        }
-
-        async function loadMedia() {
-            try {
-                const snapshot = await db.collection("portal_media").orderBy("timestamp", "desc").limit(1).get();
-                if (!snapshot.empty) {
-                    const data = snapshot.docs[0].data();
-                    document.getElementById('newsTitle').innerText = data.judul || "";
-                    document.getElementById('newsLabel').innerText = "BERITA TERKINI";
-                    updateMainPlayer(data);
-                }
-                document.getElementById('running-text').innerText = "Selamat Datang di Sistem Informasi & Integrasi Komsel JC | Digitalisasi Monitoring Pertumbuhan Iman Realtime | Copyright @imadeboby 2026";
-            } catch (e) { console.error("Error loading media:", e); }
-        }
-
-        function extractVideoID(url) {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length == 11) ? match[2] : null;
-        }
-
-        function initYouTube(videoId) {
-            if (typeof YT === 'undefined' || !YT.loaded) {
-                window.onYouTubeIframeAPIReady = () => createPlayer(videoId);
-            } else { createPlayer(videoId); }
-        }
-
-        function createPlayer(videoId) {
-            ytPlayer = new YT.Player('player', {
-                height: '100%', width: '100%', videoId: videoId,
-                playerVars: { 'autoplay': 1, 'mute': 1, 'controls': 0, 'loop': 1, 'playlist': videoId },
-                events: { 'onReady': (e) => e.target.playVideo() }
-            });
-        }
-
         function updateTime() {
             const now = new Date();
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -413,8 +360,7 @@
             updateTime(); 
             setInterval(updateTime, 1000); 
             syncUser(); 
-            loadMedia(); 
-
+            
             const btnToggle = document.getElementById('toggleProfile');
             const profileCard = document.getElementById('profileCard');
             const toggleIcon = document.getElementById('toggleIcon');
