@@ -147,7 +147,6 @@
 
 <script>
     // --- 1. KONFIGURASI FIREBASE ---
-    // GANTI DENGAN CONFIG MILIKMU SENDIRI DARI FIREBASE CONSOLE
     const firebaseConfig = {
         apiKey: "AIzaSy...",
         authDomain: "komsel-jc.firebaseapp.com",
@@ -229,15 +228,30 @@
         const user = document.getElementById('cyberUser').value.trim();
         const pass = document.getElementById('cyberPass').value.trim();
 
-        // CEK MASTER ACCOUNT DULU (Agar tetap bisa masuk jika DB error)
-        if (user === VALID_USERNAME && pass === VALID_PASSWORD) {
+        // Fungsi pembantu untuk sukses login
+        const handleSuccess = (msg) => {
+            // Hapus session lama (member/user biasa) agar tidak bentrok
+            localStorage.clear(); 
+            
+            // Set session khusus ADMIN
             localStorage.setItem("adminLoggedIn", "true");
-            showCyberNotification('success', 'Access Granted', 'Master Admin Verified.');
-            setTimeout(() => { window.location.href = "admin.html"; }, 1500);
+            localStorage.setItem("adminUser", user);
+            
+            showCyberNotification('success', 'Access Granted', msg);
+            
+            // ARAHKAN KE HALAMAN ADMIN
+            setTimeout(() => { 
+                window.location.href = "admin.html"; 
+            }, 1500);
+        };
+
+        // CEK MASTER ACCOUNT
+        if (user === VALID_USERNAME && pass === VALID_PASSWORD) {
+            handleSuccess('Master Administrator Verified.');
             return;
         }
 
-        // CEK DATABASE
+        // CEK DATABASE FIREBASE
         try {
             const snapshot = await db.collection("admins")
                 .where("username", "==", user)
@@ -245,15 +259,13 @@
                 .get();
 
             if (!snapshot.empty) {
-                localStorage.setItem("adminLoggedIn", "true");
-                showCyberNotification('success', 'Access Granted', 'Administrator Verified.');
-                setTimeout(() => { window.location.href = "admin.html"; }, 1500);
+                handleSuccess('Administrator Access Verified.');
             } else {
-                showCyberNotification('error', 'Access Denied', 'Invalid Credentials.');
+                showCyberNotification('error', 'Access Denied', 'Username atau Password salah!');
             }
         } catch (error) {
             console.error(error);
-            showCyberNotification('error', 'System Error', 'Database connection failed.');
+            showCyberNotification('error', 'System Error', 'Gagal terhubung ke Database.');
         }
     });
 </script>
