@@ -3,271 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Admin - Pondok Pemulihan Papua</title>
+    <title>Dashboard Management Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { 
-            --primary: #003366; --accent: #007bff; --dark: #333; 
-            --light: #f4f7f6; --success: #28a745; --emas: #D4AF37; 
-            --danger: #dc3545; --purple: #6f42c1; --orange: #fd7e14;
+        :root {
+            --primary: #003366; --accent: #007bff; --dark: #333;
+            --light: #f4f7f6; --success: #28a745; --danger: #dc3545;
+            --purple: #6f42c1; --orange: #fd7e14;
         }
 
-        body { font-family: 'Segoe UI', sans-serif; background: var(--light); margin: 0; padding: 15px; }
-        .admin-container { max-width: 1500px; margin: auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--light); margin: 0; padding: 20px; }
         
-        /* Header */
-        .header-section { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--emas); padding-bottom: 15px; margin-bottom: 25px; }
-        .header-section h2 { margin: 0; color: var(--primary); font-size: 1.8rem; letter-spacing: 1px; }
+        /* Header Dashboard */
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .dashboard-header h1 { font-size: 24px; color: var(--dark); margin: 0; }
+        .btn-keluar { background-color: var(--danger); color: white; border: none; padding: 8px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; text-decoration: none; }
 
-        /* --- STATISTIK GLOBAL (NEW) --- */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
-        .stat-card { padding: 20px; border-radius: 15px; color: white; display: flex; flex-direction: column; position: relative; overflow: hidden; }
-        .stat-card i { position: absolute; right: 10px; bottom: 10px; font-size: 3rem; opacity: 0.2; }
-        .stat-card h3 { margin: 0; font-size: 12px; text-transform: uppercase; }
-        .stat-card p { margin: 10px 0 0; font-size: 24px; font-weight: bold; }
-        .bg-gradient-blue { background: linear-gradient(135deg, #007bff, #003366); }
-        .bg-gradient-green { background: linear-gradient(135deg, #28a745, #1e7e34); }
-        .bg-gradient-purple { background: linear-gradient(135deg, #6f42c1, #4b2394); }
-        .bg-gradient-orange { background: linear-gradient(135deg, #fd7e14, #d35400); }
+        /* Statistik Cards */
+        .stats-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-box { padding: 20px; border-radius: 12px; color: white; position: relative; }
+        .stat-box h3 { margin: 0; font-size: 12px; text-transform: uppercase; }
+        .stat-box p { margin: 10px 0 0; font-size: 32px; font-weight: bold; }
+        .stat-box i { position: absolute; right: 15px; bottom: 15px; font-size: 40px; opacity: 0.2; }
+        .bg-blue { background-color: #007bff; }
+        .bg-green { background-color: #28a745; }
+        .bg-purple { background-color: #6f42c1; }
+        .bg-orange { background-color: #fd7e14; }
 
-        /* Main Grid */
-        .main-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-        .admin-card { background: white; padding: 20px; border-radius: 15px; border: 1px solid #eee; box-shadow: 0 4px 12px rgba(0,0,0,0.03); margin-bottom: 20px; }
-        .admin-card h3 { color: var(--primary); margin-top: 0; border-bottom: 2px solid #f8f9fa; padding-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        /* Main Grid Layout */
+        .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .card { background: white; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); padding: 20px; margin-bottom: 20px; border: 1px solid #eef0f2; }
+        .card h2 { font-size: 18px; color: var(--primary); margin-top: 0; display: flex; align-items: center; gap: 10px; }
 
-        /* --- ABSENSI GLOBAL (NEW) --- */
-        .absensi-list { max-height: 300px; overflow-y: auto; }
-        .absensi-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #f0f0f0; align-items: center; }
-        .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: bold; color: white; }
-        .pill-hadir { background: var(--success); }
-        .pill-ijin { background: var(--warning); color: #333; }
+        /* Table Database Anggota */
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; padding: 12px; background: #f8f9fa; color: var(--primary); border-bottom: 2px solid #eee; }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+        .btn-delete { color: var(--danger); cursor: pointer; border: none; background: none; }
 
-        /* --- DOA GLOBAL (NEW) --- */
-        .doa-container { background: #fff5f5; border-radius: 12px; padding: 15px; border-left: 5px solid var(--danger); }
-        .doa-scroll { max-height: 250px; overflow-y: auto; margin-top: 10px; }
-        .doa-item { background: white; padding: 12px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .doa-item b { color: var(--danger); font-size: 13px; }
-        .doa-item p { margin: 5px 0; font-size: 12px; font-style: italic; }
+        /* Doa & Konten Monitor */
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; }
+        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; }
+        .btn-submit { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; color: white; margin-top: 10px; }
 
-        /* Form styling */
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 11px; font-weight: bold; margin-bottom: 5px; color: #555; }
-        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
-        .btn-primary { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; width: 100%; font-weight: bold; }
+        /* Absensi Global */
+        .absensi-feed { min-height: 80px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 14px; }
 
-        table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        table th { background: #f8f9fa; padding: 12px; text-align: left; color: var(--primary); border-bottom: 2px solid #eee; }
-        table td { padding: 12px; border-bottom: 1px solid #eee; }
-
-        @media (max-width: 1000px) { .main-layout { grid-template-columns: 1fr; } }
+        @media (max-width: 1024px) { .stats-container { grid-template-columns: repeat(2, 1fr); } .main-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
-<div class="admin-container">
-    <div class="header-section">
-        <h2><i class="fas fa-shield-alt"></i> Portal Administrator</h2>
-        <div style="display:flex; gap:10px;">
-            <button onclick="window.location.reload()" class="btn-primary" style="background:#6c757d; width:auto; padding:8px 15px;"><i class="fas fa-sync"></i> Refresh</button>
-            <a href="login.html" class="btn-primary" style="background:var(--danger); width:auto; text-decoration:none; padding:8px 15px;">Keluar</a>
-        </div>
+    <div class="dashboard-header">
+        <h1>Dashboard Management Admin</h1>
+        <a href="login.html" class="btn-keluar">Keluar</a>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card bg-gradient-blue">
+    <div class="stats-container">
+        <div class="stat-box bg-blue">
             <h3>Total Anggota</h3>
-            <p id="stat_total_anggota">0</p>
+            <p id="total_anggota">10</p>
             <i class="fas fa-users"></i>
         </div>
-        <div class="stat-card bg-gradient-green">
+        <div class="stat-box bg-green">
             <h3>Kehadiran Hari Ini</h3>
-            <p id="stat_hadir">0</p>
+            <p id="total_hadir">0</p>
             <i class="fas fa-calendar-check"></i>
         </div>
-        <div class="stat-card bg-gradient-purple">
+        <div class="stat-box bg-purple">
             <h3>Pokok Doa Aktif</h3>
-            <p id="stat_doa">0</p>
-            <i class="fas fa-hands-praying"></i>
+            <p id="total_doa">0</p>
+            <i class="fas fa-praying-hands"></i>
         </div>
-        <div class="stat-card bg-gradient-orange">
+        <div class="stat-box bg-orange">
             <h3>Total JC (Komsel)</h3>
-            <p id="stat_jc">0</p>
+            <p id="total_jc">3</p>
             <i class="fas fa-church"></i>
         </div>
     </div>
 
-    <div class="main-layout">
-        <div class="left-col">
-            <div class="admin-card">
-                <h3><i class="fas fa-fingerprint" style="color:var(--success)"></i> Absensi Global (Real-Time)</h3>
-                <div class="absensi-list" id="absensiData">
-                    <p style="text-align:center; color:#999; padding:20px;">Memuat data absensi...</p>
+    <div class="main-grid">
+        <div class="left-section">
+            <div class="card">
+                <h2><i class="fas fa-fingerprint" style="color:var(--success)"></i> Absensi Global (Real-Time)</h2>
+                <div class="absensi-feed" id="absensiData">
+                    Belum ada absensi hari ini
                 </div>
             </div>
 
-            <div class="admin-card">
-                <h3><i class="fas fa-database"></i> Database Anggota</h3>
-                <div style="overflow-x:auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Nama</th>
-                                <th>JC</th>
-                                <th>Jabatan</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="memberData"></tbody>
-                    </table>
-                </div>
+            <div class="card">
+                <h2><i class="fas fa-database"></i> Database Anggota</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nama</th>
+                            <th>JC</th>
+                            <th>Jabatan</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="memberData">
+                        </tbody>
+                </table>
             </div>
         </div>
 
-        <div class="right-col">
-            <div class="admin-card">
-                <h3><i class="fas fa-heart" style="color:var(--danger)"></i> Doa Global</h3>
-                <div class="doa-container">
-                    <form id="formDoa">
-                        <div class="form-group">
-                            <label>Tambah Pokok Doa Baru</label>
-                            <textarea id="doa_isi" rows="2" placeholder="Tulis permohonan doa..." required></textarea>
-                        </div>
-                        <button type="submit" class="btn-primary" style="background:var(--danger)">KIRIM DOA</button>
-                    </form>
-                    <div class="doa-scroll" id="doaData">
-                        </div>
+        <div class="right-section">
+            <div class="card">
+                <h2><i class="fas fa-heart" style="color:var(--danger)"></i> Doa Global</h2>
+                <div class="input-group">
+                    <label>Tambah Pokok Doa Baru</label>
+                    <textarea id="doa_input" rows="3" placeholder="Tulis permohonan doa..."></textarea>
                 </div>
+                <button class="btn-submit" style="background-color: var(--danger);">KIRIM DOA</button>
             </div>
 
-            <div class="admin-card">
-                <h3><i class="fas fa-play-circle" style="color:var(--orange)"></i> Konten Monitor</h3>
-                <form id="formAddMedia">
-                    <div class="form-group">
-                        <label>Judul Media</label>
-                        <input type="text" id="m_judul" required>
-                    </div>
-                    <div class="form-group">
-                        <label>URL / Link</label>
-                        <input type="text" id="m_isi" required>
-                    </div>
-                    <button type="submit" class="btn-primary" style="background:var(--orange)">TAMBAH KE MONITOR</button>
-                </form>
+            <div class="card">
+                <h2><i class="fas fa-play-circle" style="color:var(--orange)"></i> Konten Monitor</h2>
+                <div class="input-group">
+                    <label>Judul Media</label>
+                    <input type="text" id="m_judul">
+                </div>
+                <div class="input-group">
+                    <label>URL / Link</label>
+                    <input type="text" id="m_link">
+                </div>
+                <button class="btn-submit" style="background-color: var(--orange);">TAMBAH KE MONITOR</button>
             </div>
         </div>
     </div>
-</div>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script>
+        // Gunakan config Firebase Anda yang sudah ada di proyek Pondok Pemulihan Papua
+        const firebaseConfig = {
+            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+            authDomain: "boby-apps-project.firebaseapp.com",
+            projectId: "boby-apps-project",
+            storageBucket: "boby-apps-project.appspot.com",
+            messagingSenderId: "125984859692",
+            appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+        };
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.firestore();
 
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
-        authDomain: "boby-apps-project.firebaseapp.com",
-        projectId: "boby-apps-project",
-        storageBucket: "boby-apps-project.appspot.com",
-        messagingSenderId: "125984859692",
-        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
-    };
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-    const db = firebase.firestore();
-
-    window.onload = function() {
-        loadStats();
-        loadUsers();
-        loadAbsensi();
-        loadDoa();
-    };
-
-    // --- FITUR STATISTIK GLOBAL ---
-    function loadStats() {
-        db.collection("users").onSnapshot(snap => {
-            document.getElementById("stat_total_anggota").innerText = snap.size;
-            // Contoh logic sederhana untuk jumlah JC unik
-            const jcSet = new Set();
-            snap.forEach(doc => jcSet.add(doc.data().komsel));
-            document.getElementById("stat_jc").innerText = jcSet.size;
-        });
-        db.collection("absensi").where("tanggal", "==", new Date().toISOString().split('T')[0]).onSnapshot(snap => {
-            document.getElementById("stat_hadir").innerText = snap.size;
-        });
-        db.collection("doa_global").onSnapshot(snap => {
-            document.getElementById("stat_doa").innerText = snap.size;
-        });
-    }
-
-    // --- FITUR ABSENSI GLOBAL ---
-    function loadAbsensi() {
-        db.collection("absensi").orderBy("waktu", "desc").limit(10).onSnapshot(snap => {
-            const container = document.getElementById("absensiData");
-            container.innerHTML = "";
-            if(snap.empty) container.innerHTML = "<p style='text-align:center; font-size:12px; color:#999;'>Belum ada absensi hari ini</p>";
-            snap.forEach(doc => {
-                const a = doc.data();
-                container.innerHTML += `
-                    <div class="absensi-item">
-                        <div>
-                            <strong style="font-size:13px;">${a.nama}</strong><br>
-                            <small style="color:#888;">JC ${a.komsel} • ${a.waktu}</small>
-                        </div>
-                        <span class="status-pill pill-hadir">HADIR</span>
-                    </div>`;
+        // Fungsi Load Data Anggota (Sesuai database yang Anda kelola)
+        function loadMembers() {
+            db.collection("users").onSnapshot((snapshot) => {
+                const tbody = document.getElementById("memberData");
+                tbody.innerHTML = "";
+                snapshot.forEach((doc) => {
+                    const d = doc.data();
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><b>${d.nama || '-'}</b></td>
+                            <td>JC ${d.komsel || '-'}</td>
+                            <td>${d.jabatan || '-'}</td>
+                            <td><i class="fas fa-trash btn-delete" onclick="deleteMember('${doc.id}')"></i></td>
+                        </tr>`;
+                });
             });
-        });
-    }
-
-    // --- FITUR DOA GLOBAL ---
-    document.getElementById("formDoa").onsubmit = async (e) => {
-        e.preventDefault();
-        const text = document.getElementById("doa_isi").value;
-        await db.collection("doa_global").add({
-            pengirim: "Admin",
-            isi: text,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        document.getElementById("formDoa").reset();
-    };
-
-    function loadDoa() {
-        db.collection("doa_global").orderBy("timestamp", "desc").onSnapshot(snap => {
-            const container = document.getElementById("doaData");
-            container.innerHTML = "";
-            snap.forEach(doc => {
-                const d = doc.data();
-                container.innerHTML += `
-                    <div class="doa-item">
-                        <b><i class="fas fa-pray"></i> ${d.pengirim}</b>
-                        <p>"${d.isi}"</p>
-                        <small style="font-size:9px; color:#aaa;">${d.timestamp?.toDate().toLocaleString() || 'Baru saja'}</small>
-                        <i class="fas fa-trash" style="float:right; color:#ddd; cursor:pointer;" onclick="deleteDoa('${doc.id}')"></i>
-                    </div>`;
-            });
-        });
-    }
-
-    function deleteDoa(id) { if(confirm("Hapus pokok doa ini?")) db.collection("doa_global").doc(id).delete(); }
-
-    // --- MANAJEMEN USER (EXISTING) ---
-    function loadUsers() {
-        db.collection("users").limit(10).onSnapshot((snapshot) => {
-            const tableBody = document.getElementById("memberData");
-            tableBody.innerHTML = "";
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                tableBody.innerHTML += `
-                    <tr>
-                        <td><b>${data.nama || '-'}</b></td>
-                        <td>JC ${data.komsel || '-'}</td>
-                        <td>${data.jabatan || '-'}</td>
-                        <td>
-                            <i class="fas fa-trash" style="color:red;cursor:pointer" onclick="deleteMember('${doc.id}')"></i>
-                        </td>
-                    </tr>`;
-            });
-        });
-    }
-
-    function deleteMember(id) { if(confirm("Hapus anggota?")) db.collection("users").doc(id).delete(); }
-</script>
+        }
+        window.onload = loadMembers;
+    </script>
 </body>
 </html>
