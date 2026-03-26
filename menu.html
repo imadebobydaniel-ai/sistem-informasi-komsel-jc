@@ -19,7 +19,6 @@
         :root { 
             --biru-tua: #003366; 
             --biru-safir: #0056b3; 
-            --biru-muda: #00e6e6; 
             --hijau-zamrud: #2ecc71; 
             --emas-lux: #D4AF37; 
             --putih-bg: #f4f7fa; 
@@ -32,7 +31,7 @@
         .top-info-bar { background: var(--biru-tua); display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; font-weight: bold; font-size: 11px; border-bottom: 2px solid var(--emas-lux); color: white; }
         
         header { background: var(--biru-tua); border-bottom: 3px solid var(--hijau-zamrud); padding: 12px 0; overflow: hidden; white-space: nowrap; display: flex; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .running-content { display: inline-block; padding-left: 100%; animation: marqueeTop 20s linear infinite; font-weight: 900; font-size: 13px; color: white; text-transform: uppercase; }
+        .running-content { display: inline-block; padding-left: 100%; animation: marqueeTop 30s linear infinite; font-weight: 900; font-size: 13px; color: white; text-transform: uppercase; }
 
         .container { padding: 20px; max-width: 450px; margin: auto; text-align: center; }
         
@@ -43,6 +42,7 @@
 
         #media-display-area { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #000; }
         #other-media { width: 100%; height: 100%; display: none; align-items: center; justify-content: center; color: white; text-align: center; }
+        #other-media img, #other-media video { width: 100%; height: 100%; object-fit: contain; }
 
         .email-btn { position: absolute; top: 15px; right: 15px; cursor: pointer; z-index: 20; }
         .email-icon { font-size: 22px; color: var(--biru-tua); transition: 0.3s; }
@@ -53,16 +53,83 @@
         #list-pesan { flex: 1; overflow-y: auto; padding-right: 5px; margin-top: 10px; }
         .msg-item { display: flex; flex-direction: column; padding: 12px; border-bottom: 1px solid #eee; text-align: left; transition: 0.2s; }
 
-        .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        /* Grid Utama */
+        .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; position: relative; padding-bottom: 80px; /* Beri ruang untuk menu bulat di bawah */ }
+        
+        /* Gaya Menu Kotak Biasa */
         .menu-box { background: white; padding: 20px 10px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--biru-tua); font-weight: 800; font-size: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.05); transition: 0.3s; }
         .menu-box i { font-size: 28px; margin-bottom: 10px; background: linear-gradient(135deg, var(--biru-safir), var(--hijau-zamrud)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        /* === GAYA BARU: MENU BULAT 3D "BARIBUT" === */
+        .special-menu-container {
+            grid-column: 1 / -1; /* Rentangkan di kedua kolom grid */
+            display: flex;
+            justify-content: center;
+            margin-top: -30px; /* Tarik sedikit ke atas agar menyatu */
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .menu-circle-3d {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            text-transform: uppercase;
+            
+            /* Warna Dasar: Campuran Biru Safir & Hijau Zamrud */
+            background: linear-gradient(135deg, #0056b3 0%, #2ecc71 100%);
+            color: white;
+            
+            /* Efek 3D Menggunakan Multiple Shadows */
+            box-shadow: 
+                0 10px 20px rgba(0,0,0,0.3),          /* Bayangan jatuh lembut */
+                inset 0 -5px 10px rgba(0,0,0,0.2),     /* Bayangan dalam bawah (gelap) */
+                inset 0 5px 10px rgba(255,255,255,0.4);/* Bayangan dalam atas (highlight cahaya) */
+            
+            border: 4px solid white; /* Bingkai putih tebal sesuai pola baru */
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        /* Efek Hover/Tekan untuk menambah kesan 3D interaktif */
+        .menu-circle-3d:active {
+            transform: translateY(4px) scale(0.96);
+            box-shadow: 
+                0 5px 10px rgba(0,0,0,0.2),
+                inset 0 -2px 5px rgba(0,0,0,0.2),
+                inset 0 2px 5px rgba(255,255,255,0.3);
+        }
+
+        /* Icon Emoji 3D Besar */
+        .3d-icon-emoji {
+            font-size: 40px;
+            margin-bottom: 2px;
+            display: block;
+            line-height: 1;
+        }
+
+        /* Label Teks Menu Bulat */
+        .circle-label {
+            margin-top: 0;
+            display: block;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
 
         .btn-logout { background: var(--biru-tua); color: #fff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block; margin-top: 30px; border: 2px solid var(--emas-lux); }
         #admin-badge { display: none; background: red; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; margin-top: 5px; }
     </style>
 </head>
 <body>
-
+    
     <div id="modal-logout" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 4000; justify-content: center; align-items: center; padding: 20px;">
         <div style="background: white; width: 100%; max-width: 320px; border-radius: 15px; text-align: center; padding: 20px;">
             <i class="fa-solid fa-right-from-bracket" style="font-size: 40px; color: #dc3545; margin-bottom: 15px;"></i>
@@ -126,12 +193,22 @@
         <div class="menu-grid">
             <a href="profil.html" class="menu-box"><i class="fa-solid fa-user-shield"></i>Profil Saya</a>
             <a href="kehadiran.html" class="menu-box"><i class="fa-solid fa-calendar-check"></i>Kehadiran</a>
+            
             <a href="baca-alkitab.html" class="menu-box"><i class="fa-solid fa-book-bible"></i>Laporan Baca</a>
             <a href="statistik.html" class="menu-box"><i class="fa-solid fa-chart-pie"></i>Statistik</a>
+            
+            <div class="special-menu-container">
+                <a href="chat.html" class="menu-circle-3d">
+                    <span class="3d-icon-emoji">🗣️</span> <span class="circle-label">BARIBUT</span>
+                </a>
+            </div>
+
             <a href="leaderboard.html" class="menu-box"><i class="fa-solid fa-crown"></i>Peringkat JC</a>
             <a href="laporan-komsel.html" class="menu-box"><i class="fa-solid fa-file-signature"></i>Laporan Komsel</a>
+            
             <a href="lacak-domba.html" class="menu-box"><i class="fa-solid fa-map-location-dot"></i>Lacak Domba</a>
             <a href="capaian-doa.html" class="menu-box"><i class="fa-solid fa-hands-praying"></i>Capaian Doa</a>
+            
             <a href="javascript:location.reload()" class="menu-box" style="color: #28a745;"><i class="fa-solid fa-arrows-rotate"></i>Refresh</a>
             <a href="saran.html" class="menu-box"><i class="fa-solid fa-comment-dots"></i>Saran</a>
         </div>
@@ -144,7 +221,6 @@
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
-        // --- KONFIGURASI FIREBASE ---
         const firebaseConfig = { 
             apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
             authDomain: "boby-apps-project.firebaseapp.com", 
@@ -156,9 +232,8 @@
 
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
-        let ytPlayer;
+        let ytPlayer; 
 
-        // --- MULTIMEDIA & RUNNING TEXT LOGIC ---
         function extractYouTubeID(url) {
             if (!url) return null;
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
@@ -166,21 +241,13 @@
             return (match && match[2].length === 11) ? match[2] : null;
         }
 
-        function initMediaAndText() {
+        function onYouTubeIframeAPIReady() {
             db.collection("portal_media").orderBy("urutan", "asc").limit(1).onSnapshot(snapshot => {
                 const otherMedia = document.getElementById('other-media');
                 const ytContainer = document.getElementById('player');
-                const rtElement = document.getElementById('running-text');
 
                 if (!snapshot.empty) {
                     const data = snapshot.docs[0].data();
-                    
-                    // Update Running Text dari field 'keterangan' (atau sesuaikan nama fieldnya)
-                    if (data.keterangan) {
-                        rtElement.innerText = data.keterangan;
-                    }
-
-                    // Handle Media
                     const type = data.tipe || "video_youtube";
                     const content = data.url || "";
 
@@ -191,12 +258,18 @@
                     if (type === "video_youtube" || type === "youtube") {
                         ytContainer.style.display = 'block';
                         playYouTube(content);
-                    } else if (type === "video_player" || type === "video") {
+                    } 
+                    else if (type === "video_player" || type === "video") {
                         otherMedia.style.display = 'flex';
                         otherMedia.innerHTML = `<video src="${content}" autoplay controls style="width:100%; height:100%; object-fit:contain;"></video>`;
-                    } else if (type === "gambar") {
+                    } 
+                    else if (type === "gambar") {
                         otherMedia.style.display = 'flex';
                         otherMedia.innerHTML = `<img src="${content}" style="width:100%; height:100%; object-fit:contain;">`;
+                    } 
+                    else if (type === "teks") {
+                        otherMedia.style.display = 'flex';
+                        otherMedia.innerHTML = `<div style="color:white; padding:20px; font-weight:bold; font-size:16px; text-align:center;">${data.isi_artikel || content}</div>`;
                     }
                 } else {
                     otherMedia.style.display = 'flex';
@@ -207,24 +280,66 @@
 
         function playYouTube(rawUrl) {
             const videoId = extractYouTubeID(rawUrl);
+
             if (videoId) {
                 if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
-                    ytPlayer.loadVideoById({ videoId: videoId });
+                    ytPlayer.loadVideoById({
+                        videoId: videoId,
+                        startSeconds: 0
+                    });
+                    ytPlayer.unMute(); 
                 } else {
                     ytPlayer = new YT.Player('player', {
                         videoId: videoId,
-                        playerVars: { 'autoplay': 1, 'mute': 0, 'controls': 1, 'loop': 1, 'playlist': videoId },
-                        events: { 'onReady': (e) => { e.target.playVideo(); } }
+                        playerVars: { 
+                            'autoplay': 1, 
+                            'mute': 0, 
+                            'controls': 1, 
+                            'loop': 1, 
+                            'playlist': videoId, 
+                            'rel': 0, 
+                            'modestbranding': 1 
+                        },
+                        events: { 
+                            'onReady': (event) => {
+                                event.target.playVideo();
+                                setTimeout(() => { event.target.unMute(); }, 1000);
+                            } 
+                        }
                     });
                 }
+            } else {
+                document.getElementById('player').innerHTML = "<div style='color:white;text-align:center;padding:20px;'>Link YouTube tidak valid</div>";
             }
         }
 
-        // --- USER & INBOX SYNC ---
+        function monitorEmailInbox(userJC, userEmail) {
+            db.collection("pengumuman_komsel").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+                let unreadCount = 0;
+                const listDiv = document.getElementById('list-pesan');
+                if(!listDiv) return;
+                listDiv.innerHTML = "";
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const target = data.target || data.target_jc; 
+                    if (target === "Semua JC" || target === userJC) {
+                        const sudahDibaca = data.sudahDibaca || [];
+                        const isUnread = !sudahDibaca.includes(userEmail);
+                        if (isUnread) unreadCount++;
+                        listDiv.innerHTML += `<div class="msg-item" style="${isUnread ? 'background:#fff9e6; border-left:4px solid var(--emas-lux);' : 'background:#fff;'}"><div class="msg-content-wrapper"><b>${data.judul || 'Pesan'}</b><br><small>${isUnread ? 'Baru' : 'Sudah dibaca'}</small></div></div>`;
+                    }
+                });
+                const badge = document.getElementById('email-badge');
+                if (badge) {
+                    if (unreadCount > 0) { badge.style.display = 'block'; badge.innerText = unreadCount; } 
+                    else { badge.style.display = 'none'; }
+                }
+            });
+        }
+
         function syncUser() {
             const email = localStorage.getItem("userEmail");
             const isAdmin = localStorage.getItem("adminLoggedIn");
-
             if (isAdmin === "true") {
                 document.getElementById('disp_nama').innerText = "Administrator";
                 document.getElementById('admin-badge').style.display = "inline-block";
@@ -237,50 +352,16 @@
                         document.getElementById('disp_nama').innerText = d.nama || "User";
                         document.getElementById('disp_komsel').innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
                         monitorEmailInbox(String(d.komsel), email);
-                        if (d.fotoUrl) {
-                            document.getElementById('user-photo').src = d.fotoUrl;
-                            document.getElementById('user-photo').style.display = "block";
-                            document.getElementById('default-icon').style.display = "none";
+                        if (d.fotoUrl) { 
+                            document.getElementById('user-photo').src = d.fotoUrl; 
+                            document.getElementById('user-photo').style.display = "block"; 
+                            document.getElementById('default-icon').style.display = "none"; 
                         }
                     }
                 });
             }
         }
 
-        function monitorEmailInbox(userJC, userEmail) {
-            db.collection("pengumuman_komsel").orderBy("timestamp", "desc").onSnapshot(snapshot => {
-                let unreadCount = 0;
-                const listDiv = document.getElementById('list-pesan');
-                if(!listDiv) return;
-                listDiv.innerHTML = "";
-                
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const target = data.target || data.target_jc;
-                    if (target === "Semua JC" || target === userJC) {
-                        const sudahDibaca = data.sudahDibaca || [];
-                        const isUnread = !sudahDibaca.includes(userEmail);
-                        if (isUnread) unreadCount++;
-                        
-                        listDiv.innerHTML += `
-                            <div class="msg-item" style="${isUnread ? 'background:#fff9e6; border-left:4px solid var(--emas-lux);' : 'background:#fff;'}">
-                                <b>${data.judul || 'Pesan'}</b>
-                                <span style="font-size:11px; color:#666;">${data.isi || ''}</span>
-                                <small style="margin-top:5px; color:${isUnread ? 'red' : '#999'}; font-weight:bold;">
-                                    ${isUnread ? 'BARU' : 'DIBACA'}
-                                </small>
-                            </div>`;
-                    }
-                });
-                const badge = document.getElementById('email-badge');
-                if (badge) {
-                    badge.style.display = unreadCount > 0 ? 'block' : 'none';
-                    badge.innerText = unreadCount;
-                }
-            });
-        }
-
-        // --- APP UTILITIES ---
         function updateTime() {
             const now = new Date();
             document.getElementById('display-tanggal').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -293,16 +374,15 @@
         function bukaInbox() { document.getElementById('popup-inbox').style.display = 'flex'; }
         function tutupInbox() { document.getElementById('popup-inbox').style.display = 'none'; }
 
-        window.onload = () => {
-            updateTime();
-            setInterval(updateTime, 1000);
-            syncUser();
-            initMediaAndText(); // Memanggil media dan running text
-            
-            document.getElementById('toggleProfile').addEventListener('click', () => {
-                const pc = document.getElementById('profileCard');
-                pc.classList.toggle('closed');
-                document.getElementById('toggleIcon').className = pc.classList.contains('closed') ? "fa-solid fa-chevron-right" : "fa-solid fa-chevron-left";
+        window.onload = () => { 
+            updateTime(); 
+            setInterval(updateTime, 1000); 
+            syncUser(); 
+            const btnToggle = document.getElementById('toggleProfile');
+            const profileCard = document.getElementById('profileCard');
+            btnToggle.addEventListener('click', () => {
+                profileCard.classList.toggle('closed');
+                document.getElementById('toggleIcon').className = profileCard.classList.contains('closed') ? "fa-solid fa-chevron-right" : "fa-solid fa-chevron-left";
             });
         };
     </script>
