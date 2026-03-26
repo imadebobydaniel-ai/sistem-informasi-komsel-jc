@@ -27,17 +27,9 @@
 
         body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--putih-bg); margin: 0; padding: 0; color: #333; overflow-x: hidden; }
         
-        /* Animation */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         @keyframes marqueeTop { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
-
         @keyframes shake { 0% { transform: rotate(0deg); } 10% { transform: rotate(-10deg); } 20% { transform: rotate(10deg); } 30% { transform: rotate(-10deg); } 40% { transform: rotate(10deg); } 50% { transform: rotate(0deg); } }
 
-        /* Utility */
         .top-info-bar { background: var(--biru-tua); display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; font-weight: bold; font-size: 11px; border-bottom: 2px solid var(--emas-lux); color: white; }
         
         header { background: var(--biru-tua); border-bottom: 3px solid var(--hijau-zamrud); padding: 12px 0; overflow: hidden; white-space: nowrap; display: flex; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
@@ -45,29 +37,21 @@
 
         .container { padding: 20px; max-width: 450px; margin: auto; text-align: center; }
         
-        /* Top Section & Slider */
         .top-section-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto 30px auto; height: 220px; overflow: hidden; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); background: #000; }
         .profile-card { position: absolute; width: 100%; height: 100%; background: linear-gradient(145deg, #ffffff, #e6e6e6); border-radius: 25px; z-index: 5; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; align-items: center; justify-content: center; border-top: 4px solid var(--biru-safir); }
         .profile-card.closed { transform: translateX(-100%); }
         .btn-toggle-side { position: absolute; left: 0; top: 50%; transform: translateY(-50%); z-index: 10; background: #ff0000; color: white; border: none; width: 30px; height: 60px; border-radius: 0 15px 15px 0; cursor: pointer; transition: 0.3s; }
 
-        /* Inbox Styling */
         .email-btn { position: absolute; top: 15px; right: 15px; cursor: pointer; z-index: 20; }
         .email-icon { font-size: 22px; color: var(--biru-tua); transition: 0.3s; }
         #email-badge { position: absolute; top: -8px; right: -8px; background: red; color: white; font-size: 10px; padding: 2px 6px; border-radius: 50%; font-weight: bold; display: none; }
-        .vibrate { animation: shake 0.5s infinite; color: var(--emas-lux) !important; }
 
         .popup-inbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center; }
         .inbox-content { background: white; width: 90%; max-width: 380px; border-radius: 20px; padding: 20px; max-height: 80vh; display: flex; flex-direction: column; }
         #list-pesan { flex: 1; overflow-y: auto; padding-right: 5px; margin-top: 10px; }
         .msg-item { display: flex; align-items: center; gap: 10px; padding: 12px; border-bottom: 1px solid #eee; text-align: left; transition: 0.2s; }
         .msg-content-wrapper { flex: 1; cursor: pointer; }
-        .msg-item b { display: block; color: var(--biru-tua); font-size: 14px; }
-        .msg-item small { color: #888; font-size: 11px; }
-        .inbox-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 2px solid #eee; margin-top: 10px; }
-        .btn-delete-selected { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 50px; font-weight: bold; cursor: pointer; font-size: 12px; }
 
-        /* Menu Grid */
         .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         .menu-box { background: white; padding: 20px 10px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--biru-tua); font-weight: 800; font-size: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.05); transition: 0.3s; }
         .menu-box:active { transform: scale(0.95); }
@@ -97,21 +81,9 @@
                 <h3 style="margin:0; color:var(--biru-tua);"><i class="fas fa-envelope-open"></i> Inbox JC</h3>
                 <i class="fas fa-times" onclick="tutupInbox()" style="cursor:pointer; font-size:20px; color:red;"></i>
             </div>
-            
-            <div id="inbox-controls" style="text-align: left; padding: 5px 0; display: flex; align-items: center; gap: 10px;">
-                <input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)">
-                <label for="selectAll" style="font-size: 12px; font-weight: bold;">Pilih Semua</label>
-            </div>
-
-            <div id="list-pesan">
-                <p style="font-size:12px; color:#999;">Memuat pesan...</p>
-            </div>
-
+            <div id="list-pesan"><p style="font-size:12px; color:#999;">Memuat pesan...</p></div>
             <div class="inbox-footer">
                 <span style="font-size: 11px; color: #666;">Pondok Pemulihan Papua</span>
-                <button class="btn-delete-selected" id="btn-hapus-footer" onclick="hapusPesanTerpilih()">
-                    <i class="fas fa-trash"></i> Hapus
-                </button>
             </div>
         </div>
     </div>
@@ -134,7 +106,6 @@
                     <i class="fas fa-envelope email-icon" id="icon-mail"></i>
                     <span id="email-badge">0</span>
                 </div>
-                
                 <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 3px solid var(--emas-lux); background: white; display: flex; align-items: center; justify-content: center;">
                     <i class="fa-solid fa-circle-user" id="default-icon" style="font-size: 70px; color: var(--biru-safir);"></i>
                     <img id="user-photo" src="" style="display: none; width:100%; height:100%; object-fit:cover;">
@@ -150,7 +121,8 @@
             </button>
 
             <div id="media-display-area" style="width: 100%; height: 100%;">
-                <div id="player"></div> </div>
+                <div id="player"></div> 
+            </div>
         </div>
 
         <div class="menu-grid">
@@ -187,24 +159,27 @@
         const db = firebase.firestore();
         let ytPlayer; 
 
-        // --- FUNGSI PEMUTAR YOUTUBE DENGAN AUTO-EXTRACT ID (VERSI TERBARU) ---
+        // --- FUNGSI PEMUTAR YOUTUBE (VERSI FIX OTOMATIS) ---
         function onYouTubeIframeAPIReady() {
+            // Memantau koleksi portal_media secara real-time
             db.collection("portal_media").limit(1).onSnapshot(snapshot => {
                 if (!snapshot.empty) {
                     const data = snapshot.docs[0].data();
                     let rawUrl = data.url || ""; 
                     let videoId = "";
 
-                    // Logika pendeteksi link atau ID
+                    // OTOMATIS: Mengambil ID dari berbagai jenis link YouTube
                     if (rawUrl.includes("v=")) {
                         videoId = rawUrl.split("v=")[1].split("&")[0];
                     } else if (rawUrl.includes("youtu.be/")) {
                         videoId = rawUrl.split("youtu.be/")[1].split("?")[0];
+                    } else if (rawUrl.length === 11) {
+                        videoId = rawUrl; // Jika sudah berupa ID
                     } else {
-                        videoId = rawUrl; 
+                        console.error("Format link YouTube tidak dikenali:", rawUrl);
                     }
                     
-                    if (videoId && videoId !== "") {
+                    if (videoId) {
                         if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
                             ytPlayer.loadVideoById(videoId);
                         } else {
@@ -217,7 +192,7 @@
                                     'mute': 1, 
                                     'loop': 1, 
                                     'playlist': videoId,
-                                    'controls': 0,
+                                    'controls': 1, // Ubah ke 0 jika ingin menyembunyikan tombol play
                                     'rel': 0
                                 },
                                 events: { 
@@ -226,47 +201,34 @@
                             });
                         }
                     }
+                } else {
+                    // Jika koleksi portal_media kosong
+                    document.getElementById('player').innerHTML = "<div style='color:white; padding:20px;'>Belum ada media aktif</div>";
                 }
             });
         }
 
-        // --- FUNGSI INBOX ---
+        // --- FUNGSI INBOX & USER SYNC ---
         function monitorEmailInbox(userJC, userEmail) {
-            localStorage.setItem("userKomsel", userJC);
             db.collection("pengumuman_komsel").orderBy("timestamp", "desc").onSnapshot(snapshot => {
                 let unreadCount = 0;
                 const listDiv = document.getElementById('list-pesan');
                 if(!listDiv) return;
                 listDiv.innerHTML = "";
-                const hasReadWelcome = localStorage.getItem("welcomeRead_" + userEmail);
-                if (!hasReadWelcome) {
-                    unreadCount++;
-                    listDiv.innerHTML += `<div class="msg-item" style="background:#fff9e6; border-left:4px solid var(--emas-lux);"><input type="checkbox" disabled><div class="msg-content-wrapper" onclick="bacaWelcome('${userEmail}')"><b>Selamat Datang!</b><small>Sistem • Belum Dibaca</small></div></div>`;
-                }
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     const target = data.target || data.target_jc; 
-                    if (target === "Semua JC" || target === userJC || (Array.isArray(target) && target.includes(userJC))) {
+                    if (target === "Semua JC" || target === userJC) {
                         const sudahDibaca = data.sudahDibaca || [];
                         const isUnread = !sudahDibaca.includes(userEmail);
                         if (isUnread) unreadCount++;
-                        listDiv.innerHTML += `<div class="msg-item" style="${isUnread ? 'background:#fff9e6; border-left:4px solid var(--emas-lux);' : 'background:#fff;'}"><input type="checkbox" class="msg-checkbox" value="${doc.id}"><div class="msg-content-wrapper" onclick="bacaDetailPesan('${doc.id}', '${userEmail}')"><b>${data.judul}</b><small>Pesan Baru</small></div></div>`;
+                        listDiv.innerHTML += `<div class="msg-item" style="${isUnread ? 'background:#fff9e6; border-left:4px solid var(--emas-lux);' : 'background:#fff;'}"><div class="msg-content-wrapper"><b>${data.judul}</b><small>${isUnread ? 'Pesan Baru' : 'Sudah Dibaca'}</small></div></div>`;
                     }
                 });
                 const badge = document.getElementById('email-badge');
                 if (unreadCount > 0) { badge.style.display = 'block'; badge.innerText = unreadCount; } 
                 else { badge.style.display = 'none'; }
             });
-        }
-
-        async function bacaDetailPesan(docId, userEmail) {
-            await db.collection("pengumuman_komsel").doc(docId).update({ sudahDibaca: firebase.firestore.FieldValue.arrayUnion(userEmail) });
-            const doc = await db.collection("pengumuman_komsel").doc(docId).get();
-            if (doc.exists) {
-                const data = doc.data();
-                const listDiv = document.getElementById('list-pesan');
-                listDiv.innerHTML = `<div style="text-align: left;"><button onclick="monitorEmailInbox('${localStorage.getItem('userKomsel')}', '${userEmail}')">Kembali</button><h3>${data.judul}</h3><p>${data.pesan || data.isi}</p></div>`;
-            }
         }
 
         function syncUser() {
