@@ -3,351 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administrator - Pondok Pemulihan Papua</title>
+    <title>Admin - Kelola Baribut</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { 
-            --primary: #007bff; 
-            --dark: #333; 
-            --light: #f4f7f6; 
-            --success: #28a745; 
-            --info: #17a2b8;
-            --warning: #ffc107;
-            --danger: #dc3545;
+            --biru-tua: #003366; 
+            --biru-safir: #0056b3; 
+            --hijau-zamrud: #2ecc71; 
+            --emas-lux: #D4AF37; 
+            --putih-bg: #f4f7fa; 
         }
 
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            background: var(--light); 
-            margin: 0; 
-            padding: 0; 
-            overflow: hidden; /* Mencegah scroll pada body utama agar freeze working */
+        body { font-family: 'Segoe UI', sans-serif; background: var(--putih-bg); margin: 0; padding: 20px; }
+        h2 { color: var(--biru-tua); text-align: center; border-bottom: 3px solid var(--emas-lux); padding-bottom: 10px; }
+
+        /* TABEL DESKTOP */
+        .table-container { overflow-x: auto; background: white; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { background: var(--biru-tua); color: white; padding: 15px; text-align: left; }
+        td { padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 14px; }
+
+        /* RESPONSIVE MOBILE (Stack Mode) */
+        @media screen and (max-width: 600px) {
+            body { padding: 10px; }
+            table, thead, tbody, th, td, tr { display: block; }
+            thead tr { position: absolute; top: -9999px; left: -9999px; } /* Sembunyikan Header Tabel di HP */
+            tr { background: white; border: 2px solid #ddd; border-radius: 15px; margin-bottom: 15px; padding: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+            td { border: none; position: relative; padding-left: 45%; text-align: left; border-bottom: 1px solid #f9f9f9; }
+            td:before { 
+                position: absolute; left: 15px; width: 40%; font-weight: bold; color: var(--biru-safir);
+                content: attr(data-label); /* Mengambil label dari atribut HTML */
+            }
+            td:last-child { border-bottom: 0; text-align: center; padding-left: 15px; display: flex; justify-content: space-around; margin-top: 10px; }
         }
 
-        /* Container Utama Dashboard */
-        .dashboard-container {
-            height: 100vh; 
-            display: flex;
-            flex-direction: column;
-        }
+        /* Tombol Aksi */
+        .btn-edit { background: var(--biru-safir); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        .btn-delete { background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
 
-        /* 1. FREEZE HEADER (UP) */
-        .header-admin {
-            flex-shrink: 0; /* Header tidak boleh menyusut */
-            background: white;
-            padding: 15px 25px;
-            border-bottom: 2px solid var(--primary);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 1000;
-        }
-
-        .btn-logout { 
-            background: var(--danger); 
-            color: white; 
-            padding: 8px 15px; 
-            border: none;
-            border-radius: 8px; 
-            cursor: pointer;
-            font-weight: bold; 
-            transition: 0.3s;
-        }
-        .btn-logout:hover { background: #c82333; }
-
-        .search-box { position: relative; width: 100%; max-width: 400px; }
-        .search-box input { 
-            width: 100%; 
-            padding: 10px 40px 10px 15px; 
-            border: 1px solid #ddd; 
-            border-radius: 20px; 
-            outline: none; 
-            transition: 0.3s;
-        }
-        .search-box input:focus { border-color: var(--primary); box-shadow: 0 0 5px rgba(0,123,255,0.2); }
-        .search-box i { position: absolute; right: 15px; top: 12px; color: #aaa; }
-
-        /* 2. AREA TENGAH (SCROLLABLE) */
-        .table-scroll-area {
-            flex: 1; 
-            overflow: auto; 
-            background: #f8f9fa;
-        }
-
-        table { 
-            width: 100%; 
-            border-collapse: separate; /* Penting untuk sticky column */
-            border-spacing: 0;
-            min-width: 1500px; 
-            background: white;
-        }
-
-        /* Freeze Header Tabel */
-        table thead th {
-            position: sticky;
-            top: 0;
-            z-index: 20; /* Lebih tinggi dari freeze col */
-            background: var(--primary);
-            color: white;
-            padding: 15px;
-            text-align: left;
-            font-size: 13px;
-            border-bottom: 2px solid #0062cc;
-        }
-
-        table td { 
-            padding: 12px 15px; 
-            border-bottom: 1px solid #eee; 
-            font-size: 13px; 
-            color: var(--dark); 
-        }
-
-        /* 3. FREEZE COLUMN (NK & Checkbox) */
-        /* Kolom Checkbox */
-        .freeze-col-1 { 
-            position: sticky; 
-            left: 0; 
-            z-index: 10; 
-            background: white !important; 
-            min-width: 45px;
-        }
-        /* Kolom NK */
-        .freeze-col-2 { 
-            position: sticky; 
-            left: 45px; 
-            z-index: 10; 
-            background: white !important; 
-            border-right: 2px solid #ddd;
-            min-width: 100px;
-        }
-        
-        /* Header untuk kolom freeze harus tetap biru */
-        th.freeze-col-1, th.freeze-col-2 { z-index: 21 !important; background: var(--primary) !important; }
-
-        /* Row Hover */
-        tbody tr:hover td { background-color: #f1f7ff !important; }
-
-        /* 4. FREEZE BOTTOM BAR */
-        .footer-action-bar {
-            flex-shrink: 0;
-            background: white;
-            padding: 10px 25px;
-            border-top: 2px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-            z-index: 1000;
-        }
-
-        .btn-nav {
-            padding: 6px 12px;
-            border: 1px solid #ddd;
-            background: white;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .btn-nav:hover { background: #f8f9fa; border-color: var(--primary); }
-
-        /* Menu Grid Section */
-        .portal-menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-            gap: 20px;
-            padding: 30px 25px;
-            background: #f1f3f5;
-        }
-
-        .menu-box {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            transition: 0.3s;
-            text-decoration: none;
-            color: inherit;
-            border-bottom: 4px solid transparent;
-        }
-        .menu-box:hover { transform: translateY(-5px); border-bottom-color: var(--primary); }
-        .menu-box i { font-size: 2rem; margin-bottom: 10px; }
-        .menu-box h3 { margin: 0; font-size: 14px; color: var(--dark); }
-
-        #loading-state { padding: 40px; text-align: center; color: var(--primary); font-weight: bold; }
+        /* MODAL FORM EDIT */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 400px; }
+        .modal-content h3 { margin-top: 0; color: var(--biru-tua); }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn-save { background: var(--hijau-zamrud); color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="dashboard-container">
-    
-    <div class="header-admin">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h2 style="margin:0; font-size: 22px; color: var(--primary);"><i class="fas fa-user-shield"></i> Admin Panel</h2>
-                <p style="margin:3px 0 0; color:#777; font-size: 12px;">Pondok Pemulihan Papua • <span id="currentDate"></span></p>
-            </div>
-            <button class="btn-logout" onclick="logout()">
-                <i class="fas fa-sign-out-alt"></i> Keluar
-            </button>
-        </div>
-        <div class="search-box" style="margin-top: 15px;">
-            <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Cari Nama, NK, atau Alamat...">
-            <i class="fas fa-search"></i>
-        </div>
-    </div>
+    <h2><i class="fas fa-user-shield"></i> Management Baribut</h2>
 
-    <div class="table-scroll-area">
-        <div id="loading-state">
-            <i class="fas fa-circle-notch fa-spin fa-2x"></i><br><br>
-            Menghubungkan ke Database...
-        </div>
-        
-        <table id="adminTable" style="display:none;">
+    <div class="table-container">
+        <table>
             <thead>
                 <tr>
-                    <th class="freeze-col-1"><input type="checkbox" id="checkAll"></th>
-                    <th class="freeze-col-2">NK</th>
-                    <th>Nama Anggota</th>
-                    <th>WhatsApp</th>
-                    <th>Email</th>
-                    <th>Password</th>
-                    <th>Alamat</th>
-                    <th>Gol. Darah</th>
-                    <th>Jabatan</th>
-                    <th>JC</th>
-                    <th>Status</th>
+                    <th>Nama</th>
+                    <th>Pesan</th>
+                    <th>Waktu</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
-            <tbody id="memberData">
+            <tbody id="table-body">
                 </tbody>
         </table>
+    </div>
 
-        <div class="portal-menu-grid">
-            <a href="informasi-kegiatan.html" class="menu-box">
-                <i class="fas fa-broadcast-tower" style="color: #e74c3c;"></i>
-                <h3>Info Kegiatan</h3>
-            </a>
-            <a href="statistik.html" class="menu-box">
-                <i class="fas fa-chart-line" style="color: var(--primary);"></i>
-                <h3>Statistik</h3>
-            </a>
-            <a href="absensi.html" class="menu-box">
-                <i class="fas fa-calendar-check" style="color: var(--success);"></i>
-                <h3>Absensi</h3>
-            </a>
-            <a href="portal-media.html" class="menu-box">
-                <i class="fas fa-clapperboard" style="color: var(--warning);"></i>
-                <h3>Portal Media</h3>
-            </a>
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3>Edit Pesan Baribut</h3>
+            <form id="editForm">
+                <input type="hidden" id="edit-id">
+                <div class="form-group">
+                    <label>Nama Pengirim</label>
+                    <input type="text" id="edit-nama" required>
+                </div>
+                <div class="form-group">
+                    <label>Pesan</label>
+                    <textarea id="edit-pesan" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="btn-save">Simpan Perubahan</button>
+                <button type="button" onclick="closeModal()" style="background:none; border:none; color:grey; width:100%; margin-top:10px; cursor:pointer;">Batal</button>
+            </form>
         </div>
     </div>
 
-    <div class="footer-action-bar">
-        <div class="info-data">
-            <i class="fas fa-users"></i> Menampilkan <span id="countData" style="font-weight: bold; color: var(--primary);">0</span> Anggota
-        </div>
-        <div class="pagination-controls">
-            <button class="btn-nav" title="Halaman Sebelumnya"><i class="fas fa-chevron-left"></i></button>
-            <span style="margin: 0 15px; font-size: 13px; font-weight: 600;">Halaman 1</span>
-            <button class="btn-nav" title="Halaman Selanjutnya"><i class="fas fa-chevron-right"></i></button>
-        </div>
-    </div>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-</div>
+    <script>
+        // Config Firebase Anda
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
+            authDomain: "boby-apps-project.firebaseapp.com", 
+            projectId: "boby-apps-project", 
+            storageBucket: "boby-apps-project.appspot.com", 
+            messagingSenderId: "125984859692", 
+            appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
-<script>
-    // Konfigurasi Firebase Boby
-    const firebaseConfig = {
-        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
-        authDomain: "boby-apps-project.firebaseapp.com",
-        projectId: "boby-apps-project",
-        storageBucket: "boby-apps-project.appspot.com",
-        messagingSenderId: "125984859692",
-        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
-    };
-    
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-    const db = firebase.firestore();
-
-    // Tampilkan Tanggal Hari Ini
-    document.getElementById('currentDate').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-    // FUNGSI LOAD DATA DARI FIREBASE
-    async function loadData() {
-        const tableBody = document.getElementById("memberData");
-        const countSpan = document.getElementById("countData");
-        
-        try {
-            // Ambil data dari koleksi "users"
-            const snapshot = await db.collection("users").orderBy("nama", "asc").get();
-            tableBody.innerHTML = "";
-            let count = 0;
-
-            if (snapshot.empty) {
-                tableBody.innerHTML = "<tr><td colspan='12' style='text-align:center;'>Tidak ada data anggota ditemukan.</td></tr>";
-            } else {
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    count++;
-                    tableBody.innerHTML += `
-                        <tr>
-                            <td class="freeze-col-1"><input type="checkbox"></td>
-                            <td class="freeze-col-2"><b>${data.nomor_komsel || '-'}</b></td>
-                            <td>${data.nama || '-'}</td>
-                            <td>${data.whatsapp || '-'}</td>
-                            <td>${data.email || '-'}</td>
-                            <td><small><code>${data.password || '-'}</code></small></td>
-                            <td>${data.alamat || '-'}</td>
-                            <td style="text-align:center">${data.golDarah || '-'}</td>
-                            <td><span class="badge">${data.jabatan || '-'}</span></td>
-                            <td>JC ${data.komsel || '-'}</td>
-                            <td><b style="color:var(--success)">● Aktif</b></td>
-                            <td>
-                                <i class="fas fa-edit" style="cursor:pointer; color:var(--primary); margin-right:12px;" title="Edit"></i>
-                                <i class="fas fa-trash" style="cursor:pointer; color:var(--danger);" title="Hapus"></i>
-                            </td>
-                        </tr>`;
-                });
-            }
-
-            countSpan.innerText = count;
-            document.getElementById("loading-state").style.display = "none";
-            document.getElementById("adminTable").style.display = "table";
-        } catch (e) { 
-            console.error(e);
-            document.getElementById("loading-state").innerHTML = `<span style="color:red">Gagal memuat data: ${e.message}</span>`;
-        }
-    }
-
-    // FUNGSI PENCARIAN REAL-TIME
-    function filterTable() {
-        let input = document.getElementById("searchInput").value.toLowerCase();
-        let rows = document.querySelectorAll("#memberData tr");
-        let visibleCount = 0;
-
-        rows.forEach(row => { 
-            // Mencari di semua teks dalam baris tersebut
-            if(row.innerText.toLowerCase().includes(input)) {
-                row.style.display = "";
-                visibleCount++;
-            } else {
-                row.style.display = "none";
-            }
+        // 1. Ambil Data
+        db.collection("baribut_chat").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = "";
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                const time = d.timestamp ? new Date(d.timestamp.toDate()).toLocaleString('id-ID') : '-';
+                
+                // Perhatikan atribut 'data-label', ini kunci agar tampilan HP rapi
+                tbody.innerHTML += `
+                    <tr>
+                        <td data-label="Nama">${d.nama}</td>
+                        <td data-label="Pesan">${d.pesan}</td>
+                        <td data-label="Waktu">${time}</td>
+                        <td data-label="Aksi">
+                            <button class="btn-edit" onclick="openEdit('${doc.id}', '${d.nama}', '${d.pesan.replace(/'/g, "\\'")}')"><i class="fas fa-edit"></i> Edit</button>
+                            <button class="btn-delete" onclick="deleteMsg('${doc.id}')"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
         });
-        document.getElementById("countData").innerText = visibleCount;
-    }
 
-    function logout() {
-        if(confirm("Apakah Anda yakin ingin keluar?")) {
-            window.location.href = 'login_cyber.html';
+        // 2. Fungsi Buka Modal & Isi Data
+        function openEdit(id, nama, pesan) {
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-nama').value = nama;
+            document.getElementById('edit-pesan').value = pesan;
+            document.getElementById('editModal').style.display = 'flex';
         }
-    }
 
-    window.onload = loadData;
-</script>
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
 
+        // 3. Simpan Perubahan ke Firestore
+        document.getElementById('editForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            const newNama = document.getElementById('edit-nama').value;
+            const newPesan = document.getElementById('edit-pesan').value;
+
+            db.collection("baribut_chat").doc(id).update({
+                nama: newNama,
+                pesan: newPesan
+            }).then(() => {
+                alert("Berhasil diupdate!");
+                closeModal();
+            });
+        });
+
+        // 4. Hapus Pesan
+        function deleteMsg(id) {
+            if(confirm("Yakin mau hapus pesan ini?")) {
+                db.collection("baribut_chat").doc(id).delete();
+            }
+        }
+    </script>
 </body>
 </html>
