@@ -8,7 +8,6 @@
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
     <style>
         :root { --primary: #007bff; --dark: #333; --light: #f4f7f6; --success: #28a745; --danger: #dc3545; }
@@ -18,20 +17,17 @@
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
         input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        textarea { height: 150px; resize: vertical; }
         
-        .progress-container { display: none; width: 100%; background: #e0e0e0; border-radius: 8px; margin: 15px 0; overflow: hidden; }
-        .progress-bar { width: 0%; height: 12px; background: var(--success); transition: width 0.3s; }
-        .progress-text { font-size: 12px; text-align: center; margin-top: 5px; font-weight: bold; }
-
         .btn-send { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-send:disabled { background: #ccc; }
         
-        /* Log Table Style */
-        .log-section { margin-top: 40px; border-top: 2px solid #eee; pt: 20px; }
+        .log-section { margin-top: 40px; border-top: 2px solid #eee; padding-top: 20px; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
         th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
         th { background: #f8f9fa; }
-        .btn-edit { color: var(--primary); cursor: pointer; margin-right: 10px; border: none; background: none; }
-        .btn-delete { color: var(--danger); cursor: pointer; border: none; background: none; }
+        .btn-edit { color: var(--primary); cursor: pointer; border: none; background: none; font-size: 16px; }
+        .btn-delete { color: var(--danger); cursor: pointer; border: none; background: none; font-size: 16px; }
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; color: white; }
     </style>
 </head>
@@ -41,9 +37,10 @@
     <h2><i class="fas fa-bullhorn"></i> Kirim Informasi Kegiatan</h2>
     
     <input type="hidden" id="editId">
+    
     <div class="form-group">
         <label>Judul Pengumuman</label>
-        <input type="text" id="judul" placeholder="Judul...">
+        <input type="text" id="judul" placeholder="Contoh: Jadwal Komsel Minggu Ini">
     </div>
 
     <div class="form-group">
@@ -56,7 +53,7 @@
     </div>
 
     <div class="form-group">
-        <label>Target</label>
+        <label>Target JC</label>
         <select id="targetJC">
             <option value="Semua JC">Semua JC</option>
             <option value="JC1">JC 1</option>
@@ -68,13 +65,8 @@
     </div>
 
     <div class="form-group">
-        <label>Isi Detail</label>
-        <textarea id="detail"></textarea>
-    </div>
-
-    <div id="progressArea" class="progress-container">
-        <div id="progressBar" class="progress-bar"></div>
-        <div id="progressText" class="progress-text">0%</div>
+        <label>Isi Detail Pesan</label>
+        <textarea id="detail" placeholder="Tuliskan detail informasi di sini..."></textarea>
     </div>
 
     <button id="btnSubmit" class="btn-send" onclick="handleSimpan()">
@@ -82,7 +74,7 @@
     </button>
 
     <div class="log-section">
-        <h3><i class="fas fa-history"></i> Log Pengiriman</h3>
+        <h3><i class="fas fa-history"></i> Log Pengiriman Inbox</h3>
         <div style="overflow-x: auto;">
             <table>
                 <thead>
@@ -93,15 +85,14 @@
                         <th>Aksi</th>
                     </tr>
                 </thead>
-                <tbody id="logTableBody">
-                    </tbody>
+                <tbody id="logTableBody"></tbody>
             </table>
         </div>
     </div>
 </div>
 
 <script>
-    // Konfigurasi Firebase (Gunakan milik Anda)
+    // Konfigurasi Firebase Anda
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -113,7 +104,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // 1. TAMPILKAN LOG SECARA REAL-TIME
+    // 1. TAMPILKAN LOG SECARA REAL-TIME (Dari koleksi pengumuman_komsel)
     db.collection("pengumuman_komsel").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
         const tbody = document.getElementById('logTableBody');
         tbody.innerHTML = "";
@@ -135,54 +126,60 @@
         });
     });
 
-    // 2. FUNGSI SIMPAN (TAMBAH / EDIT)
+    // 2. FUNGSI SIMPAN (Sinkron dengan Field User)
     async function handleSimpan() {
         const id = document.getElementById('editId').value;
         const btn = document.getElementById('btnSubmit');
+        
         const data = {
             judul: document.getElementById('judul').value,
             kategori: document.getElementById('kategori').value,
-            detail: document.getElementById('detail').value,
+            isi_pesan: document.getElementById('detail').value, // Label field disamakan: isi_pesan
             target: document.getElementById('targetJC').value,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp() // Tanggal Otomatis
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        if(!data.judul || !data.detail) return alert("Isi semua field!");
+        if(!data.judul || !data.isi_pesan) return alert("Judul dan Isi Detail tidak boleh kosong!");
 
         btn.disabled = true;
         try {
             if(id) {
                 await db.collection("pengumuman_komsel").doc(id).update(data);
-                alert("Data diperbarui!");
+                alert("Informasi berhasil diperbarui!");
             } else {
                 await db.collection("pengumuman_komsel").add(data);
-                alert("Data berhasil dikirim!");
+                alert("Informasi terkirim ke Inbox!");
             }
             resetForm();
-        } catch (e) { alert("Gagal: " + e.message); }
+        } catch (e) { 
+            alert("Gagal: " + e.message); 
+        }
         btn.disabled = false;
     }
 
-    // 3. FUNGSI EDIT (ISI BALIK KE FORM)
+    // 3. FUNGSI EDIT (Memanggil data kembali ke form)
     async function isiFormEdit(id) {
         const doc = await db.collection("pengumuman_komsel").doc(id).get();
         const data = doc.data();
+        
         document.getElementById('editId').value = id;
         document.getElementById('judul').value = data.judul;
         document.getElementById('kategori').value = data.kategori;
-        document.getElementById('detail').value = data.detail;
+        document.getElementById('detail').value = data.isi_pesan; // Membaca label isi_pesan
         document.getElementById('targetJC').value = data.target;
+        
         document.getElementById('btnSubmit').innerHTML = "<i class='fas fa-save'></i> Simpan Perubahan";
         window.scrollTo(0,0);
     }
 
     // 4. FUNGSI HAPUS
     async function hapusLog(id) {
-        if(confirm("Hapus informasi ini?")) {
+        if(confirm("Hapus informasi ini dari Inbox?")) {
             await db.collection("pengumuman_komsel").doc(id).delete();
         }
     }
 
+    // 5. RESET FORM
     function resetForm() {
         document.getElementById('editId').value = "";
         document.getElementById('judul').value = "";
