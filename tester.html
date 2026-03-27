@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Firebase Data Pusher</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</head>
+<body>
+    <button onclick="kirimPesanContoh()" style="padding:20px; background:green; color:white;">
+        KLIK UNTUK ISI DATA PESAN KE FIREBASE
+    </button>
+
+    <script>
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
+            authDomain: "boby-apps-project.firebaseapp.com", 
+            projectId: "boby-apps-project"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        function kirimPesanContoh() {
+            db.collection("pengumuman_komsel").add({
+                judul: "Jadwal Ibadah Minggu Ini",
+                isi: "Shalom! Mengingatkan kembali jadwal ibadah minggu depan jam 09.00 WIT di Pondok Pemulihan.",
+                target: "Semua JC",
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                sudahDibaca: []
+            }).then(() => alert("Data berhasil masuk! Cek menu.html sekarang."));
+        }
+    </script>
+</body>
+</html>
