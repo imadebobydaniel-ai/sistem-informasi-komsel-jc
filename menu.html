@@ -51,71 +51,29 @@
 
         .container { padding: 20px; max-width: 450px; margin: auto; text-align: center; }
         
-        .welcome-modal {
-            display: none; 
-            position: fixed;
-            z-index: 9999;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
+        /* Modal Styles */
+        .welcome-modal, .popup-inbox {
+            display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7); backdrop-filter: blur(4px); justify-content: center; align-items: center;
         }
 
-        .welcome-content {
-            position: relative;
-            background-color: #fff;
-            margin: auto;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 85%;
-            max-width: 400px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            overflow: hidden;
-            animation: slideUp 0.3s ease-out;
+        .inbox-content, .welcome-content {
+            background: white; width: 90%; max-width: 380px; border-radius: 20px; padding: 20px; 
+            max-height: 80vh; overflow-y: auto; position: relative; animation: slideUp 0.3s ease-out;
         }
 
-        @keyframes slideUp {
-            from { transform: translateY(-40%); opacity: 0; }
-            to { transform: translateY(-50%); opacity: 1; }
-        }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        .welcome-header {
-            background-color: var(--biru-tua);
-            color: white;
-            padding: 15px;
-            text-align: center;
+        /* Inbox Items */
+        .msg-item {
+            padding: 15px; border-bottom: 1px solid #eee; text-align: left; cursor: pointer; transition: 0.2s;
+            position: relative; z-index: 10;
         }
-
-        .welcome-body {
-            padding: 20px;
-            text-align: center;
-            color: #333;
-            line-height: 1.5;
-            font-size: 14px;
-        }
-
-        .welcome-footer {
-            padding: 15px;
-            text-align: center;
-            border-top: 1px solid #eee;
-        }
-
-        .btn-ok-welcome {
-            background-color: var(--biru-safir);
-            color: white;
-            border: none;
-            padding: 10px 40px;
-            border-radius: 20px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
+        .msg-item:active { background: #f1f1f1; }
+        .msg-item b { display: block; color: var(--biru-tua); font-size: 14px; }
+        .msg-item small { color: #888; font-size: 11px; }
 
         .top-section-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto 30px auto; height: 220px; overflow: hidden; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); background: #000; }
-        
         .profile-card { 
             position: absolute; width: 100%; height: 100%; 
             background: linear-gradient(145deg, #ffffff, #e6e6e6); 
@@ -127,74 +85,36 @@
         .profile-card.closed { transform: translateX(-100%); }
 
         .email-btn { position: absolute; top: 15px; right: 15px; cursor: pointer; z-index: 20; }
-        .email-icon { font-size: 22px; color: var(--biru-tua); transition: 0.3s; }
+        .email-icon { font-size: 24px; color: var(--biru-tua); }
         #email-badge {
             position: absolute; top: -8px; right: -8px; background: red; color: white;
             font-size: 10px; padding: 2px 6px; border-radius: 50%; font-weight: bold; display: none;
         }
-        @keyframes shake {
-            0% { transform: rotate(0deg); } 10% { transform: rotate(-10deg); } 20% { transform: rotate(10deg); }
-            30% { transform: rotate(-10deg); } 40% { transform: rotate(10deg); } 50% { transform: rotate(0deg); }
-        }
-        .vibrate { animation: shake 0.5s infinite; color: var(--emas-lux) !important; }
-
-        .popup-inbox {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center;
-        }
-        .inbox-content {
-            background: white; width: 90%; max-width: 380px; border-radius: 20px; padding: 20px; max-height: 80vh; overflow-y: auto;
-        }
-        .msg-item {
-            padding: 12px; border-bottom: 1px solid #eee; text-align: left; cursor: pointer; transition: 0.2s;
-        }
-        .msg-item:hover { background: #f1f1f1; }
-        .msg-item b { display: block; color: var(--biru-tua); font-size: 14px; }
-        .msg-item small { color: #888; font-size: 11px; }
+        @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } }
+        .vibrate { animation: shake 0.3s infinite; color: var(--emas-lux) !important; }
 
         .btn-toggle-side { 
             position: absolute; left: 0; top: 50%; transform: translateY(-50%); 
             z-index: 10; background: #ff0000; color: white; border: none; 
             width: 30px; height: 60px; border-radius: 0 15px 15px 0; 
-            cursor: pointer; transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
+            cursor: pointer; transition: 0.6s; 
         }
-        .profile-card.closed ~ .btn-toggle-side { left: 0; }
-        .news-slider { width: 100%; height: 100%; background: var(--biru-tua); position: relative; z-index: 1; }
 
         .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        .menu-box { background: white; padding: 20px 10px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--biru-tua); font-weight: 800; font-size: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.05); transition: 0.3s; }
-        .menu-box:active { transform: scale(0.95); }
-        .menu-box i { font-size: 28px; margin-bottom: 10px; background: linear-gradient(135deg, var(--biru-safir), var(--hijau-zamrud)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-        .btn-logout { background: var(--biru-tua); color: #fff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block; margin-top: 30px; border: 2px solid var(--emas-lux); }
-        #admin-badge { display: none; background: red; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; margin-top: 5px; }
+        .menu-box { background: white; padding: 20px 10px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--biru-tua); font-weight: 800; font-size: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.05); }
+        .menu-box i { font-size: 28px; margin-bottom: 10px; color: var(--biru-safir); }
         
-        #player:empty { display: none; }
+        .btn-logout { background: var(--biru-tua); color: #fff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 30px; border: 2px solid var(--emas-lux); }
+        #admin-badge { display: none; background: red; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; margin-top: 5px; }
     </style>
 </head>
 <body>
 
     <div id="welcomePopup" class="welcome-modal">
-        <div class="welcome-content">
-            <div class="welcome-header"><h3 style="margin:0;">Pesan Sistem</h3></div>
-            <div class="welcome-body">
-                <p>Selamat Datang Di Aplikasi Sistem Informasi Integrasi Komsel JC. Semoga Anda Diberkati Dengan Adanya Aplikasi Ini. Tuhan Yesus Memberkati.</p>
-            </div>
-            <div class="welcome-footer">
-                <button onclick="closeWelcomePopup()" class="btn-ok-welcome">OK</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-logout" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 4000; justify-content: center; align-items: center; padding: 20px;">
-        <div style="background: white; width: 100%; max-width: 320px; border-radius: 15px; text-align: center; padding: 20px;">
-            <i class="fa-solid fa-right-from-bracket" style="font-size: 40px; color: #dc3545; margin-bottom: 15px;"></i>
-            <h3 style="margin: 0;">Konfirmasi Keluar</h3>
-            <p style="font-size: 14px; color: #666; margin-bottom: 20px;">Apakah Anda yakin ingin keluar?</p>
-            <div style="display: flex; gap: 10px;">
-                <button onclick="closeLogoutModal()" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd; background: white;">Batal</button>
-                <button onclick="executeLogout()" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: #dc3545; color: white; font-weight: bold;">Keluar</button>
-            </div>
+        <div class="welcome-content" style="text-align:center;">
+            <div style="background:var(--biru-tua); color:white; padding:15px; margin:-20px -20px 20px -20px; border-radius:15px 15px 0 0;"><h3>Pesan Sistem</h3></div>
+            <p>Selamat Datang Di Aplikasi Sistem Informasi Integrasi Komsel JC. Semoga Anda Diberkati. Tuhan Yesus Memberkati.</p>
+            <button onclick="closeWelcomePopup()" style="background:var(--biru-safir); color:white; border:none; padding:10px 30px; border-radius:20px; font-weight:bold; cursor:pointer;">OK</button>
         </div>
     </div>
 
@@ -210,7 +130,7 @@
             </div>
             
             <div id="detail-pesan-konten" style="display: none; text-align: left;">
-                <button onclick="kembaliKeList()" style="background: #eee; border: none; color: #333; cursor: pointer; padding: 5px 10px; border-radius: 5px; margin-bottom: 10px; font-size: 12px;">
+                <button onclick="kembaliKeList()" style="background: #eee; border: none; padding: 5px 10px; border-radius: 5px; margin-bottom: 10px; font-size: 12px; cursor: pointer;">
                     <i class="fas fa-arrow-left"></i> Kembali
                 </button>
                 <h4 id="detail-judul" style="margin: 5px 0; color: var(--biru-tua);"></h4>
@@ -221,12 +141,12 @@
     </div>
 
     <div class="top-info-bar">
-        <div id="display-tanggal">Memuat Tanggal...</div>
+        <div id="display-tanggal">Memuat...</div>
         <div id="digital-clock">00:00:00 WIT</div>
     </div>
 
     <header>
-        <div id="running-text" class="running-content">Memuat data sistem...</div>
+        <div id="running-text" class="running-content">Portal Komsel JC Pondok Pemulihan Papua...</div>
     </header>
 
     <div class="container">
@@ -238,9 +158,9 @@
                     <i class="fas fa-envelope email-icon" id="icon-mail"></i>
                     <span id="email-badge">0</span>
                 </div>
-                <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 3px solid var(--emas-lux); background: white; display: flex; align-items: center; justify-content: center;">
-                    <i class="fa-solid fa-circle-user" id="default-icon" style="font-size: 70px; color: var(--biru-safir);"></i>
+                <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 3px solid var(--emas-lux); background: white;">
                     <img id="user-photo" src="" style="display: none; width:100%; height:100%; object-fit:cover;">
+                    <i class="fa-solid fa-circle-user" id="default-icon" style="font-size: 70px; color: var(--biru-safir);"></i>
                 </div>
                 <h2 id="disp_nama" style="margin: 5px 0 0 0; font-size: 18px;">Memuat...</h2>
                 <div id="admin-badge">ADMIN ACCESS</div>
@@ -250,15 +170,8 @@
 
             <button id="toggleProfile" class="btn-toggle-side"><i class="fa-solid fa-chevron-left" id="toggleIcon"></i></button>
 
-            <div id="media-display-area" class="news-slider">
+            <div id="media-display-area" style="width:100%; height:100%; background:#000;">
                 <div id="youtube-player-container" style="width: 100%; height: 100%;"><div id="player"></div></div>
-                <div id="newsOverlay" style="position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 10px; text-align: left; color: white; z-index: 2; pointer-events: none;">
-                    <small id="newsLabel" style="color: #ffc107; font-weight: bold;"></small>
-                    <h3 id="newsTitle" style="margin: 0; font-size: 14px;"></h3>
-                </div>
-                <div id="muteBtn" onclick="handleToggleMute()" style="display:none; position: absolute; bottom: 50px; right: 15px; z-index: 10; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 50%; color: white; cursor: pointer;">
-                    <i class="fa-solid fa-volume-xmark" id="muteIcon"></i>
-                </div>
             </div>
         </div>
 
@@ -266,16 +179,10 @@
             <a href="profil.html" class="menu-box"><i class="fa-solid fa-user-shield"></i>Profil Saya</a>
             <a href="kehadiran.html" class="menu-box"><i class="fa-solid fa-calendar-check"></i>Kehadiran</a>
             <a href="baca-alkitab.html" class="menu-box"><i class="fa-solid fa-book-bible"></i>Laporan Baca</a>
-            <a href="statistik.html" class="menu-box"><i class="fa-solid fa-chart-pie"></i>Statistik</a>
             <a href="leaderboard.html" class="menu-box"><i class="fa-solid fa-crown"></i>Peringkat JC</a>
-            <a href="laporan-komsel.html" class="menu-box"><i class="fa-solid fa-file-signature"></i>Laporan Komsel</a>
-            <a href="lacak-domba.html" class="menu-box"><i class="fa-solid fa-map-location-dot"></i>Lacak Domba</a>
-            <a href="capaian-doa.html" class="menu-box"><i class="fa-solid fa-hands-praying"></i>Capaian Doa</a>
-            <a href="javascript:location.reload()" class="menu-box" style="color: #28a745;"><i class="fa-solid fa-arrows-rotate"></i>Refresh</a>
-            <a href="saran.html" class="menu-box"><i class="fa-solid fa-comment-dots"></i>Saran</a>
         </div>
 
-        <a href="javascript:void(0)" onclick="confirmLogout()" class="btn-logout"><i class="fa-solid fa-power-off"></i> Keluar</a>
+        <a href="#" onclick="executeLogout()" class="btn-logout"><i class="fa-solid fa-power-off"></i> Keluar</a>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -293,18 +200,11 @@
         };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        let ytPlayer; 
+        let ytPlayer;
 
-        function closeWelcomePopup() {
-            document.getElementById('welcomePopup').style.display = 'none';
-            sessionStorage.setItem('welcomeShown', 'true');
-        }
-
-        // --- MONITOR INBOX ---
+        // --- FUNGSI INBOX ---
         function monitorEmailInbox(userJC, userEmail) {
-            db.collection("pengumuman_komsel")
-              .orderBy("timestamp", "desc")
-              .onSnapshot(snapshot => {
+            db.collection("pengumuman_komsel").orderBy("timestamp", "desc").onSnapshot(snapshot => {
                 let unreadCount = 0;
                 const listDiv = document.getElementById('list-pesan');
                 if(!listDiv) return;
@@ -312,181 +212,127 @@
 
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    const target = data.target || data.target_jc; 
-                    if (target === "Semua JC" || target === userJC || (Array.isArray(target) && target.includes(userJC))) {
+                    const target = data.target || data.target_jc;
+                    if (target === "Semua JC" || target === String(userJC)) {
                         const sudahDibaca = data.sudahDibaca || [];
                         const isUnread = !sudahDibaca.includes(userEmail);
                         if (isUnread) unreadCount++;
 
-                        const itemStyle = isUnread 
-                            ? "background:#fff9e6; border-left:4px solid var(--emas-lux); font-weight:bold;" 
-                            : "background:#fff; border-left:4px solid #eee;";
-
-                        listDiv.innerHTML += `
-                            <div class="msg-item" onclick="bacaDetailPesan('${doc.id}', '${userEmail}')" style="${itemStyle}">
-                                <b>${data.judul} ${isUnread ? '<span style="color:red; font-size:9px;">(BARU)</span>' : ''}</b>
-                                <small>${data.timestamp ? data.timestamp.toDate().toLocaleDateString('id-ID') : '-'} • ${isUnread ? 'Belum Dibaca' : 'Sudah Dibaca'}</small>
-                            </div>`;
+                        const item = document.createElement('div');
+                        item.className = 'msg-item';
+                        item.style.background = isUnread ? '#fff9e6' : '#fff';
+                        item.innerHTML = `
+                            <b>${data.judul} ${isUnread ? '<span style="color:red; font-size:10px;">(BARU)</span>' : ''}</b>
+                            <small>${data.timestamp ? data.timestamp.toDate().toLocaleDateString('id-ID') : '-'}</small>
+                        `;
+                        item.onclick = () => bacaDetailPesan(doc.id, userEmail);
+                        listDiv.appendChild(item);
                     }
                 });
 
-                const icon = document.getElementById('icon-mail');
                 const badge = document.getElementById('email-badge');
+                const icon = document.getElementById('icon-mail');
                 if (unreadCount > 0) {
-                    icon.classList.add('vibrate');
-                    badge.style.display = 'block';
                     badge.innerText = unreadCount;
+                    badge.style.display = 'block';
+                    icon.classList.add('vibrate');
                 } else {
-                    icon.classList.remove('vibrate');
                     badge.style.display = 'none';
+                    icon.classList.remove('vibrate');
                 }
             });
         }
 
-       async function bukaDetailPesan(docId, userEmail) {
-    try {
-        const doc = await db.collection("pengumuman_komsel").doc(docId).get();
-        if (doc.exists) {
-            const data = doc.data();
-            console.log("Data diterima dari Firebase:", data); // Cek di Inspect Element -> Console
+        async function bacaDetailPesan(docId, userEmail) {
+            try {
+                const doc = await db.collection("pengumuman_komsel").doc(docId).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    // Mencari isi pesan di berbagai kemungkinan nama kolom
+                    const isiPesan = data.isiDetail || data.isi || data.pesan || "Pesan tidak memiliki isi.";
+                    
+                    document.getElementById('detail-judul').innerText = data.judul || "Tanpa Judul";
+                    document.getElementById('detail-isi').innerText = isiPesan;
 
-            // Mencari isi pesan di berbagai kemungkinan nama field
-            const isiPesan = data.isiDetail || data.isi || data.pesan || data.content || "Isi pesan tidak ditemukan di database.";
+                    await db.collection("pengumuman_komsel").doc(docId).update({
+                        sudahDibaca: firebase.firestore.FieldValue.arrayUnion(userEmail)
+                    });
 
-            document.getElementById('detail-judul').innerText = data.judul || "Tanpa Judul";
-            document.getElementById('detail-isi').innerText = isiPesan;
-
-            // Update status baca
-            await db.collection("pengumuman_komsel").doc(docId).update({
-                sudahDibaca: firebase.firestore.FieldValue.arrayUnion(userEmail)
-            });
-
-            document.getElementById('list-pesan').style.display = "none";
-            document.getElementById('detail-pesan-konten').style.display = "block";
+                    document.getElementById('list-pesan').style.display = "none";
+                    document.getElementById('detail-pesan-konten').style.display = "block";
+                    document.getElementById('inbox-title').innerText = "Isi Pesan";
+                }
+            } catch (e) { console.error(e); }
         }
-    } catch (e) {
-        console.error("Error detail pesan:", e);
-    }
-}
+
         function kembaliKeList() {
             document.getElementById('list-pesan').style.display = "block";
             document.getElementById('detail-pesan-konten').style.display = "none";
-            document.getElementById('inbox-title').innerHTML = '<i class="fas fa-envelope-open"></i> Inbox JC';
+            document.getElementById('inbox-title').innerText = "Inbox JC";
         }
 
         function bukaInbox() { document.getElementById('popup-inbox').style.display = 'flex'; }
-        function tutupInbox() { 
-            document.getElementById('popup-inbox').style.display = 'none'; 
-            kembaliKeList(); 
-        }
+        function tutupInbox() { document.getElementById('popup-inbox').style.display = 'none'; kembaliKeList(); }
 
-        // --- SYNC DATA USER & PHOTO ---
+        // --- SYNC USER ---
         function syncUser() {
             const email = localStorage.getItem("userEmail");
             const isAdmin = localStorage.getItem("adminLoggedIn");
-            const imgElement = document.getElementById('user-photo');
-            const iconElement = document.getElementById('default-icon');
-
             if (isAdmin === "true") {
                 document.getElementById('disp_nama').innerText = "Administrator";
-                document.getElementById('disp_email').innerText = "System Access Active";
                 document.getElementById('admin-badge').style.display = "inline-block";
-                document.getElementById('disp_komsel').innerText = "ALL KOMSEL";
                 monitorEmailInbox("Semua JC", "admin@system.com");
             } else if (email) {
-                document.getElementById('disp_email').innerText = email;
                 db.collection("users").where("email", "==", email).onSnapshot(s => {
                     if (!s.empty) {
                         const d = s.docs[0].data();
-                        document.getElementById('disp_nama').innerText = d.nama || "User";
-                        document.getElementById('disp_komsel').innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
-                        monitorEmailInbox(String(d.komsel), email);
-                        if (d.fotoUrl) { 
-                            imgElement.src = d.fotoUrl; 
-                            imgElement.style.display = "block";
-                            iconElement.style.display = "none";
+                        document.getElementById('disp_nama').innerText = d.nama;
+                        document.getElementById('disp_email').innerText = email;
+                        document.getElementById('disp_komsel').innerText = "JC " + d.komsel;
+                        if (d.fotoUrl) {
+                            document.getElementById('user-photo').src = d.fotoUrl;
+                            document.getElementById('user-photo').style.display = "block";
+                            document.getElementById('default-icon').style.display = "none";
                         }
+                        monitorEmailInbox(String(d.komsel), email);
                     }
                 });
             }
         }
 
-        // --- MEDIA & WAKTU ---
-        async function loadMedia() {
-            try {
-                const snapshot = await db.collection("portal_media").orderBy("timestamp", "desc").limit(1).get();
-                if (!snapshot.empty) {
-                    const data = snapshot.docs[0].data();
-                    document.getElementById('newsTitle').innerText = data.judul || "";
-                    document.getElementById('newsLabel').innerText = "BERITA TERKINI";
-                    updateMainPlayer(data);
+        // --- YOUTUBE PLAYER ---
+        function onYouTubeIframeAPIReady() {
+            db.collection("portal_media").orderBy("timestamp", "desc").limit(1).get().then(s => {
+                if(!s.empty) {
+                    const url = s.docs[0].data().url;
+                    const vidId = url.split('v=')[1]?.split('&')[0] || url.split('/').pop();
+                    ytPlayer = new YT.Player('player', {
+                        height: '100%', width: '100%', videoId: vidId,
+                        playerVars: { 'autoplay': 1, 'mute': 1, 'loop': 1, 'playlist': vidId },
+                        events: { 'onReady': (e) => e.target.playVideo() }
+                    });
                 }
-                document.getElementById('running-text').innerText = "Selamat Datang di Sistem Informasi & Integrasi Komsel JC | Digitalisasi Monitoring Pertumbuhan Iman Realtime | Copyright @imadeboby 2026";
-            } catch (e) { console.error("Error loading media:", e); }
-        }
-
-        function updateMainPlayer(data) {
-            const container = document.getElementById('youtube-player-container'); 
-            const vidId = extractVideoID(data.url);
-            container.innerHTML = "";
-            if (vidId) {
-                container.innerHTML = `<div id="player"></div>`;
-                initYouTube(vidId);
-            } else {
-                container.innerHTML = `<img src="${data.url}" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">`;
-            }
-        }
-
-        function extractVideoID(url) {
-            if(!url) return null;
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length == 11) ? match[2] : null;
-        }
-
-        function initYouTube(videoId) {
-            if (typeof YT === 'undefined' || !YT.loaded) {
-                window.onYouTubeIframeAPIReady = () => createPlayer(videoId);
-            } else { createPlayer(videoId); }
-        }
-
-        function createPlayer(videoId) {
-            ytPlayer = new YT.Player('player', {
-                height: '100%', width: '100%', videoId: videoId,
-                playerVars: { 'autoplay': 1, 'mute': 1, 'controls': 0, 'loop': 1, 'playlist': videoId },
-                events: { 'onReady': (e) => e.target.playVideo() }
             });
         }
 
-        function updateTime() {
-            const now = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('display-tanggal').innerText = now.toLocaleDateString('id-ID', options);
-            document.getElementById('digital-clock').innerText = now.toLocaleTimeString('id-ID', { hour12: false }) + " WIT";
-        }
-
-        function confirmLogout() { document.getElementById('modal-logout').style.display = 'flex'; }
-        function closeLogoutModal() { document.getElementById('modal-logout').style.display = 'none'; }
+        function closeWelcomePopup() { document.getElementById('welcomePopup').style.display = 'none'; sessionStorage.setItem('welcomeShown', 'true'); }
         function executeLogout() { localStorage.clear(); window.location.href = "login.html"; }
 
-        window.onload = () => { 
-            updateTime(); 
-            setInterval(updateTime, 1000); 
-            syncUser(); 
-            loadMedia(); 
+        window.onload = () => {
+            syncUser();
+            if (!sessionStorage.getItem('welcomeShown')) document.getElementById('welcomePopup').style.display = 'flex';
+            
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById('display-tanggal').innerText = now.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+                document.getElementById('digital-clock').innerText = now.toLocaleTimeString('id-ID') + " WIT";
+            }, 1000);
 
-            if (!sessionStorage.getItem('welcomeShown')) {
-                document.getElementById('welcomePopup').style.display = 'block';
-            }
-
-            const btnToggle = document.getElementById('toggleProfile');
-            const profileCard = document.getElementById('profileCard');
-            const toggleIcon = document.getElementById('toggleIcon');
-
-            btnToggle.addEventListener('click', () => {
-                profileCard.classList.toggle('closed');
-                toggleIcon.className = profileCard.classList.contains('closed') ? "fa-solid fa-chevron-right" : "fa-solid fa-chevron-left";
-            });
+            document.getElementById('toggleProfile').onclick = () => {
+                const card = document.getElementById('profileCard');
+                card.classList.toggle('closed');
+                document.getElementById('toggleIcon').className = card.classList.contains('closed') ? "fa-solid fa-chevron-right" : "fa-solid fa-chevron-left";
+            };
         };
     </script>
 </body>
