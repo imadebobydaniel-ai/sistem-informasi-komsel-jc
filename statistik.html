@@ -136,6 +136,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
+// --- KONFIGURASI FIREBASE ---
 const firebaseConfig = {
     apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
     authDomain: "boby-apps-project.firebaseapp.com",
@@ -147,12 +148,15 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// --- FUNGSI UTAMA: SINKRONISASI CAPAIAN BACA (VERSI PRESISI) ---
 function syncCapaianRealtime() {
     const selKomselRaw = document.getElementById('select-komsel-alkitab').value;
     const selKomselAngka = parseInt(selKomselRaw.replace(/\D/g, "")).toString();
     const periodeBulan = parseInt(document.getElementById('select-periode-alkitab').value);
     
+    // MENGATUR LIMIT WAKTU YANG PRESISI
     const limitFilter = new Date();
+    limitFilter.setHours(0, 0, 0, 0); 
     limitFilter.setMonth(limitFilter.getMonth() - periodeBulan);
 
     const targetStandar = 100;
@@ -167,31 +171,42 @@ function syncCapaianRealtime() {
                 const d = doc.data();
                 if (!d.email) return;
 
-                const userEmail = d.email;
+                // Normalisasi Data
+                const userEmail = d.email.toLowerCase().trim();
                 const jcLaporan = String(d.komsel || d.jc || "").replace(/\D/g, "");
 
+                // 1. Tambahkan ke Global
                 doneGlobal.add(userEmail);
 
+                // 2. Tambahkan ke Komsel jika Cocok
                 if (parseInt(jcLaporan).toString() === selKomselAngka) {
                     doneKomsel.add(userEmail);
                 }
             });
 
+            // Perhitungan Persentase
             const persenKomsel = ((doneKomsel.size / targetStandar) * 100).toFixed(1);
             const persenGlobal = ((doneGlobal.size / targetStandar) * 100).toFixed(1);
 
-            const textKomselEl = document.getElementById('text-capaian-komsel');
-            const barKomselEl = document.getElementById('bar-capaian-komsel');
-            if(textKomselEl) textKomselEl.innerText = persenKomsel + "%";
-            if(barKomselEl) barKomselEl.style.width = Math.min(persenKomsel, 100) + "%";
+            // Update UI menggunakan fungsi helper
+            updateProgressBar('text-capaian-komsel', 'bar-capaian-komsel', persenKomsel);
+            updateProgressBar('text-capaian-global', 'bar-capaian-global', persenGlobal);
             
-            const textGlobalEl = document.getElementById('text-capaian-global');
-            const barGlobalEl = document.getElementById('bar-capaian-global');
-            if(textGlobalEl) textGlobalEl.innerText = persenGlobal + "%";
-            if(barGlobalEl) barGlobalEl.style.width = Math.min(persenGlobal, 100) + "%";
+            console.log(`Update: Komsel ${selKomselAngka} (${doneKomsel.size}), Global (${doneGlobal.size})`);
+        }, error => {
+            console.error("Error pada sinkronisasi data:", error);
         });
 }
 
+// Fungsi pembantu untuk Update UI
+function updateProgressBar(textId, barId, value) {
+    const textEl = document.getElementById(textId);
+    const barEl = document.getElementById(barId);
+    if(textEl) textEl.innerText = value + "%";
+    if(barEl) barEl.style.width = Math.min(value, 100) + "%";
+}
+
+// --- FUNGSI GOLONGAN DARAH ---
 function syncGoldarRealtime() {
     const filter = document.getElementById('select-komsel-goldar').value.trim();
     db.collection("users").onSnapshot(snap => {
@@ -218,6 +233,7 @@ function syncGoldarRealtime() {
     });
 }
 
+// --- FUNGSI DOA (SLA) ---
 function syncDoaRealtime() {
     const selKomsel = document.getElementById('select-komsel-doa').value.trim();
     db.collection("laporan_doa").onSnapshot(snap => {
@@ -244,6 +260,7 @@ function syncDoaRealtime() {
     });
 }
 
+// --- MODAL DETAIL USER ---
 function openUserDetail(type, data) {
     const list = document.getElementById('modal-list-user');
     document.getElementById('modal-title').innerText = "Golongan Darah " + type;
@@ -267,6 +284,7 @@ function openUserDetail(type, data) {
     document.getElementById('modal-goldar').style.display = 'flex';
 }
 
+// INISIALISASI
 window.onload = () => {
     syncCapaianRealtime();
     syncGoldarRealtime();
