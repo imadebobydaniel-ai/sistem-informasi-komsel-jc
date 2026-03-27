@@ -38,14 +38,16 @@
 
 <div class="mobile-wrapper">
     <div class="card">
-        <div class="card-header"><i class="fa-solid fa-earth-americas"></i> BACA ALKITAB</div>
+        <div class="card-header"><i class="fa-solid fa-book-bible"></i> BACA ALKITAB</div>
         
         <div class="flex-row">
             <div class="input-box">
                 <label>Komsel</label>
                 <select id="select-komsel-alkitab" onchange="syncCapaianRealtime()">
-                    <option value="JC 01">JC 01</option><option value="JC 02">JC 02</option>
-                    <option value="JC 03">JC 03</option><option value="JC 04">JC 04</option>
+                    <option value="JC 01">JC 01</option>
+                    <option value="JC 02">JC 02</option>
+                    <option value="JC 03">JC 03</option>
+                    <option value="JC 04">JC 04</option>
                     <option value="JC 05" selected>JC 05</option>
                 </select>
             </div>
@@ -64,7 +66,7 @@
         <div class="stat-item" style="margin-bottom: 20px;">
             <div class="stat-label-flex">
                 <span>Capaian Komsel</span>
-                <span id="text-capaian-komsel" style="color:var(--biru-utama)">0%</span>
+                <span id="text-capaian-komsel" style="color:var(--biru-utama)">0.0%</span>
             </div>
             <div class="progress-bar">
                 <div id="bar-capaian-komsel" class="progress-fill" style="width: 0%; background: var(--biru-utama);"></div>
@@ -72,7 +74,7 @@
 
             <div class="stat-label-flex">
                 <span>Capaian Global</span>
-                <span id="text-capaian-global" style="color:var(--ungu-global)">0%</span>
+                <span id="text-capaian-global" style="color:var(--ungu-global)">0.0%</span>
             </div>
             <div class="progress-bar">
                 <div id="bar-capaian-global" class="progress-fill" style="width: 0%; background: var(--ungu-global);"></div>
@@ -149,13 +151,16 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// Helper untuk update progress bar
 function updateBar(textId, barId, total, done) {
     const persen = total > 0 ? ((done / total) * 100).toFixed(1) : "0.0";
-    document.getElementById(textId).innerText = persen + "%";
-    document.getElementById(barId).style.width = persen + "%";
+    const textEl = document.getElementById(textId);
+    const barEl = document.getElementById(barId);
+    if(textEl) textEl.innerText = persen + "%";
+    if(barEl) barEl.style.width = persen + "%";
 }
 
-// 1. FUNGSI UTAMA BACA ALKITAB
+// 1. FUNGSI UTAMA BACA ALKITAB (REALTIME & ANALISA)
 function syncCapaianRealtime() {
     const selKomselRaw = document.getElementById('select-komsel-alkitab').value;
     const selKomselAngka = parseInt(selKomselRaw.replace(/\D/g, "")).toString();
@@ -163,33 +168,33 @@ function syncCapaianRealtime() {
     const container12 = document.getElementById('container-12-bulan');
     const notifBackup = document.getElementById('notif-backup');
     
-    // Hitung batas waktu filter utama (misal 3 bulan terakhir)
+    // Hitung batas waktu filter utama berdasarkan dropdown periode
     const limitDate = new Date();
     limitDate.setDate(limitDate.getDate() - (periodeBulan * 30));
 
     db.collection("users").get().then(userSnap => {
         let targetGlobal = userSnap.size;
         let targetKomsel = 0;
+
         userSnap.forEach(uDoc => {
             const u = uDoc.data();
             const jcUser = String(u.komsel || u.jc || "").replace(/\D/g, "");
             if (parseInt(jcUser).toString() === selKomselAngka) targetKomsel++;
         });
+
         if (targetKomsel === 0) targetKomsel = 1;
 
-        // Tarik data 1 tahun terakhir untuk mencakup semua analisa
+        // Ambil data laporan 1 tahun terakhir untuk mencakup analisa 12 bulan
         const limit365 = new Date();
         limit365.setDate(limit365.getDate() - 365);
 
         db.collection("laporan_bacaan")
             .where("tanggal", ">=", limit365)
             .onSnapshot(snap => {
-                // --- LOGIKA PROGRESS BAR UTAMA (Dropdown Periode) ---
-                let doneGlobal = 0;
-                let doneKomsel = 0;
-                let sudahHitungUser = new Set();
-
-                // --- LOGIKA ANALISA 12 BULAN (Daftar List) ---
+                let doneGlobal = new Set();
+                let doneKomsel = new Set();
+                
+                // Siapkan wadah untuk analisa 12 bulan
                 container12.innerHTML = "";
                 let hasDataOld = false;
                 let monthlySets = Array.from({length: 12}, () => new Set());
@@ -197,42 +202,41 @@ function syncCapaianRealtime() {
                 snap.forEach(doc => {
                     const d = doc.data();
                     const tgl = d.tanggal?.toDate();
-                    if (!tgl) return;
+                    if (!tgl || !d.pasal_utama) return;
 
                     const userEmail = d.email;
                     const jcLaporan = String(d.komsel || d.jc || "").replace(/\D/g, "");
                     const isTargetKomsel = (parseInt(jcLaporan).toString() === selKomselAngka);
 
-                    // A. Filter untuk Progress Bar Utama
-                    if (tgl >= limitDate && d.pasal_utama && !sudahHitungUser.has(userEmail)) {
-                        doneGlobal++;
-                        if (isTargetKomsel) doneKomsel++;
-                        sudahHitungUser.add(userEmail);
+                    // A. Hitung untuk Progress Bar Utama (Berdasarkan Periode terpilih)
+                    if (tgl >= limitDate) {
+                        doneGlobal.add(userEmail);
+                        if (isTargetKomsel) doneKomsel.add(userEmail);
                     }
 
-                    // B. Filter untuk List Analisa 12 Bulan
+                    // B. Distribusi ke Analisa 12 Bulan (Khusus Komsel terpilih)
                     for (let i = 1; i <= 12; i++) {
                         const rEnd = new Date(); rEnd.setDate(rEnd.getDate() - ((i-1)*30));
                         const rStart = new Date(); rStart.setDate(rStart.getDate() - (i*30));
                         
-                        if (tgl >= rStart && tgl <= rEnd && isTargetKomsel && d.pasal_utama) {
+                        if (tgl >= rStart && tgl <= rEnd && isTargetKomsel) {
                             monthlySets[i-1].add(userEmail);
                         }
                     }
                     
-                    // C. Cek Notif Backup
+                    // C. Deteksi data lama (bulan ke-11/12) untuk notif backup
                     const diffDays = (new Date() - tgl) / (1000 * 3600 * 24);
                     if (diffDays >= 330) hasDataOld = true;
                 });
 
-                // Update Bar Utama
-                updateBar('text-capaian-komsel', 'bar-capaian-komsel', targetKomsel, doneKomsel);
-                updateBar('text-capaian-global', 'bar-capaian-global', targetGlobal, doneGlobal);
+                // Update UI Progress Bar Utama
+                updateBar('text-capaian-komsel', 'bar-capaian-komsel', targetKomsel, doneKomsel.size);
+                updateBar('text-capaian-global', 'bar-capaian-global', targetGlobal, doneGlobal.size);
 
-                // Render List Analisa 12 Bulan
+                // Render List Analisa 12 Bulan ke Container
                 monthlySets.forEach((set, idx) => {
-                    const total = set.size;
-                    const p = ((total / targetKomsel) * 100).toFixed(1);
+                    const count = set.size;
+                    const p = ((count / targetKomsel) * 100).toFixed(1);
                     container12.innerHTML += `
                         <div style="margin-bottom: 12px;">
                             <div class="stat-label-flex">
