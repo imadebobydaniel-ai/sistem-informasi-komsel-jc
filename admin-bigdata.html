@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistik Big Data - Administrator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #007bff;
+            --success: #28a745;
+            --warning: #ffc107;
+            --dark: #343a40;
+            --light: #f8f9fa;
+            --border: #dee2e6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        /* Header Dashboard */
+        .header-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            text-align: center;
+            border-bottom: 4px solid var(--primary);
+        }
+
+        .stat-card h3 { margin: 0; font-size: 14px; color: #888; text-transform: uppercase; }
+        .stat-card p { margin: 10px 0 0; font-size: 24px; font-weight: bold; color: var(--dark); }
+
+        /* Area Grafik */
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        @media (max-width: 768px) { .charts-section { grid-template-columns: 1fr; } }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .chart-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 15px;
+            width: 100%;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        /* Tabel Big Data */
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .btn-export {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            background: var(--light);
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .bg-valid { background: #d4edda; color: #155724; }
+        .bg-late { background: #fff3cd; color: #856404; }
+
+        .jc-tag {
+            font-weight: bold;
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 style="margin-bottom: 20px;"><i class="fa-solid fa-chart-line"></i> Statistik Big Data Administrator</h2>
+
+    <div class="header-stats">
+        <div class="stat-card">
+            <h3>Total Laporan (Mar)</h3>
+            <p id="total-laporan">1,240</p>
+        </div>
+        <div class="stat-card" style="border-bottom-color: var(--success);">
+            <h3>JC Paling Aktif</h3>
+            <p id="top-jc">JC 05</p>
+        </div>
+        <div class="stat-card" style="border-bottom-color: var(--warning);">
+            <h3>Rata-rata Partisipasi</h3>
+            <p id="avg-part">84.2%</p>
+        </div>
+    </div>
+
+    <div class="charts-section">
+        <div class="chart-container">
+            <div class="chart-title">Partisipasi Hari Ini</div>
+            <canvas id="pieChart" width="200" height="200"></canvas>
+        </div>
+        <div class="chart-container">
+            <div class="chart-title">Perbandingan Laporan Per JC (12 Bulan Terakhir)</div>
+            <canvas id="barChart"></canvas>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <div class="table-header">
+            <div class="chart-title" style="border:none; margin:0;">Riwayat Extract Nama & Pasal</div>
+            <button class="btn-export"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Nama Anggota</th>
+                    <th>JC</th>
+                    <th>Hari / Jam</th>
+                    <th>Tanggal</th>
+                    <th>Detail Pasal Terbaca</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <tr>
+                    <td>1</td>
+                    <td><strong>Marthin Channa</strong></td>
+                    <td class="jc-tag">JC 05</td>
+                    <td>Jumat, 20:45</td>
+                    <td>27/03/2026</td>
+                    <td>Kejadian 1-4 & Amsal 27</td>
+                    <td><span class="status-badge bg-valid">Valid</span></td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td><strong>Petrus Ngutra</strong></td>
+                    <td class="jc-tag">JC 01</td>
+                    <td>Jumat, 06:15</td>
+                    <td>27/03/2026</td>
+                    <td>Kejadian 1-4 & Amsal 27</td>
+                    <td><span class="status-badge bg-valid">Valid</span></td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td><strong>Boby Daniel</strong></td>
+                    <td class="jc-tag">JC 05</td>
+                    <td>Kamis, 21:00</td>
+                    <td>26/03/2026</td>
+                    <td>Ayub 5-8 & Amsal 26</td>
+                    <td><span class="status-badge bg-valid">Valid</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Inisialisasi Diagram Lingkaran (Pie Chart)
+    const ctxPie = document.getElementById('pieChart').getContext('2d');
+    new Chart(ctxPie, {
+        type: 'pie',
+        data: {
+            labels: ['Sudah Lapor', 'Belum Lapor'],
+            datasets: [{
+                data: [78, 22],
+                backgroundColor: ['#007bff', '#e9ecef'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+
+    // Inisialisasi Diagram Batang (Bar Chart)
+    const ctxBar = document.getElementById('barChart').getContext('2d');
+    new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: ['JC 01', 'JC 02', 'JC 03', 'JC 04', 'JC 05'],
+            datasets: [{
+                label: 'Jumlah Laporan Masuk',
+                data: [210, 185, 160, 240, 290],
+                backgroundColor: '#6f42c1',
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+</script>
+
+</body>
+</html>
