@@ -7,9 +7,10 @@
     <title>Menu Utama - Pondok Pemulihan Papua</title>
     
     <script>
+        // Cek Auth di awal
         const isMember = localStorage.getItem("userEmail");
-        const isAdmin = localStorage.getItem("adminLoggedIn");
-        if (!isMember && isAdmin !== "true") {
+        const isAdminLogged = localStorage.getItem("adminLoggedIn") === "true";
+        if (!isMember && !isAdminLogged) {
             window.location.href = "login.html"; 
         }
     </script>
@@ -42,7 +43,6 @@
 
         #media-display-area { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #000; }
         #other-media { width: 100%; height: 100%; display: none; align-items: center; justify-content: center; color: white; text-align: center; }
-        #other-media img, #other-media video { width: 100%; height: 100%; object-fit: contain; }
 
         .email-btn { position: absolute; top: 15px; right: 15px; cursor: pointer; z-index: 20; }
         .email-icon { font-size: 22px; color: var(--biru-tua); transition: 0.3s; }
@@ -51,70 +51,20 @@
         .popup-inbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center; }
         .inbox-content { background: white; width: 90%; max-width: 380px; border-radius: 20px; padding: 20px; max-height: 80vh; display: flex; flex-direction: column; }
         #list-pesan { flex: 1; overflow-y: auto; padding-right: 5px; margin-top: 10px; }
-        .msg-item { display: flex; flex-direction: column; padding: 12px; border-bottom: 1px solid #eee; text-align: left; transition: 0.2s; }
+        .msg-item { display: flex; flex-direction: column; padding: 12px; border-bottom: 1px solid #eee; text-align: left; transition: 0.2s; border-radius: 10px; margin-bottom: 8px; }
 
-        /* Grid Utama - Kembali Normal 2 Kolom Penuh */
         .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; max-width: 400px; margin-bottom: 30px; }
-        
-        /* Gaya Menu Kotak Biasa */
         .menu-box { background: white; padding: 20px 10px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--biru-tua); font-weight: 800; font-size: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.05); transition: 0.3s; }
         .menu-box i { font-size: 28px; margin-bottom: 10px; background: linear-gradient(135deg, var(--biru-safir), var(--hijau-zamrud)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        /* === GAYA REVISI: MENU BULAT 3D "BARIBUT" DI BAWAH === */
-        .special-menu-container {
-            display: flex;
-            justify-content: center;
-            width: 100%;
-            margin-top: 10px;
-            margin-bottom: -15px; /* Tarik sedikit ke bawah agar dekat tombol keluar */
-            position: relative;
-            z-index: 2;
-        }
-
-        .menu-circle-3d {
-            width: 90px; /* Sedikit dikecilkan agar proporsional di bawah */
-            height: 90px;
-            border-radius: 50%;
-            text-decoration: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 13px;
-            text-transform: uppercase;
-            
-            /* Warna Dasar: Campuran Biru Safir & Hijau Zamrud */
-            background: linear-gradient(135deg, #0056b3 0%, #2ecc71 100%);
-            color: white;
-            
-            /* Efek 3D Multiple Shadows */
-            box-shadow: 
-                0 8px 15px rgba(0,0,0,0.3),
-                inset 0 -4px 8px rgba(0,0,0,0.2),
-                inset 0 4px 8px rgba(255,255,255,0.4);
-            
-            border: 4px solid white; /* Bingkai putih tebal sesuai pola baru */
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .menu-circle-3d:active {
-            transform: translateY(3px) scale(0.97);
-            box-shadow: 
-                0 4px 8px rgba(0,0,0,0.2),
-                inset 0 -2px 4px rgba(0,0,0,0.2),
-                inset 0 2px 4px rgba(255,255,255,0.3);
-        }
-
-        /* Icon Emoji 3D */
-        .icon-emoji-3d { font-size: 36px; margin-bottom: 0px; display: block; line-height: 1; }
-        
-        /* Label Teks Menu Bulat */
-        .circle-label { margin-top: 0; display: block; letter-spacing: 1px; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        .special-menu-container { display: flex; justify-content: center; width: 100%; margin-top: 10px; margin-bottom: -15px; position: relative; z-index: 2; }
+        .menu-circle-3d { width: 90px; height: 90px; border-radius: 50%; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; text-transform: uppercase; background: linear-gradient(135deg, #0056b3 0%, #2ecc71 100%); color: white; box-shadow: 0 8px 15px rgba(0,0,0,0.3), inset 0 -4px 8px rgba(0,0,0,0.2), inset 0 4px 8px rgba(255,255,255,0.4); border: 4px solid white; transition: all 0.3s ease; cursor: pointer; }
+        .menu-circle-3d:active { transform: translateY(3px) scale(0.97); }
+        .icon-emoji-3d { font-size: 36px; line-height: 1; }
+        .circle-label { margin-top: 2px; letter-spacing: 1px; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 
         .btn-logout { background: var(--biru-tua); color: #fff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block; margin-top: 30px; border: 2px solid var(--emas-lux); width: max-content; }
-        #admin-badge { display: none; background: red; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; margin-top: 5px; }
+        #admin-badge { display: none; background: red; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; margin-top: 5px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -206,6 +156,7 @@
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
+        // 1. CONFIG
         const firebaseConfig = { 
             apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
             authDomain: "boby-apps-project.firebaseapp.com", 
@@ -218,7 +169,10 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
         let ytPlayer; 
+        const userEmail = localStorage.getItem("userEmail");
+        const isAdmin = localStorage.getItem("adminLoggedIn") === "true";
 
+        // 2. MEDIA LOGIC
         function extractYouTubeID(url) {
             if (!url) return null;
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
@@ -230,123 +184,119 @@
             db.collection("portal_media").orderBy("urutan", "asc").limit(1).onSnapshot(snapshot => {
                 const otherMedia = document.getElementById('other-media');
                 const ytContainer = document.getElementById('player');
-
-                if (!snapshot.empty) {
-                    const data = snapshot.docs[0].data();
-                    const type = data.tipe || "video_youtube";
-                    const content = data.url || "";
-
-                    otherMedia.style.display = 'none';
-                    ytContainer.style.display = 'none';
-                    otherMedia.innerHTML = '';
-
-                    if (type === "video_youtube" || type === "youtube") {
-                        ytContainer.style.display = 'block';
-                        playYouTube(content);
-                    } 
-                    else if (type === "video_player" || type === "video") {
-                        otherMedia.style.display = 'flex';
-                        otherMedia.innerHTML = `<video src="${content}" autoplay controls style="width:100%; height:100%; object-fit:contain;"></video>`;
-                    } 
-                    else if (type === "gambar") {
-                        otherMedia.style.display = 'flex';
-                        otherMedia.innerHTML = `<img src="${content}" style="width:100%; height:100%; object-fit:contain;">`;
-                    } 
-                    else if (type === "teks") {
-                        otherMedia.style.display = 'flex';
-                        otherMedia.innerHTML = `<div style="color:white; padding:20px; font-weight:bold; font-size:16px; text-align:center;">${data.isi_artikel || content}</div>`;
-                    }
-                } else {
+                
+                if (snapshot.empty) {
                     otherMedia.style.display = 'flex';
                     otherMedia.innerHTML = "<div style='color:white;'>Belum ada media aktif</div>";
+                    return;
+                }
+
+                const data = snapshot.docs[0].data();
+                const type = data.tipe || "video_youtube";
+                const content = data.url || "";
+
+                otherMedia.style.display = 'none';
+                ytContainer.style.display = 'none';
+                otherMedia.innerHTML = '';
+
+                if (type === "video_youtube" || type === "youtube") {
+                    ytContainer.style.display = 'block';
+                    playYouTube(content);
+                } else if (type === "gambar") {
+                    otherMedia.style.display = 'flex';
+                    otherMedia.innerHTML = `<img src="${content}" style="width:100%; height:100%; object-fit:contain;">`;
+                } else if (type === "video_player" || type === "video") {
+                    otherMedia.style.display = 'flex';
+                    otherMedia.innerHTML = `<video src="${content}" autoplay controls style="width:100%; height:100%; object-fit:contain;"></video>`;
+                } else if (type === "teks") {
+                    otherMedia.style.display = 'flex';
+                    otherMedia.innerHTML = `<div style="color:white; padding:20px; font-weight:bold; font-size:16px; text-align:center;">${data.isi_artikel || content}</div>`;
                 }
             });
         }
 
         function playYouTube(rawUrl) {
             const videoId = extractYouTubeID(rawUrl);
-
-            if (videoId) {
-                if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
-                    ytPlayer.loadVideoById({
-                        videoId: videoId,
-                        startSeconds: 0
-                    });
-                    ytPlayer.unMute(); 
-                } else {
-                    ytPlayer = new YT.Player('player', {
-                        videoId: videoId,
-                        playerVars: { 
-                            'autoplay': 1, 
-                            'mute': 0, 
-                            'controls': 1, 
-                            'loop': 1, 
-                            'playlist': videoId, 
-                            'rel': 0, 
-                            'modestbranding': 1 
-                        },
-                        events: { 
-                            'onReady': (event) => {
-                                event.target.playVideo();
-                                setTimeout(() => { event.target.unMute(); }, 1000);
-                            } 
-                        }
-                    });
-                }
+            if (!videoId) return;
+            if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
+                ytPlayer.loadVideoById({ videoId: videoId });
             } else {
-                document.getElementById('player').innerHTML = "<div style='color:white;text-align:center;padding:20px;'>Link YouTube tidak valid</div>";
+                ytPlayer = new YT.Player('player', {
+                    videoId: videoId,
+                    playerVars: { 'autoplay': 1, 'mute': 0, 'loop': 1, 'playlist': videoId, 'rel': 0 },
+                    events: { 'onReady': e => { e.target.playVideo(); setTimeout(() => e.target.unMute(), 1000); } }
+                });
             }
         }
 
-        function monitorEmailInbox(userJC, userEmail) {
+        // 3. INBOX MONITORING
+        function monitorEmailInbox(userJC, emailKey) {
             db.collection("pengumuman_komsel").orderBy("timestamp", "desc").onSnapshot(snapshot => {
                 let unreadCount = 0;
                 const listDiv = document.getElementById('list-pesan');
                 if(!listDiv) return;
                 listDiv.innerHTML = "";
+
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     const target = data.target || data.target_jc; 
-                    if (target === "Semua JC" || target === userJC) {
+                    
+                    if (target === "Semua JC" || String(target) === String(userJC)) {
                         const sudahDibaca = data.sudahDibaca || [];
-                        const isUnread = !sudahDibaca.includes(userEmail);
+                        const isUnread = !sudahDibaca.includes(emailKey);
                         if (isUnread) unreadCount++;
-                        listDiv.innerHTML += `<div class="msg-item" style="${isUnread ? 'background:#fff9e6; border-left:4px solid var(--emas-lux);' : 'background:#fff;'}"><div class="msg-content-wrapper"><b>${data.judul || 'Pesan'}</b><br><small>${isUnread ? 'Baru' : 'Sudah dibaca'}</small></div></div>`;
+
+                        listDiv.innerHTML += `
+                            <div class="msg-item" style="${isUnread ? 'background:#fff9e6; border-left:4px solid var(--emas-lux);' : 'background:#fff; border:1px solid #eee;'}">
+                                <b style="color:var(--biru-tua)">${data.judul || 'Pesan Baru'}</b>
+                                <p style="font-size:12px; margin:5px 0; color:#444;">${data.isi || ''}</p>
+                                <small style="color:${isUnread ? '#d4af37' : '#999'}">${isUnread ? '🔵 Belum Dibaca' : '⚪ Sudah Dibaca'}</small>
+                            </div>`;
                     }
                 });
+
                 const badge = document.getElementById('email-badge');
-                if (badge) {
-                    if (unreadCount > 0) { badge.style.display = 'block'; badge.innerText = unreadCount; } 
-                    else { badge.style.display = 'none'; }
+                if (unreadCount > 0) {
+                    badge.style.display = 'block';
+                    badge.innerText = unreadCount;
+                } else {
+                    badge.style.display = 'none';
                 }
             });
         }
 
+        // 4. SYNC USER PROFILE
         function syncUser() {
-            const email = localStorage.getItem("userEmail");
-            const isAdmin = localStorage.getItem("adminLoggedIn");
-            if (isAdmin === "true") {
-                document.getElementById('disp_nama').innerText = "Administrator";
-                document.getElementById('admin-badge').style.display = "inline-block";
-                monitorEmailInbox("Semua JC", "admin@system.com");
-            } else if (email) {
-                document.getElementById('disp_email').innerText = email;
-                db.collection("users").where("email", "==", email).onSnapshot(s => {
+            const displayNama = document.getElementById('disp_nama');
+            const displayEmail = document.getElementById('disp_email');
+            const displayKomsel = document.getElementById('disp_komsel');
+            const adminBadge = document.getElementById('admin-badge');
+
+            if (isAdmin) {
+                displayNama.innerText = "Administrator";
+                displayEmail.innerText = "admin@system.com";
+                adminBadge.style.display = "inline-block";
+                monitorEmailInbox("Admin", "admin@system.com");
+            } else if (userEmail) {
+                displayEmail.innerText = userEmail;
+                db.collection("users").where("email", "==", userEmail).onSnapshot(s => {
                     if (!s.empty) {
                         const d = s.docs[0].data();
-                        document.getElementById('disp_nama').innerText = d.nama || "User";
-                        document.getElementById('disp_komsel').innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
-                        monitorEmailInbox(String(d.komsel), email);
-                        if (d.fotoUrl) { 
-                            document.getElementById('user-photo').src = d.fotoUrl; 
-                            document.getElementById('user-photo').style.display = "block"; 
-                            document.getElementById('default-icon').style.display = "none"; 
+                        displayNama.innerText = d.nama || "User";
+                        displayKomsel.innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
+                        
+                        if (d.fotoUrl) {
+                            document.getElementById('user-photo').src = d.fotoUrl;
+                            document.getElementById('user-photo').style.display = "block";
+                            document.getElementById('default-icon').style.display = "none";
                         }
+                        monitorEmailInbox(d.komsel, userEmail);
                     }
                 });
             }
         }
 
+        // 5. UTILITIES
         function updateTime() {
             const now = new Date();
             document.getElementById('display-tanggal').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -359,10 +309,13 @@
         function bukaInbox() { document.getElementById('popup-inbox').style.display = 'flex'; }
         function tutupInbox() { document.getElementById('popup-inbox').style.display = 'none'; }
 
-        window.onload = () => { 
-            updateTime(); 
-            setInterval(updateTime, 1000); 
-            syncUser(); 
+        // INITIALIZE ON LOAD
+        window.onload = () => {
+            updateTime();
+            setInterval(updateTime, 1000);
+            syncUser();
+
+            // Toggle Profile Card
             const btnToggle = document.getElementById('toggleProfile');
             const profileCard = document.getElementById('profileCard');
             btnToggle.addEventListener('click', () => {
