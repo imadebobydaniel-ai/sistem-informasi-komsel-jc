@@ -48,10 +48,17 @@
         .email-icon { font-size: 22px; color: var(--biru-tua); transition: 0.3s; }
         #email-badge { position: absolute; top: -8px; right: -8px; background: red; color: white; font-size: 10px; padding: 2px 6px; border-radius: 50%; font-weight: bold; display: none; }
 
+        /* INBOX LIST POPUP */
         .popup-inbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center; }
         .inbox-content { background: white; width: 90%; max-width: 380px; border-radius: 20px; padding: 20px; max-height: 80vh; display: flex; flex-direction: column; }
         #list-pesan { flex: 1; overflow-y: auto; padding-right: 5px; margin-top: 10px; }
-        .msg-item { display: flex; flex-direction: column; padding: 12px; border-bottom: 1px solid #eee; text-align: left; transition: 0.2s; border-radius: 10px; margin-bottom: 8px; }
+        .msg-item { display: flex; flex-direction: column; padding: 12px; border-bottom: 1px solid #eee; text-align: left; transition: 0.2s; border-radius: 10px; margin-bottom: 8px; cursor: pointer; }
+
+        /* DETAIL PESAN POPUP (NEW) */
+        .popup-detail { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 3100; flex-direction: column; }
+        .detail-header { display: flex; align-items: center; padding: 15px; background: var(--biru-tua); color: white; gap: 15px; }
+        .btn-back-inbox { background: none; border: none; color: white; font-size: 18px; cursor: pointer; }
+        .detail-body { padding: 20px; overflow-y: auto; line-height: 1.6; color: #333; }
 
         .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; max-width: 400px; margin-bottom: 30px; }
         .menu-box { background: white; padding: 20px 10px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--biru-tua); font-weight: 800; font-size: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.05); transition: 0.3s; }
@@ -88,6 +95,18 @@
                 <i class="fas fa-times" onclick="tutupInbox()" style="cursor:pointer; font-size:20px; color:red;"></i>
             </div>
             <div id="list-pesan"><p style="font-size:12px; color:#999;">Memuat pesan...</p></div>
+        </div>
+    </div>
+
+    <div id="popup-detail-pesan" class="popup-detail">
+        <div class="detail-header">
+            <button class="btn-back-inbox" onclick="kembaliKeInbox()"><i class="fas fa-arrow-left"></i></button>
+            <span style="font-weight:bold; font-size:16px;">Detail Pesan</span>
+        </div>
+        <div class="detail-body">
+            <h2 id="view-judul" style="color:var(--biru-tua); font-size:18px; margin-top:0;">Judul Pesan</h2>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+            <div id="view-isi" style="font-size:14px; white-space: pre-wrap;">...</div>
         </div>
     </div>
 
@@ -229,7 +248,7 @@
             }
         }
 
-        // 3. INBOX MONITORING
+        // 3. INBOX MONITORING & POPUP LOGIC
         function monitorEmailInbox(userJC, emailKey) {
             db.collection("pengumuman_komsel").orderBy("timestamp", "desc").onSnapshot(snapshot => {
                 let unreadCount = 0;
@@ -246,12 +265,15 @@
                         const isUnread = !sudahDibaca.includes(emailKey);
                         if (isUnread) unreadCount++;
 
-                        listDiv.innerHTML += `
-                            <div class="msg-item" style="${isUnread ? 'background:#fff9e6; border-left:4px solid var(--emas-lux);' : 'background:#fff; border:1px solid #eee;'}">
+                        const itemHtml = `
+                            <div class="msg-item" 
+                                 onclick="bukaDetailPesan('${doc.id}', '${data.judul || 'Pesan'}', \`${data.isi || ''}\`, '${emailKey}')"
+                                 style="${isUnread ? 'background:#fff9e6; border-left:4px solid var(--emas-lux);' : 'background:#fff; border:1px solid #eee;'}">
                                 <b style="color:var(--biru-tua)">${data.judul || 'Pesan Baru'}</b>
-                                <p style="font-size:12px; margin:5px 0; color:#444;">${data.isi || ''}</p>
+                                <p style="font-size:12px; margin:5px 0; color:#444; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${data.isi || ''}</p>
                                 <small style="color:${isUnread ? '#d4af37' : '#999'}">${isUnread ? '🔵 Belum Dibaca' : '⚪ Sudah Dibaca'}</small>
                             </div>`;
+                        listDiv.innerHTML += itemHtml;
                     }
                 });
 
@@ -263,6 +285,21 @@
                     badge.style.display = 'none';
                 }
             });
+        }
+
+        function bukaDetailPesan(docId, judul, isi, emailKey) {
+            document.getElementById('view-judul').innerText = judul;
+            document.getElementById('view-isi').innerText = isi;
+            document.getElementById('popup-detail-pesan').style.display = 'flex';
+            
+            // Update status ke Firebase agar dianggap sudah dibaca
+            db.collection("pengumuman_komsel").doc(docId).update({
+                sudahDibaca: firebase.firestore.FieldValue.arrayUnion(emailKey)
+            }).catch(err => console.error("Error update baca:", err));
+        }
+
+        function kembaliKeInbox() {
+            document.getElementById('popup-detail-pesan').style.display = 'none';
         }
 
         // 4. SYNC USER PROFILE
