@@ -48,17 +48,18 @@
         .email-icon { font-size: 22px; color: var(--biru-tua); transition: 0.3s; }
         #email-badge { position: absolute; top: -8px; right: -8px; background: red; color: white; font-size: 10px; padding: 2px 6px; border-radius: 50%; font-weight: bold; display: none; }
 
-        /* INBOX LIST POPUP */
-        .popup-inbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center; }
-        .inbox-content { background: white; width: 90%; max-width: 380px; border-radius: 20px; padding: 20px; max-height: 80vh; display: flex; flex-direction: column; }
-        #list-pesan { flex: 1; overflow-y: auto; padding-right: 5px; margin-top: 10px; }
-        .msg-item { display: flex; flex-direction: column; padding: 12px; border-bottom: 1px solid #eee; text-align: left; transition: 0.2s; border-radius: 10px; margin-bottom: 8px; cursor: pointer; }
+        /* MODAL / POPUP INBOX & DETAIL */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 3000; justify-content: center; align-items: center; }
+        .modal-content-medium { background: white; width: 90%; max-width: 400px; border-radius: 20px; padding: 0; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; animation: zoomIn 0.3s ease; }
+        
+        @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* DETAIL PESAN POPUP (NEW) */
-        .popup-detail { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 3100; flex-direction: column; }
-        .detail-header { display: flex; align-items: center; padding: 15px; background: var(--biru-tua); color: white; gap: 15px; }
-        .btn-back-inbox { background: none; border: none; color: white; font-size: 18px; cursor: pointer; }
-        .detail-body { padding: 20px; overflow-y: auto; line-height: 1.6; color: #333; }
+        .modal-header { padding: 15px 20px; background: var(--biru-tua); color: white; display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+        .modal-footer { padding: 15px 20px; text-align: right; border-top: 1px solid #eee; }
+
+        .msg-item { display: flex; flex-direction: column; padding: 12px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
+        .msg-item:active { transform: scale(0.98); }
 
         .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; max-width: 400px; margin-bottom: 30px; }
         .menu-box { background: white; padding: 20px 10px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--biru-tua); font-weight: 800; font-size: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.05); transition: 0.3s; }
@@ -66,21 +67,18 @@
 
         .special-menu-container { display: flex; justify-content: center; width: 100%; margin-top: 10px; margin-bottom: -15px; position: relative; z-index: 2; }
         .menu-circle-3d { width: 90px; height: 90px; border-radius: 50%; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; text-transform: uppercase; background: linear-gradient(135deg, #0056b3 0%, #2ecc71 100%); color: white; box-shadow: 0 8px 15px rgba(0,0,0,0.3), inset 0 -4px 8px rgba(0,0,0,0.2), inset 0 4px 8px rgba(255,255,255,0.4); border: 4px solid white; transition: all 0.3s ease; cursor: pointer; }
-        .menu-circle-3d:active { transform: translateY(3px) scale(0.97); }
-        .icon-emoji-3d { font-size: 36px; line-height: 1; }
-        .circle-label { margin-top: 2px; letter-spacing: 1px; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 
         .btn-logout { background: var(--biru-tua); color: #fff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block; margin-top: 30px; border: 2px solid var(--emas-lux); width: max-content; }
         #admin-badge { display: none; background: red; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; margin-top: 5px; font-weight: bold; }
     </style>
 </head>
 <body>
-    
-    <div id="modal-logout" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 4000; justify-content: center; align-items: center; padding: 20px;">
-        <div style="background: white; width: 100%; max-width: 320px; border-radius: 15px; text-align: center; padding: 20px;">
+
+    <div id="modal-logout" class="modal-overlay">
+        <div class="modal-content-medium" style="max-width: 320px; padding: 20px; text-align: center;">
             <i class="fa-solid fa-right-from-bracket" style="font-size: 40px; color: #dc3545; margin-bottom: 15px;"></i>
-            <h3 style="margin: 0;">Konfirmasi Keluar</h3>
-            <p style="font-size: 14px; color: #666; margin-bottom: 20px;">Apakah Anda yakin ingin keluar?</p>
+            <h3>Konfirmasi Keluar</h3>
+            <p style="color: #666; margin-bottom: 20px;">Apakah Anda yakin ingin keluar?</p>
             <div style="display: flex; gap: 10px;">
                 <button onclick="closeLogoutModal()" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd; background: white;">Batal</button>
                 <button onclick="executeLogout()" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: #dc3545; color: white; font-weight: bold;">Keluar</button>
@@ -88,25 +86,30 @@
         </div>
     </div>
 
-    <div id="popup-inbox" class="popup-inbox">
-        <div class="inbox-content">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--emas-lux); padding-bottom: 10px; margin-bottom: 10px;">
-                <h3 style="margin:0; color:var(--biru-tua);"><i class="fas fa-envelope-open"></i> Inbox JC</h3>
-                <i class="fas fa-times" onclick="tutupInbox()" style="cursor:pointer; font-size:20px; color:red;"></i>
+    <div id="popup-inbox" class="modal-overlay">
+        <div class="modal-content-medium">
+            <div class="modal-header">
+                <h3 style="margin:0;"><i class="fas fa-envelope-open"></i> Inbox JC</h3>
+                <i class="fas fa-times" onclick="tutupInbox()" style="cursor:pointer; font-size:20px;"></i>
             </div>
-            <div id="list-pesan"><p style="font-size:12px; color:#999;">Memuat pesan...</p></div>
+            <div class="modal-body" id="list-pesan">
+                <p style="font-size:12px; color:#999;">Memuat pesan...</p>
+            </div>
         </div>
     </div>
 
-    <div id="popup-detail-pesan" class="popup-detail">
-        <div class="detail-header">
-            <button class="btn-back-inbox" onclick="kembaliKeInbox()"><i class="fas fa-arrow-left"></i></button>
-            <span style="font-weight:bold; font-size:16px;">Detail Pesan</span>
-        </div>
-        <div class="detail-body">
-            <h2 id="view-judul" style="color:var(--biru-tua); font-size:18px; margin-top:0;">Judul Pesan</h2>
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
-            <div id="view-isi" style="font-size:14px; white-space: pre-wrap;">...</div>
+    <div id="popup-detail-pesan" class="modal-overlay">
+        <div class="modal-content-medium">
+            <div class="modal-header">
+                <h3 id="view-judul" style="margin:0; font-size:16px;">Detail Pesan</h3>
+                <i class="fas fa-times" onclick="kembaliKeInbox()" style="cursor:pointer; font-size:20px;"></i>
+            </div>
+            <div class="modal-body">
+                <div id="view-isi" style="font-size:14px; white-space: pre-wrap; line-height: 1.6; color: #333;">...</div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="kembaliKeInbox()" style="padding: 8px 20px; background: var(--biru-tua); color:white; border:none; border-radius:5px;">Kembali</button>
+            </div>
         </div>
     </div>
 
@@ -175,7 +178,6 @@
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
-        // 1. CONFIG
         const firebaseConfig = { 
             apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
             authDomain: "boby-apps-project.firebaseapp.com", 
@@ -191,7 +193,7 @@
         const userEmail = localStorage.getItem("userEmail");
         const isAdmin = localStorage.getItem("adminLoggedIn") === "true";
 
-        // 2. MEDIA LOGIC
+        // MEDIA
         function extractYouTubeID(url) {
             if (!url) return null;
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
@@ -203,33 +205,22 @@
             db.collection("portal_media").orderBy("urutan", "asc").limit(1).onSnapshot(snapshot => {
                 const otherMedia = document.getElementById('other-media');
                 const ytContainer = document.getElementById('player');
-                
                 if (snapshot.empty) {
                     otherMedia.style.display = 'flex';
                     otherMedia.innerHTML = "<div style='color:white;'>Belum ada media aktif</div>";
                     return;
                 }
-
                 const data = snapshot.docs[0].data();
                 const type = data.tipe || "video_youtube";
                 const content = data.url || "";
-
                 otherMedia.style.display = 'none';
                 ytContainer.style.display = 'none';
-                otherMedia.innerHTML = '';
-
                 if (type === "video_youtube" || type === "youtube") {
                     ytContainer.style.display = 'block';
                     playYouTube(content);
                 } else if (type === "gambar") {
                     otherMedia.style.display = 'flex';
                     otherMedia.innerHTML = `<img src="${content}" style="width:100%; height:100%; object-fit:contain;">`;
-                } else if (type === "video_player" || type === "video") {
-                    otherMedia.style.display = 'flex';
-                    otherMedia.innerHTML = `<video src="${content}" autoplay controls style="width:100%; height:100%; object-fit:contain;"></video>`;
-                } else if (type === "teks") {
-                    otherMedia.style.display = 'flex';
-                    otherMedia.innerHTML = `<div style="color:white; padding:20px; font-weight:bold; font-size:16px; text-align:center;">${data.isi_artikel || content}</div>`;
                 }
             });
         }
@@ -243,85 +234,69 @@
                 ytPlayer = new YT.Player('player', {
                     videoId: videoId,
                     playerVars: { 'autoplay': 1, 'mute': 0, 'loop': 1, 'playlist': videoId, 'rel': 0 },
-                    events: { 'onReady': e => { e.target.playVideo(); setTimeout(() => e.target.unMute(), 1000); } }
+                    events: { 'onReady': e => { e.target.playVideo(); } }
                 });
             }
         }
 
-        // 3. INBOX MONITORING & POPUP LOGIC
+        // INBOX & MODAL LOGIC
         function monitorEmailInbox(userJC, emailKey) {
             db.collection("pengumuman_komsel").orderBy("timestamp", "desc").onSnapshot(snapshot => {
                 let unreadCount = 0;
                 const listDiv = document.getElementById('list-pesan');
-                if(!listDiv) return;
                 listDiv.innerHTML = "";
 
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     const target = data.target || data.target_jc; 
-                    
                     if (target === "Semua JC" || String(target) === String(userJC)) {
                         const sudahDibaca = data.sudahDibaca || [];
                         const isUnread = !sudahDibaca.includes(emailKey);
                         if (isUnread) unreadCount++;
 
                         const itemHtml = `
-                            <div class="msg-item" 
-                                 onclick="bukaDetailPesan('${doc.id}', '${data.judul || 'Pesan'}', \`${data.isi || ''}\`, '${emailKey}')"
-                                 style="${isUnread ? 'background:#fff9e6; border-left:4px solid var(--emas-lux);' : 'background:#fff; border:1px solid #eee;'}">
+                            <div class="msg-item" onclick="bukaDetailPesan('${doc.id}', '${data.judul}', \`${data.isi}\`, '${emailKey}')"
+                                 style="${isUnread ? 'background:#fff9e6; border-left:4px solid var(--emas-lux);' : 'background:#f9f9f9; border:1px solid #eee;'}">
                                 <b style="color:var(--biru-tua)">${data.judul || 'Pesan Baru'}</b>
-                                <p style="font-size:12px; margin:5px 0; color:#444; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${data.isi || ''}</p>
+                                <p style="font-size:11px; margin:5px 0; color:#666; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${data.isi || ''}</p>
                                 <small style="color:${isUnread ? '#d4af37' : '#999'}">${isUnread ? '🔵 Belum Dibaca' : '⚪ Sudah Dibaca'}</small>
                             </div>`;
                         listDiv.innerHTML += itemHtml;
                     }
                 });
-
-                const badge = document.getElementById('email-badge');
-                if (unreadCount > 0) {
-                    badge.style.display = 'block';
-                    badge.innerText = unreadCount;
-                } else {
-                    badge.style.display = 'none';
-                }
+                document.getElementById('email-badge').style.display = unreadCount > 0 ? 'block' : 'none';
+                document.getElementById('email-badge').innerText = unreadCount;
             });
         }
 
         function bukaDetailPesan(docId, judul, isi, emailKey) {
             document.getElementById('view-judul').innerText = judul;
             document.getElementById('view-isi').innerText = isi;
-            document.getElementById('popup-detail-pesan').style.display = 'flex';
+            document.getElementById('popup-inbox').style.display = 'none'; // Tutup list
+            document.getElementById('popup-detail-pesan').style.display = 'flex'; // Buka detail
             
-            // Update status ke Firebase agar dianggap sudah dibaca
             db.collection("pengumuman_komsel").doc(docId).update({
                 sudahDibaca: firebase.firestore.FieldValue.arrayUnion(emailKey)
-            }).catch(err => console.error("Error update baca:", err));
+            });
         }
 
         function kembaliKeInbox() {
             document.getElementById('popup-detail-pesan').style.display = 'none';
+            document.getElementById('popup-inbox').style.display = 'flex';
         }
 
-        // 4. SYNC USER PROFILE
         function syncUser() {
-            const displayNama = document.getElementById('disp_nama');
-            const displayEmail = document.getElementById('disp_email');
-            const displayKomsel = document.getElementById('disp_komsel');
-            const adminBadge = document.getElementById('admin-badge');
-
             if (isAdmin) {
-                displayNama.innerText = "Administrator";
-                displayEmail.innerText = "admin@system.com";
-                adminBadge.style.display = "inline-block";
+                document.getElementById('disp_nama').innerText = "Administrator";
+                document.getElementById('admin-badge').style.display = "inline-block";
                 monitorEmailInbox("Admin", "admin@system.com");
             } else if (userEmail) {
-                displayEmail.innerText = userEmail;
                 db.collection("users").where("email", "==", userEmail).onSnapshot(s => {
                     if (!s.empty) {
                         const d = s.docs[0].data();
-                        displayNama.innerText = d.nama || "User";
-                        displayKomsel.innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
-                        
+                        document.getElementById('disp_nama').innerText = d.nama || "User";
+                        document.getElementById('disp_email').innerText = userEmail;
+                        document.getElementById('disp_komsel').innerText = "JC " + (d.komsel || "");
                         if (d.fotoUrl) {
                             document.getElementById('user-photo').src = d.fotoUrl;
                             document.getElementById('user-photo').style.display = "block";
@@ -333,7 +308,6 @@
             }
         }
 
-        // 5. UTILITIES
         function updateTime() {
             const now = new Date();
             document.getElementById('display-tanggal').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -346,13 +320,10 @@
         function bukaInbox() { document.getElementById('popup-inbox').style.display = 'flex'; }
         function tutupInbox() { document.getElementById('popup-inbox').style.display = 'none'; }
 
-        // INITIALIZE ON LOAD
         window.onload = () => {
             updateTime();
             setInterval(updateTime, 1000);
             syncUser();
-
-            // Toggle Profile Card
             const btnToggle = document.getElementById('toggleProfile');
             const profileCard = document.getElementById('profileCard');
             btnToggle.addEventListener('click', () => {
