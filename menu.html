@@ -169,7 +169,6 @@
         .btn-logout { background: var(--biru-tua); color: #fff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block; margin-top: 30px; border: 2px solid var(--emas-lux); }
         #admin-badge { display: none; background: red; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; margin-top: 5px; }
         
-        /* CSS Tambahan untuk membersihkan tampilan player kosong */
         #player:empty { display: none; }
     </style>
 </head>
@@ -205,7 +204,11 @@
                 <h3 id="inbox-title" style="margin:0; color:var(--biru-tua);"><i class="fas fa-envelope-open"></i> Inbox JC</h3>
                 <i class="fas fa-times" onclick="tutupInbox()" style="cursor:pointer; font-size:20px; color:red;"></i>
             </div>
-            <div id="list-pesan"><p style="font-size:12px; color:#999;">Memuat pesan...</p></div>
+            
+            <div id="list-pesan">
+                <p style="font-size:12px; color:#999;">Memuat pesan...</p>
+            </div>
+            
             <div id="detail-pesan-konten" style="display: none; text-align: left;">
                 <button onclick="kembaliKeList()" style="background: #eee; border: none; color: #333; cursor: pointer; padding: 5px 10px; border-radius: 5px; margin-bottom: 10px; font-size: 12px;">
                     <i class="fas fa-arrow-left"></i> Kembali
@@ -297,18 +300,6 @@
             sessionStorage.setItem('welcomeShown', 'true');
         }
 
-        function handleToggleMute() {
-            if (ytPlayer && typeof ytPlayer.isMuted === 'function') {
-                if (ytPlayer.isMuted()) {
-                    ytPlayer.unMute();
-                    document.getElementById('muteIcon').className = "fa-solid fa-volume-high";
-                } else {
-                    ytPlayer.mute();
-                    document.getElementById('muteIcon').className = "fa-solid fa-volume-xmark";
-                }
-            }
-        }
-
         // --- MONITOR INBOX ---
         function monitorEmailInbox(userJC, userEmail) {
             db.collection("pengumuman_komsel")
@@ -318,16 +309,6 @@
                 const listDiv = document.getElementById('list-pesan');
                 if(!listDiv) return;
                 listDiv.innerHTML = "";
-
-                const hasReadWelcome = localStorage.getItem("welcomeRead_" + userEmail);
-                if (!hasReadWelcome) unreadCount++;
-
-                listDiv.innerHTML += `
-                    <div class="msg-item" onclick="bacaWelcome('${userEmail}')" 
-                         style="${!hasReadWelcome ? 'background:#fff9e6; border-left:4px solid var(--emas-lux); font-weight:bold;' : 'background:#fff; border-left:4px solid #eee;'}">
-                        <b>Selamat Datang! ${!hasReadWelcome ? '<span style="color:red; font-size:9px;">(BARU)</span>' : ''}</b>
-                        <small>Sistem • ${!hasReadWelcome ? 'Belum Dibaca' : 'Sudah Dibaca'}</small>
-                    </div>`;
 
                 snapshot.forEach(doc => {
                     const data = doc.data();
@@ -362,13 +343,7 @@
             });
         }
 
-        function bacaWelcome(userEmail) {
-            localStorage.setItem("welcomeRead_" + userEmail, "true");
-            document.getElementById('welcomePopup').style.display = 'block';
-            tutupInbox();
-        }
-
-        // --- PERBAIKAN LOGIKA BACA PESAN ---
+        // --- FUNGSI BUKA DETAIL PESAN ---
         async function bacaDetailPesan(docId, userEmail) {
             const listDiv = document.getElementById('list-pesan');
             const detailDiv = document.getElementById('detail-pesan-konten');
@@ -378,18 +353,19 @@
                 const doc = await db.collection("pengumuman_komsel").doc(docId).get();
                 if (doc.exists) {
                     const data = doc.data();
-                    console.log("Membuka Pesan:", data); // Untuk debugging
 
+                    // Sinkronkan Nama Field (isiDetail adalah yang ada di form Anda)
+                    const isiPesan = data.isiDetail || data.isi || data.pesan || "Isi pesan tidak ditemukan.";
+                    
                     document.getElementById('detail-judul').innerText = data.judul || "Tanpa Judul";
-                    
-                    // Logika Adaptif: Mencari isi pesan di berbagai kemungkinan nama field
-                    const isiPesan = data.isi || data.pesan || data.konten || data.keterangan || "Isi pesan tidak ditemukan di database.";
                     document.getElementById('detail-isi').innerText = isiPesan;
-                    
+
+                    // Update status sudah dibaca ke Firebase
                     await db.collection("pengumuman_komsel").doc(docId).update({
                         sudahDibaca: firebase.firestore.FieldValue.arrayUnion(userEmail)
                     });
 
+                    // Tukar Tampilan
                     listDiv.style.display = "none";
                     detailDiv.style.display = "block";
                     judulInbox.innerHTML = '<i class="fas fa-envelope-open-text"></i> Isi Pesan';
@@ -409,6 +385,7 @@
             kembaliKeList(); 
         }
 
+        // --- SYNC DATA USER & PHOTO ---
         function syncUser() {
             const email = localStorage.getItem("userEmail");
             const isAdmin = localStorage.getItem("adminLoggedIn");
@@ -420,8 +397,6 @@
                 document.getElementById('disp_email').innerText = "System Access Active";
                 document.getElementById('admin-badge').style.display = "inline-block";
                 document.getElementById('disp_komsel').innerText = "ALL KOMSEL";
-                imgElement.style.display = "none";
-                iconElement.style.display = "block";
                 monitorEmailInbox("Semua JC", "admin@system.com");
             } else if (email) {
                 document.getElementById('disp_email').innerText = email;
@@ -441,27 +416,7 @@
             }
         }
 
-        function updateMainPlayer(data) {
-            const container = document.getElementById('youtube-player-container'); 
-            const muteBtn = document.getElementById('muteBtn');
-            const tipe = data.tipe ? data.tipe.toLowerCase() : "";
-            const vidId = extractVideoID(data.url);
-            
-            muteBtn.style.display = 'none';
-            container.innerHTML = "";
-            
-            if (tipe.includes('video') && vidId) {
-                container.innerHTML = `<div id="player"></div>`;
-                initYouTube(vidId);
-                muteBtn.style.display = 'block';
-            } else if (tipe.includes('audio')) {
-                container.innerHTML = `<div style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg, #003366, #0056b3); color:white; border-radius:20px; padding:20px;"><i class="fa-solid fa-music" style="font-size:50px; margin-bottom:15px; color:var(--emas-lux);"></i><audio controls style="width:100%;"><source src="${data.url}" type="audio/mpeg"></audio></div>`;
-            } else {
-                // Tampilan Gambar jika bukan video/audio
-                container.innerHTML = `<img src="${data.url}" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">`;
-            }
-        }
-
+        // --- MEDIA & WAKTU ---
         async function loadMedia() {
             try {
                 const snapshot = await db.collection("portal_media").orderBy("timestamp", "desc").limit(1).get();
@@ -473,6 +428,18 @@
                 }
                 document.getElementById('running-text').innerText = "Selamat Datang di Sistem Informasi & Integrasi Komsel JC | Digitalisasi Monitoring Pertumbuhan Iman Realtime | Copyright @imadeboby 2026";
             } catch (e) { console.error("Error loading media:", e); }
+        }
+
+        function updateMainPlayer(data) {
+            const container = document.getElementById('youtube-player-container'); 
+            const vidId = extractVideoID(data.url);
+            container.innerHTML = "";
+            if (vidId) {
+                container.innerHTML = `<div id="player"></div>`;
+                initYouTube(vidId);
+            } else {
+                container.innerHTML = `<img src="${data.url}" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">`;
+            }
         }
 
         function extractVideoID(url) {
@@ -489,7 +456,6 @@
         }
 
         function createPlayer(videoId) {
-            if(!videoId) return;
             ytPlayer = new YT.Player('player', {
                 height: '100%', width: '100%', videoId: videoId,
                 playerVars: { 'autoplay': 1, 'mute': 1, 'controls': 0, 'loop': 1, 'playlist': videoId },
