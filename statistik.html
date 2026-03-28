@@ -49,7 +49,7 @@
             <div class="input-box">
                 <label>PERIODE</label>
                 <select id="select-periode-alkitab" onchange="syncCapaianRealtime()">
-                    <option value="1">1 Bulan Terakhir</option><option value="2">2 Bulan Terakhir</option><option value="3">3 Bulan Terakhir</option><option value="4">4 Bulan Terakhir</option><option value="5">5 Bulan Terakhir</option><option value="6">6 Bulan Terakhir</option><option value="7">7 Bulan Terakhir</option><option value="8">8 Bulan Terakhir</option><option value="9">9 Bulan Terakhir</option><option value="10">10 Bulan Terakhir</option><option value="11">11 Bulan Terakhir</option><option value="12" selected>12 Bulan Terakhir</option>
+                    <option value="1">1 Bulan Terakhir</option><option value="12" selected>12 Bulan Terakhir</option>
                 </select>
             </div>
         </div>
@@ -77,16 +77,16 @@
             <div class="input-box">
                 <label>PERIODE</label>
                 <select id="select-periode-laporan" onchange="syncLaporanKehadiranJC()">
-                    <option value="1">1 Bulan Terakhir</option><option value="2">2 Bulan Terakhir</option><option value="3">3 Bulan Terakhir</option><option value="4">4 Bulan Terakhir</option><option value="5">5 Bulan Terakhir</option><option value="6">6 Bulan Terakhir</option><option value="7">7 Bulan Terakhir</option><option value="8">8 Bulan Terakhir</option><option value="9">9 Bulan Terakhir</option><option value="10">10 Bulan Terakhir</option><option value="11">11 Bulan Terakhir</option><option value="12" selected>12 Bulan Terakhir</option>
+                    <option value="1">1 Bulan Terakhir</option><option value="12" selected>12 Bulan Terakhir</option>
                 </select>
             </div>
         </div>
         <div class="stat-item">
-            <div class="stat-label-flex"><span>LAPORAN PER KOMSEL</span><span id="text-laporan-jc" style="color: var(--success);">0%</span></div>
+            <div class="stat-label-flex"><span>PROGRES HADIR (TARGET 100)</span><span id="text-laporan-jc" style="color: var(--success);">0%</span></div>
             <div class="progress-bar"><div id="bar-laporan-jc" class="progress-fill" style="width: 0%; background: var(--success);"></div></div>
         </div>
         <div class="stat-item">
-            <div class="stat-label-flex"><span>LAPORAN GLOBAL</span><span id="text-laporan-global" style="color: var(--ungu-global);">0%</span></div>
+            <div class="stat-label-flex"><span>PROGRES GLOBAL</span><span id="text-laporan-global" style="color: var(--ungu-global);">0%</span></div>
             <div class="progress-bar"><div id="bar-laporan-global" class="progress-fill" style="width: 0%; background: var(--ungu-global);"></div></div>
         </div>
     </div>
@@ -96,7 +96,7 @@
         <div class="flex-row">
             <div class="input-box"><label>Grup JC</label>
                 <select id="select-komsel-doa" onchange="syncDoaRealtime()">
-                    <option value="Semua">Semua JC</option><option value="JC 01">JC 01</option><option value="JC 02">JC 02</option><option value="JC 03">JC 03</option><option value="JC 04">JC 04</option><option value="JC 05" selected>JC 05</option>
+                    <option value="Semua">Semua JC</option><option value="JC 01">JC 01</option><option value="JC 05" selected>JC 05</option>
                 </select>
             </div>
         </div>
@@ -109,7 +109,7 @@
         <div class="card-header"><i class="fa-solid fa-droplet" style="color:red"></i> GOLONGAN DARAH</div>
         <label>FILTER KOMSEL</label>
         <select id="select-komsel-goldar" style="margin-bottom:15px;" onchange="syncGoldarRealtime()">
-            <option value="Semua Komsel">Semua Komsel</option><option value="JC 01">JC 01</option><option value="JC 02">JC 02</option><option value="JC 03">JC 03</option><option value="JC 04">JC 04</option><option value="JC 05">JC 05</option>
+            <option value="Semua Komsel">Semua Komsel</option><option value="JC 05">JC 05</option>
         </select>
         <div class="blood-item"><span>A</span><span class="btn-detail" id="count-A">0 Orang</span></div>
         <div class="blood-item"><span>B</span><span class="btn-detail" id="count-B">0 Orang</span></div>
@@ -118,13 +118,6 @@
     </div>
 
     <a href="menu.html" class="btn-back">← KEMBALI KE MENU UTAMA</a>
-</div>
-
-<div id="modal-goldar" class="modal-overlay" onclick="this.style.display='none'">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <div class="modal-header"><span id="modal-title">Anggota</span><i class="fa-solid fa-xmark" onclick="document.getElementById('modal-goldar').style.display='none'"></i></div>
-        <div id="modal-list-user" class="modal-body"></div>
-    </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -142,6 +135,7 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// Helper UI
 function updateProgressBar(textId, barId, value) {
     const textEl = document.getElementById(textId);
     const barEl = document.getElementById(barId);
@@ -149,63 +143,103 @@ function updateProgressBar(textId, barId, value) {
     if(barEl) barEl.style.width = Math.min(value, 100) + "%";
 }
 
-// LOGIKA LAPORAN KEHADIRAN JC (BARU)
+// 1. LOGIKA KEHADIRAN (Sesuai Rumus Boby: Input / 100)
 function syncLaporanKehadiranJC() {
     const jcTarget = document.getElementById('select-jc-laporan').value;
     const bulan = parseInt(document.getElementById('select-periode-laporan').value);
     const d = new Date();
     d.setMonth(d.getMonth() - bulan);
+    
+    const TARGET_STATIS = 100;
 
-    // Sync Per Komsel
-    db.collection("absensi").where("jc", "==", jcTarget).where("tanggal", ">=", d.toISOString().split('T')[0])
+    // Filter dari Big Data Administrator
+    db.collection("administrator_bigdata")
+    .where("timestamp_server", ">=", d)
     .onSnapshot(snap => {
-        let t = snap.size, target = bulan * 4; // Contoh target: 4 laporan/bulan
-        let p = target > 0 ? ((t/target)*100).toFixed(1) : 0;
-        updateProgressBar('text-laporan-jc', 'bar-laporan-jc', p);
-    });
+        let countJC = 0;
+        let countGlobal = 0;
 
-    // Sync Global
-    db.collection("absensi").where("tanggal", ">=", d.toISOString().split('T')[0])
-    .onSnapshot(snap => {
-        let t = snap.size, target = 100; 
-        let p = ((t/target)*100).toFixed(1);
-        updateProgressBar('text-laporan-global', 'bar-laporan-global', p);
-    });
-}
-
-function syncCapaianRealtime() {
-    const selKomselRaw = document.getElementById('select-komsel-alkitab').value;
-    const selKomselAngka = parseInt(selKomselRaw.replace(/\D/g, "")).toString();
-    const periodeBulan = parseInt(document.getElementById('select-periode-alkitab').value);
-    const limitFilter = new Date();
-    limitFilter.setHours(0, 0, 0, 0); limitFilter.setMonth(limitFilter.getMonth() - periodeBulan);
-    const targetStandar = 100;
-
-    db.collection("laporan_bacaan").where("tanggal", ">=", limitFilter).onSnapshot(snap => {
-        let doneGlobal = new Set(), doneKomsel = new Set();
         snap.forEach(doc => {
-            const d = doc.data(); if (!d.email) return;
-            const email = d.email.toLowerCase().trim();
-            const jcLaporan = String(d.komsel || d.jc || "").replace(/\D/g, "");
-            doneGlobal.add(email);
-            if (parseInt(jcLaporan).toString() === selKomselAngka) doneKomsel.add(email);
+            const data = doc.data();
+            countGlobal++;
+            if(data.jc === jcTarget) countJC++;
         });
-        updateProgressBar('text-capaian-komsel', 'bar-capaian-komsel', ((doneKomsel.size/targetStandar)*100).toFixed(1));
-        updateProgressBar('text-capaian-global', 'bar-capaian-global', ((doneGlobal.size/targetStandar)*100).toFixed(1));
+
+        // Rumus: (Jumlah Laporan / 100) * 100%
+        let pJC = ((countJC / TARGET_STATIS) * 100).toFixed(1);
+        let pGlobal = ((countGlobal / TARGET_STATIS) * 100).toFixed(1);
+
+        updateProgressBar('text-laporan-jc', 'bar-laporan-jc', pJC);
+        updateProgressBar('text-laporan-global', 'bar-laporan-global', pGlobal);
     });
 }
 
-function syncGoldarRealtime() {
-    const filter = document.getElementById('select-komsel-goldar').value.trim();
-    db.collection("users").onSnapshot(snap => {
-        let counts = { A: 0, B: 0, O: 0, AB: 0 }, usersData = [];
+// 2. LOGIKA BACA ALKITAB (Sesuai Rumus Boby: Input / 100)
+function syncCapaianRealtime() {
+    const selKomsel = document.getElementById('select-komsel-alkitab').value;
+    const periode = parseInt(document.getElementById('select-periode-alkitab').value);
+    const limit = new Date();
+    limit.setMonth(limit.getMonth() - periode);
+    
+    const TARGET_STATIS = 100;
+
+    db.collection("laporan_bacaan").where("tanggal", ">=", limit).onSnapshot(snap => {
+        let countJC = 0;
+        let countGlobal = 0;
+
         snap.forEach(doc => {
-            const d = doc.data(); const jcUser = String(d.jc || d.komsel || "").trim();
-            if (filter === "Semua Komsel" || jcUser === filter) {
-                const g = String(d.golongan_darah || d.golDarah || "").toUpperCase().trim();
-                if (counts.hasOwnProperty(g)) { counts[g]++; usersData.push(d); }
+            const d = doc.data();
+            countGlobal++;
+            // Cek kecocokan Komsel
+            if (d.komsel === selKomsel || d.jc === selKomsel) countJC++;
+        });
+
+        let pJC = ((countJC / TARGET_STATIS) * 100).toFixed(1);
+        let pGlobal = ((countGlobal / TARGET_STATIS) * 100).toFixed(1);
+
+        updateProgressBar('text-capaian-komsel', 'bar-capaian-komsel', pJC);
+        updateProgressBar('text-capaian-global', 'bar-capaian-global', pGlobal);
+    });
+}
+
+// 3. LOGIKA LAINNYA
+function syncGoldarRealtime() {
+    const filter = document.getElementById('select-komsel-goldar').value;
+    db.collection("users").onSnapshot(snap => {
+        let c = { A: 0, B: 0, O: 0, AB: 0 };
+        snap.forEach(doc => {
+            const d = doc.data();
+            if (filter === "Semua Komsel" || (d.jc === filter)) {
+                const g = (d.golongan_darah || "").toUpperCase();
+                if (c.hasOwnProperty(g)) c[g]++;
             }
         });
-        ["A", "B", "O", "AB"].forEach(type => {
-            const el = document.getElementById('count-' + type);
-            if (el) { el.innerText = counts[type] + " Orang"; el.onclick = () => openUserDetail(
+        Object.keys(c).forEach(t => document.getElementById('count-'+t).innerText = c[t] + " Orang");
+    });
+}
+
+function syncDoaRealtime() {
+    const jc = document.getElementById('select-komsel-doa').value;
+    db.collection("laporan_doa").onSnapshot(snap => {
+        let n = 0, d = 0;
+        snap.forEach(doc => {
+            const data = doc.data();
+            if (jc === "Semua" || data.jc === jc) {
+                n++; if (data.status === "Dijawab") d++;
+            }
+        });
+        let p = n > 0 ? ((d/n)*100).toFixed(1) : 0;
+        document.getElementById('stat-persen-dijawab').innerText = p + "%";
+        document.getElementById('progress-doa').style.width = p + "%";
+    });
+}
+
+window.onload = () => {
+    syncCapaianRealtime();
+    syncLaporanKehadiranJC();
+    syncGoldarRealtime();
+    syncDoaRealtime();
+};
+</script>
+</body>
+</html>
