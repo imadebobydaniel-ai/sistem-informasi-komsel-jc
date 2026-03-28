@@ -142,10 +142,15 @@ function syncCapaianRealtime() {
             const d = doc.data();
             countGlobal++;
 
-            const jcLaporanRaw = String(d.komsel || d.jc || "");
-            const jcLaporanAngka = jcLaporanRaw.replace(/\D/g, "");
-
-            if (jcLaporanAngka === selKomselAngka && jcLaporanAngka !== "") {
+            // --- LOGIKA BARU UNTUK VALIDASI DATA ---
+            // Ambil data JC dari field 'komsel' ATAU 'jc'
+            let jcLaporanRaw = String(d.komsel || d.jc || "");
+            
+            // Membersihkan karakter non-angka agar "JC 05", "JC5", "5" semuanya jadi "5"
+            let jcLaporanAngka = jcLaporanRaw.replace(/\D/g, "");
+            
+            // Pastikan angka tidak kosong dan cocok secara integer
+            if (jcLaporanAngka !== "" && parseInt(jcLaporanAngka) === parseInt(selKomselAngka)) {
                 countJC++;
             }
         });
