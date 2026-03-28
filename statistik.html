@@ -14,11 +14,12 @@
         body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--putih-bg); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
         .mobile-wrapper { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; }
         
-        /* Dashboard Stats Style (Ringkasan Main Menu) */
+        /* Dashboard Stats Style */
         .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 5px; }
         .stat-mini-card { 
             background: white; border-radius: 15px; padding: 12px; text-align: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-bottom: 3px solid var(--biru-utama);
+            cursor: pointer;
         }
         .stat-mini-card h4 { margin: 0; font-size: 10px; color: #888; text-transform: uppercase; }
         .stat-mini-card p { margin: 5px 0; font-size: 18px; font-weight: 800; color: #333; }
@@ -40,19 +41,6 @@
         .btn-detail { color: var(--biru-utama); cursor: pointer; font-weight: bold; }
         b { color: var(--emas-doa); font-size: 15px; }
 
-        /* Modal Style */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: white; width: 100%; max-width: 380px; border-radius: 15px; overflow: hidden; animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .modal-header { background: var(--biru-utama); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
-        .modal-body { max-height: 350px; overflow-y: auto; padding: 10px; }
-        
-        .user-list-item { display: flex; align-items: center; gap: 12px; padding: 10px; border-bottom: 1px solid #eee; }
-        .user-list-item img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #ddd; }
-        .user-info-text { display: flex; flex-direction: column; text-align: left; }
-        .user-name { font-size: 14px; font-weight: bold; color: #333; margin: 0; }
-        .user-jc { font-size: 11px; color: #666; margin: 0; font-weight: bold; }
-        
         .btn-back { display: block; text-align: center; padding: 14px; background: white; color: var(--biru-utama); text-decoration: none; font-weight: bold; border-radius: 12px; border: 1px solid #ddd; margin-top: 10px; font-size: 13px; width: 100%; box-sizing: border-box; }
     </style>
 </head>
@@ -61,15 +49,88 @@
 <div class="mobile-wrapper">
     
     <div class="dashboard-grid">
-        <div class="stat-mini-card" onclick="location.href='#section-ibadah'">
-            <h4>Ibadah Raya</h4>
-            <p id="main-percent-raya">0%</p>
-            <div class="mini-chart-container"><canvas id="chartRaya"></canvas></div>
+        <div class="stat-mini-card">
+            <h4>Hadir Doa</h4>
+            <p id="main-percent-doa">0%</p>
+            <div class="mini-chart-container"><canvas id="chartDoa"></canvas></div>
         </div>
-        <div class="stat-mini-card" style="border-bottom-color: var(--success);" onclick="location.href='#section-komsel'">
-            <h4>Komsel</h4>
+        <div class="stat-mini-card" style="border-bottom-color: var(--success);">
+            <h4>Hadir Komsel</h4>
             <p id="main-percent-komsel">0%</p>
             <div class="mini-chart-container"><canvas id="chartKomsel"></canvas></div>
+        </div>
+    </div>
+
+    <div class="card" id="section-kehadiran">
+        <div class="card-header" style="border-bottom-color: var(--success);">
+            <i class="fa-solid fa-user-check" style="color:var(--success)"></i> STATISTIK KEHADIRAN
+        </div>
+        
+        <div class="flex-row">
+            <div class="input-box">
+                <label>KOMSEL (JC)</label>
+                <select id="select-komsel-hadir" onchange="syncKehadiranRealtime()">
+                    <option value="JC 01">JC 1</option>
+                    <option value="JC 02">JC 2</option>
+                    <option value="JC 03">JC 3</option>
+                    <option value="JC 04">JC 4</option>
+                    <option value="JC 05" selected>JC 5</option>
+                </select>
+            </div>
+            <div class="input-box">
+                <label>PERIODE</label>
+                <select id="select-periode-hadir" onchange="syncKehadiranRealtime()">
+                    <option value="1">1 Bulan</option>
+                    <option value="3">3 Bulan</option>
+                    <option value="12" selected>12 Bulan</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="stat-item">
+            <div class="stat-label-flex">
+                <span>PERSENTASE HADIR</span>
+                <span id="text-persen-hadir" style="color: var(--success);">0.0%</span>
+            </div>
+            <div class="progress-bar">
+                <div id="bar-persen-hadir" class="progress-fill" style="width: 0%; background: var(--success);"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" id="section-absen">
+        <div class="card-header" style="border-bottom-color: var(--merah-absen);">
+            <i class="fa-solid fa-user-xmark" style="color:var(--merah-absen)"></i> STATISTIK KETIDAKHADIRAN
+        </div>
+        
+        <div class="flex-row">
+            <div class="input-box">
+                <label>KOMSEL (JC)</label>
+                <select id="select-komsel-absen" onchange="syncKehadiranRealtime()">
+                    <option value="JC 01">JC 1</option>
+                    <option value="JC 02">JC 2</option>
+                    <option value="JC 03">JC 3</option>
+                    <option value="JC 04">JC 4</option>
+                    <option value="JC 05" selected>JC 5</option>
+                </select>
+            </div>
+            <div class="input-box">
+                <label>PERIODE</label>
+                <select id="select-periode-absen" onchange="syncKehadiranRealtime()">
+                    <option value="1">1 Bulan</option>
+                    <option value="12" selected>12 Bulan</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="stat-item">
+            <div class="stat-label-flex">
+                <span>PERSENTASE IZIN/ABSEN</span>
+                <span id="text-persen-absen" style="color: var(--merah-absen);">0.0%</span>
+            </div>
+            <div class="progress-bar">
+                <div id="bar-persen-absen" class="progress-fill" style="width: 0%; background: var(--merah-absen);"></div>
+            </div>
         </div>
     </div>
 
@@ -95,40 +156,9 @@
             <div class="stat-label-flex"><span>PER KOMSEL</span><span id="text-capaian-komsel">0.0%</span></div>
             <div class="progress-bar"><div id="bar-capaian-komsel" class="progress-fill" style="width: 0%; background: var(--biru-utama);"></div></div>
         </div>
-        <div class="stat-item">
-            <div class="stat-label-flex"><span>GLOBAL</span><span id="text-capaian-global">0.0%</span></div>
-            <div class="progress-bar"><div id="bar-capaian-global" class="progress-fill" style="width: 0%; background: var(--ungu-global);"></div></div>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-header" style="border-bottom-color: var(--emas-doa);"><i class="fa-solid fa-hands-praying" style="color:var(--emas-doa)"></i> DOA (SLA)</div>
-        <div class="stat-row"><span>Rata-rata Jawaban</span><b id="stat-sla-hari">0 Hari</b></div>
-        <div class="stat-row"><span>Persentase Dijawab</span><b id="stat-persen-dijawab">0%</b></div>
-        <div class="progress-bar" style="margin-top: 10px;"><div id="progress-doa" class="progress-fill" style="width: 0%; background: var(--emas-doa);"></div></div>
-    </div>
-
-    <div class="card">
-        <div class="card-header" style="border-bottom-color: red;"><i class="fa-solid fa-droplet" style="color:red"></i> GOLONGAN DARAH</div>
-        <label>FILTER KOMSEL</label>
-        <select id="select-komsel-goldar" style="margin-bottom:15px;" onchange="syncGoldarRealtime()">
-            <option value="Semua Komsel">Semua Komsel</option>
-            <option value="JC 01">JC 01</option><option value="JC 02">JC 02</option><option value="JC 03">JC 03</option><option value="JC 04">JC 04</option><option value="JC 05">JC 05</option>
-        </select>
-        <div class="blood-item"><span>A</span><span class="btn-detail" id="count-A">0 Orang</span></div>
-        <div class="blood-item"><span>B</span><span class="btn-detail" id="count-B">0 Orang</span></div>
-        <div class="blood-item"><span>O</span><span class="btn-detail" id="count-O">0 Orang</span></div>
-        <div class="blood-item"><span>AB</span><span class="btn-detail" id="count-AB">0 Orang</span></div>
     </div>
 
     <a href="menu.html" class="btn-back">← KEMBALI KE MENU UTAMA</a>
-</div>
-
-<div id="modal-goldar" class="modal-overlay" onclick="this.style.display='none'">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <div class="modal-header"><span id="modal-title">Anggota</span><i class="fa-solid fa-xmark" onclick="document.getElementById('modal-goldar').style.display='none'"></i></div>
-        <div id="modal-list-user" class="modal-body"></div>
-    </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -146,123 +176,73 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// --- FUNGSI CHART MINI (MAIN MENU STYLE) ---
-function renderMiniChart(id, percent, color) {
-    const ctx = document.getElementById(id).getContext('2d');
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            datasets: [{
-                data: [percent, 100 - percent],
-                backgroundColor: [color, '#f0f0f0'],
-                borderWidth: 0
-            }]
-        },
-        options: { cutout: '75%', plugins: { legend: false, tooltip: false } }
-    });
+// --- FUNGSI UPDATE PROGRESS BAR ---
+function updateProgressBar(textId, barId, val) {
+    document.getElementById(textId).innerText = val + "%";
+    document.getElementById(barId).style.width = Math.min(val, 100) + "%";
 }
 
-// --- SYNC BOBOT PERSENTASE MAIN MENU ---
-function syncMainStats() {
-    // Simulasi penarikan data kehadiran (Realnya ditarik dari collection 'absensi')
-    db.collection("absensi").onSnapshot(snap => {
-        let totalJemaat = 100; // Standar target
-        let hadirRaya = 0;
-        let hadirKomsel = 0;
+// --- SYNC KEHADIRAN & KETIDAKHADIRAN REALTIME ---
+function syncKehadiranRealtime() {
+    const jcTarget = document.getElementById('select-komsel-hadir').value;
+    const periode = parseInt(document.getElementById('select-periode-hadir').value);
+    
+    // Tentukan batas tanggal
+    const limitFilter = new Date();
+    limitFilter.setMonth(limitFilter.getMonth() - periode);
+    const dateLimitStr = limitFilter.toISOString().split('T')[0];
 
-        snap.forEach(doc => {
-            const d = doc.data();
-            if(d.kegiatan === "Ibadah Raya") hadirRaya++;
-            if(d.kegiatan === "Komsel") hadirKomsel++;
+    db.collection("absensi")
+        .where("jc", "==", jcTarget)
+        .where("tanggal", ">=", dateLimitStr)
+        .onSnapshot(snap => {
+            let totalData = snap.size;
+            let totalHadir = 0;
+            let totalAbsen = 0;
+
+            snap.forEach(doc => {
+                const d = doc.data();
+                if (d.status === "HADIR") {
+                    totalHadir++;
+                } else if (d.status === "TIDAK HADIR") {
+                    totalAbsen++;
+                }
+            });
+
+            const persenHadir = totalData > 0 ? ((totalHadir / totalData) * 100).toFixed(1) : "0.0";
+            const persenAbsen = totalData > 0 ? ((totalAbsen / totalData) * 100).toFixed(1) : "0.0";
+
+            updateProgressBar('text-persen-hadir', 'bar-persen-hadir', persenHadir);
+            updateProgressBar('text-persen-absen', 'bar-persen-absen', persenAbsen);
+            
+            // Update Mini Chart juga
+            updateMiniStats(persenHadir, persenAbsen);
         });
+}
 
-        const pRaya = Math.round((hadirRaya / totalJemaat) * 100);
-        const pKomsel = Math.round((hadirKomsel / totalJemaat) * 100);
-
-        document.getElementById('main-percent-raya').innerText = pRaya + "%";
-        document.getElementById('main-percent-komsel').innerText = pKomsel + "%";
-
-        renderMiniChart('chartRaya', pRaya, '#007bff');
-        renderMiniChart('chartKomsel', pKomsel, '#28a745');
-    });
+// --- MINI STATS UPDATE ---
+function updateMiniStats(pHadir, pAbsen) {
+    document.getElementById('main-percent-komsel').innerText = pHadir + "%";
+    // Render chart sederhana jika diperlukan
 }
 
 // --- SINKRONISASI BACA ALKITAB ---
 function syncCapaianRealtime() {
-    const selKomselRaw = document.getElementById('select-komsel-alkitab').value;
-    const selKomselAngka = parseInt(selKomselRaw.replace(/\D/g, "")).toString();
-    const periodeBulan = parseInt(document.getElementById('select-periode-alkitab').value);
-    const limitFilter = new Date();
-    limitFilter.setMonth(limitFilter.getMonth() - periodeBulan);
-
-    db.collection("laporan_bacaan").where("tanggal", ">=", limitFilter).onSnapshot(snap => {
-        let doneGlobal = new Set(); let doneKomsel = new Set();
+    const selKomsel = document.getElementById('select-komsel-alkitab').value;
+    db.collection("laporan_bacaan").onSnapshot(snap => {
+        let count = 0;
         snap.forEach(doc => {
-            const d = doc.data();
-            if (!d.email) return;
-            doneGlobal.add(d.email.toLowerCase().trim());
-            const jcLaporan = String(d.komsel || d.jc || "").replace(/\D/g, "");
-            if (parseInt(jcLaporan).toString() === selKomselAngka) doneKomsel.add(d.email.toLowerCase().trim());
+            if(doc.data().jc === selKomsel) count++;
         });
-        const pKomsel = ((doneKomsel.size / 100) * 100).toFixed(1);
-        const pGlobal = ((doneGlobal.size / 100) * 100).toFixed(1);
-        updateUI('text-capaian-komsel', 'bar-capaian-komsel', pKomsel);
-        updateUI('text-capaian-global', 'bar-capaian-global', pGlobal);
+        const p = ((count / 50) * 100).toFixed(1); // Asumsi target 50 laporan
+        updateProgressBar('text-capaian-komsel', 'bar-capaian-komsel', p);
     });
 }
 
-function updateUI(tId, bId, val) {
-    document.getElementById(tId).innerText = val + "%";
-    document.getElementById(bId).style.width = Math.min(val, 100) + "%";
-}
-
-// --- SYNC LAINNYA ---
-function syncGoldarRealtime() {
-    const filter = document.getElementById('select-komsel-goldar').value;
-    db.collection("users").onSnapshot(snap => {
-        let counts = { A: 0, B: 0, O: 0, AB: 0 }; let usersData = [];
-        snap.forEach(doc => {
-            const d = doc.data();
-            const jcUser = String(d.jc || d.komsel || "").trim();
-            if (filter === "Semua Komsel" || jcUser === filter) {
-                const g = String(d.golongan_darah || "").toUpperCase().trim();
-                if (counts.hasOwnProperty(g)) { counts[g]++; usersData.push(d); }
-            }
-        });
-        ["A", "B", "O", "AB"].forEach(type => {
-            document.getElementById('count-' + type).innerText = counts[type] + " Orang";
-            document.getElementById('count-' + type).onclick = () => openUserDetail(type, usersData);
-        });
-    });
-}
-
-function syncDoaRealtime() {
-    db.collection("laporan_doa").onSnapshot(snap => {
-        let count = 0, dijawab = 0;
-        snap.forEach(doc => {
-            count++; if (doc.data().status === "Dijawab") dijawab++;
-        });
-        const p = count > 0 ? ((dijawab / count) * 100).toFixed(1) : "0";
-        document.getElementById('stat-persen-dijawab').innerText = p + "%";
-        document.getElementById('progress-doa').style.width = p + "%";
-    });
-}
-
-function openUserDetail(type, data) {
-    const list = document.getElementById('modal-list-user');
-    document.getElementById('modal-title').innerText = "Golongan Darah " + type;
-    list.innerHTML = "";
-    const filtered = data.filter(u => String(u.golongan_darah || "").toUpperCase().trim() === type);
-    filtered.forEach(u => {
-        const item = document.createElement('div');
-        item.className = 'user-list-item';
-        item.innerHTML = `<img src="${u.foto_url || ''}" onerror="this.src='https://via.placeholder.com/45'"><div class="user-info-text"><p class="user-name">${u.nama}</p><p class="user-jc">${u.jc}</p></div>`;
-        list.appendChild(item);
-    });
-    document.getElementById('modal-goldar').style.display = 'flex';
-}
-
-window.onload = () => { syncMainStats(); syncCapaianRealtime(); syncGoldarRealtime(); syncDoaRealtime(); };
+window.onload = () => { 
+    syncKehadiranRealtime(); 
+    syncCapaianRealtime(); 
+};
 </script>
 </body>
 </html>
