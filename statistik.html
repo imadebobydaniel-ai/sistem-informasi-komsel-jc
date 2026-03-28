@@ -13,7 +13,6 @@
         body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--putih-bg); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
         .mobile-wrapper { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; }
         
-        /* Dashboard Stats Style */
         .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 5px; }
         .stat-mini-card { 
             background: white; border-radius: 15px; padding: 12px; text-align: center;
@@ -34,8 +33,7 @@
         .progress-bar { height: 8px; background: #f0f0f0; border-radius: 10px; overflow: hidden; margin-bottom: 12px; }
         .progress-fill { height: 100%; border-radius: 10px; transition: width 0.5s; }
         
-        .blood-item, .stat-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f8f8f8; font-size: 13px; font-weight: 600; }
-        .btn-detail { color: var(--biru-utama); cursor: pointer; font-weight: bold; }
+        .stat-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f8f8f8; font-size: 13px; font-weight: 600; }
         b { color: var(--emas-doa); font-size: 15px; }
 
         .btn-back { display: block; text-align: center; padding: 14px; background: white; color: var(--biru-utama); text-decoration: none; font-weight: bold; border-radius: 12px; border: 1px solid #ddd; margin-top: 10px; font-size: 13px; width: 100%; box-sizing: border-box; }
@@ -81,17 +79,17 @@
             </div>
         </div>
         <div class="stat-item">
-            <div class="stat-label-flex"><span>PERSENTASE HADIR</span><span id="text-persen-hadir" style="color: var(--success);">0.0%</span></div>
+            <div class="stat-label-flex"><span>PERSENTASE HADIR (FILTER)</span><span id="text-persen-hadir" style="color: var(--success);">0.0%</span></div>
             <div class="progress-bar"><div id="bar-persen-hadir" class="progress-fill" style="width: 0%; background: var(--success);"></div></div>
         </div>
     </div>
 
     <div class="card">
         <div class="card-header" style="border-bottom-color: var(--emas-doa);">
-            <i class="fa-solid fa-hands-praying" style="color:var(--emas-doa)"></i> DOA (SLA)
+            <i class="fa-solid fa-hands-praying" style="color:var(--emas-doa)"></i> DOA (SLA) GLOBAL
         </div>
         <div class="stat-row"><span>Rata-rata Jawaban</span><b id="stat-sla-hari">0 Hari</b></div>
-        <div class="stat-row"><span>Persentase Dijawab</span><b id="stat-persen-dijawab">0%</b></div>
+        <div class="stat-row"><span>Total Doa Terjawab</span><b id="stat-total-terjawab">0</b></div>
     </div>
 
     <a href="menu.html" class="btn-back">← KEMBALI KE MENU UTAMA</a>
@@ -112,26 +110,37 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// 1. OPTIMASI: Mendengarkan Big Data Ringkasan (Hemat Kuota & Cepat)
-// Pastikan di Firestore kamu punya collection "stats_summary" dan document "global_dashboard"
+// 1. MENDENGARKAN RINGKASAN (HASIL DARI CLOUD FUNCTIONS)
 function listenToBigData() {
+    // Mendengarkan doc 'global_dashboard' yang diupdate oleh Cloud Functions
     db.collection("stats_summary").doc("global_dashboard")
       .onSnapshot(doc => {
           if (doc.exists) {
               const data = doc.data();
-              // Update angka ringkasan di paling atas dashboard
-              document.getElementById('main-percent-komsel').innerText = (data.avg_attendance_pct || 0) + "%";
-              document.getElementById('main-percent-doa').innerText = (data.avg_prayer_pct || 0) + "%";
               
-              // Jika ada data SLA global bisa diupdate di sini juga
-              if(data.global_sla) document.getElementById('stat-sla-hari').innerText = data.global_sla + " Hari";
+              // Hitung Persentase Kehadiran Global
+              const totalLaporan = data.total_laporan || 0;
+              const totalHadir = data.total_hadir || 0;
+              const globalAttendancePct = totalLaporan > 0 ? ((totalHadir / totalLaporan) * 100).toFixed(1) : 0;
+              
+              document.getElementById('main-percent-komsel').innerText = globalAttendancePct + "%";
+
+              // Hitung SLA Doa Global (total_sla_days / total_doa_terjawab)
+              const totalSlaDays = data.total_sla_days || 0;
+              const totalTerjawab = data.total_doa_terjawab || 0;
+              const avgSla = totalTerjawab > 0 ? (totalSlaDays / totalTerjawab).toFixed(1) : 0;
+              
+              document.getElementById('stat-sla-hari').innerText = avgSla + " Hari";
+              document.getElementById('stat-total-terjawab').innerText = totalTerjawab;
+              
+              // Persentase Doa Terjawab (Asumsi total_laporan_doa ada di summary)
+              // Jika belum ada di function, kita tampilkan total terjawab di mini card
+              document.getElementById('main-percent-doa').innerText = totalTerjawab;
           }
-      }, err => {
-          console.log("Summary data belum tersedia, beralih ke kalkulasi manual.");
       });
 }
 
-// 2. Kalkulasi Detail (Realtime per Filter)
+// 2. KALKULASI DETAIL PER JC (FILTER TETAP REALTIME DARI ABSENSI)
 function syncKehadiranRealtime() {
     const jcTarget = document.getElementById('select-komsel-hadir').value;
     const periode = parseInt(document.getElementById('select-periode-hadir').value);
@@ -147,7 +156,7 @@ function syncKehadiranRealtime() {
             let total = snap.size;
             let hadir = 0;
             snap.forEach(doc => {
-                if(doc.data().status === "HADIR") hadir++;
+                if((doc.data().status || "").toUpperCase() === "HADIR") hadir++;
             });
             const persen = total > 0 ? ((hadir/total)*100).toFixed(1) : "0.0";
             document.getElementById('text-persen-hadir').innerText = persen + "%";
@@ -155,12 +164,10 @@ function syncKehadiranRealtime() {
         });
 }
 
-// Inisialisasi Saat Load
 window.onload = () => {
-    listenToBigData(); // Jalankan ringkasan dulu
-    syncKehadiranRealtime(); // Jalankan detail filter
+    listenToBigData();
+    syncKehadiranRealtime();
 };
-
 </script>
 </body>
 </html>
