@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Input Absensi - Pondok Pemulihan Papua</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { 
+            --biru-utama: #007bff; --success: #28a745; --putih-bg: #f4f7fa; 
+        }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--putih-bg); padding: 15px; display: flex; justify-content: center; }
+        .mobile-wrapper { width: 100%; max-width: 400px; }
+        .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #eee; }
+        .card-header { text-align: center; font-weight: bold; border-bottom: 2px solid var(--success); padding-bottom: 10px; margin-bottom: 20px; color: #333; }
+        
+        .input-group { margin-bottom: 15px; }
+        label { font-size: 11px; font-weight: bold; color: #666; display: block; margin-bottom: 5px; text-transform: uppercase; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
+        
+        .btn-simpan { 
+            width: 100%; padding: 15px; background: var(--success); color: white; border: none; 
+            border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; margin-top: 10px;
+        }
+        .btn-simpan:active { transform: scale(0.98); }
+        .btn-back { 
+            display: block; text-align: center; padding: 12px; color: var(--biru-utama); 
+            text-decoration: none; font-size: 13px; font-weight: bold; margin-top: 15px; 
+        }
+    </style>
+</head>
+<body>
+
+<div class="mobile-wrapper">
+    <div class="card">
+        <div class="card-header"><i class="fa-solid fa-file-pen"></i> INPUT KEHADIRAN JC</div>
+        
+        <div class="input-group">
+            <label>Nama Lengkap</label>
+            <input type="text" id="input-nama" placeholder="Contoh: Boby Daniel">
+        </div>
+
+        <div class="input-group">
+            <label>Pilih Komsel (JC)</label>
+            <select id="select-jc-input">
+                <option value="JC 01">JC 01</option>
+                <option value="JC 02">JC 02</option>
+                <option value="JC 03">JC 03</option>
+                <option value="JC 04">JC 04</option>
+                <option value="JC 05">JC 05</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>Status Kehadiran</label>
+            <select id="select-status">
+                <option value="HADIR">HADIR</option>
+                <option value="IZIN">IZIN</option>
+                <option value="ALFA">ALFA</option>
+            </select>
+        </div>
+
+        <button class="btn-simpan" onclick="simpanAbsensi()">
+            <i class="fa-solid fa-cloud-arrow-up"></i> SIMPAN ABSENSI
+        </button>
+
+        <a href="statistik.html" class="btn-back">LIHAT STATISTIK →</a>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<script>
+// Konfigurasi Firebase Anda
+const firebaseConfig = {
+    apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+    authDomain: "boby-apps-project.firebaseapp.com",
+    projectId: "boby-apps-project",
+    storageBucket: "boby-apps-project.appspot.com",
+    messagingSenderId: "125984859692",
+    appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+function simpanAbsensi() {
+    const nama = document.getElementById('input-nama').value;
+    const jc = document.getElementById('select-jc-input').value;
+    const status = document.getElementById('select-status').value;
+
+    if (!nama) {
+        alert("Mohon isi nama lengkap!");
+        return;
+    }
+
+    // Inilah bagian yang memperbaiki statistik 0% kamu
+    const dataKehadiran = {
+        nama: nama,
+        jc: jc, // <--- Sekarang field ini akan tersimpan otomatis
+        status: status,
+        tanggal: firebase.firestore.FieldValue.serverTimestamp(),
+        tanggal_str: new Date().toISOString().split('T')[0],
+        email: "imade.bobydaniel@gmail.com"
+    };
+
+    db.collection("kehadiran").add(dataKehadiran)
+        .then(() => {
+            alert("Absensi " + nama + " (" + jc + ") Berhasil Disimpan!");
+            document.getElementById('input-nama').value = ""; // Reset input
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+            alert("Gagal menyimpan ke database.");
+        });
+}
+</script>
+
+</body>
+</html>
