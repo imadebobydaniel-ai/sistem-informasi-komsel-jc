@@ -86,7 +86,7 @@
         <button style="background:none; border:none; color:#777; margin-top:10px;" onclick="batalAbsen()">Kembali</button>
     </div>
 
-    <a href="menu.html" style="display:block; margin-top:20px; color:#003366; text-decoration:none; font-weight:bold; font-size:13px;">KEMBALI KE MENU</a>
+    <a href="menu.html" style="display:block; margin-top:20px; color:#003366; text-decoration:none; font-weight:bold; font-size:13px;"><i class="fa-solid fa-house"></i> KEMBALI KE MENU</a>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -117,6 +117,9 @@
         if(type === 'success') {
             icon.className = 'fa-solid fa-circle-check';
             icon.style.color = '#00c853';
+        } else if(type === 'loading') {
+            icon.className = 'fa-solid fa-spinner fa-spin';
+            icon.style.color = '#007bff';
         } else {
             icon.className = 'fa-solid fa-circle-xmark';
             icon.style.color = '#d81b60';
@@ -146,46 +149,47 @@
         document.getElementById("reason-container").style.display = "none"; 
     }
 
-    // FUNGSI UTAMA
+    // FUNGSI UTAMA DENGAN LOGIKA KUNCI TOTAL
     async function handleProses(tipe) {
         const menu = document.getElementById("jenis-kegiatan").value;
         const today = new Date().toISOString().split('T')[0];
-        
-        // 1. CEK DOUBLE REPORT (Counter Block)
+        const subjekLaporan = (menu === "Absen Extention") ? document.getElementById("ext-nama").value : leaderName;
+
+        // 1. CEK SEMUA JENIS LAPORAN (KUNCI TOTAL BERDASARKAN TANGGAL & NAMA)
         const check = await db.collection("absensi")
-            .where("nama", "==", (menu === "Absen Extention" ? document.getElementById("ext-nama").value : leaderName))
+            .where("nama", "==", subjekLaporan)
             .where("kegiatan", "==", menu)
             .where("tanggal", "==", today)
             .get();
 
         if (!check.empty) {
-            showLockDisplay('error', 'Laporan Ditolak', 'Anda Tadi Sudah Kirim Laporan untuk kegiatan ini.');
+            showLockDisplay('error', 'Laporan Ditolak', 'Anda Tadi Sudah Kirim Laporan (Hadir/Izin) untuk kegiatan ini. Tidak bisa mengirim laporan ganda.');
             return;
         }
 
-        // 2. AMBIL LOKASI & ALAMAT
+        // 2. PROSES GPS & ALAMAT
         if (navigator.geolocation) {
+            showLockDisplay('loading', 'Mencari Lokasi...', 'Sedang memverifikasi lokasi Anda, mohon tunggu sebentar.');
+            
             navigator.geolocation.getCurrentPosition(async (pos) => {
                 const lat = pos.coords.latitude;
                 const lon = pos.coords.longitude;
                 
                 try {
-                    // Reverse Geocoding (Mencari alamat dari koordinat)
                     const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
                     const addr = await res.json();
                     const alamatJalan = addr.display_name || "Alamat tidak ditemukan";
-                    
-                    saveData(tipe, `${lat}, ${lon}`, alamatJalan);
+                    saveData(tipe, `${lat}, ${lon}`, alamatJalan, subjekLaporan);
                 } catch (e) {
-                    saveData(tipe, `${lat}, ${lon}`, "Gagal mengambil nama alamat");
+                    saveData(tipe, `${lat}, ${lon}`, "Gagal mendeteksi nama alamat jalan", subjekLaporan);
                 }
-            }, () => saveData(tipe, "GPS Off", "Lokasi tidak diizinkan"));
+            }, () => saveData(tipe, "GPS Off", "Lokasi tidak diizinkan", subjekLaporan), { timeout: 10000 });
         } else {
-            saveData(tipe, "No GPS Support", "Perangkat tidak mendukung GPS");
+            saveData(tipe, "No GPS Support", "Perangkat tidak mendukung GPS", subjekLaporan);
         }
     }
 
-    async function saveData(tipe, koordinat, alamat) {
+    async function saveData(tipe, koordinat, alamat, subjek) {
         const menu = document.getElementById("jenis-kegiatan").value;
         const now = new Date();
         
@@ -194,18 +198,14 @@
             tanggal: now.toISOString().split('T')[0],
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
             kegiatan: menu,
-            nama: leaderName,
-            jc: leaderJC,
+            nama: subjek,
+            jc: (menu === "Absen Extention" ? document.getElementById("ext-jc").value : leaderJC),
             lokasi_koordinat: koordinat,
             lokasi_alamat: alamat
         };
 
-        if (menu === "Absen Extention") {
-            payload.nama = document.getElementById("ext-nama").value;
-            payload.jc = document.getElementById("ext-jc").value;
-            payload.helper = leaderName;
-        }
-
+        if (menu === "Absen Extention") payload.absensi_helper = leaderName;
+        if (menu === "Absen Komsel Gabungan") payload.gabungan_info = document.getElementById("gabungan-info").value;
         if (tipe === 'TIDAK HADIR') payload.alasan = document.getElementById("alasan").value;
 
         try {
