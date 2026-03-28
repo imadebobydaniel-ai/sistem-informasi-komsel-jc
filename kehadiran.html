@@ -81,59 +81,103 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    const firebaseConfig = { apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", authDomain: "boby-apps-project.firebaseapp.com", projectId: "boby-apps-project", storageBucket: "boby-apps-project.appspot.com", messagingSenderId: "125984859692", appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" };
-    firebase.initializeApp(firebaseConfig);
+    const firebaseConfig = { 
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
+        authDomain: "boby-apps-project.firebaseapp.com", 
+        projectId: "boby-apps-project", 
+        storageBucket: "boby-apps-project.appspot.com", 
+        messagingSenderId: "125984859692", 
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
+    };
+    
+    // Inisialisasi Firebase jika belum
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.firestore();
 
+    // Mengambil data user dari localStorage
     const leaderName = localStorage.getItem("userName") || "User";
     const leaderJC = localStorage.getItem("userJC") || "JC";
 
     function cekJenisMenu() {
         const menu = document.getElementById("jenis-kegiatan").value;
         document.getElementById("extention-container").style.display = (menu === "Absen Extention") ? "block" : "none";
-        document.getElementById("gabungan-container").style.display = (menu === "Absen Kehadiran Komsel Gabungan") ? "block" : "none";
+        document.getElementById("gabungan-container").style.display = (menu === "Absen Komsel Gabungan") ? "block" : "none";
     }
 
-    function tampilkanInputAlasan() { document.getElementById("main-buttons").style.display = "none"; document.getElementById("reason-container").style.display = "block"; }
-    function batalAbsen() { document.getElementById("main-buttons").style.display = "block"; document.getElementById("reason-container").style.display = "none"; }
+    function tampilkanInputAlasan() { 
+        document.getElementById("main-buttons").style.display = "none"; 
+        document.getElementById("reason-container").style.display = "block"; 
+    }
+    
+    function batalAbsen() { 
+        document.getElementById("main-buttons").style.display = "block"; 
+        document.getElementById("reason-container").style.display = "none"; 
+    }
 
     async function prosesLapor(tipe) {
         const menu = document.getElementById("jenis-kegiatan").value;
+        const alasanVal = document.getElementById("alasan").value;
         const now = new Date();
-        const tglLengkap = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         
+        // Format tanggal untuk tampilan dan database
+        const tglLengkap = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const tglHanyaAngka = now.toISOString().split('T')[0]; 
+
+        // Validasi Alasan jika user memilih Tidak Hadir
+        if (tipe === 'TIDAK HADIR' && alasanVal.trim() === "") {
+            alert("Harap isi alasan ketidakhadiran Anda.");
+            return;
+        }
+
+        // Data dasar laporan
         let dataLaporan = {
-            status: tipe,
+            status: tipe, 
             tanggal_lengkap: tglLengkap,
-            tanggal_db: firebase.firestore.FieldValue.serverTimestamp()
+            tanggal: tglHanyaAngka, 
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            kegiatan: menu,
+            nama: leaderName,
+            jc: leaderJC
         };
 
+        // Penyesuaian data berdasarkan kategori menu
         if (menu === "Absen Extention") {
             dataLaporan.nama = document.getElementById("ext-nama").value;
             dataLaporan.jc = document.getElementById("ext-jc").value;
-            dataLaporan.kegiatan = "Absen Extention";
             dataLaporan.absensi_helper = leaderName;
-        } else if (menu === "Absen Kehadiran Komsel Gabungan") {
-            dataLaporan.nama = leaderName;
-            dataLaporan.jc = leaderJC;
-            dataLaporan.kegiatan = "Komsel Gabungan";
+        } else if (menu === "Absen Komsel Gabungan") {
             dataLaporan.gabungan_info = document.getElementById("gabungan-info").value;
-        } else {
-            dataLaporan.nama = leaderName;
-            dataLaporan.jc = leaderJC;
-            dataLaporan.kegiatan = menu;
         }
 
-        if (tipe === 'TIDAK HADIR') dataLaporan.alasan = document.getElementById("alasan").value;
+        // Simpan alasan jika tidak hadir
+        if (tipe === 'TIDAK HADIR') {
+            dataLaporan.alasan = alasanVal;
+        }
 
-        // Proses GPS dan Simpan
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(async (pos) => {
-                dataLaporan.koordinat = `${pos.coords.latitude}, ${pos.coords.longitude}`;
-                await db.collection("kehadiran").add(dataLaporan);
-                alert("Laporan Berhasil Terkirim!");
+        // Fungsi internal untuk eksekusi penyimpanan ke Firestore
+        const simpanKeDatabase = async (coords = "Tanpa Lokasi") => {
+            dataLaporan.koordinat = coords;
+            try {
+                // Menggunakan koleksi 'absensi' agar sinkron dengan dashboard admin
+                await db.collection("absensi").add(dataLaporan);
+                alert("Laporan " + tipe + " Berhasil Terkirim!");
                 location.reload();
-            });
+            } catch (err) {
+                alert("Gagal mengirim laporan: " + err.message);
+            }
+        };
+
+        // Proses Geolocation (GPS)
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => simpanKeDatabase(`${pos.coords.latitude}, ${pos.coords.longitude}`),
+                (err) => simpanKeDatabase(), // Tetap simpan data meski GPS gagal/dimatikan
+                { timeout: 5000 }
+            );
+        } else {
+            simpanKeDatabase();
         }
     }
 </script>
