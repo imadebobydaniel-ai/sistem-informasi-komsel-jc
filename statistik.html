@@ -206,8 +206,6 @@
 
             let progresVisualGlobal = hitungProgresSiklus(totalDataGlobal, 100);
             updateStatistikBar('txt-alkitab-global', 'bar-alkitab-global', progresVisualGlobal);
-            
-            console.log(`Trace: Alkitab. JC Count: ${countJC}, Global: ${totalDataGlobal}, Siklus: ${progresVisualGlobal}%`);
         });
     }
 
@@ -273,20 +271,37 @@
         });
     }
 
+    // --- PERBAIKAN TOTAL SINKRONISASI GOLONGAN DARAH ---
     function syncGolonganDarah() {
-        db.collection("users").where("komsel", "==", "5").onSnapshot(snap => {
+        // Kita gunakan onSnapshot pada koleksi users
+        db.collection("users").onSnapshot(snap => {
+            // Reset data lokal
             listNamaGoldar = { 'A': [], 'B': [], 'O': [], 'AB': [] };
             let countGoldar = { 'A': 0, 'B': 0, 'O': 0, 'AB': 0 };
+            
             snap.forEach(doc => {
                 const data = doc.data();
-                const gol = (data.goldarah || data.golongan_darah || "").toUpperCase().trim();
-                if (countGoldar.hasOwnProperty(gol)) {
-                    countGoldar[gol]++;
-                    listNamaGoldar[gol].push(data.nama || "Tanpa Nama");
+                
+                // 1. Cek Komsel: Pastikan hanya menghitung JC 5
+                // Kita buat filter yang fleksibel (bisa baca "5" atau "JC 5" atau "JC 05")
+                const jcValue = ambilAngkaJC(data.komsel); 
+                
+                if (jcValue === "5") {
+                    // 2. Ambil Golongan Darah dari field 'goldarah' (sesuai script registrasi)
+                    const golRaw = data.goldarah || "";
+                    const gol = golRaw.toUpperCase().trim();
+                    
+                    if (countGoldar.hasOwnProperty(gol)) {
+                        countGoldar[gol]++;
+                        listNamaGoldar[gol].push(data.nama || "Tanpa Nama");
+                    }
                 }
             });
+
+            // Update angka di tampilan kartu
             for (let tipe in countGoldar) {
-                document.getElementById('count-darah-' + tipe.toLowerCase()).innerText = countGoldar[tipe];
+                const el = document.getElementById('count-darah-' + tipe.toLowerCase());
+                if (el) el.innerText = countGoldar[tipe];
             }
         });
     }
@@ -303,7 +318,7 @@
                 containerNama.innerHTML += `<div class="nama-item"><b>${i + 1}.</b> ${nama}</div>`;
             });
         } else {
-            containerNama.innerHTML = "<p style='text-align:center; padding:20px; color:#999;'>Tidak ada data.</p>";
+            containerNama.innerHTML = "<p style='text-align:center; padding:20px; color:#999;'>Tidak ada data untuk JC 05.</p>";
         }
         modal.style.display = 'flex';
     }
@@ -328,7 +343,7 @@
         syncStatistikHadir();
         syncStatistikIzin();
         syncStatistikAlkitab();
-        syncGolonganDarah();
+        syncGolonganDarah(); // Inisialisasi monitoring darah
     };
 </script>
 </body>
