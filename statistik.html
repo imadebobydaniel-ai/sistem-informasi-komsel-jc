@@ -80,6 +80,14 @@
         </div>
     </div>
 
+    <div class="card" id="card-deteksi" style="display:none; border-color: orange;">
+        <div class="card-header" style="border-bottom-color: orange; color: orange;">
+            <i class="fa-solid fa-magnifying-glass"></i> DATA TANPA IDENTITAS JC (CEK 12%)
+        </div>
+        <div id="list-data-hilang" style="font-size: 11px; max-height: 200px; overflow-y: auto;">
+            </div>
+    </div>
+
     <div class="card">
         <div class="card-header" style="border-bottom-color: var(--merah-absen);">
             <i class="fa-solid fa-user-xmark" style="color:var(--merah-absen)"></i> LAPORAN KETIDAK HADIRAN
@@ -133,61 +141,9 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// FUNGSI PEMBERSIH DATA LAMA (Auto-format database)
-async function bersihkanDataDatabase() {
-    console.log("Memulai pembersihan data...");
-    const snap = await db.collection("kehadiran").get();
-    let totalUpdate = 0;
-    
-    // Gunakan Promise.all untuk eksekusi yang lebih cepat
-    const updatePromises = [];
-
-    snap.forEach((doc) => {
-        const data = doc.data();
-        let updateObj = {};
-        let perluUpdate = false;
-
-        // Tambahkan di dalam snap.forEach
-if (!data.jc && !data.komsel && data.status === "HADIR") {
-    console.log("Data tanpa JC ditemukan! Nama: " + data.nama);
-}
-
-        // 1. Perbaiki Status (hadir -> HADIR)
-        if (data.status && data.status !== "HADIR" && data.status.toUpperCase() === "HADIR") {
-            updateObj.status = "HADIR";
-            perluUpdate = true;
-        }
-
-        // 2. Pastikan field 'jc' ada (Format standar JC XX)
-        if (!data.jc && data.komsel) {
-            updateObj.jc = "JC " + String(data.komsel).replace(/\D/g, "").padStart(2, '0');
-            perluUpdate = true;
-        }
-
-        if (perluUpdate) {
-            updatePromises.push(db.collection("kehadiran").doc(doc.id).update(updateObj));
-            totalUpdate++;
-        }
-    });
-
-    await Promise.all(updatePromises);
-    if(totalUpdate > 0) {
-        console.log(totalUpdate + " data berhasil dirapikan.");
-    }
-}
-
-function setupDropdownPeriode() {
-    const ids = ['select-periode-alkitab', 'select-periode-laporan', 'select-periode-izin'];
-    ids.forEach(id => {
-        const select = document.getElementById(id);
-        if(!select) return;
-        let options = "";
-        for (let i = 1; i <= 12; i++) {
-            options += `<option value="${i}">${i} Bulan terakhir</option>`;
-        }
-        select.innerHTML = options;
-        select.value = "12";
-    });
+// UTILITY FUNCTIONS
+function ambilAngka(str) {
+    return String(str || "").replace(/\D/g, "").replace(/^0+/, "");
 }
 
 function updateProgressBar(textId, barId, value, isCount = false) {
@@ -197,42 +153,63 @@ function updateProgressBar(textId, barId, value, isCount = false) {
     if(barEl) barEl.style.width = Math.min(isCount ? (value * 10) : value, 100) + "%";
 }
 
-function ambilAngka(str) {
-    return String(str || "").replace(/\D/g, "").replace(/^0+/, "");
-}
-
+// 1. FUNGSI BARU: DETEKSI KEHADIRAN & DATA KOSONG
 function syncLaporanKehadiranJC() {
     const jcTargetRaw = document.getElementById('select-jc-laporan').value; 
     const jcTargetAngka = ambilAngka(jcTargetRaw);
+    const containerHilang = document.getElementById('list-data-hilang');
+    const cardDeteksi = document.getElementById('card-deteksi');
+    
     const bulan = parseInt(document.getElementById('select-periode-laporan').value);
     const dLimit = new Date(); dLimit.setMonth(dLimit.getMonth() - bulan);
 
-    db.collection("kehadiran").where("tanggal", ">=", dLimit).onSnapshot(snap => {
+    db.collection("kehadiran").onSnapshot(snap => {
         let countJC = 0, countGlobal = 0;
+        let htmlHilang = "";
+        let adaDataHilang = false;
+
         snap.forEach(doc => {
             const data = doc.data();
-            if(data.status === "HADIR") {
+            const dbAngka = ambilAngka(data.jc || data.komsel);
+            
+            if(String(data.status).toUpperCase() === "HADIR") {
                 countGlobal++;
-                const dbAngka = ambilAngka(data.jc || data.komsel);
-                if(dbAngka === jcTargetAngka) countJC++;
+                
+                if(dbAngka === jcTargetAngka) {
+                    countJC++;
+                } else if (dbAngka === "") {
+                    // Masukkan ke daftar kotak oranye jika JC kosong
+                    adaDataHilang = true;
+                    htmlHilang += `<div class="stat-row"><span>${data.nama}</span><span style="color:red; font-size:10px;">ID JC KOSONG</span></div>`;
+                }
             }
         });
+
+        // Tampilkan card oranye hanya jika ditemukan data tanpa JC
+        if(adaDataHilang) {
+            cardDeteksi.style.display = "block";
+            containerHilang.innerHTML = htmlHilang;
+        } else {
+            cardDeteksi.style.display = "none";
+        }
+
         updateProgressBar('text-laporan-jc', 'bar-laporan-jc', ((countJC/100)*100).toFixed(1));
         updateProgressBar('text-global-hadir', 'bar-global-hadir', ((countGlobal/100)*100).toFixed(1));
     });
 }
 
+// 2. SYNC LAPORAN IZIN
 function syncLaporanIzinJC() {
     const jcTargetRaw = document.getElementById('select-jc-izin').value;
     const jcTargetAngka = ambilAngka(jcTargetRaw);
     const bulan = parseInt(document.getElementById('select-periode-izin').value);
     const dLimit = new Date(); dLimit.setMonth(dLimit.getMonth() - bulan);
 
-    db.collection("kehadiran").where("tanggal", ">=", dLimit).onSnapshot(snap => {
+    db.collection("kehadiran").onSnapshot(snap => {
         let countIzin = 0, countGlobalIzin = 0;
         snap.forEach(doc => {
             const data = doc.data();
-            if(data.status !== "HADIR") {
+            if(String(data.status).toUpperCase() !== "HADIR") {
                 countGlobalIzin++;
                 const dbAngka = ambilAngka(data.jc || data.komsel);
                 if(dbAngka === jcTargetAngka) countIzin++;
@@ -243,11 +220,10 @@ function syncLaporanIzinJC() {
     });
 }
 
+// 3. SYNC BACA ALKITAB
 function syncCapaianRealtime() {
     const selKomselRaw = document.getElementById('select-komsel-alkitab').value;
     const jcTargetAngka = ambilAngka(selKomselRaw);
-    const periodeBulan = parseInt(document.getElementById('select-periode-alkitab').value);
-    const limitFilter = new Date(); limitFilter.setMonth(limitFilter.getMonth() - periodeBulan);
 
     db.collection("laporan_bacaan").onSnapshot(snap => {
         let countJC = 0, countGlobal = 0;
@@ -262,6 +238,7 @@ function syncCapaianRealtime() {
     });
 }
 
+// 4. SYNC GOLONGAN DARAH
 function syncGoldarRealtime() {
     db.collection("users").where("komsel", "==", "5").onSnapshot(snap => {
         let c = { A: 0, B: 0, O: 0, AB: 0 };
@@ -276,11 +253,40 @@ function syncGoldarRealtime() {
     });
 }
 
+// 5. SETUP DROPDOWN & PEMBERSIH
+function setupDropdownPeriode() {
+    const ids = ['select-periode-alkitab', 'select-periode-laporan', 'select-periode-izin'];
+    ids.forEach(id => {
+        const select = document.getElementById(id);
+        if(!select) return;
+        let options = "";
+        for (let i = 1; i <= 12; i++) options += `<option value="${i}">${i} Bulan terakhir</option>`;
+        select.innerHTML = options;
+        select.value = "12";
+    });
+}
+
+async function bersihkanDataDatabase() {
+    const snap = await db.collection("kehadiran").get();
+    const updatePromises = [];
+    snap.forEach((doc) => {
+        const data = doc.data();
+        let updateObj = {};
+        let perluUpdate = false;
+        if (data.status && data.status !== "HADIR" && data.status.toUpperCase() === "HADIR") {
+            updateObj.status = "HADIR"; perluUpdate = true;
+        }
+        if (!data.jc && data.komsel) {
+            updateObj.jc = "JC " + String(data.komsel).replace(/\D/g, "").padStart(2, '0');
+            perluUpdate = true;
+        }
+        if (perluUpdate) updatePromises.push(db.collection("kehadiran").doc(doc.id).update(updateObj));
+    });
+    await Promise.all(updatePromises);
+}
+
 window.onload = async () => {
-    // Jalankan pembersihan data sekali di awal
     await bersihkanDataDatabase();
-    
-    // Jalankan fungsi dashboard lainnya
     setupDropdownPeriode();
     syncCapaianRealtime();
     syncLaporanKehadiranJC();
