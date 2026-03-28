@@ -177,12 +177,28 @@ function syncCapaianRealtime() {
     });
 }
 
-// 2. Logika Kehadiran
 function syncLaporanKehadiranJC() {
-    const jcTarget = document.getElementById('select-jc-laporan').value;
+    const jcTarget = document.getElementById('select-jc-laporan').value; // Contoh: "JC 05"
     const bulan = parseInt(document.getElementById('select-periode-laporan').value);
     const dLimit = new Date(); dLimit.setMonth(dLimit.getMonth() - bulan);
 
+    // 1. GANTI KOLEKSI KE "kehadiran"
+    db.collection("kehadiran").where("timestamp", ">=", dLimit).onSnapshot(snap => {
+        let countJC = 0;
+        snap.forEach(doc => {
+            const data = doc.data();
+            
+            // 2. NORMALISASI (Agar "JC 5" di database terbaca sebagai "JC 05" di dashboard)
+            let normalizedJC = data.jc ? data.jc.replace("JC ", "JC 0").replace("JC 00", "JC 0") : "";
+
+            // 3. CEK STATUS "HADIR" (Huruf Besar)
+            if((data.jc === jcTarget || normalizedJC === jcTarget) && data.status === "HADIR") {
+                countJC++;
+            }
+        });
+        updateProgressBar('text-laporan-jc', 'bar-laporan-jc', ((countJC/100)*100).toFixed(1));
+    });
+}
     db.collection("administrator_bigdata").where("timestamp_server", ">=", dLimit).onSnapshot(snap => {
         let countJC = 0;
         snap.forEach(doc => {
