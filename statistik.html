@@ -33,7 +33,8 @@
         .progress-bar { height: 8px; background: #f0f0f0; border-radius: 10px; overflow: hidden; margin-bottom: 12px; }
         .progress-fill { height: 100%; border-radius: 10px; transition: width 0.5s; }
         
-        .stat-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f8f8f8; font-size: 13px; font-weight: 600; }
+        .blood-item, .stat-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f8f8f8; font-size: 13px; font-weight: 600; }
+        .btn-detail { color: var(--biru-utama); cursor: pointer; font-weight: bold; }
         b { color: var(--emas-doa); font-size: 15px; }
 
         .btn-back { display: block; text-align: center; padding: 14px; background: white; color: var(--biru-utama); text-decoration: none; font-weight: bold; border-radius: 12px; border: 1px solid #ddd; margin-top: 10px; font-size: 13px; width: 100%; box-sizing: border-box; }
@@ -42,10 +43,9 @@
 <body>
 
 <div class="mobile-wrapper">
-    
     <div class="dashboard-grid">
         <div class="stat-mini-card">
-            <h4>Hadir Doa (Global)</h4>
+            <h4>Hadir Doa</h4>
             <p id="main-percent-doa">0%</p>
         </div>
         <div class="stat-mini-card" style="border-bottom-color: var(--success);">
@@ -54,7 +54,7 @@
         </div>
     </div>
 
-    <div class="card" id="section-kehadiran">
+    <div class="card">
         <div class="card-header" style="border-bottom-color: var(--success);">
             <i class="fa-solid fa-user-check" style="color:var(--success)"></i> STATISTIK KEHADIRAN
         </div>
@@ -62,34 +62,57 @@
             <div class="input-box">
                 <label>KOMSEL (JC)</label>
                 <select id="select-komsel-hadir" onchange="syncKehadiranRealtime()">
-                    <option value="JC 01">JC 1</option>
-                    <option value="JC 02">JC 2</option>
-                    <option value="JC 03">JC 3</option>
-                    <option value="JC 04">JC 4</option>
+                    <option value="JC 01">JC 1</option><option value="JC 02">JC 2</option>
+                    <option value="JC 03">JC 3</option><option value="JC 04">JC 4</option>
                     <option value="JC 05" selected>JC 5</option>
                 </select>
             </div>
             <div class="input-box">
                 <label>PERIODE</label>
                 <select id="select-periode-hadir" onchange="syncKehadiranRealtime()">
-                    <option value="1">1 Bulan</option>
-                    <option value="6">6 Bulan</option>
+                    <option value="1">1 Bulan</option><option value="6">6 Bulan</option>
                     <option value="12" selected>12 Bulan</option>
                 </select>
             </div>
         </div>
         <div class="stat-item">
-            <div class="stat-label-flex"><span>PERSENTASE HADIR (FILTER)</span><span id="text-persen-hadir" style="color: var(--success);">0.0%</span></div>
+            <div class="stat-label-flex"><span>HADIR</span><span id="text-persen-hadir" style="color: var(--success);">0%</span></div>
             <div class="progress-bar"><div id="bar-persen-hadir" class="progress-fill" style="width: 0%; background: var(--success);"></div></div>
         </div>
     </div>
 
     <div class="card">
+        <div class="card-header" style="border-bottom-color: var(--merah-absen);">
+            <i class="fa-solid fa-user-xmark" style="color:var(--merah-absen)"></i> KETIDAKHADIRAN
+        </div>
+        <div class="stat-item">
+            <div class="stat-label-flex"><span>ABSEN/IZIN</span><span id="text-persen-absen" style="color: var(--merah-absen);">0%</span></div>
+            <div class="progress-bar"><div id="bar-persen-absen" class="progress-fill" style="width: 0%; background: var(--merah-absen);"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
         <div class="card-header" style="border-bottom-color: var(--emas-doa);">
-            <i class="fa-solid fa-hands-praying" style="color:var(--emas-doa)"></i> DOA (SLA) GLOBAL
+            <i class="fa-solid fa-hands-praying" style="color:var(--emas-doa)"></i> DOA (SLA)
         </div>
         <div class="stat-row"><span>Rata-rata Jawaban</span><b id="stat-sla-hari">0 Hari</b></div>
-        <div class="stat-row"><span>Total Doa Terjawab</span><b id="stat-total-terjawab">0</b></div>
+        <div class="stat-row"><span>Persentase Dijawab</span><b id="stat-persen-dijawab">0%</b></div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><i class="fa-solid fa-book-bible"></i> BACA ALKITAB</div>
+        <div class="stat-item">
+            <div class="stat-label-flex"><span>PROGRES</span><span id="text-capaian-alkitab">0%</span></div>
+            <div class="progress-bar"><div id="bar-capaian-alkitab" class="progress-fill" style="width: 0%; background: var(--biru-utama);"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><i class="fa-solid fa-droplet" style="color:red"></i> GOLONGAN DARAH</div>
+        <div class="blood-item"><span>A</span><span id="count-A">0 Orang</span></div>
+        <div class="blood-item"><span>B</span><span id="count-B">0 Orang</span></div>
+        <div class="blood-item"><span>O</span><span id="count-O">0 Orang</span></div>
+        <div class="blood-item"><span>AB</span><span id="count-AB">0 Orang</span></div>
     </div>
 
     <a href="menu.html" class="btn-back">← KEMBALI KE MENU UTAMA</a>
@@ -99,7 +122,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-// 1. Konfigurasi Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
     authDomain: "boby-apps-project.firebaseapp.com",
@@ -111,73 +133,51 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// 2. Fungsi Helper
 function updateProgressBar(textId, barId, val) {
-    const elText = document.getElementById(textId);
-    const elBar = document.getElementById(barId);
-    if(elText) elText.innerText = val + "%";
-    if(elBar) elBar.style.width = val + "%";
+    document.getElementById(textId).innerText = val + "%";
+    document.getElementById(barId).style.width = val + "%";
 }
 
-// 3. Fungsi Big Data (Listen ke Summary Cloud Functions)
-function listenToGlobalStats() {
-    db.collection("stats_summary").doc("global_dashboard")
-      .onSnapshot(doc => {
-          if (doc.exists) {
-              const data = doc.data();
-              
-              // Update Persentase Kehadiran Global di Mini Card
-              const totalLaporan = data.total_laporan || 0;
-              const totalHadir = data.total_hadir || 0;
-              const globalAttendancePct = totalLaporan > 0 ? ((totalHadir / totalLaporan) * 100).toFixed(1) : 0;
-              document.getElementById('main-percent-komsel').innerText = globalAttendancePct + "%";
-
-              // Update SLA Doa
-              const totalSlaDays = data.total_sla_days || 0;
-              const totalTerjawab = data.total_doa_terjawab || 0;
-              const avgSla = totalTerjawab > 0 ? (totalSlaDays / totalTerjawab).toFixed(1) : 0;
-              
-              document.getElementById('stat-sla-hari').innerText = avgSla + " Hari";
-              document.getElementById('stat-total-terjawab').innerText = totalTerjawab;
-              document.getElementById('main-percent-doa').innerText = totalTerjawab;
-          }
-      });
-}
-
-// 4. Fungsi Sync Kehadiran (Realtime per Filter)
 function syncKehadiranRealtime() {
-    const jcTarget = document.getElementById('select-komsel-hadir').value;
-    const periode = parseInt(document.getElementById('select-periode-hadir').value);
-    
-    const limitFilter = new Date();
-    limitFilter.setMonth(limitFilter.getMonth() - periode);
-    const dateLimitStr = limitFilter.toISOString().split('T')[0];
-
-    db.collection("absensi")
-        .where("jc", "==", jcTarget)
-        .where("tanggal", ">=", dateLimitStr)
-        .onSnapshot(snap => {
-            let total = snap.size;
-            let hadir = 0;
-            snap.forEach(doc => {
-                if((doc.data().status || "").toUpperCase() === "HADIR") hadir++;
-            });
-            const persen = total > 0 ? ((hadir/total)*100).toFixed(1) : "0.0";
-            updateProgressBar('text-persen-hadir', 'bar-persen-hadir', persen);
+    const jc = document.getElementById('select-komsel-hadir').value;
+    db.collection("absensi").where("jc", "==", jc).onSnapshot(snap => {
+        let t = snap.size, h = 0, a = 0;
+        snap.forEach(doc => {
+            let s = (doc.data().status || "").toUpperCase();
+            if(s === "HADIR") h++; else a++;
         });
+        let pH = t > 0 ? ((h/t)*100).toFixed(1) : 0;
+        let pA = t > 0 ? ((a/t)*100).toFixed(1) : 0;
+        updateProgressBar('text-persen-hadir', 'bar-persen-hadir', pH);
+        updateProgressBar('text-persen-absen', 'bar-persen-absen', pA);
+        document.getElementById('main-percent-komsel').innerText = pH + "%";
+    });
 }
 
-// 5. Fungsi tambahan (Silakan isi logika spesifiknya di sini)
-function syncDoaRealtime() { console.log("Sync Doa aktif..."); }
-function syncCapaianRealtime() { console.log("Sync Capaian Alkitab aktif..."); }
-function syncGoldarRealtime() { console.log("Sync Golongan Darah aktif..."); }
+function syncDoaRealtime() {
+    db.collection("laporan_doa").onSnapshot(snap => {
+        let t = snap.size, d = 0;
+        snap.forEach(doc => { if(doc.data().status === "Dijawab") d++; });
+        let p = t > 0 ? ((d/t)*100).toFixed(1) : 0;
+        document.getElementById('stat-persen-dijawab').innerText = p + "%";
+        document.getElementById('main-percent-doa').innerText = p + "%";
+    });
+}
 
-// 6. Jalankan Semua Fungsi Saat Load
+function syncGoldarRealtime() {
+    db.collection("users").onSnapshot(snap => {
+        let counts = {A:0, B:0, O:0, AB:0};
+        snap.forEach(doc => {
+            let g = (doc.data().golongan_darah || "").toUpperCase();
+            if(counts.hasOwnProperty(g)) counts[g]++;
+        });
+        for(let key in counts) document.getElementById('count-'+key).innerText = counts[key] + " Orang";
+    });
+}
+
 window.onload = () => {
-    listenToGlobalStats(); 
     syncKehadiranRealtime();
     syncDoaRealtime();
-    syncCapaianRealtime();
     syncGoldarRealtime();
 };
 </script>
