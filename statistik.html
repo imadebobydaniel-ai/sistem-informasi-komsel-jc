@@ -24,17 +24,17 @@
         label { font-size: 9px; font-weight: bold; color: #999; text-transform: uppercase; display: block; margin-bottom: 4px; }
         select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 11px; font-weight: bold; background: #fff; color: #444; }
         
-        /* Bar Laporan Per Orang (Orange Style) */
-        .progress-group-top { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed #eee; }
-        .label-orange { font-size: 11px; font-weight: bold; color: var(--orange); }
-
         .stat-item { margin-bottom: 12px; }
         .stat-label-flex { display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; margin-bottom: 4px; }
         .progress-bar { height: 8px; background: #f0f0f0; border-radius: 10px; overflow: hidden; }
         .progress-fill { height: 100%; border-radius: 10px; transition: width 0.5s ease-in-out; width: 0%; }
         
-        .blood-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f8f8f8; font-size: 13px; font-weight: 600; cursor: pointer; }
-        .count-darah { color: var(--merah-absen); font-size: 14px; }
+        /* Gaya Khusus Bar Laporan Per Orang */
+        .progress-group-top { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed #eee; }
+        .orange-text { font-size: 11px; font-weight: bold; color: var(--orange); }
+        .sub-text { font-size: 10px; color: #888; margin-top: 5px; font-weight: bold; }
+
+        .blood-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f8f8f8; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; }
         .btn-back { display: block; text-align: center; padding: 14px; background: white; color: var(--biru-utama); text-decoration: none; font-weight: bold; border-radius: 12px; border: 1px solid #ddd; margin-top: 10px; font-size: 13px; width: 100%; }
     </style>
 </head>
@@ -45,19 +45,23 @@
     <div class="card">
         <div class="card-header"><i class="fa-solid fa-book-bible"></i> CAPAIAN BACA ALKITAB</div>
         <div class="flex-row">
-            <div class="input-box"><label>KOMSEL</label>
+            <div class="input-box">
+                <label>KOMSEL</label>
                 <select id="select-komsel-alkitab" onchange="syncStatistikAlkitab()">
                     <option value="JC 01">JC 1</option><option value="JC 02">JC 2</option><option value="JC 03">JC 3</option><option value="JC 04">JC 4</option><option value="JC 05" selected>JC 5</option>
                 </select>
             </div>
             <div class="input-box"><label>PERIODE</label><select id="select-periode-alkitab" onchange="syncStatistikAlkitab()"></select></div>
         </div>
+
         <div class="progress-group-top">
-            <div class="stat-label-flex"><span style="font-size:10px">LAPORAN MASUK PER ORANG</span><span id="txt-laporan-alkitab-orang" class="label-orange">0%</span></div>
-            <div class="progress-bar"><div id="bar-laporan-alkitab-orang" class="progress-fill" style="background: var(--orange);"></div></div>
+            <div class="stat-label-flex"><span>LAPORAN MASUK PER ORANG</span><span id="text-laporan-alkitab-orang" class="orange-text">0%</span></div>
+            <div class="progress-bar" style="height: 10px;"><div id="bar-laporan-alkitab-orang" class="progress-fill" style="background-color: var(--orange);"></div></div>
+            <div id="label-alkitab-orang" class="sub-text">0 Orang Melapor</div>
         </div>
+        
         <div class="stat-item">
-            <div class="stat-label-flex"><span>PROGRES KOMSEL</span><span id="txt-alkitab-komsel">0%</span></div>
+            <div class="stat-label-flex"><span>PROGRES KOMSEL</span><span id="txt-alkitab-komsel">0.0%</span></div>
             <div class="progress-bar"><div id="bar-alkitab-komsel" class="progress-fill" style="background: var(--biru-utama);"></div></div>
         </div>
     </div>
@@ -65,17 +69,21 @@
     <div class="card">
         <div class="card-header" style="border-bottom-color: var(--success);"><i class="fa-solid fa-clipboard-user" style="color:var(--success)"></i> KEHADIRAN JC</div>
         <div class="flex-row">
-            <div class="input-box"><label>KOMSEL</label>
+            <div class="input-box">
+                <label>KOMSEL (JC)</label>
                 <select id="select-jc-laporan" onchange="syncStatistikHadir()">
                     <option value="JC 01">JC 1</option><option value="JC 02">JC 2</option><option value="JC 03">JC 3</option><option value="JC 04">JC 4</option><option value="JC 05" selected>JC 5</option>
                 </select>
             </div>
             <div class="input-box"><label>PERIODE</label><select id="select-periode-laporan" onchange="syncStatistikHadir()"></select></div>
         </div>
+
         <div class="progress-group-top">
-            <div class="stat-label-flex"><span style="font-size:10px">LAPORAN MASUK PER ORANG</span><span id="txt-laporan-hadir-orang" class="label-orange">0%</span></div>
-            <div class="progress-bar"><div id="bar-laporan-hadir-orang" class="progress-fill" style="background: var(--orange);"></div></div>
+            <div class="stat-label-flex"><span>LAPORAN MASUK PER ORANG</span><span id="text-laporan-hadir-orang" class="orange-text">0%</span></div>
+            <div class="progress-bar" style="height: 10px;"><div id="bar-laporan-hadir-orang" class="progress-fill" style="background-color: var(--orange);"></div></div>
+            <div id="label-hadir-orang" class="sub-text">0 Orang Melapor</div>
         </div>
+
         <div class="stat-item">
             <div class="stat-label-flex"><span>HADIR KOMSEL</span><span id="txt-hadir-jc" style="color: var(--success);">0%</span></div>
             <div class="progress-bar"><div id="bar-hadir-jc" class="progress-fill" style="background: var(--success);"></div></div>
@@ -85,17 +93,21 @@
     <div class="card">
         <div class="card-header" style="border-bottom-color: var(--merah-absen);"><i class="fa-solid fa-user-xmark" style="color:var(--merah-absen)"></i> LAPORAN KETIDAK HADIRAN</div>
         <div class="flex-row">
-            <div class="input-box"><label>KOMSEL</label>
+            <div class="input-box">
+                <label>KOMSEL (JC)</label>
                 <select id="select-jc-izin" onchange="syncStatistikIzin()">
                     <option value="JC 01">JC 1</option><option value="JC 02">JC 2</option><option value="JC 03">JC 3</option><option value="JC 04">JC 4</option><option value="JC 05" selected>JC 5</option>
                 </select>
             </div>
             <div class="input-box"><label>PERIODE</label><select id="select-periode-izin" onchange="syncStatistikIzin()"></select></div>
         </div>
+
         <div class="progress-group-top">
-            <div class="stat-label-flex"><span style="font-size:10px">LAPORAN MASUK PER ORANG</span><span id="txt-laporan-izin-orang" class="label-orange">0%</span></div>
-            <div class="progress-bar"><div id="bar-laporan-izin-orang" class="progress-fill" style="background: var(--orange);"></div></div>
+            <div class="stat-label-flex"><span>LAPORAN MASUK PER ORANG</span><span id="text-laporan-izin-orang" class="orange-text">0%</span></div>
+            <div class="progress-bar" style="height: 10px;"><div id="bar-laporan-izin-orang" class="progress-fill" style="background-color: var(--orange);"></div></div>
+            <div id="label-izin-orang" class="sub-text">0 Orang Melapor</div>
         </div>
+
         <div class="stat-item">
             <div class="stat-label-flex"><span>PROGRES TIDAK HADIR</span><span id="txt-izin-jc" style="color: var(--merah-absen);">0%</span></div>
             <div class="progress-bar"><div id="bar-izin-jc" class="progress-fill" style="background: var(--merah-absen);"></div></div>
@@ -109,7 +121,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -123,10 +134,11 @@
 
     function ambilAngkaJC(str) { return String(str || "").replace(/\D/g, "").replace(/^0+/, ""); }
 
-    // Helper Fungsi Bar
-    function updateBar(textId, barId, value) {
-        document.getElementById(textId).innerText = value + "%";
-        document.getElementById(barId).style.width = Math.min(value, 100) + "%";
+    function updateStatistikBar(textId, barId, value) {
+        const elText = document.getElementById(textId);
+        const elBar = document.getElementById(barId);
+        if(elText) elText.innerText = value + "%";
+        if(elBar) elBar.style.width = Math.min(value, 100) + "%";
     }
 
     // --- LOGIKA ALKITAB ---
@@ -136,55 +148,49 @@
             let totalAnggota = snap.size;
             let sudahLapor = 0;
             snap.forEach(doc => { if (doc.data().progres_alkitab > 0) sudahLapor++; });
+            
             let persen = totalAnggota > 0 ? ((sudahLapor / totalAnggota) * 100).toFixed(1) : 0;
-            updateBar('txt-laporan-alkitab-orang', 'bar-laporan-alkitab-orang', persen);
+            updateStatistikBar('text-laporan-alkitab-orang', 'bar-laporan-alkitab-orang', persen);
+            document.getElementById("label-alkitab-orang").innerText = sudahLapor + " Orang Melapor";
+            updateStatistikBar('txt-alkitab-komsel', 'bar-alkitab-komsel', 75); 
         });
     }
 
-    // --- LOGIKA HADIR (DENGAN BAR LAPORAN ORANG) ---
+    // --- LOGIKA HADIR ---
     function syncStatistikHadir() {
         const jcRaw = document.getElementById('select-jc-laporan').value;
         const numJC = ambilAngkaJC(jcRaw);
         
-        // Ambil total anggota JC tersebut dulu
         db.collection("users").where("komsel", "==", jcRaw).onSnapshot(uSnap => {
             let totalAnggota = uSnap.size;
-
-            // Monitor tabel kehadiran
             db.collection("kehadiran").onSnapshot(snap => {
                 let setOrangLapor = new Set();
                 let totalHadirJC = 0;
-
                 snap.forEach(doc => {
                     const d = doc.data();
                     if (ambilAngkaJC(d.jc || d.komsel) === numJC) {
-                        setOrangLapor.add(d.nama); // Masukkan nama ke Set (Unik)
+                        setOrangLapor.add(d.nama);
                         if (d.status === "HADIR") totalHadirJC++;
                     }
                 });
-
-                // Bar Laporan Masuk Per Orang
                 let persenLapor = totalAnggota > 0 ? ((setOrangLapor.size / totalAnggota) * 100).toFixed(1) : 0;
-                updateBar('txt-laporan-hadir-orang', 'bar-laporan-hadir-orang', persenLapor);
-
-                // Bar Statistik Kehadiran
-                updateBar('txt-hadir-jc', 'bar-hadir-jc', ((totalHadirJC / 100) * 100).toFixed(1));
+                updateStatistikBar('text-laporan-hadir-orang', 'bar-laporan-hadir-orang', persenLapor);
+                document.getElementById("label-hadir-orang").innerText = setOrangLapor.size + " Orang Melapor";
+                updateStatistikBar('txt-hadir-jc', 'bar-hadir-jc', ((totalHadirJC / 100) * 100).toFixed(1));
             });
         });
     }
 
-    // --- LOGIKA IZIN (DENGAN BAR LAPORAN ORANG) ---
+    // --- LOGIKA IZIN ---
     function syncStatistikIzin() {
         const jcRaw = document.getElementById('select-jc-izin').value;
         const numJC = ambilAngkaJC(jcRaw);
 
         db.collection("users").where("komsel", "==", jcRaw).onSnapshot(uSnap => {
             let totalAnggota = uSnap.size;
-
             db.collection("kehadiran").onSnapshot(snap => {
                 let setOrangLapor = new Set();
                 let totalIzinJC = 0;
-
                 snap.forEach(doc => {
                     const d = doc.data();
                     if (ambilAngkaJC(d.jc || d.komsel) === numJC) {
@@ -194,10 +200,10 @@
                         }
                     }
                 });
-
                 let persenLapor = totalAnggota > 0 ? ((setOrangLapor.size / totalAnggota) * 100).toFixed(1) : 0;
-                updateBar('txt-laporan-izin-orang', 'bar-laporan-izin-orang', persenLapor);
-                updateBar('txt-izin-jc', 'bar-izin-jc', ((totalIzinJC / 100) * 100).toFixed(1));
+                updateStatistikBar('text-laporan-izin-orang', 'bar-laporan-izin-orang', persenLapor);
+                document.getElementById("label-izin-orang").innerText = setOrangLapor.size + " Orang Melapor";
+                updateStatistikBar('txt-izin-jc', 'bar-izin-jc', ((totalIzinJC / 100) * 100).toFixed(1));
             });
         });
     }
@@ -206,7 +212,7 @@
         const ids = ['select-periode-alkitab', 'select-periode-laporan', 'select-periode-izin'];
         ids.forEach(id => {
             let options = "";
-            for (let i = 1; i <= 12; i++) options += `<option value="${i}">${i} Bulan</option>`;
+            for (let i = 1; i <= 12; i++) options += `<option value="${i}">${i} Bulan terakhir</option>`;
             document.getElementById(id).innerHTML = options;
             document.getElementById(id).value = "12";
         });
