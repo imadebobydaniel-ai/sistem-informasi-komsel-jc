@@ -75,7 +75,7 @@
             <div id="txt-alkitab-detail" style="font-size: 10px; color: #888; margin-top: 5px; font-weight: bold;">0 Orang Melapor</div>
         </div>
         <div class="stat-item">
-            <div class="stat-label-flex"><span>PROGRES KOMSEL (TARGET 20)</span><span id="txt-alkitab-persen">0.0%</span></div>
+            <div class="stat-label-flex"><span>PROGRES KOMSEL</span><span id="txt-alkitab-persen">0.0%</span></div>
             <div class="progress-bar"><div id="bar-alkitab-persen" class="progress-fill" style="background: var(--biru-utama); width: 0%;"></div></div>
         </div>
     </div>
@@ -102,7 +102,7 @@
             <div id="txt-hadir-detail" style="font-size: 10px; color: #888; margin-top: 5px; font-weight: bold;">0 Orang Melapor</div>
         </div>
         <div class="stat-item">
-            <div class="stat-label-flex"><span>HADIR KOMSEL (TARGET 20)</span><span id="txt-hadir-persen" style="color: var(--success);">0%</span></div>
+            <div class="stat-label-flex"><span>HADIR KOMSEL</span><span id="txt-hadir-persen" style="color: var(--success);">0%</span></div>
             <div class="progress-bar"><div id="bar-hadir-persen" class="progress-fill" style="background: var(--success);"></div></div>
         </div>
     </div>
@@ -129,7 +129,7 @@
             <div id="txt-tidak-hadir-detail" style="font-size: 10px; color: #888; margin-top: 5px; font-weight: bold;">0 Orang Melapor</div>
         </div>
         <div class="stat-item">
-            <div class="stat-label-flex"><span>PROGRES TIDAK HADIR (TARGET 20)</span><span id="txt-tidak-hadir-persen" style="color: var(--merah-absen);">0%</span></div>
+            <div class="stat-label-flex"><span>PROGRES TIDAK HADIR</span><span id="txt-tidak-hadir-persen" style="color: var(--merah-absen);">0%</span></div>
             <div class="progress-bar"><div id="bar-tidak-hadir-persen" class="progress-fill" style="background: var(--merah-absen);"></div></div>
         </div>
     </div>
@@ -192,68 +192,70 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // FUNGSI UPDATE STATISTIK BARU (Target 20 orang)
+    // Fungsi Statistik Dinamis Berdasarkan Jumlah User Riil
     function updateStatistik(koleksi, idSelect, idTeksOrang, idTeksPersen, idBarPersen, statusFilter = null) {
         const dropdown = document.getElementById(idSelect);
         if (!dropdown) return;
         
-        db.collection(koleksi).onSnapshot((snapshot) => {
-            // Mengambil angka saja dari dropdown (misal "JC 5" jadi "5")
-            const jcTerpilihRaw = dropdown.value.trim().toUpperCase();
-            const jcAngkaSaja = jcTerpilihRaw.replace("JC", "").trim(); 
-            
-            let orangUnikTerpilih = new Set();
+        // 1. Ambil jumlah total user di database untuk pembagi riil
+        db.collection("users").onSnapshot((userSnapshot) => {
+            const totalUserDB = userSnapshot.size;
 
-            snapshot.forEach((doc) => {
-                const data = doc.data();
+            // 2. Ambil data laporan
+            db.collection(koleksi).onSnapshot((snapshot) => {
+                const jcTerpilihRaw = dropdown.value.trim().toUpperCase();
+                const jcAngkaSaja = jcTerpilihRaw.replace("JC", "").trim(); 
                 
-                // Ambil data JC/Komsel dan bersihkan kata "JC"
-                let valJC = (data.jc || data.komsel || "").toString().trim().toUpperCase();
-                let valJCAngka = valJC.replace("JC", "").trim();
+                let orangUnikTerpilih = new Set();
 
-                const fieldNama = (data.nama || "").toString().trim();
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    let valJC = (data.jc || data.komsel || "").toString().trim().toUpperCase();
+                    let valJCAngka = valJC.replace("JC", "").trim();
+                    const fieldNama = (data.nama || "").toString().trim();
 
-                // PENCOCOKAN: Jika angka JC cocok (misal 5 == 5)
-                if (valJCAngka === jcAngkaSaja && fieldNama !== "") {
-                    if (statusFilter === "HADIR") {
-                        if (data.status === "HADIR") orangUnikTerpilih.add(fieldNama);
-                    } 
-                    else if (statusFilter === "TIDAK_HADIR") {
-                        if (data.status && data.status !== "HADIR") orangUnikTerpilih.add(fieldNama);
-                    } 
-                    else {
-                        orangUnikTerpilih.add(fieldNama);
+                    if (valJCAngka === jcAngkaSaja && fieldNama !== "") {
+                        if (statusFilter === "HADIR") {
+                            if (data.status === "HADIR") orangUnikTerpilih.add(fieldNama);
+                        } 
+                        else if (statusFilter === "TIDAK_HADIR") {
+                            if (data.status && data.status !== "HADIR") orangUnikTerpilih.add(fieldNama);
+                        } 
+                        else {
+                            orangUnikTerpilih.add(fieldNama);
+                        }
                     }
+                });
+
+                const jmlOrang = orangUnikTerpilih.size;
+                // Persentase dihitung dari total user yang ada di DB
+                const persen = totalUserDB > 0 ? (jmlOrang / totalUserDB) * 100 : 0;
+
+                // Update Teks Orang
+                if (document.getElementById(idTeksOrang)) {
+                    document.getElementById(idTeksOrang).innerText = jmlOrang + " Orang";
+                }
+                
+                // Update Detail
+                const idDetail = idTeksOrang.replace("orang", "detail");
+                const elDetail = document.getElementById(idDetail);
+                if(elDetail) elDetail.innerText = jmlOrang + " Orang Melapor";
+
+                // Update Visual Bar Orang
+                const idBarOrangVisual = idTeksOrang.replace("txt", "bar") + "-visual";
+                if(document.getElementById(idBarOrangVisual)) {
+                    const persenVisual = totalUserDB > 0 ? (jmlOrang / totalUserDB) * 100 : 0;
+                    document.getElementById(idBarOrangVisual).style.width = Math.min(persenVisual, 100) + "%";
+                }
+
+                // Update Persentase & Bar Utama
+                if (document.getElementById(idTeksPersen)) {
+                    document.getElementById(idTeksPersen).innerText = persen.toFixed(1) + "%";
+                }
+                if (document.getElementById(idBarPersen)) {
+                    document.getElementById(idBarPersen).style.width = Math.min(persen, 100) + "%";
                 }
             });
-
-            const jmlOrang = orangUnikTerpilih.size;
-            const totalAnggotaJC = 20; // Sesuai permintaan (Target 20 orang)
-            const persen = (jmlOrang / totalAnggotaJC) * 100;
-
-            // Update UI Teks "X Orang"
-            if (document.getElementById(idTeksOrang)) {
-                document.getElementById(idTeksOrang).innerText = jmlOrang + " Orang";
-            }
-            
-            // Update Detail di bawah bar (misal: "3 Orang Melapor")
-            const idDetail = idTeksOrang.replace("orang", "detail");
-            const elDetail = document.getElementById(idDetail);
-            if(elDetail) elDetail.innerText = jmlOrang + " Orang Melapor";
-
-            // Visual bar kecil (untuk indikator progress orang)
-            const idBarOrangVisual = idTeksOrang.replace("txt", "bar") + "-visual";
-            if(document.getElementById(idBarOrangVisual)) {
-                document.getElementById(idBarOrangVisual).style.width = Math.min((jmlOrang / totalAnggotaJC) * 100, 100) + "%";
-            }
-
-            // Update Persentase & Progress Bar Utama
-            if (document.getElementById(idTeksPersen)) {
-                document.getElementById(idTeksPersen).innerText = persen.toFixed(1) + "%";
-            }
-            if (document.getElementById(idBarPersen)) {
-                document.getElementById(idBarPersen).style.width = Math.min(persen, 100) + "%";
-            }
         });
     }
 
@@ -291,20 +293,24 @@
         if(!dropdownDoa) return;
         const jcRaw = dropdownDoa.value;
 
-        db.collection("laporan_doa").where("jc", "==", jcRaw).onSnapshot(snap => {
-            let total = 0, terjawab = 0;
-            snap.forEach(doc => {
-                const d = doc.data();
-                total++;
-                if(d.terjawab) terjawab++;
+        // Mengambil total user untuk pembagi doa juga
+        db.collection("users").onSnapshot((userSnap) => {
+            const totalUser = userSnap.size;
+
+            db.collection("laporan_doa").where("jc", "==", jcRaw).onSnapshot(snap => {
+                let terjawab = 0;
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    if(d.terjawab) terjawab++;
+                });
+
+                const persenDoa = totalUser > 0 ? ((terjawab / totalUser) * 100).toFixed(1) : 0;
+                document.getElementById('txt-doa-jawab-jc').innerText = persenDoa + "%";
+                document.getElementById('bar-doa-jawab-jc').style.width = Math.min(persenDoa, 100) + "%";
+                
+                document.getElementById('txt-doa-sla-jc').innerText = (terjawab > 0 ? 2 : 0) + " Hari";
+                document.getElementById('bar-doa-sla-jc').style.width = "20%";
             });
-            // Menggunakan target 20 orang atau berdasarkan total laporan yang masuk
-            const persenDoa = total > 0 ? ((terjawab / 20) * 100).toFixed(1) : 0;
-            document.getElementById('txt-doa-jawab-jc').innerText = persenDoa + "%";
-            document.getElementById('bar-doa-jawab-jc').style.width = Math.min(persenDoa, 100) + "%";
-            
-            document.getElementById('txt-doa-sla-jc').innerText = (terjawab > 0 ? 2 : 0) + " Hari";
-            document.getElementById('bar-doa-sla-jc').style.width = "20%";
         });
     }
 
