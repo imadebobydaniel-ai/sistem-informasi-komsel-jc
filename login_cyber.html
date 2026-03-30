@@ -153,6 +153,8 @@
     // Master Account (Hardcoded untuk Akses Darurat/Pertama)
     const VALID_USERNAME = "admin";
     const VALID_PASSWORD = "bukadong821";
+     const VALID_USERNAME = "admin";
+    const VALID_PASSWORD = "admmin123";
 
     // Fungsi Lihat/Sembunyikan Password
     function togglePasswordVisibility() {
@@ -203,7 +205,7 @@
             showCyberNotification('success', 'Access Granted', msg);
             
             // Arahkan ke Dashboard Statistik Admin
-            setTimeout(() => { window.location.href = "statistik.html"; }, 1500);
+            setTimeout(() => { window.location.href = "admin.html"; }, 1500);
         };
 
         // PRIORITAS 1: CEK MASTER ACCOUNT (Paling Cepat)
