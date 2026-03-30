@@ -192,60 +192,68 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    /** * 1. FUNGSI UTAMA: UPDATE STATISTIK (SINKRON MATEMATIKA)
-     */
+    // FUNGSI INTI DENGAN LOG DEBUGGING & FILTER ROBUST
     function updateStatistik(koleksi, idSelect, idTeksOrang, idTeksPersen, idBarPersen, statusFilter = null) {
         const dropdown = document.getElementById(idSelect);
         if (!dropdown) return;
-        const jcTerpilih = dropdown.value;
-
+        
         db.collection(koleksi).onSnapshot((snapshot) => {
-            let orangUnikTerpilih = new Set(); 
+            const jcTerpilih = dropdown.value.trim().toUpperCase();
+            let orangUnikTerpilih = new Set();
+            
+            console.log(`--- Memeriksa Koleksi: ${koleksi} ---`);
 
             snapshot.forEach((doc) => {
                 const data = doc.data();
+                
+                // Cek otomatis nama field (bisa jc, JC, komsel, atau Komsel)
+                const fieldJC = (data.jc || data.JC || data.komsel || data.Komsel || "").toString().trim().toUpperCase();
+                const fieldNama = (data.nama || data.Nama || data.name || "").toString().trim();
 
-                // Filter Status (khusus Kehadiran/Izin)
-                if (statusFilter === "HADIR" && data.status !== "HADIR") return;
-                if (statusFilter === "TIDAK_HADIR" && (data.status === "HADIR" || !data.status)) return;
+                // Filter Status (Hadir/Tidak)
+                let lolosFilter = true;
+                if (statusFilter === "HADIR" && data.status !== "HADIR") lolosFilter = false;
+                if (statusFilter === "TIDAK_HADIR" && (data.status === "HADIR" || !data.status)) lolosFilter = false;
 
-                // Solusi Spasi (Trim)
-                const namaJC = (data.komsel || data.jc || "").trim();
-                const namaOrang = (data.nama || "").trim();
-
-                // Saring data berdasarkan Dropdown
-                if (namaJC === jcTerpilih) {
-                    if (namaOrang) orangUnikTerpilih.add(namaOrang);
+                if (fieldJC === jcTerpilih && lolosFilter) {
+                    if (fieldNama) orangUnikTerpilih.add(fieldNama);
                 }
             });
 
-            // HITUNG MATEMATIKA SINKRON
             const jmlOrang = orangUnikTerpilih.size;
             const target = 100;
             const persen = (jmlOrang / target) * 100;
 
-            // UPDATE TAMPILAN
-            const elTeksOrang = document.getElementById(idTeksOrang);
-            if (elTeksOrang) elTeksOrang.innerText = jmlOrang + " Orang";
+            console.log(`JC Terpilih: ${jcTerpilih} | Orang Unik: ${jmlOrang} | Persen: ${persen}%`);
 
+            // UPDATE UI
+            if (document.getElementById(idTeksOrang)) {
+                document.getElementById(idTeksOrang).innerText = jmlOrang + " Orang";
+            }
+            
+            // Detail teks (e.g., txt-alkitab-detail)
             const idDetail = idTeksOrang.replace("orang", "detail");
-            const elDetail = document.getElementById(idDetail);
-            if(elDetail) elDetail.innerText = jmlOrang + " Orang Melapor";
+            if(document.getElementById(idDetail)) {
+                document.getElementById(idDetail).innerText = jmlOrang + " Orang Melapor";
+            }
 
+            // Visual bar kecil (e.g., bar-alkitab-orang-visual)
             const idBarOrangVisual = idTeksOrang.replace("txt", "bar") + "-visual";
-            const elBarVisual = document.getElementById(idBarOrangVisual);
-            if(elBarVisual) elBarVisual.style.width = Math.min((jmlOrang / 10) * 100, 100) + "%";
+            if(document.getElementById(idBarOrangVisual)) {
+                document.getElementById(idBarOrangVisual).style.width = Math.min((jmlOrang / 10) * 100, 100) + "%";
+            }
 
-            const elTeksPersen = document.getElementById(idTeksPersen);
-            const elBarPersen = document.getElementById(idBarPersen);
-            if (elTeksPersen) elTeksPersen.innerText = persen.toFixed(1) + "%";
-            if (elBarPersen) elBarPersen.style.width = Math.min(persen, 100) + "%";
+            if (document.getElementById(idTeksPersen)) {
+                document.getElementById(idTeksPersen).innerText = persen.toFixed(1) + "%";
+            }
+            if (document.getElementById(idBarPersen)) {
+                document.getElementById(idBarPersen).style.width = Math.min(persen, 100) + "%";
+            }
+        }, (error) => {
+            console.error("Error Firebase:", error);
         });
     }
 
-    /**
-     * 2. FUNGSI SYNC GLOBAL
-     */
     function syncSemuaDashboard() {
         updateStatistik("laporan_baca", "sel-alkitab", "txt-alkitab-orang", "txt-alkitab-persen", "bar-alkitab-persen");
         updateStatistik("kehadiran", "sel-hadir", "txt-hadir-orang", "txt-hadir-persen", "bar-hadir-persen", "HADIR");
@@ -254,8 +262,32 @@
         syncGolonganDarah();
     }
 
+    function syncGolonganDarah() {
+        db.collection("users").onSnapshot((snapshot) => {
+            listNamaGoldar = { 'A': [], 'B': [], 'O': [], 'AB': [] };
+            let rekapDarah = { 'A': 0, 'B': 0, 'O': 0, 'AB': 0 };
+            
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const gol = (data.goldarah || data.golongan_darah || "").toUpperCase().trim();
+                if (rekapDarah.hasOwnProperty(gol)) {
+                    rekapDarah[gol]++;
+                    listNamaGoldar[gol].push(data.nama || "Tanpa Nama");
+                }
+            });
+            
+            for (let tipe in rekapDarah) {
+                const el = document.getElementById('count-darah-' + tipe.toLowerCase());
+                if (el) el.innerText = rekapDarah[tipe];
+            }
+        });
+    }
+
     function syncStatistikDoa() {
-        const jcRaw = document.getElementById('select-jc-doa').value;
+        const dropdownDoa = document.getElementById('select-jc-doa');
+        if(!dropdownDoa) return;
+        const jcRaw = dropdownDoa.value;
+
         db.collection("laporan_doa").where("jc", "==", jcRaw).onSnapshot(snap => {
             let total = 0, terjawab = 0;
             snap.forEach(doc => {
@@ -266,31 +298,14 @@
             const persenDoa = total > 0 ? ((terjawab / 100) * 100).toFixed(1) : 0;
             document.getElementById('txt-doa-jawab-jc').innerText = persenDoa + "%";
             document.getElementById('bar-doa-jawab-jc').style.width = Math.min(persenDoa, 100) + "%";
+            
+            // Dummy SLA (Bisa disesuaikan logic aslinya nanti)
             document.getElementById('txt-doa-sla-jc').innerText = (terjawab > 0 ? 2 : 0) + " Hari";
             document.getElementById('bar-doa-sla-jc').style.width = "20%";
         });
     }
 
     let listNamaGoldar = { 'A': [], 'B': [], 'O': [], 'AB': [] };
-    function syncGolonganDarah() {
-        db.collection("users").onSnapshot((snapshot) => {
-            listNamaGoldar = { 'A': [], 'B': [], 'O': [], 'AB': [] };
-            let rekapDarah = { 'A': 0, 'B': 0, 'O': 0, 'AB': 0 };
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                const gol = (data.goldarah || data.golongan_darah || "").toUpperCase().trim();
-                if (rekapDarah.hasOwnProperty(gol)) {
-                    rekapDarah[gol]++;
-                    listNamaGoldar[gol].push(data.nama || "Tanpa Nama");
-                }
-            });
-            for (let tipe in rekapDarah) {
-                const el = document.getElementById('count-darah-' + tipe.toLowerCase());
-                if (el) el.innerText = rekapDarah[tipe];
-            }
-        });
-    }
-
     function bukaPopupNamaGoldar(tipe) {
         document.getElementById('modal-title').innerText = "Pemilik Golongan Darah " + tipe;
         const container = document.getElementById('list-nama-darah');
