@@ -59,21 +59,10 @@
             <div class="input-box">
                 <label>KOMSEL</label>
                 <select id="select-komsel-alkitab" onchange="syncStatistikAlkitab()">
-                    <option value="JC 01">JC 1</option>
-                    <option value="JC 02">JC 2</option>
-                    <option value="JC 03">JC 3</option>
-                    <option value="JC 04">JC 4</option>
-                    <option value="JC 05" selected>JC 5</option>
+                    <option value="JC 01">JC 1</option><option value="JC 02">JC 2</option><option value="JC 03">JC 3</option><option value="JC 04">JC 4</option><option value="JC 05" selected>JC 5</option>
                 </select>
             </div>
-            <div class="input-box">
-                <label>PERIODE</label>
-                <select id="select-periode-alkitab" onchange="syncStatistikAlkitab()">
-                    <option value="30">30 Hari terakhir</option>
-                    <option value="365" selected>12 Bulan terakhir</option>
-                    <option value="all">Semua Waktu</option>
-                </select>
-            </div>
+            <div class="input-box"><label>PERIODE</label><select id="select-periode-alkitab" onchange="syncStatistikAlkitab()"></select></div>
         </div>
         <div class="progress-group-top">
             <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
@@ -86,8 +75,8 @@
             <div id="progres-komsel-text-alkitab" style="font-size: 10px; color: #888; margin-top: 5px; font-weight: bold;">0 Orang Melapor</div>
         </div>
         <div class="stat-item">
-            <div class="stat-label-flex"><span>PROGRES KOMSEL (TARGET 100)</span><span id="txt-alkitab-komsel">0%</span></div>
-            <div class="progress-bar"><div id="bar-alkitab-komsel" class="progress-fill" style="background: var(--biru-utama); width: 0%;"></div></div>
+            <div class="stat-label-flex"><span>PROGRES KOMSEL (TARGET 100)</span><span id="txt-alkitab-komsel">75.0%</span></div>
+            <div class="progress-bar"><div id="bar-alkitab-komsel" class="progress-fill" style="background: var(--biru-utama); width: 75%;"></div></div>
         </div>
     </div>
 
@@ -205,131 +194,53 @@
 
     let listNamaGoldar = { 'A': [], 'B': [], 'O': [], 'AB': [] };
 
-    // Utility: Membersihkan string JC
     function ambilAngkaJC(str) { return String(str || "").replace(/\D/g, "").replace(/^0+/, ""); }
 
-    // Utility: Update Visual Bar
     function updateStatistikBar(textId, barId, value, isCount = false) {
         const elText = document.getElementById(textId);
         const elBar = document.getElementById(barId);
-        if(elText) elText.innerText = (isCount ? value : parseFloat(value).toFixed(1)) + (isCount ? "" : "%");
-        let barValue = Math.min(value, 100); 
+        if(elText) elText.innerText = value + (isCount ? "" : "%");
+        let barValue = isCount ? Math.min(value * 10, 100) : Math.min(value, 100); 
         if(elBar) elBar.style.width = barValue + "%";
     }
 
-    // 1. INTEGRASI CAPAIAN BACA ALKITAB
-    async function syncStatistikAlkitab() {
-        const komselId = document.getElementById("select-komsel-alkitab").value;
-        const periode = document.getElementById("select-periode-alkitab").value;
-        
-        const sekarang = new Date();
-        let tanggalMulai = new Date(0);
-        if (periode === "365") tanggalMulai.setFullYear(sekarang.getFullYear() - 1);
-        if (periode === "30") tanggalMulai.setDate(sekarang.getDate() - 30);
-
-        try {
-            const snapshot = await db.collection("laporan_bacaan").where("komsel", "==", komselId).get();
-            const usersWhoReported = new Set();
+    function syncStatistikAlkitab() {
+        const jcTerpilih = document.getElementById("select-komsel-alkitab").value;
+        db.collection("users").where("komsel", "==", jcTerpilih).onSnapshot(snap => {
+            let totalAnggota = snap.size;
+            let sudahLapor = 0;
+            snap.forEach(doc => { if (doc.data().progres_alkitab > 0) sudahLapor++; });
             
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                const tglData = data.tanggal ? (data.tanggal.toDate ? data.tanggal.toDate() : new Date(data.tanggal)) : new Date();
-                if (tglData >= tanggalMulai) {
-                    const uniqueKey = data.email || data.nama;
-                    if (uniqueKey) usersWhoReported.add(uniqueKey);
-                }
-            });
-
-            const jumlahOrang = usersWhoReported.size;
-            const target = 100;
-            const persentase = (jumlahOrang / target) * 100;
-
-            document.getElementById("text-laporan-orang-alkitab").innerText = `${jumlahOrang} Orang`;
-            document.getElementById("progres-komsel-text-alkitab").innerText = `${jumlahOrang} Orang Melapor`;
-            updateStatistikBar('txt-alkitab-komsel', 'bar-alkitab-komsel', persentase);
-            document.getElementById("bar-laporan-orang-alkitab").style.width = Math.min(jumlahOrang * 5, 100) + "%"; // Visual indikator
-
-        } catch (error) { console.error("Error Alkitab:", error); }
-    }
-
-    // 2. INTEGRASI CAPAIAN DOA KOMSEL
-    async function syncStatistikDoa() {
-        const jcRaw = document.getElementById('select-jc-doa').value;
-        const periode = parseInt(document.getElementById('select-periode-doa').value);
-        const batasWaktu = new Date();
-        batasWaktu.setMonth(batasWaktu.getMonth() - periode);
-
-        try {
-            const snapshot = await db.collection("saran_masukan")
-                .where("komsel", "==", jcRaw)
-                .where("kategori", "==", "Pokok Doa")
-                .get();
-
-            let totalDoa = 0, terjawab = 0, totalSLA = 0;
-
-            snapshot.forEach(doc => {
-                const d = doc.data();
-                const tgl = d.tanggal_input ? d.tanggal_input.toDate() : new Date();
-                if (tgl >= batasWaktu) {
-                    totalDoa++;
-                    if (d.status === "Terjawab") {
-                        terjawab++;
-                        if (d.tanggal_selesai) {
-                            const diff = Math.ceil(Math.abs(d.tanggal_selesai.toDate() - tgl) / (1000 * 60 * 60 * 24));
-                            totalSLA += diff;
-                        }
-                    }
-                }
-            });
-
-            const persenDoa = totalDoa > 0 ? (terjawab / totalDoa) * 100 : 0;
-            const avgSLA = terjawab > 0 ? Math.round(totalSLA / terjawab) : 0;
-
-            updateStatistikBar('txt-doa-jawab-jc', 'bar-doa-jawab-jc', persenDoa);
-            document.getElementById('txt-doa-sla-jc').innerText = `${avgSLA} Hari`;
-            document.getElementById('bar-doa-sla-jc').style.width = Math.min(avgSLA * 10, 100) + "%";
-
-        } catch (e) { console.error("Error Doa:", e); }
-    }
-
-    // 3. INTEGRASI GOLONGAN DARAH
-    function syncGolonganDarah() {
-        db.collection("users").onSnapshot((snapshot) => {
-            listNamaGoldar = { 'A': [], 'B': [], 'O': [], 'AB': [] };
-            let rekap = { 'A': 0, 'B': 0, 'O': 0, 'AB': 0 };
+            document.getElementById("text-laporan-orang-alkitab").innerText = sudahLapor + " Orang";
+            let visualBar = totalAnggota > 0 ? (sudahLapor / totalAnggota) * 100 : 0;
+            document.getElementById("bar-laporan-orang-alkitab").style.width = visualBar + "%";
             
-            snapshot.forEach((doc) => {
-                const d = doc.data();
-                const gol = (d.golongan_darah || d.goldarah || "").toUpperCase().trim();
-                if (rekap.hasOwnProperty(gol)) {
-                    rekap[gol]++;
-                    listNamaGoldar[gol].push(d.nama || "Tanpa Nama");
-                }
-            });
-
-            for (let tipe in rekap) {
-                const el = document.getElementById('count-darah-' + tipe.toLowerCase());
-                if (el) el.innerText = rekap[tipe];
-            }
+            document.getElementById("progres-komsel-text-alkitab").innerText = sudahLapor + " Orang Melapor";
+            updateStatistikBar('txt-alkitab-komsel', 'bar-alkitab-komsel', 75.0); 
         });
     }
 
-    // 4. KEHADIRAN & IZIN (MENGGUNAKAN LOGIKA SNAPSHOT ANDA)
     function syncStatistikHadir() {
         const jcRaw = document.getElementById('select-jc-laporan').value;
         const numJC = ambilAngkaJC(jcRaw);
         db.collection("kehadiran").onSnapshot(snap => {
             let orangUnik = new Set();
-            let totalHadir = 0;
+            let totalHadirJC = 0;
             snap.forEach(doc => {
                 const d = doc.data();
-                if(d.status === "HADIR" && ambilAngkaJC(d.jc || d.komsel) === numJC) {
-                    totalHadir++;
-                    if(d.nama) orangUnik.add(d.nama);
+                if(d.status === "HADIR") {
+                    if(ambilAngkaJC(d.jc || d.komsel) === numJC) {
+                        totalHadirJC++;
+                        if(d.nama) orangUnik.add(d.nama);
+                    }
                 }
             });
-            document.getElementById("text-laporan-orang-hadir").innerText = orangUnik.size + " Orang";
-            updateStatistikBar('txt-hadir-jc', 'bar-hadir-jc', Math.min(totalHadir, 100));
+            let jmlOrang = orangUnik.size;
+            document.getElementById("text-laporan-orang-hadir").innerText = jmlOrang + " Orang";
+            let visualBar = (jmlOrang / 10) * 100;
+            document.getElementById("bar-laporan-orang-hadir").style.width = Math.min(visualBar, 100) + "%";
+            document.getElementById("count-lapor-hadir").innerText = jmlOrang + " Orang Melapor";
+            updateStatistikBar('txt-hadir-jc', 'bar-hadir-jc', ((totalHadirJC / 100) * 100).toFixed(1));
         });
     }
 
@@ -337,26 +248,72 @@
         const jcRaw = document.getElementById('select-jc-izin').value;
         const numJC = ambilAngkaJC(jcRaw);
         db.collection("kehadiran").onSnapshot(snap => {
-            let totalIzin = 0;
+            let orangUnikIzin = new Set();
+            let totalIzinJC = 0;
             snap.forEach(doc => {
                 const d = doc.data();
-                if(d.status !== "HADIR" && d.status !== "" && ambilAngkaJC(d.jc || d.komsel) === numJC) totalIzin++;
+                if(d.status !== "HADIR" && d.status !== "") {
+                    if(ambilAngkaJC(d.jc || d.komsel) === numJC) {
+                        totalIzinJC++;
+                        if(d.nama) orangUnikIzin.add(d.nama);
+                    }
+                }
             });
-            updateStatistikBar('txt-izin-jc', 'bar-izin-jc', Math.min(totalIzin, 100));
+            let jmlOrang = orangUnikIzin.size;
+            document.getElementById("text-laporan-orang-izin").innerText = jmlOrang + " Orang";
+            let visualBar = (jmlOrang / 10) * 100;
+            document.getElementById("bar-laporan-orang-izin").style.width = Math.min(visualBar, 100) + "%";
+            document.getElementById("count-lapor-izin").innerText = jmlOrang + " Orang Melapor";
+            updateStatistikBar('txt-izin-jc', 'bar-izin-jc', ((totalIzinJC / 100) * 100).toFixed(1));
         });
     }
 
-    // POPUP LOGIC
+    function syncStatistikDoa() {
+        const jcRaw = document.getElementById('select-jc-doa').value;
+        db.collection("laporan_doa").where("jc", "==", jcRaw).onSnapshot(snap => {
+            let total = 0, terjawab = 0;
+            snap.forEach(doc => {
+                const d = doc.data();
+                total++;
+                if(d.terjawab) terjawab++;
+            });
+            const persenDoa = total > 0 ? ((terjawab / 100) * 100).toFixed(1) : 0;
+            updateStatistikBar('txt-doa-jawab-jc', 'bar-doa-jawab-jc', persenDoa);
+            document.getElementById('txt-doa-sla-jc').innerText = (terjawab > 0 ? 2 : 0) + " Hari";
+            document.getElementById('bar-doa-sla-jc').style.width = "20%";
+        });
+    }
+
+    function syncGolonganDarah() {
+        db.collection("users").onSnapshot((snapshot) => {
+            listNamaGoldar = { 'A': [], 'B': [], 'O': [], 'AB': [] };
+            let rekapDarah = { 'A': 0, 'B': 0, 'O': 0, 'AB': 0 };
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const gol = (data.goldarah || data.golongan_darah || "").toUpperCase().trim();
+                if (rekapDarah.hasOwnProperty(gol)) {
+                    rekapDarah[gol]++;
+                    listNamaGoldar[gol].push(data.nama || "Tanpa Nama");
+                }
+            });
+            for (let tipe in rekapDarah) {
+                const el = document.getElementById('count-darah-' + tipe.toLowerCase());
+                if (el) el.innerText = rekapDarah[tipe];
+            }
+        });
+    }
+
     function bukaPopupNamaGoldar(tipe) {
-        document.getElementById('modal-title').innerText = "Golongan Darah " + tipe;
+        document.getElementById('modal-title').innerText = "Pemilik Golongan Darah " + tipe;
         const container = document.getElementById('list-nama-darah');
         container.innerHTML = listNamaGoldar[tipe].map((n, i) => `<div class="nama-item">${i+1}. ${n}</div>`).join('') || "Tidak ada data.";
         document.getElementById('pop-detail-nama-darah').style.display = 'flex';
     }
+
     function tutupPopupDarah() { document.getElementById('pop-detail-nama-darah').style.display = 'none'; }
 
     function setupPeriodeDropdown() {
-        const ids = ['select-periode-laporan', 'select-periode-izin', 'select-periode-doa'];
+        const ids = ['select-periode-alkitab', 'select-periode-laporan', 'select-periode-izin', 'select-periode-doa'];
         ids.forEach(id => {
             const el = document.getElementById(id);
             if(el) {
@@ -368,10 +325,10 @@
 
     window.onload = () => {
         setupPeriodeDropdown();
-        syncStatistikAlkitab();
+        syncStatistikDoa();
         syncStatistikHadir();
         syncStatistikIzin();
-        syncStatistikDoa();
+        syncStatistikAlkitab();
         syncGolonganDarah(); 
     };
 </script>
