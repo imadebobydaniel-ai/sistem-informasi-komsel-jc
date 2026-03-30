@@ -13,9 +13,9 @@
     <style>
         :root {
             --cyan-neon: #00ffff;
-            --dark-bg: #030303;
-            --panel-bg: rgba(10, 10, 10, 0.9); 
-            --input-bg: rgba(0, 0, 0, 0.6);
+            --dark-bg: #000000; /* Hitam pekat sesuai permintaan */
+            --panel-bg: rgba(10, 10, 10, 0.5); /* Kartu semi-transparan */
+            --input-bg: rgba(0, 0, 0, 0.4);
         }
 
         body, html {
@@ -25,32 +25,27 @@
             display: flex; justify-content: center; align-items: center;
         }
 
-        /* --- Perbaikan Latar Belakang (Watermark Logo) --- */
+        /* --- Latar Belakang Logo (Watermark) --- */
         .bg-watermark {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            /* Menggunakan file di GitHub sesuai instruksi */
             background-image: url('logo_pondok.png'); 
             background-size: contain; background-position: center; background-repeat: no-repeat;
             z-index: -100;
-            /* Membuat logo transparan (watermark) & gelap */
-            filter: brightness(0.15) opacity(0.2) saturate(0.5); 
+            /* Filter ditingkatkan agar logo terlihat jelas namun tetap elegan */
+            filter: brightness(0.3) opacity(0.3) saturate(0.7); 
         }
 
-        /* Cyber Grid tipis tetap dipertahankan untuk tekstur */
-        .cyber-grid {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-                linear-gradient(0deg, transparent 24%, rgba(0, 255, 255, .03) 25%, rgba(0, 255, 255, .03) 26%, transparent 27%, transparent),
-                linear-gradient(90deg, transparent 24%, rgba(0, 255, 255, .03) 25%, rgba(0, 255, 255, .03) 26%, transparent 27%, transparent);
-            background-size: 60px 60px; z-index: -50; pointer-events: none;
-        }
+        /* Grid dimatikan agar background hitam pekat terlihat bersih */
+        .cyber-grid { display: none; }
 
-        /* --- Panel Login --- */
+        /* --- Panel Login Semi-Transparan (Glassmorphism) --- */
         .login-panel {
             background-color: var(--panel-bg); padding: 40px; border-radius: 20px;
             width: 90%; max-width: 400px; text-align: center;
-            box-shadow: 0 0 25px rgba(0, 255, 255, 0.15), 0 0 10px rgba(0, 255, 255, 0.3) inset;
-            border: 1px solid rgba(0, 255, 255, 0.4); backdrop-filter: blur(15px);
+            /* Efek blur latar belakang kartu */
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.1), 0 0 10px rgba(0, 255, 255, 0.2) inset;
+            border: 1px solid rgba(0, 255, 255, 0.3);
             position: relative;
         }
 
@@ -138,7 +133,6 @@
     </div>
 
 <script>
-    // --- 1. KONFIGURASI FIREBASE (Gunakan Config Asli Anda) ---
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -150,12 +144,9 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Master Account (Hardcoded untuk Akses Darurat/Pertama)
     const VALID_USERNAME = "admin";
     const VALID_PASSWORD = "bukadong821";
-   
 
-    // Fungsi Lihat/Sembunyikan Password
     function togglePasswordVisibility() {
         const passInput = document.getElementById('cyberPass');
         const eyeIcon = document.getElementById('toggleEye');
@@ -168,7 +159,6 @@
         }
     }
 
-    // Fungsi Menampilkan Notifikasi Modal
     function showCyberNotification(type, title, message) {
         const modal = document.getElementById('cyberModal');
         document.getElementById('modalTitle').innerText = title;
@@ -187,33 +177,24 @@
 
     document.getElementById('closeModal').onclick = () => document.getElementById('cyberModal').style.display = 'none';
 
-    // --- 2. LOGIKA LOGIN ---
     document.getElementById('cyberLoginForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const user = document.getElementById('cyberUser').value.trim();
         const pass = document.getElementById('cyberPass').value.trim();
 
         const handleSuccess = (msg) => {
-            // Bersihkan session member/user biasa agar tidak bentrok
             localStorage.clear(); 
-            
-            // Set session khusus ADMIN
             localStorage.setItem("adminLoggedIn", "true");
             localStorage.setItem("adminUser", user);
-            
             showCyberNotification('success', 'Access Granted', msg);
-            
-            // Arahkan ke Dashboard Statistik Admin
             setTimeout(() => { window.location.href = "admin.html"; }, 1500);
         };
 
-        // PRIORITAS 1: CEK MASTER ACCOUNT (Paling Cepat)
         if (user === VALID_USERNAME && pass === VALID_PASSWORD) {
             handleSuccess('Master Administrator Verified. Loading Secure Environment...');
             return;
         }
 
-        // PRIORITAS 2: CEK DATABASE FIREBASE (Collection 'admins')
         try {
             const snapshot = await db.collection("admins")
                 .where("username", "==", user)
@@ -227,12 +208,12 @@
             }
         } catch (error) {
             console.error("Database Error:", error);
-            showCyberNotification('error', 'System Error', 'Gagal terhubung ke Cybernet Database. Cek koneksi Anda.');
+            showCyberNotification('error', 'System Error', 'Gagal terhubung ke Database. Cek koneksi Anda.');
         }
 
         function showMsgGagal() {
-            showCyberNotification('error', 'Access Denied', 'Username atau Password tidak valid dalam database Admin Pondok Pemulihan Papua.');
-            document.getElementById('cyberPass').value = ''; // Reset password field
+            showCyberNotification('error', 'Access Denied', 'Username atau Password tidak valid.');
+            document.getElementById('cyberPass').value = ''; 
         }
     });
 </script>
