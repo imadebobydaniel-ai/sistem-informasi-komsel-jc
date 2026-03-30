@@ -75,8 +75,8 @@
             <div id="progres-komsel-text-alkitab" style="font-size: 10px; color: #888; margin-top: 5px; font-weight: bold;">0 Orang Melapor</div>
         </div>
         <div class="stat-item">
-            <div class="stat-label-flex"><span>PROGRES KOMSEL</span><span id="txt-alkitab-komsel">75.0%</span></div>
-            <div class="progress-bar"><div id="bar-alkitab-komsel" class="progress-fill" style="background: var(--biru-utama); width: 75%;"></div></div>
+            <div class="stat-label-flex"><span>PROGRES KOMSEL</span><span id="txt-alkitab-komsel">0%</span></div>
+            <div class="progress-bar"><div id="bar-alkitab-komsel" class="progress-fill" style="background: var(--biru-utama);"></div></div>
         </div>
     </div>
 
@@ -193,47 +193,44 @@
     const db = firebase.firestore();
 
     let listNamaGoldar = { 'A': [], 'B': [], 'O': [], 'AB': [] };
-
-    // Target Global sesuai instruksi baru
     const TARGET_MAX_KOMSEL = 50;
 
+    // Helper: Ambil angka saja (misal "JC 05" jadi "5")
     function ambilAngkaJC(str) { return String(str || "").replace(/\D/g, "").replace(/^0+/, ""); }
 
+    // Helper: Update Progress Bar & Text
     function updateStatistikBar(textId, barId, value, isCount = false) {
         const elText = document.getElementById(textId);
         const elBar = document.getElementById(barId);
         if(elText) elText.innerText = value + (isCount ? "" : "%");
-        // Update bar agar sinkron dengan persentase (Maksimal 100%)
         if(elBar) elBar.style.width = Math.min(value, 100) + "%";
     }
 
-    // --- SINKRONISASI ALKITAB DENGAN RUMUS BOBOT ---
+    // --- SINKRONISASI ALKITAB ---
     function syncStatistikAlkitab() {
         const jcTerpilih = document.getElementById("select-komsel-alkitab").value;
         const numJC = ambilAngkaJC(jcTerpilih);
-        
-        db.collection("laporan_baca").onSnapshot(snap => {
+
+        db.collection("laporan_bacaan").onSnapshot(snap => {
             let orangUnik = new Set();
             snap.forEach(doc => {
                 const d = doc.data();
-                if(ambilAngkaJC(d.jc || d.komsel) === numJC) {
-                    if(d.nama) orangUnik.add(d.nama);
+                if (d.komsel && ambilAngkaJC(d.komsel) === numJC) {
+                    if (d.nama) orangUnik.add(d.nama);
                 }
             });
-            
-            let nilaiSatuan = orangUnik.size;
-            // RUMUS: (Satuan / Total) * 100%
-            let bobotPersen = (nilaiSatuan / TARGET_MAX_KOMSEL) * 100;
 
-            document.getElementById("text-laporan-orang-alkitab").innerText = nilaiSatuan + " Orang";
-            document.getElementById("bar-laporan-orang-alkitab").style.width = Math.min(bobotPersen, 100) + "%";
-            document.getElementById("progres-komsel-text-alkitab").innerText = nilaiSatuan + " Orang Melapor";
-            
-            updateStatistikBar('txt-alkitab-komsel', 'bar-alkitab-komsel', bobotPersen.toFixed(1)); 
+            let count = orangUnik.size;
+            let persen = (count / TARGET_MAX_KOMSEL) * 100;
+
+            document.getElementById("text-laporan-orang-alkitab").innerText = count + " Orang";
+            document.getElementById("bar-laporan-orang-alkitab").style.width = Math.min(persen, 100) + "%";
+            document.getElementById("progres-komsel-text-alkitab").innerText = count + " Orang Melapor";
+            updateStatistikBar('txt-alkitab-komsel', 'bar-alkitab-komsel', persen.toFixed(1));
         });
     }
 
-    // --- SINKRONISASI HADIR DENGAN RUMUS BOBOT ---
+    // --- SINKRONISASI HADIR ---
     function syncStatistikHadir() {
         const jcRaw = document.getElementById('select-jc-laporan').value;
         const numJC = ambilAngkaJC(jcRaw);
@@ -241,89 +238,79 @@
             let orangUnik = new Set();
             snap.forEach(doc => {
                 const d = doc.data();
-                if(d.status === "HADIR") {
-                    if(ambilAngkaJC(d.jc || d.komsel) === numJC) {
-                        if(d.nama) orangUnik.add(d.nama);
-                    }
+                if(d.status === "HADIR" && ambilAngkaJC(d.jc || d.komsel) === numJC) {
+                    if(d.nama) orangUnik.add(d.nama);
                 }
             });
-            let nilaiSatuan = orangUnik.size;
-            // RUMUS: (Satuan / Total) * 100%
-            let bobotPersen = (nilaiSatuan / TARGET_MAX_KOMSEL) * 100;
+            let count = orangUnik.size;
+            let persen = (count / TARGET_MAX_KOMSEL) * 100;
 
-            document.getElementById("text-laporan-orang-hadir").innerText = nilaiSatuan + " Orang";
-            document.getElementById("bar-laporan-orang-hadir").style.width = Math.min(bobotPersen, 100) + "%";
-            document.getElementById("count-lapor-hadir").innerText = nilaiSatuan + " Orang Melapor";
-            
-            updateStatistikBar('txt-hadir-jc', 'bar-hadir-jc', bobotPersen.toFixed(1));
+            document.getElementById("text-laporan-orang-hadir").innerText = count + " Orang";
+            document.getElementById("bar-laporan-orang-hadir").style.width = Math.min(persen, 100) + "%";
+            document.getElementById("count-lapor-hadir").innerText = count + " Orang Melapor";
+            updateStatistikBar('txt-hadir-jc', 'bar-hadir-jc', persen.toFixed(1));
         });
     }
 
-    // --- SINKRONISASI IZIN DENGAN RUMUS BOBOT ---
+    // --- SINKRONISASI IZIN ---
     function syncStatistikIzin() {
         const jcRaw = document.getElementById('select-jc-izin').value;
         const numJC = ambilAngkaJC(jcRaw);
         db.collection("kehadiran").onSnapshot(snap => {
-            let orangUnikIzin = new Set();
+            let orangUnik = new Set();
             snap.forEach(doc => {
                 const d = doc.data();
-                if(d.status !== "HADIR" && d.status !== "" && d.status !== undefined) {
-                    if(ambilAngkaJC(d.jc || d.komsel) === numJC) {
-                        if(d.nama) orangUnikIzin.add(d.nama);
-                    }
+                if(d.status && d.status !== "HADIR" && ambilAngkaJC(d.jc || d.komsel) === numJC) {
+                    if(d.nama) orangUnik.add(d.nama);
                 }
             });
-            let nilaiSatuan = orangUnikIzin.size;
-            // RUMUS: (Satuan / Total) * 100%
-            let bobotPersen = (nilaiSatuan / TARGET_MAX_KOMSEL) * 100;
+            let count = orangUnik.size;
+            let persen = (count / TARGET_MAX_KOMSEL) * 100;
 
-            document.getElementById("text-laporan-orang-izin").innerText = nilaiSatuan + " Orang";
-            document.getElementById("bar-laporan-orang-izin").style.width = Math.min(bobotPersen, 100) + "%";
-            document.getElementById("count-lapor-izin").innerText = nilaiSatuan + " Orang Melapor";
-            
-            updateStatistikBar('txt-izin-jc', 'bar-izin-jc', bobotPersen.toFixed(1));
+            document.getElementById("text-laporan-orang-izin").innerText = count + " Orang";
+            document.getElementById("bar-laporan-orang-izin").style.width = Math.min(persen, 100) + "%";
+            document.getElementById("count-lapor-izin").innerText = count + " Orang Melapor";
+            updateStatistikBar('txt-izin-jc', 'bar-izin-jc', persen.toFixed(1));
         });
     }
 
-    // --- SINKRONISASI DOA DENGAN RUMUS BOBOT ---
+    // --- SINKRONISASI DOA ---
     function syncStatistikDoa() {
         const jcRaw = document.getElementById('select-jc-doa').value;
         const numJC = ambilAngkaJC(jcRaw);
         db.collection("laporan_doa").onSnapshot(snap => {
-            let totalLaporan = 0;
-            let terjawab = 0;
+            let total = 0, terjawab = 0;
             snap.forEach(doc => {
                 const d = doc.data();
                 if(ambilAngkaJC(d.jc) === numJC) {
-                    totalLaporan++;
+                    total++;
                     if(d.terjawab === true) terjawab++;
                 }
             });
-            // Rumus bobot jawaban dari total laporan yang masuk di JC tersebut
-            const persenDoa = totalLaporan > 0 ? ((terjawab / totalLaporan) * 100).toFixed(1) : 0;
-            updateStatistikBar('txt-doa-jawab-jc', 'bar-doa-jawab-jc', persenDoa);
+            const persen = total > 0 ? ((terjawab / total) * 100).toFixed(1) : 0;
+            updateStatistikBar('txt-doa-jawab-jc', 'bar-doa-jawab-jc', persen);
             
-            // Contoh SLA sederhana (bisa disesuaikan nanti)
             document.getElementById('txt-doa-sla-jc').innerText = (terjawab > 0 ? 2 : 0) + " Hari";
             document.getElementById('bar-doa-sla-jc').style.width = (terjawab > 0 ? "20%" : "0%");
         });
     }
 
+    // --- GOLONGAN DARAH ---
     function syncGolonganDarah() {
         db.collection("users").onSnapshot((snapshot) => {
             listNamaGoldar = { 'A': [], 'B': [], 'O': [], 'AB': [] };
-            let rekapDarah = { 'A': 0, 'B': 0, 'O': 0, 'AB': 0 };
+            let rekap = { 'A': 0, 'B': 0, 'O': 0, 'AB': 0 };
             snapshot.forEach((doc) => {
-                const data = doc.data();
-                const gol = (data.goldarah || data.golongan_darah || "").toUpperCase().trim();
-                if (rekapDarah.hasOwnProperty(gol)) {
-                    rekapDarah[gol]++;
-                    listNamaGoldar[gol].push(data.nama || "Tanpa Nama");
+                const d = doc.data();
+                const gol = (d.goldarah || d.golongan_darah || "").toUpperCase().trim();
+                if (rekap.hasOwnProperty(gol)) {
+                    rekap[gol]++;
+                    listNamaGoldar[gol].push(d.nama || "Tanpa Nama");
                 }
             });
-            for (let tipe in rekapDarah) {
+            for (let tipe in rekap) {
                 const el = document.getElementById('count-darah-' + tipe.toLowerCase());
-                if (el) el.innerText = rekapDarah[tipe];
+                if (el) el.innerText = rekap[tipe];
             }
         });
     }
