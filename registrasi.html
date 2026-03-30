@@ -120,7 +120,8 @@
     function updateClock() {
         const now = new Date();
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-        document.getElementById('current-time').innerText = now.toLocaleDateString('id-ID', options) + " WIT";
+        const timeEl = document.getElementById('current-time');
+        if(timeEl) timeEl.innerText = now.toLocaleDateString('id-ID', options) + " WIT";
     }
     setInterval(updateClock, 1000);
     updateClock();
@@ -146,28 +147,64 @@
         } catch (e) { nkInput.value = "Error koneksi"; }
     }
 
-    // 5. Fungsi Registrasi (Proses Simpan Data)
+    // 5. Fungsi Utama Registrasi (Dengan Proteksi Duplikat)
     async function handleRegistrasi() {
         const btn = document.getElementById("btnSubmit");
-        const nama = document.getElementById("nama").value;
+        const nama = document.getElementById("nama").value.trim();
         const email = document.getElementById("email").value.trim().toLowerCase();
-        const hp = document.getElementById("hp").value;
+        const hp = document.getElementById("hp").value.trim();
         const pass = document.getElementById("pass").value;
-        const alamat = document.getElementById("alamat").value;
+        const alamat = document.getElementById("alamat").value.trim();
         const darah = document.getElementById("darah").value; 
         const jabatan = document.getElementById("jabatan").value;
         const komsel = document.getElementById("komsel").value;
         const nk = document.getElementById("nk-display").value;
 
-        if(!nama || !email || !hp || !darah || !pass || !komsel) {
-            alert("Harap lengkapi semua data termasuk Golongan Darah!");
+        // Validasi Kosong
+        if(!nama || !email || !hp || !darah || !pass || !komsel || !alamat) {
+            alert("Harap lengkapi semua data pendaftaran!");
             return;
         }
 
-        btn.innerText = "Memproses... (Mohon Tunggu)";
+        btn.innerText = "Mengecek Data...";
         btn.disabled = true;
 
+        const usersRef = db.collection("users");
+
         try {
+            // --- PROTEKSI DUPLIKAT ---
+            
+            // Cek Email
+            const emailCheck = await usersRef.where("email", "==", email).get();
+            if (!emailCheck.empty) {
+                alert("Maaf Email yang anda gunakan sudah terdaftar silahkan gunakan email yang baru, atau hubungi administrator");
+                btn.innerText = "DAFTAR SEKARANG"; btn.disabled = false; return;
+            }
+
+            // Cek Nama
+            const namaCheck = await usersRef.where("nama", "==", nama).get();
+            if (!namaCheck.empty) {
+                alert("Maaf Nama tersebut sudah terdaftar, silahkan gunakan Nama yang baru atau hubungi administrator");
+                btn.innerText = "DAFTAR SEKARANG"; btn.disabled = false; return;
+            }
+
+            // Cek Nomor HP
+            const hpCheck = await usersRef.where("whatsapp", "==", hp).get();
+            if (!hpCheck.empty) {
+                alert("Maaf nomor HP yang anda masukan sudah terdaftar, silahkan gunakan Nomor yang baru atau hubungi Administrator");
+                btn.innerText = "DAFTAR SEKARANG"; btn.disabled = false; return;
+            }
+
+            // Cek Alamat
+            const alamatCheck = await usersRef.where("alamat", "==", alamat).get();
+            if (!alamatCheck.empty) {
+                alert("Maaf Alamat yang anda gunakan sudah terdaftar, silahkan gunakan alamat yang baru atau hubungi administrator");
+                btn.innerText = "DAFTAR SEKARANG"; btn.disabled = false; return;
+            }
+
+            // --- JIKA LOLOS, LANJUT SIMPAN ---
+            btn.innerText = "Menyimpan Data...";
+
             const userData = {
                 nama: nama,
                 email: email,
@@ -183,10 +220,10 @@
                 tanggalDaftar: new Date().toLocaleString('id-ID')
             };
 
-            // Simpan ke 'users'
-            const userRef = await db.collection("users").add(userData);
+            // Simpan ke koleksi 'users'
+            const userRef = await usersRef.add(userData);
             
-            // Simpan ke 'Administrator'
+            // Simpan ke koleksi 'Administrator' (Sesuai struktur Anda)
             await db.collection("Administrator").doc("profile biodata")
                     .collection("daftar_anggota").doc(userRef.id).set(userData);
             
@@ -199,25 +236,18 @@
         }
     }
 
-    // 6. Fungsi Monitoring Statistik Real-time (DI LUAR handleRegistrasi)
+    // 6. Fungsi Monitoring Statistik Real-time
     function monitorProfilDarah() {
         db.collection("users").onSnapshot((snapshot) => {
             let rekapDarah = { 'A': 0, 'B': 0, 'O': 0, 'AB': 0 };
-
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                // Filter JC 5 (sesuai target kartu di gambar Anda)
                 const jcInput = data.komsel ? data.komsel.toString().replace(/\D/g, "") : "";
-                
                 if (jcInput === "5") {
                     const gol = (data.goldarah || "").toUpperCase().trim();
-                    if (rekapDarah.hasOwnProperty(gol)) {
-                        rekapDarah[gol]++;
-                    }
+                    if (rekapDarah.hasOwnProperty(gol)) { rekapDarah[gol]++; }
                 }
             });
-
-            // Update elemen teks di HTML
             updateElemenDarah('A', rekapDarah['A']);
             updateElemenDarah('B', rekapDarah['B']);
             updateElemenDarah('O', rekapDarah['O']);
@@ -230,9 +260,7 @@
         if (el) { el.innerText = jumlah + " Orang"; }
     }
 
-    // Jalankan monitoring saat halaman terbuka
     monitorProfilDarah();
-
 </script>
 </body>
 </html>
