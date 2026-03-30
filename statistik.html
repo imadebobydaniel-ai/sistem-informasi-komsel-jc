@@ -75,7 +75,7 @@
             <div id="txt-alkitab-detail" style="font-size: 10px; color: #888; margin-top: 5px; font-weight: bold;">0 Orang Melapor</div>
         </div>
         <div class="stat-item">
-            <div class="stat-label-flex"><span>PROGRES KOMSEL (TARGET 100)</span><span id="txt-alkitab-persen">0.0%</span></div>
+            <div class="stat-label-flex"><span>PROGRES KOMSEL (TARGET 20)</span><span id="txt-alkitab-persen">0.0%</span></div>
             <div class="progress-bar"><div id="bar-alkitab-persen" class="progress-fill" style="background: var(--biru-utama); width: 0%;"></div></div>
         </div>
     </div>
@@ -102,7 +102,7 @@
             <div id="txt-hadir-detail" style="font-size: 10px; color: #888; margin-top: 5px; font-weight: bold;">0 Orang Melapor</div>
         </div>
         <div class="stat-item">
-            <div class="stat-label-flex"><span>HADIR KOMSEL (TARGET 100)</span><span id="txt-hadir-persen" style="color: var(--success);">0%</span></div>
+            <div class="stat-label-flex"><span>HADIR KOMSEL (TARGET 20)</span><span id="txt-hadir-persen" style="color: var(--success);">0%</span></div>
             <div class="progress-bar"><div id="bar-hadir-persen" class="progress-fill" style="background: var(--success);"></div></div>
         </div>
     </div>
@@ -129,7 +129,7 @@
             <div id="txt-tidak-hadir-detail" style="font-size: 10px; color: #888; margin-top: 5px; font-weight: bold;">0 Orang Melapor</div>
         </div>
         <div class="stat-item">
-            <div class="stat-label-flex"><span>PROGRES TIDAK HADIR (TARGET 100)</span><span id="txt-tidak-hadir-persen" style="color: var(--merah-absen);">0%</span></div>
+            <div class="stat-label-flex"><span>PROGRES TIDAK HADIR (TARGET 20)</span><span id="txt-tidak-hadir-persen" style="color: var(--merah-absen);">0%</span></div>
             <div class="progress-bar"><div id="bar-tidak-hadir-persen" class="progress-fill" style="background: var(--merah-absen);"></div></div>
         </div>
     </div>
@@ -146,7 +146,7 @@
             <div class="input-box"><label>PERIODE</label><select id="select-periode-doa"></select></div>
         </div>
         <div class="stat-item">
-            <div class="stat-label-flex"><span>DOA TERJAWAB (TARGET 100)</span><span id="txt-doa-jawab-jc" style="color: var(--emas-doa);">0.0%</span></div>
+            <div class="stat-label-flex"><span>DOA TERJAWAB</span><span id="txt-doa-jawab-jc" style="color: var(--emas-doa);">0.0%</span></div>
             <div class="progress-bar"><div id="bar-doa-jawab-jc" class="progress-fill bg-emas-doa"></div></div>
         </div>
         <div class="stat-item">
@@ -192,65 +192,68 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // FUNGSI INTI DENGAN LOG DEBUGGING & FILTER ROBUST
+    // FUNGSI UPDATE STATISTIK BARU (Target 20 orang)
     function updateStatistik(koleksi, idSelect, idTeksOrang, idTeksPersen, idBarPersen, statusFilter = null) {
         const dropdown = document.getElementById(idSelect);
         if (!dropdown) return;
         
         db.collection(koleksi).onSnapshot((snapshot) => {
-            const jcTerpilih = dropdown.value.trim().toUpperCase();
-            let orangUnikTerpilih = new Set();
+            // Mengambil angka saja dari dropdown (misal "JC 5" jadi "5")
+            const jcTerpilihRaw = dropdown.value.trim().toUpperCase();
+            const jcAngkaSaja = jcTerpilihRaw.replace("JC", "").trim(); 
             
-            console.log(`--- Memeriksa Koleksi: ${koleksi} ---`);
+            let orangUnikTerpilih = new Set();
 
             snapshot.forEach((doc) => {
                 const data = doc.data();
                 
-                // Cek otomatis nama field (bisa jc, JC, komsel, atau Komsel)
-                const fieldJC = (data.jc || data.JC || data.komsel || data.Komsel || "").toString().trim().toUpperCase();
-                const fieldNama = (data.nama || data.Nama || data.name || "").toString().trim();
+                // Ambil data JC/Komsel dan bersihkan kata "JC"
+                let valJC = (data.jc || data.komsel || "").toString().trim().toUpperCase();
+                let valJCAngka = valJC.replace("JC", "").trim();
 
-                // Filter Status (Hadir/Tidak)
-                let lolosFilter = true;
-                if (statusFilter === "HADIR" && data.status !== "HADIR") lolosFilter = false;
-                if (statusFilter === "TIDAK_HADIR" && (data.status === "HADIR" || !data.status)) lolosFilter = false;
+                const fieldNama = (data.nama || "").toString().trim();
 
-                if (fieldJC === jcTerpilih && lolosFilter) {
-                    if (fieldNama) orangUnikTerpilih.add(fieldNama);
+                // PENCOCOKAN: Jika angka JC cocok (misal 5 == 5)
+                if (valJCAngka === jcAngkaSaja && fieldNama !== "") {
+                    if (statusFilter === "HADIR") {
+                        if (data.status === "HADIR") orangUnikTerpilih.add(fieldNama);
+                    } 
+                    else if (statusFilter === "TIDAK_HADIR") {
+                        if (data.status && data.status !== "HADIR") orangUnikTerpilih.add(fieldNama);
+                    } 
+                    else {
+                        orangUnikTerpilih.add(fieldNama);
+                    }
                 }
             });
 
             const jmlOrang = orangUnikTerpilih.size;
-            const target = 100;
-            const persen = (jmlOrang / target) * 100;
+            const totalAnggotaJC = 20; // Sesuai permintaan (Target 20 orang)
+            const persen = (jmlOrang / totalAnggotaJC) * 100;
 
-            console.log(`JC Terpilih: ${jcTerpilih} | Orang Unik: ${jmlOrang} | Persen: ${persen}%`);
-
-            // UPDATE UI
+            // Update UI Teks "X Orang"
             if (document.getElementById(idTeksOrang)) {
                 document.getElementById(idTeksOrang).innerText = jmlOrang + " Orang";
             }
             
-            // Detail teks (e.g., txt-alkitab-detail)
+            // Update Detail di bawah bar (misal: "3 Orang Melapor")
             const idDetail = idTeksOrang.replace("orang", "detail");
-            if(document.getElementById(idDetail)) {
-                document.getElementById(idDetail).innerText = jmlOrang + " Orang Melapor";
-            }
+            const elDetail = document.getElementById(idDetail);
+            if(elDetail) elDetail.innerText = jmlOrang + " Orang Melapor";
 
-            // Visual bar kecil (e.g., bar-alkitab-orang-visual)
+            // Visual bar kecil (untuk indikator progress orang)
             const idBarOrangVisual = idTeksOrang.replace("txt", "bar") + "-visual";
             if(document.getElementById(idBarOrangVisual)) {
-                document.getElementById(idBarOrangVisual).style.width = Math.min((jmlOrang / 10) * 100, 100) + "%";
+                document.getElementById(idBarOrangVisual).style.width = Math.min((jmlOrang / totalAnggotaJC) * 100, 100) + "%";
             }
 
+            // Update Persentase & Progress Bar Utama
             if (document.getElementById(idTeksPersen)) {
                 document.getElementById(idTeksPersen).innerText = persen.toFixed(1) + "%";
             }
             if (document.getElementById(idBarPersen)) {
                 document.getElementById(idBarPersen).style.width = Math.min(persen, 100) + "%";
             }
-        }, (error) => {
-            console.error("Error Firebase:", error);
         });
     }
 
@@ -295,11 +298,11 @@
                 total++;
                 if(d.terjawab) terjawab++;
             });
-            const persenDoa = total > 0 ? ((terjawab / 100) * 100).toFixed(1) : 0;
+            // Menggunakan target 20 orang atau berdasarkan total laporan yang masuk
+            const persenDoa = total > 0 ? ((terjawab / 20) * 100).toFixed(1) : 0;
             document.getElementById('txt-doa-jawab-jc').innerText = persenDoa + "%";
             document.getElementById('bar-doa-jawab-jc').style.width = Math.min(persenDoa, 100) + "%";
             
-            // Dummy SLA (Bisa disesuaikan logic aslinya nanti)
             document.getElementById('txt-doa-sla-jc').innerText = (terjawab > 0 ? 2 : 0) + " Hari";
             document.getElementById('bar-doa-sla-jc').style.width = "20%";
         });
