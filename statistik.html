@@ -75,8 +75,8 @@
             <div id="progres-komsel-text-alkitab" style="font-size: 10px; color: #888; margin-top: 5px; font-weight: bold;">0 Orang Melapor</div>
         </div>
         <div class="stat-item">
-            <div class="stat-label-flex"><span>PROGRES KOMSEL (TARGET 100)</span><span id="txt-alkitab-komsel">75.0%</span></div>
-            <div class="progress-bar"><div id="bar-alkitab-komsel" class="progress-fill" style="background: var(--biru-utama); width: 75%;"></div></div>
+            <div class="stat-label-flex"><span>PROGRES KOMSEL (TARGET 100)</span><span id="txt-alkitab-komsel">0.0%</span></div>
+            <div class="progress-bar"><div id="bar-alkitab-komsel" class="progress-fill" style="background: var(--biru-utama);"></div></div>
         </div>
     </div>
 
@@ -192,29 +192,27 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Fungsi sakti untuk mencocokkan "JC 05", "JC 5", dan "jc 5"
     function normalisasiJC(str) {
         if (!str) return "";
         return String(str).replace(/\s+/g, '').replace(/0(?=\d)/g, '').toUpperCase();
     }
 
-    // 1. SYNC ALKITAB - Mengecek Koleksi 'laporan_bacaan'
+    // 1. SYNC ALKITAB - VERSI "BERANI" (TANPA FILTER TANGGAL)
     async function syncStatistikAlkitab() {
         console.log("Memulai Sync Alkitab...");
         const selectEl = document.getElementById("select-komsel-alkitab");
-        const periodeEl = document.getElementById("select-periode-alkitab");
         
-        if(!selectEl) { console.error("ID select-komsel-alkitab TIDAK DITEMUKAN"); return; }
+        if(!selectEl) return;
         
         const selectedJC = normalisasiJC(selectEl.value);
         
         db.collection("laporan_bacaan").onSnapshot(snap => {
-            console.log("Data laporan_bacaan diterima, jumlah dokumen: " + snap.size);
             let userUnik = new Set();
             
             snap.forEach(doc => {
                 const d = doc.data();
-                const dbJC = normalisasiJC(d.komsel || d.jc); // Cek field komsel atau jc
+                // Normalisasi JC dari database (baik field komsel maupun jc)
+                const dbJC = normalisasiJC(d.komsel || d.jc); 
                 
                 if(dbJC === selectedJC) {
                     userUnik.add(d.nama || d.email || doc.id);
@@ -222,34 +220,30 @@
             });
 
             const jml = userUnik.size;
-            console.log("User unik melapor di " + selectedJC + ": " + jml);
+            console.log("Menampilkan ke UI: " + jml + " Orang");
 
-            // Update UI - Gunakan Try-Catch agar tidak stop jika ID salah
-            try {
-                if(document.getElementById("text-laporan-orang-alkitab")) 
-                    document.getElementById("text-laporan-orang-alkitab").innerText = jml + " Orang";
-                
-                if(document.getElementById("progres-komsel-text-alkitab"))
-                    document.getElementById("progres-komsel-text-alkitab").innerText = jml + " Orang Melapor";
-                
-                const persen = (jml / 100) * 100;
-                if(document.getElementById("bar-alkitab-komsel"))
-                    document.getElementById("bar-alkitab-komsel").style.width = Math.min(persen, 100) + "%";
-                
-                if(document.getElementById("txt-alkitab-komsel"))
-                    document.getElementById("txt-alkitab-komsel").innerText = persen.toFixed(1) + "%";
-            } catch (err) { console.error("Gagal Update UI Alkitab:", err); }
+            // UPDATE UI
+            const elAngka = document.getElementById("text-laporan-orang-alkitab");
+            const elProgres = document.getElementById("progres-komsel-text-alkitab");
+            const elBar = document.getElementById("bar-alkitab-komsel");
+            const elPersen = document.getElementById("txt-alkitab-komsel");
+            const elBarOrang = document.getElementById("bar-laporan-orang-alkitab");
+
+            if(elAngka) elAngka.innerText = jml + " Orang";
+            if(elProgres) elProgres.innerText = jml + " Orang Melapor";
+            
+            const persen = Math.min((jml / 100) * 100, 100);
+            if(elBar) elBar.style.width = persen + "%";
+            if(elBarOrang) elBarOrang.style.width = persen + "%"; // Update progress bar orange juga
+            if(elPersen) elPersen.innerText = persen.toFixed(1) + "%";
         });
     }
 
-    // 2. SYNC DOA - Mengecek Koleksi 'saran_masukan'
     function syncStatistikDoa() {
         console.log("Memulai Sync Doa...");
         const jcEl = document.getElementById('select-jc-doa');
         if(!jcEl) return;
-        
         const selectedJC = normalisasiJC(jcEl.value);
-        
         db.collection("saran_masukan").onSnapshot(snap => {
             let total = 0, terjawab = 0;
             snap.forEach(doc => {
@@ -265,7 +259,6 @@
         });
     }
 
-    // 3. SYNC GOLONGAN DARAH - Mengecek Koleksi 'users'
     function syncGolonganDarah() {
         console.log("Memulai Sync Darah...");
         db.collection("users").onSnapshot(snap => {
@@ -275,7 +268,6 @@
                 let g = (d.golongan_darah || d.goldarah || d.darah || "").toUpperCase().trim();
                 if(counts.hasOwnProperty(g)) counts[g]++;
             });
-            
             if(document.getElementById("count-darah-a")) document.getElementById("count-darah-a").innerText = counts['A'];
             if(document.getElementById("count-darah-b")) document.getElementById("count-darah-b").innerText = counts['B'];
             if(document.getElementById("count-darah-o")) document.getElementById("count-darah-o").innerText = counts['O'];
@@ -284,12 +276,10 @@
     }
 
     window.onload = () => {
-        console.log("Halaman Loaded. Menjalankan Fungsi...");
         syncStatistikAlkitab();
         syncStatistikDoa();
         syncGolonganDarah();
-        
-        // Panggil fungsi bawaan jika ada
+        // Fungsi placeholder jika ada di file lain
         if(typeof syncStatistikHadir === 'function') syncStatistikHadir();
         if(typeof syncStatistikIzin === 'function') syncStatistikIzin();
     };
