@@ -13,7 +13,6 @@
             --primary: #007bff; --success: #28a745; --danger: #dc3545;
             --warning: #ffc107; --purple: #6f42c1; --dark: #1a1a1a;
             --light: #f8f9fa; --glass: rgba(255, 255, 255, 0.9);
-            --info: #17a2b8;
         }
 
         body {
@@ -29,13 +28,14 @@
             align-items: center; font-weight: bold; color: var(--primary);
         }
 
+        /* Menu Navigasi Utama */
         .tab-menu {
             display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 10px;
-            align-items: center;
+            align-items: center; border-bottom: 2px solid #ddd;
         }
         
         .tab-btn {
-            padding: 12px 20px; border: none; border-radius: 12px; background: white;
+            padding: 12px 18px; border: none; border-radius: 12px; background: white;
             cursor: pointer; font-weight: bold; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             white-space: nowrap; display: flex; align-items: center; gap: 8px; font-size: 13px;
         }
@@ -44,86 +44,78 @@
         .action-btn {
             padding: 10px 15px; border: none; border-radius: 10px;
             cursor: pointer; font-weight: bold; transition: 0.3s;
-            display: flex; align-items: center; gap: 8px; color: white; font-size: 13px;
+            display: flex; align-items: center; gap: 8px; color: white; font-size: 12px;
         }
         .btn-pdf { background: var(--danger); }
         .btn-print { background: var(--dark); }
-        .action-btn:hover { opacity: 0.8; transform: scale(1.05); }
 
         .stats-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 25px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 25px;
         }
         .chart-card {
-            background: var(--glass); padding: 20px; border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.3);
-            display: flex; flex-direction: column; align-items: center; min-height: 320px;
+            background: white; padding: 20px; border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center;
         }
-        .chart-title { font-weight: bold; margin-bottom: 15px; color: var(--dark); width: 100%; border-bottom: 1px solid #eee; padding-bottom: 10px; text-align: center; }
+        .chart-title { font-weight: bold; margin-bottom: 15px; color: var(--dark); width: 100%; text-align: center; border-bottom: 1px solid #eee; padding-bottom: 10px; }
 
         .data-section { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .table-wrapper { overflow-x: auto; margin-top: 15px; max-height: 500px; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1000px; }
-        th { background: #f8f9fa; padding: 15px; text-align: left; border-bottom: 2px solid #eee; position: sticky; top: 0; z-index: 10; }
+        th { background: #f8f9fa; padding: 15px; text-align: left; border-bottom: 2px solid #eee; position: sticky; top: 0; z-index: 5; }
         td { padding: 12px 15px; border-bottom: 1px solid #f1f1f1; }
         
-        .badge { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .badge { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; }
         .badge-success { background: #d4edda; color: #155724; }
         .badge-danger { background: #f8d7da; color: #721c24; }
-        .badge-info { background: #d1ecf1; color: #0c5460; }
-
-        canvas { width: 100% !important; height: 100% !important; }
 
         @media print {
-            .tab-menu, #loading, .fas.fa-arrow-left, .action-btn { display: none !important; }
-            .data-section { box-shadow: none; border: none; }
-            .table-wrapper { max-height: none; overflow: visible; }
+            .tab-menu, #loading, .action-btn, .fas.fa-arrow-left { display: none !important; }
         }
     </style>
 </head>
 <body>
 
-<div id="loading">Memproses Big Data...</div>
+<div id="loading">Memproses Data...</div>
 
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-        <h2><i class="fas fa-chart-line"></i> Central Intelligence & Statistics</h2>
-        <a href="admin.html" style="text-decoration:none; color: var(--primary); font-weight:bold;"><i class="fas fa-arrow-left"></i> Panel Admin</a>
+        <h2><i class="fas fa-database"></i> Dashboard Statistik Central</h2>
+        <a href="admin.html" style="text-decoration:none; color: var(--primary); font-weight:bold;"><i class="fas fa-arrow-left"></i> Kembali</a>
     </div>
 
     <div class="tab-menu">
         <button class="tab-btn active" onclick="switchTab('ibadah', this)"><i class="fas fa-church"></i> Ibadah Raya</button>
-        <button class="tab-btn" onclick="switchTab('arso1', this)"><i class="fas fa-place-of-worship"></i> Ibadah Arso 1</button>
+        <button class="tab-btn" onclick="switchTab('arso1', this)"><i class="fas fa-map-marker-alt"></i> Ibadah Arso 1</button>
         <button class="tab-btn" onclick="switchTab('bacaan', this)"><i class="fas fa-bible"></i> Baca Alkitab</button>
-        <button class="tab-btn" onclick="switchTab('doa_komsel', this)"><i class="fas fa-praying-hands"></i> Doa Komsel</button>
-        <button class="tab-btn" onclick="switchTab('komsel', this)"><i class="fas fa-users"></i> Komsel</button>
+        <button class="tab-btn" onclick="switchTab('doa_komsel', this)"><i class="fas fa-hands-praying"></i> Doa Komsel</button>
+        <button class="tab-btn" onclick="switchTab('komsel', this)"><i class="fas fa-users"></i> Komsel Reguler</button>
         
         <div style="margin-left: auto; display: flex; gap: 8px;">
-            <button class="action-btn btn-pdf" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+            <button class="action-btn btn-pdf" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> Export</button>
             <button class="action-btn btn-print" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
         </div>
     </div>
 
     <div class="stats-grid">
         <div class="chart-card">
-            <div class="chart-title" id="pie-label">Status Kehadiran</div>
-            <div style="width: 100%; height: 230px;"><canvas id="pieChart"></canvas></div>
+            <div class="chart-title">Proporsi Status Laporan</div>
+            <div style="width: 100%; height: 250px;"><canvas id="pieChart"></canvas></div>
         </div>
         <div class="chart-card">
-            <div class="chart-title">Volume Data (7 Hari Terakhir)</div>
-            <div style="width: 100%; height: 230px;"><canvas id="lineChart"></canvas></div>
+            <div class="chart-title">Kurva Tren Aktivitas (7 Hari)</div>
+            <div style="width: 100%; height: 250px;"><canvas id="lineChart"></canvas></div>
         </div>
         <div class="chart-card">
-            <div class="chart-title">Aktivitas Per JC</div>
-            <div style="width: 100%; height: 230px;"><canvas id="barChart"></canvas></div>
+            <div class="chart-title">Distribusi Per JC/Komsel</div>
+            <div style="width: 100%; height: 250px;"><canvas id="barChart"></canvas></div>
         </div>
     </div>
 
     <div class="data-section">
-        <div class="chart-title" id="table-title" style="text-align: left;">Detail Data: Ibadah Raya</div>
+        <div class="chart-title" id="table-title" style="text-align: left;">Detail: Ibadah Raya</div>
         <div class="table-wrapper">
             <table id="mainTable">
-                <thead id="table-head">
-                    </thead>
+                <thead id="table-head"></thead>
                 <tbody id="data-list"></tbody>
             </table>
         </div>
@@ -146,119 +138,96 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    let charts = { pie: null, line: null, bar: null };
-    let currentCategory = 'ibadah';
+    let myCharts = { pie: null, line: null, bar: null };
+    let activeType = 'ibadah';
 
-    // KONFIGURASI TABEL & KOLEKSI
-    const config = {
+    const menuConfig = {
         ibadah: { title: 'Ibadah Raya', col: 'kehadiran', fields: ['Nama', 'JC', 'Tanggal', 'Status', 'Keterangan'] },
-        arso1: { title: 'Ibadah Arso 1', col: 'kehadiran_arso1', fields: ['Nama', 'JC', 'Tanggal', 'Status', 'Keterangan'] },
-        bacaan: { title: 'Laporan Baca Alkitab', col: 'laporan_bacaan', fields: ['Nama', 'Kitab', 'Pasal', 'Tanggal', 'JC'] },
-        doa_komsel: { title: 'Laporan Doa Komsel', col: 'laporan_doa', fields: ['Nama', 'JC', 'Tgl Input', 'Status Doa', 'Detail'] },
+        arso1: { title: 'Kehadiran Arso 1', col: 'kehadiran_arso1', fields: ['Nama', 'JC', 'Tanggal', 'Status', 'Keterangan'] },
+        bacaan: { title: 'Laporan Baca Alkitab', col: 'laporan_bacaan', fields: ['Nama', 'Kitab', 'Pasal', 'Tanggal', 'Pesan'] },
+        doa_komsel: { title: 'Hasil Doa Komsel', col: 'laporan_doa', fields: ['Nama', 'JC', 'Tgl Doa', 'Status Doa', 'Pokok Doa'] },
         komsel: { title: 'Komsel Reguler', col: 'laporan_komsel', fields: ['Nama', 'JC', 'Tanggal', 'Status', 'Materi'] }
     };
 
-    function showLoading() { document.getElementById('loading').style.display = 'flex'; }
-    function hideLoading() { document.getElementById('loading').style.display = 'none'; }
+    function showLoading(show) { document.getElementById('loading').style.display = show ? 'flex' : 'none'; }
 
-    async function syncData(type) {
-        showLoading();
-        currentCategory = type;
-        const cfg = config[type];
-        document.getElementById('table-title').innerText = "Detail Data: " + cfg.title;
-        
-        // Render Table Header
-        let headHTML = "<tr>" + cfg.fields.map(f => `<th>${f}</th>`).join('') + "</tr>";
-        document.getElementById('table-head').innerHTML = headHTML;
+    async function loadData(type) {
+        showLoading(true);
+        activeType = type;
+        const cfg = menuConfig[type];
+        document.getElementById('table-title').innerText = "Detail: " + cfg.title;
 
-        db.collection(cfg.col).orderBy("tanggal", "desc").limit(100).onSnapshot((snapshot) => {
-            let listHTML = "";
+        // Header Tabel Otomatis
+        document.getElementById('table-head').innerHTML = `<tr>${cfg.fields.map(f => `<th>${f}</th>`).join('')}</tr>`;
+
+        db.collection(cfg.col).orderBy("tanggal", "desc").limit(50).onSnapshot((snapshot) => {
+            let html = "";
             let stats = { pie: {}, line: {}, bar: {} };
 
             snapshot.forEach((doc) => {
                 const d = doc.data();
-                
-                // Logika Statistik Umum
-                const dateKey = d.tanggal || d.tglInput || "-";
-                const jcKey = d.jc || d.komsel || "Tanpa JC";
-                stats.line[dateKey] = (stats.line[dateKey] || 0) + 1;
-                stats.bar[jcKey] = (stats.bar[jcKey] || 0) + 1;
+                const jc = d.jc || d.komsel || "Umum";
+                const tgl = d.tanggal || d.tglInput || "-";
+                const status = (d.status || d.status_doa || d.kitab || "Hadir").toUpperCase();
 
-                // Logika Baris Tabel & Pie Chart per Kategori
-                if (type === 'bacaan') {
-                    const status = d.kitab || "Selesai";
-                    stats.pie[status] = (stats.pie[status] || 0) + 1;
-                    listHTML += `<tr><td>${d.nama}</td><td>${d.kitab}</td><td>${d.pasal}</td><td>${d.tanggal}</td><td>${d.email || '-'}</td></tr>`;
-                } else if (type === 'doa_komsel') {
-                    const st = d.status_doa || "Terjawab";
-                    stats.pie[st] = (stats.pie[st] || 0) + 1;
-                    listHTML += `<tr><td>${d.nama || 'Anggota'}</td><td class="badge-info">${d.jc}</td><td>${d.tglInput}</td><td><span class="badge badge-success">${st}</span></td><td>${d.doa || '-'}</td></tr>`;
+                // Hitung Statistik
+                stats.pie[status] = (stats.pie[status] || 0) + 1;
+                stats.line[tgl] = (stats.line[tgl] || 0) + 1;
+                stats.bar[jc] = (stats.bar[jc] || 0) + 1;
+
+                // Isi Tabel sesuai kategori
+                if(type === 'bacaan') {
+                    html += `<tr><td>${d.nama}</td><td>${d.kitab}</td><td>${d.pasal}</td><td>${d.tanggal}</td><td>${d.pesan || '-'}</td></tr>`;
+                } else if(type === 'doa_komsel') {
+                    html += `<tr><td>${d.nama}</td><td>${jc}</td><td>${tgl}</td><td><span class="badge badge-success">${status}</span></td><td>${d.doa || '-'}</td></tr>`;
                 } else {
-                    const st = (d.status || "Hadir").toUpperCase();
-                    stats.pie[st] = (stats.pie[st] || 0) + 1;
-                    listHTML += `<tr><td><b>${d.nama}</b></td><td>${d.jc}</td><td>${d.tanggal}</td><td><span class="badge ${st === 'HADIR' ? 'badge-success' : 'badge-danger'}">${st}</span></td><td>${d.alasan || d.materi || '-'}</td></tr>`;
+                    html += `<tr><td><b>${d.nama}</b></td><td>${jc}</td><td>${tgl}</td><td><span class="badge ${status === 'HADIR' ? 'badge-success' : 'badge-danger'}">${status}</span></td><td>${d.alasan || d.materi || '-'}</td></tr>`;
                 }
             });
 
-            document.getElementById('data-list').innerHTML = listHTML;
-            updateCharts(stats);
-            hideLoading();
+            document.getElementById('data-list').innerHTML = html;
+            refreshCharts(stats);
+            showLoading(false);
         });
     }
 
-    function updateCharts(stats) {
-        // Pie Chart
-        const ctxPie = document.getElementById('pieChart').getContext('2d');
-        if (charts.pie) charts.pie.destroy();
-        charts.pie = new Chart(ctxPie, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(stats.pie),
-                datasets: [{ data: Object.values(stats.pie), backgroundColor: ['#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6f42c1'] }]
-            },
-            options: { maintainAspectRatio: false, cutout: '60%' }
-        });
+    function refreshCharts(stats) {
+        const createChart = (id, type, labels, data, colors, label) => {
+            if (myCharts[id]) myCharts[id].destroy();
+            const ctx = document.getElementById(id + 'Chart').getContext('2d');
+            myCharts[id] = new Chart(ctx, {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [{ label: label, data: data, backgroundColor: colors, borderColor: type === 'line' ? '#007bff' : 'transparent', fill: type === 'line' }]
+                },
+                options: { maintainAspectRatio: false }
+            });
+        };
 
-        // Line Chart
-        const ctxLine = document.getElementById('lineChart').getContext('2d');
-        if (charts.line) charts.line.destroy();
-        charts.line = new Chart(ctxLine, {
-            type: 'line',
-            data: {
-                labels: Object.keys(stats.line).reverse().slice(-7),
-                datasets: [{ label: 'Data Input', data: Object.values(stats.line).reverse().slice(-7), borderColor: '#007bff', fill: true, tension: 0.3 }]
-            },
-            options: { maintainAspectRatio: false }
-        });
-
-        // Bar Chart
-        const ctxBar = document.getElementById('barChart').getContext('2d');
-        if (charts.bar) charts.bar.destroy();
-        charts.bar = new Chart(ctxBar, {
-            type: 'bar',
-            data: {
-                labels: Object.keys(stats.bar),
-                datasets: [{ label: 'Jumlah Laporan', data: Object.values(stats.bar), backgroundColor: '#6f42c1' }]
-            },
-            options: { maintainAspectRatio: false }
-        });
+        // Pie
+        createChart('pie', 'doughnut', Object.keys(stats.pie), Object.values(stats.pie), ['#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6f42c1'], 'Status');
+        // Line (Kurva)
+        createChart('line', 'line', Object.keys(stats.line).reverse().slice(-7), Object.values(stats.line).reverse().slice(-7), 'rgba(0, 123, 255, 0.1)', 'Tren');
+        // Bar
+        createChart('bar', 'bar', Object.keys(stats.bar), Object.values(stats.bar), '#6f42c1', 'Volume');
     }
 
     function switchTab(type, btn) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        syncData(type);
+        loadData(type);
     }
 
     function exportToPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('l', 'mm', 'a4');
-        doc.text("Laporan Statistik Central - " + config[currentCategory].title, 14, 15);
-        doc.autoTable({ html: '#mainTable', startY: 25, theme: 'grid', styles: { fontSize: 8 } });
-        doc.save(`Statistik_${currentCategory}.pdf`);
+        doc.text("Laporan Statistik - " + menuConfig[activeType].title, 14, 15);
+        doc.autoTable({ html: '#mainTable', startY: 25, theme: 'grid' });
+        doc.save(`Laporan_${activeType}.pdf`);
     }
 
-    window.onload = () => syncData('ibadah');
+    window.onload = () => loadData('ibadah');
 </script>
 
 </body>
