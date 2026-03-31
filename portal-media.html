@@ -157,6 +157,20 @@
         </a>
     </div>
 
+    <div class="card" style="border-left: 5px solid var(--warning);">
+        <h3><i class="fa-solid fa-bullhorn"></i> Pengaturan Running Text (Informasi Berjalan)</h3>
+        <div class="form-group">
+            <label>Pesan yang akan muncul di layar monitor:</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="running_text_input" placeholder="Contoh: Selamat Datang di Pondok Pemulihan Papua...">
+                <button onclick="updateRunningText()" class="btn-submit" style="width: auto; white-space: nowrap;">
+                    <i class="fa-solid fa-save"></i> Update Teks
+                </button>
+            </div>
+            <p style="font-size: 11px; color: #666; margin-top: 5px;">*Teks ini akan muncul di bagian bawah layar monitor secara terus-menerus.</p>
+        </div>
+    </div>
+
     <div class="card">
         <h3><i class="fa-solid fa-circle-plus"></i> Tambah Konten Baru</h3>
         
@@ -240,7 +254,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    // Konfigurasi Firebase Anda
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -253,6 +266,30 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
+    // --- FUNGSI RUNNING TEXT ---
+    async function loadRunningText() {
+        try {
+            const doc = await db.collection("config").doc("running_text").get();
+            if (doc.exists) {
+                document.getElementById('running_text_input').value = doc.data().pesan;
+            }
+        } catch (e) { console.error("Gagal memuat running text:", e); }
+    }
+
+    async function updateRunningText() {
+        const pesanBaru = document.getElementById('running_text_input').value;
+        if(!pesanBaru) { alert("Isi teks terlebih dahulu!"); return; }
+        
+        try {
+            await db.collection("config").doc("running_text").set({
+                pesan: pesanBaru,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            alert("Running text berhasil diperbarui!");
+        } catch (e) { alert("Gagal update: " + e.message); }
+    }
+
+    // --- FUNGSI PORTAL MEDIA ---
     function toggleInputFields() {
         const tipe = document.getElementById('tipe_media').value;
         const urlContainer = document.getElementById('input_url_container');
@@ -290,40 +327,23 @@
 
         if(!judul) { alert("Judul harus diisi!"); return; }
 
-        if (tipe === 'video_youtube' && urlValue) {
-            let videoId = "";
-            if (urlValue.includes('v=')) {
-                videoId = urlValue.split('v=')[1].split('&')[0];
-            } else if (urlValue.includes('youtu.be/')) {
-                videoId = urlValue.split('youtu.be/')[1].split('?')[0];
-            } else if (urlValue.includes('embed/')) {
-                videoId = urlValue.split('embed/')[1].split('?')[0];
-            }
-
-            if (videoId) {
-                urlValue = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&playlist=${videoId}&loop=1`;
-            }
-        }
-
         btn.disabled = true;
-        btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Sedang Memproses...";
+        btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Memproses...";
 
         try {
-            // --- BAGIAN SCRIPT PENGAMAN YANG DIMASUKKAN ---
             const snapshot = await db.collection("portal_media").get();
             const currentSize = snapshot.empty ? 0 : snapshot.size; 
 
             const data = {
                 judul: judul,
                 tipe: tipe,
-                url: urlValue,
-                isi_artikel: isiArtikel,
+                url: urlValue || "",
+                isi_artikel: isiArtikel || "",
                 deskripsi: document.getElementById('deskripsi').value,
                 urutan: currentSize + 1, 
                 durasi: parseInt(document.getElementById('defaultDurasi').value) || 10,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
-            // ----------------------------------------------
 
             await db.collection("portal_media").add(data);
             alert("Berhasil dipublikasikan!");
@@ -331,7 +351,6 @@
         } catch (e) {
             alert("Gagal: " + e.message);
             btn.disabled = false;
-            btn.innerHTML = "Publikasikan ke Portal";
         }
     }
 
@@ -340,55 +359,30 @@
         try {
             const snapshot = await db.collection("portal_media").orderBy("urutan", "asc").get();
             list.innerHTML = "";
-            
             if(snapshot.empty) {
                 list.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada konten.</td></tr>';
                 return;
             }
-
             snapshot.forEach((doc, index) => {
                 const data = doc.data();
                 const id = doc.id;
-                const badgeClass = "badge-" + data.tipe;
-                
                 list.innerHTML += `
                     <tr>
                         <td>
                             <button class="btn-nav" onclick="pindahUrutan('${id}', -1)"><i class="fas fa-chevron-up"></i></button>
-                            <span style="margin: 0 10px; font-weight: bold;">${data.urutan || index + 1}</span>
+                            <span style="margin: 0 10px;">${data.urutan || index + 1}</span>
                             <button class="btn-nav" onclick="pindahUrutan('${id}', 1)"><i class="fas fa-chevron-down"></i></button>
                         </td>
                         <td><strong>${data.judul}</strong></td>
-                        <td><span class="badge ${badgeClass}">${data.tipe.replace('_', ' ')}</span></td>
-                        <td>
-                            <input type="number" value="${data.durasi || 10}" 
-                                   onchange="updateDurasi('${id}', this.value)" 
-                                   style="width: 50px; padding: 2px;">
-                        </td>
+                        <td><span class="badge badge-${data.tipe}">${data.tipe}</span></td>
+                        <td><input type="number" value="${data.durasi}" onchange="updateDurasi('${id}', this.value)" style="width:50px"></td>
                         <td style="text-align: center;">
-                            <button class="btn-action btn-play" onclick="playSekarang('${id}')" title="Putar Sekarang">
-                                <i class="fas fa-play-circle"></i>
-                            </button>
-                            <button class="btn-action btn-delete" onclick="deleteMedia('${id}')" title="Hapus">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
+                            <button class="btn-action btn-play" onclick="playSekarang('${id}')"><i class="fas fa-play-circle"></i></button>
+                            <button class="btn-action btn-delete" onclick="deleteMedia('${id}')"><i class="fas fa-trash-alt"></i></button>
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
             });
         } catch (e) { console.error(e); }
-    }
-
-    async function playSekarang(id) {
-        try {
-            await db.collection("config").doc("playlist").update({
-                activeContentId: id,
-                triggerChange: Date.now() 
-            });
-            alert("Konten segera diputar di monitor!");
-        } catch (e) {
-            alert("Gagal memicu putar: " + e.message);
-        }
     }
 
     async function pindahUrutan(id, arah) {
@@ -397,12 +391,9 @@
         const urutanSekarang = doc.data().urutan;
         const urutanBaru = urutanSekarang + arah;
         if (urutanBaru < 1) return;
-
         const swapQuery = await ref.where("urutan", "==", urutanBaru).get();
         const batch = db.batch();
-        if (!swapQuery.empty) {
-            batch.update(ref.doc(swapQuery.docs[0].id), { urutan: urutanSekarang });
-        }
+        if (!swapQuery.empty) batch.update(ref.doc(swapQuery.docs[0].id), { urutan: urutanSekarang });
         batch.update(ref.doc(id), { urutan: urutanBaru });
         await batch.commit();
         loadMedia();
@@ -425,7 +416,15 @@
         alert("Mode Putar Disimpan!");
     }
 
-    window.onload = loadMedia;
+    async function playSekarang(id) {
+        await db.collection("config").doc("playlist").update({ activeContentId: id, triggerChange: Date.now() });
+        alert("Konten segera diputar!");
+    }
+
+    window.onload = function() {
+        loadMedia();
+        loadRunningText();
+    };
 </script>
 
 </body>
