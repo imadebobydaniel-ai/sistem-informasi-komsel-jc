@@ -187,142 +187,115 @@
 
     function showLoading(show) { document.getElementById('loading').style.display = show ? 'flex' : 'none'; }
 
-    // --- FUNGSI MODAL & EXPORT BARU ---
-    function openExportModal(action) {
-        currentAction = action;
-        document.getElementById('modalTitle').innerHTML = action === 'export' ? 
-            '<i class="fas fa-file-pdf"></i> Opsi Export PDF' : 
-            '<i class="fas fa-print"></i> Opsi Cetak Laporan';
-        
-        document.getElementById('customSection').style.display = 'none';
-        const container = document.getElementById('customCheckboxes');
-        container.innerHTML = "";
-        
-        Object.keys(menuConfig).forEach(key => {
-            container.innerHTML += `
-                <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
-                    <input type="checkbox" class="custom-chk" value="${key}"> ${menuConfig[key].title}
-                </label>
-            `;
-        });
-        document.getElementById('exportModal').style.display = 'flex';
-    }
-
-    function closeExportModal() { document.getElementById('exportModal').style.display = 'none'; }
-    function toggleCustomSection() {
-        const sec = document.getElementById('customSection');
-        sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
-    }
-
-    async function processExport(mode) {
+    // ==========================================
+    // FUNGSI SINKRONISASI LEADERBOARD (LOGIC)
+    // ==========================================
+    async function syncLeaderboard() {
         showLoading(true);
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('l', 'mm', 'a4');
-        let categoriesToExport = [];
+        try {
+            // 1. Ambil data kehadiran (sebagai penunjang skor)
+            const snapshot = await db.collection("kehadiran").get();
+            let skorJC = {};
+            let periodeSekarang = new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' });
 
-        if (mode === 'current') categoriesToExport = [activeType];
-        else if (mode === 'all') categoriesToExport = Object.keys(menuConfig);
-        else if (mode === 'custom') {
-            const checkboxes = document.querySelectorAll('.custom-chk:checked');
-            categoriesToExport = Array.from(checkboxes).map(cb => cb.value);
-        }
-
-        if (categoriesToExport.length === 0) {
-            alert("Pilih setidaknya satu kategori!");
-            showLoading(false); return;
-        }
-
-        for (let i = 0; i < categoriesToExport.length; i++) {
-            const type = categoriesToExport[i];
-            const cfg = menuConfig[type];
-            const snapshot = await db.collection(cfg.col).orderBy("tanggal", "desc").limit(100).get();
-            const rows = [];
-            
-            snapshot.forEach(doc => {
-                const d = doc.data();
-                if(type === 'saran') {
-                    rows.push([d.pengirim || d.nama || '-', d.komsel || '-', d.kategori || '-', d.pesan || d.isi || '-', d.tanggal || '-']);
-                } else if(type === 'bacaan') {
-                    rows.push([d.nama, d.kitab, d.pasal, d.tanggal, d.pesan || '-']);
-                } else if(type === 'peringkat_jc'){
-                    rows.push([d.ranking || '-', d.nama_jc, d.poin, d.periode, "AKTIF"]);
-                } else {
-                    rows.push([d.nama || d.nama_jc, d.jc || d.komsel || '-', d.tanggal || d.tglInput || '-', (d.status || 'HADIR').toUpperCase(), d.alasan || d.materi || '-']);
+            snapshot.forEach((doc) => {
+                let d = doc.data();
+                let namaJC = d.jc || "Umum";
+                if (!skorJC[namaJC]) skorJC[namaJC] = 0;
+                
+                // Logika Poin: Hadir = 10 poin
+                if (d.status && d.status.toUpperCase() === "HADIR") {
+                    skorJC[namaJC] += 10;
                 }
             });
 
-            doc.setFontSize(16);
-            doc.text(`Laporan: ${cfg.title}`, 14, 15);
-            doc.setFontSize(10);
-            doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 14, 22);
+            // 2. Ubah ke Array & Urutkan
+            let urutan = Object.keys(skorJC).map(name => ({
+                nama: name,
+                poin: skorJC[name]
+            })).sort((a, b) => b.poin - a.poin);
 
-            doc.autoTable({
-                head: [cfg.fields],
-                body: rows,
-                startY: 25,
-                theme: 'grid',
-                headStyles: { fillColor: [0, 123, 255] }
+            // 3. Simpan/Update ke koleksi peringkat_jc di Firebase
+            const batch = db.batch();
+            urutan.forEach((item, index) => {
+                let docRef = db.collection("peringkat_jc").doc(item.nama);
+                batch.set(docRef, {
+                    ranking: index + 1,
+                    nama_jc: item.nama,
+                    poin: item.poin,
+                    periode: periodeSekarang,
+                    lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                });
             });
-
-            if (i < categoriesToExport.length - 1) doc.addPage();
+            await batch.commit();
+            console.log("Leaderboard Sync Success");
+        } catch (error) {
+            console.error("Gagal sinkronisasi:", error);
         }
-
-        if (currentAction === 'export') {
-            doc.save(`Laporan_BigData_${new Date().getTime()}.pdf`);
-        } else {
-            doc.autoPrint();
-            window.open(doc.output('bloburl'), '_blank');
-        }
-
-        showLoading(false);
-        closeExportModal();
     }
 
-    // --- FUNGSI LOAD DATA (Dashboard Utama) ---
+    // --- FUNGSI LOAD DATA ---
     async function loadData(type) {
         showLoading(true);
         activeType = type;
+
+        // Jika user klik Peringkat JC, jalankan sinkronisasi dulu
+        if (type === 'peringkat_jc') {
+            await syncLeaderboard();
+        }
+
         const cfg = menuConfig[type];
         document.getElementById('table-title').innerText = "Detail: " + cfg.title;
-        document.getElementById('pie-title').innerText = type === 'saran' ? "Kategori Masukan" : "Proporsi Status Laporan";
-        document.getElementById('bar-title').innerText = type === 'saran' ? "Volume per Pengirim" : "Distribusi Per JC/Komsel";
-
         document.getElementById('table-head').innerHTML = `<tr>${cfg.fields.map(f => `<th>${f}</th>`).join('')}</tr>`;
 
-        db.collection(cfg.col).orderBy("tanggal", "desc").limit(50).onSnapshot((snapshot) => {
+        // Query ke Firestore
+        let query = db.collection(cfg.col);
+        if (type === 'peringkat_jc') {
+            query = query.orderBy("ranking", "asc");
+        } else {
+            query = query.orderBy("tanggal", "desc").limit(50);
+        }
+
+        query.onSnapshot((snapshot) => {
             let html = "";
             let stats = { pie: {}, line: {}, bar: {} };
 
             snapshot.forEach((doc) => {
                 const d = doc.data();
-                if(type === 'saran') {
-                    const kategori = d.kategori || "Saran & Masukan";
-                    const tgl = d.tanggal || "-";
-                    const pengirim = d.pengirim || d.nama || "Anonim";
-                    stats.pie[kategori] = (stats.pie[kategori] || 0) + 1;
-                    stats.line[tgl] = (stats.line[tgl] || 0) + 1;
-                    stats.bar[pengirim] = (stats.bar[pengirim] || 0) + 1;
-                    html += `<tr><td><b>${pengirim}</b></td><td>${d.komsel || '-'}</td><td><span class="badge badge-info">${kategori}</span></td><td>${d.pesan || d.isi || '-'}</td><td>${tgl}</td></tr>`;
-                } else if(type === 'bacaan') {
-                    const tgl = d.tanggal || "-";
-                    stats.pie[d.kitab || "Lainnya"] = (stats.pie[d.kitab] || 0) + 1;
-                    stats.line[tgl] = (stats.line[tgl] || 0) + 1;
-                    html += `<tr><td>${d.nama}</td><td>${d.kitab}</td><td>${d.pasal}</td><td>${tgl}</td><td>${d.pesan || '-'}</td></tr>`;
-                } else {
-                    const jc = d.jc || d.komsel || d.nama_jc || "Umum";
-                    const tgl = d.tanggal || d.tglInput || d.periode || "-";
-                    const status = (d.status || d.status_doa || "Hadir").toUpperCase();
-                    stats.pie[status] = (stats.pie[status] || 0) + 1;
-                    stats.line[tgl] = (stats.line[tgl] || 0) + 1;
-                    stats.bar[jc] = (stats.bar[jc] || 0) + 1;
+                const tgl = d.tanggal || d.periode || "-";
+                
+                if(type === 'peringkat_jc') {
+                    const jc = d.nama_jc;
+                    const poin = d.poin;
+                    const rank = d.ranking;
 
-                    if(type === 'doa_komsel') {
-                        html += `<tr><td>${d.nama}</td><td>${jc}</td><td>${tgl}</td><td><span class="badge badge-success">${status}</span></td><td>${d.doa || '-'}</td></tr>`;
-                    } else if(type === 'peringkat_jc') {
-                        html += `<tr><td>#${d.ranking || '-'}</td><td>${d.nama_jc}</td><td>${d.poin} Poin</td><td>${d.periode}</td><td><span class="badge badge-success">AKTIF</span></td></tr>`;
-                    } else {
-                        html += `<tr><td><b>${d.nama || d.nama_jc}</b></td><td>${jc}</td><td>${tgl}</td><td><span class="badge ${status === 'HADIR' || status === 'SELESAI' ? 'badge-success' : 'badge-danger'}">${status}</span></td><td>${d.alasan || d.materi || d.lokasi || '-'}</td></tr>`;
-                    }
+                    stats.bar[jc] = poin; // Untuk grafik bar
+                    stats.pie[jc] = poin; // Untuk grafik proporsi
+                    
+                    html += `
+                        <tr>
+                            <td><b>#${rank}</b></td>
+                            <td>${jc}</td>
+                            <td><span class="badge badge-success">${poin} Poin</span></td>
+                            <td>${tgl}</td>
+                            <td><span class="badge badge-info">AKTIF</span></td>
+                        </tr>`;
+                } else {
+                    // Logika tampilan untuk kategori lain (Ibadah, Komsel, dll)
+                    const jc = d.jc || d.komsel || "Umum";
+                    const status = (d.status || "HADIR").toUpperCase();
+                    
+                    stats.pie[status] = (stats.pie[status] || 0) + 1;
+                    stats.bar[jc] = (stats.bar[jc] || 0) + 1;
+                    stats.line[tgl] = (stats.line[tgl] || 0) + 1;
+
+                    html += `<tr>
+                        <td>${d.nama || '-'}</td>
+                        <td>${jc}</td>
+                        <td>${tgl}</td>
+                        <td><span class="badge ${status === 'HADIR' ? 'badge-success' : 'badge-danger'}">${status}</span></td>
+                        <td>${d.keterangan || d.materi || '-'}</td>
+                    </tr>`;
                 }
             });
             document.getElementById('data-list').innerHTML = html;
@@ -332,32 +305,15 @@
     }
 
     function refreshCharts(stats) {
-        const createChart = (id, type, labels, data, colors, label) => {
+        const createChart = (id, chartType, labels, data, colors, label) => {
             if (myCharts[id]) myCharts[id].destroy();
             const canvas = document.getElementById(id + 'Chart');
             if(!canvas) return;
-            const ctx = canvas.getContext('2d');
-            myCharts[id] = new Chart(ctx, {
-                type: type,
+            myCharts[id] = new Chart(canvas.getContext('2d'), {
+                type: chartType,
                 data: {
                     labels: labels,
-                    datasets: [{ label: label, data: data, backgroundColor: colors, borderColor: type === 'line' ? '#007bff' : 'transparent', fill: type === 'line' }]
+                    datasets: [{ label: label, data: data, backgroundColor: colors, fill: chartType === 'line' }]
                 },
-                options: { maintainAspectRatio: false }
-            });
-        };
-        createChart('pie', 'doughnut', Object.keys(stats.pie), Object.values(stats.pie), ['#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6f42c1'], 'Kategori/Status');
-        createChart('line', 'line', Object.keys(stats.line).reverse().slice(-7), Object.values(stats.line).reverse().slice(-7), 'rgba(0, 123, 255, 0.1)', 'Tren');
-        createChart('bar', 'bar', Object.keys(stats.bar).slice(0,10), Object.values(stats.bar).slice(0,10), '#6f42c1', 'Volume');
-    }
-
-    function switchTab(type, btn) {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        loadData(type);
-    }
-
-    window.onload = () => loadData('ibadah');
-</script>
 </body>
 </html>
