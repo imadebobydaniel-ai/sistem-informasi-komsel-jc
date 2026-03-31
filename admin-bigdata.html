@@ -166,12 +166,12 @@
         messagingSenderId: "125984859692",
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
+    
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
     let myCharts = { pie: null, line: null, bar: null };
     let activeType = 'ibadah';
-    let currentAction = 'export';
 
     const menuConfig = {
         ibadah: { title: 'Ibadah Raya', col: 'kehadiran', fields: ['Nama', 'JC', 'Tanggal', 'Status', 'Keterangan'] },
@@ -185,70 +185,25 @@
         saran: { title: 'Saran & Tiket Masuk', col: 'saran_masuk', fields: ['Pengirim', 'Komsel', 'Kategori', 'Isi Pesan', 'Tanggal'] }
     };
 
-    function showLoading(show) { document.getElementById('loading').style.display = show ? 'flex' : 'none'; }
-
-    // ==========================================
-    // FUNGSI SINKRONISASI LEADERBOARD (LOGIC)
-    // ==========================================
-    async function syncLeaderboard() {
-        showLoading(true);
-        try {
-            // 1. Ambil data kehadiran (sebagai penunjang skor)
-            const snapshot = await db.collection("kehadiran").get();
-            let skorJC = {};
-            let periodeSekarang = new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' });
-
-            snapshot.forEach((doc) => {
-                let d = doc.data();
-                let namaJC = d.jc || "Umum";
-                if (!skorJC[namaJC]) skorJC[namaJC] = 0;
-                
-                // Logika Poin: Hadir = 10 poin
-                if (d.status && d.status.toUpperCase() === "HADIR") {
-                    skorJC[namaJC] += 10;
-                }
-            });
-
-            // 2. Ubah ke Array & Urutkan
-            let urutan = Object.keys(skorJC).map(name => ({
-                nama: name,
-                poin: skorJC[name]
-            })).sort((a, b) => b.poin - a.poin);
-
-            // 3. Simpan/Update ke koleksi peringkat_jc di Firebase
-            const batch = db.batch();
-            urutan.forEach((item, index) => {
-                let docRef = db.collection("peringkat_jc").doc(item.nama);
-                batch.set(docRef, {
-                    ranking: index + 1,
-                    nama_jc: item.nama,
-                    poin: item.poin,
-                    periode: periodeSekarang,
-                    lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            });
-            await batch.commit();
-            console.log("Leaderboard Sync Success");
-        } catch (error) {
-            console.error("Gagal sinkronisasi:", error);
-        }
+    // FUNGSI PINDAH TAB (Ini yang membuat menu bisa diklik)
+    function switchTab(type, btn) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        loadData(type);
     }
 
-    // --- FUNGSI LOAD DATA ---
+    function showLoading(show) { 
+        document.getElementById('loading').style.display = show ? 'flex' : 'none'; 
+    }
+
     async function loadData(type) {
         showLoading(true);
         activeType = type;
-
-        // Jika user klik Peringkat JC, jalankan sinkronisasi dulu
-        if (type === 'peringkat_jc') {
-            await syncLeaderboard();
-        }
-
         const cfg = menuConfig[type];
+        
         document.getElementById('table-title').innerText = "Detail: " + cfg.title;
         document.getElementById('table-head').innerHTML = `<tr>${cfg.fields.map(f => `<th>${f}</th>`).join('')}</tr>`;
 
-        // Query ke Firestore
         let query = db.collection(cfg.col);
         if (type === 'peringkat_jc') {
             query = query.orderBy("ranking", "asc");
@@ -262,58 +217,26 @@
 
             snapshot.forEach((doc) => {
                 const d = doc.data();
-                const tgl = d.tanggal || d.periode || "-";
-                
                 if(type === 'peringkat_jc') {
-                    const jc = d.nama_jc;
-                    const poin = d.poin;
-                    const rank = d.ranking;
-
-                    stats.bar[jc] = poin; // Untuk grafik bar
-                    stats.pie[jc] = poin; // Untuk grafik proporsi
-                    
-                    html += `
-                        <tr>
-                            <td><b>#${rank}</b></td>
-                            <td>${jc}</td>
-                            <td><span class="badge badge-success">${poin} Poin</span></td>
-                            <td>${tgl}</td>
-                            <td><span class="badge badge-info">AKTIF</span></td>
-                        </tr>`;
+                    html += `<tr><td>#${d.ranking}</td><td>${d.nama_jc}</td><td>${d.poin}</td><td>${d.periode}</td><td>AKTIF</td></tr>`;
                 } else {
-                    // Logika tampilan untuk kategori lain (Ibadah, Komsel, dll)
-                    const jc = d.jc || d.komsel || "Umum";
                     const status = (d.status || "HADIR").toUpperCase();
-                    
-                    stats.pie[status] = (stats.pie[status] || 0) + 1;
-                    stats.bar[jc] = (stats.bar[jc] || 0) + 1;
-                    stats.line[tgl] = (stats.line[tgl] || 0) + 1;
-
                     html += `<tr>
-                        <td>${d.nama || '-'}</td>
-                        <td>${jc}</td>
-                        <td>${tgl}</td>
+                        <td>${d.nama || d.pengirim || '-'}</td>
+                        <td>${d.jc || d.komsel || '-'}</td>
+                        <td>${d.tanggal || d.tgl_kirim || '-'}</td>
                         <td><span class="badge ${status === 'HADIR' ? 'badge-success' : 'badge-danger'}">${status}</span></td>
-                        <td>${d.keterangan || d.materi || '-'}</td>
+                        <td>${d.keterangan || d.materi || d.isi_pesan || '-'}</td>
                     </tr>`;
                 }
             });
             document.getElementById('data-list').innerHTML = html;
-            refreshCharts(stats);
             showLoading(false);
         });
     }
 
-    function refreshCharts(stats) {
-        const createChart = (id, chartType, labels, data, colors, label) => {
-            if (myCharts[id]) myCharts[id].destroy();
-            const canvas = document.getElementById(id + 'Chart');
-            if(!canvas) return;
-            myCharts[id] = new Chart(canvas.getContext('2d'), {
-                type: chartType,
-                data: {
-                    labels: labels,
-                    datasets: [{ label: label, data: data, backgroundColor: colors, fill: chartType === 'line' }]
-                },
+    // Inisialisasi awal
+    window.onload = () => loadData('ibadah');
+</script>
 </body>
 </html>
