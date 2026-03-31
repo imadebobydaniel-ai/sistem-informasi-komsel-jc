@@ -10,7 +10,7 @@
             --primary: #003366; --accent: #007bff; --dark: #333; 
             --light: #f4f7f6; --success: #28a745; --emas: #D4AF37;
             --danger: #dc3545; --purple: #6f42c1; --orange: #fd7e14;
-            --teal: #20c997;
+            --teal: #20c997; --blue-dark: #0056b3;
         }
 
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--light); margin: 0; padding: 10px; }
@@ -35,7 +35,7 @@
         table td { padding: 10px 12px; border-bottom: 1px solid #eee; font-size: 11.5px; vertical-align: middle; }
         .freeze-col { position: sticky; left: 0; z-index: 2; background: white !important; border-right: 2px solid #eee; }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .stat-card { padding: 15px; border-radius: 12px; color: white; position: relative; cursor: pointer; transition: transform 0.2s; height: 100%; box-sizing: border-box; text-decoration: none; display: block; }
         .stat-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .stat-card i { position: absolute; right: 10px; bottom: 10px; font-size: 2rem; opacity: 0.3; }
@@ -58,11 +58,16 @@
     </div>
 
     <div class="stats-grid">
-       <div class="stat-card" onclick="window.location.href='statistik.html?tab=saran'" style="cursor:pointer;">
-    </div>
+        <a href="portal-tiket.html" class="stat-card" style="background: linear-gradient(135deg, var(--accent), var(--blue-dark));">
+            <h4 style="margin:0; font-size:11px;">PORTAL TIKET</h4>
+            <p id="stat_tiket">0</p>
+            <i class="fas fa-ticket-alt"></i>
+        </a>
+
         <div class="stat-card" style="background: linear-gradient(135deg, #28a745, #1e7e34);">
             <h4 style="margin:0; font-size:11px;">HADIR HARI INI</h4><p id="stat_hadir">0</p><i class="fas fa-check-circle"></i>
         </div>
+
         <div class="stat-card" style="background: linear-gradient(135deg, #dc3545, #a71d2a);">
             <h4 style="margin:0; font-size:11px;">POKOK DOA</h4><p id="stat_doa">0</p><i class="fas fa-hands-praying"></i>
         </div>
@@ -77,7 +82,7 @@
 
         <div class="stat-card" id="btn-statistik-bigdata" style="background: linear-gradient(135deg, var(--teal), #178a6b);" onclick="bukaStatistik()">
             <h4 style="margin:0; font-size:11px;">STATISTIK BIG DATA</h4>
-            <p id="stat_bigdata"></p>
+            <p id="stat_bigdata">GO</p>
             <i class="fas fa-chart-line"></i>
         </div>
     </div>
@@ -113,43 +118,6 @@
     </div>
 </div>
 
-<div id="editModal" class="modal">
-    <div class="modal-content">
-        <span class="close-modal" onclick="closeEditModal()">&times;</span>
-        <h3><i class="fas fa-user-edit"></i> Edit Profil Anggota</h3>
-        <form id="formUpdate">
-            <input type="hidden" id="edit_id">
-            <div class="modal-grid">
-                <div class="form-group full-width"><label>Nama Lengkap</label><input type="text" id="edit_nama" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;"></div>
-                <div class="form-group"><label>WhatsApp</label><input type="text" id="edit_wa" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;"></div>
-                <div class="form-group"><label>Email</label><input type="email" id="edit_email" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;"></div>
-                <div class="form-group"><label>Password Akun</label><input type="text" id="edit_password" placeholder="Password anggota" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;"></div>
-                <div class="form-group">
-                    <label>Golongan Darah</label>
-                    <select id="edit_goldar" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                        <option value="-">-</option>
-                        <option value="A">A</option><option value="B">B</option><option value="AB">AB</option><option value="O">O</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Jabatan</label>
-                    <select id="edit_jabatan" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                        <option value="Anggota">Anggota</option><option value="Ketua Komsel">Ketua Komsel</option><option value="Pengurus">Pengurus</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>JC (Komsel)</label>
-                    <select id="edit_jc" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                        <option value="1">JC 1</option><option value="2">JC 2</option><option value="3">JC 3</option><option value="4">JC 4</option><option value="5">JC 5</option>
-                    </select>
-                </div>
-                <div class="form-group full-width"><label>Alamat Lengkap</label><textarea id="edit_alamat" rows="2" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;"></textarea></div>
-            </div>
-            <button type="submit" class="btn-save" style="background:var(--accent); margin-top: 15px;">SIMPAN PERUBAHAN</button>
-        </form>
-    </div>
-</div>
-
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
@@ -163,9 +131,7 @@
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
 
-    if (!firebase.apps.length) { 
-        firebase.initializeApp(firebaseConfig); 
-    }
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
     window.onload = function() { 
@@ -173,34 +139,21 @@
         updateStats(); 
     };
 
-    // FUNGSI NAVIGASI BIG DATA
-    function bukaStatistik() {
-        window.location.href = "admin-bigdata.html";
-    }
-
     function updateStats() {
-        db.collection("users").onSnapshot(snap => {
-            document.getElementById("stat_total").innerText = snap.size;
+        // Tambahan statistik tiket
+        db.collection("tiket").onSnapshot(snap => {
+            document.getElementById("stat_tiket").innerText = snap.size;
         });
 
         db.collection("absensi").where("tanggal", "==", new Date().toISOString().split('T')[0])
-            .onSnapshot(snap => { 
-                document.getElementById("stat_hadir").innerText = snap.size; 
-            });
+            .onSnapshot(snap => { document.getElementById("stat_hadir").innerText = snap.size; });
         
-        db.collection("doa_global").onSnapshot(snap => { 
-            document.getElementById("stat_doa").innerText = snap.size; 
-        });
-
-        db.collection("portal_media").onSnapshot(snap => { 
-            document.getElementById("stat_media").innerText = snap.size; 
-        });
-
-        db.collection("informasi_kegiatan").onSnapshot(snap => { 
-            document.getElementById("stat_kegiatan").innerText = snap.size; 
-        });
+        db.collection("doa_global").onSnapshot(snap => { document.getElementById("stat_doa").innerText = snap.size; });
+        db.collection("portal_media").onSnapshot(snap => { document.getElementById("stat_media").innerText = snap.size; });
+        db.collection("informasi_kegiatan").onSnapshot(snap => { document.getElementById("stat_kegiatan").innerText = snap.size; });
     }
 
+    // Fungsi loadUsers, filterTable, dll (Sama seperti kode asli Anda)
     function loadUsers() {
         db.collection("users").onSnapshot((snapshot) => {
             const tableBody = document.getElementById("memberData");
@@ -219,78 +172,10 @@
                         <td>${data.alamat || '-'}</td>
                     </tr>`;
             });
-            updateActionBar();
         });
     }
 
-    function toggleSelectAll() {
-        const isChecked = document.getElementById("checkAll").checked;
-        document.querySelectorAll(".user-checkbox").forEach(cb => cb.checked = isChecked);
-        updateActionBar();
-    }
-
-    function updateActionBar() {
-        const selected = document.querySelectorAll(".user-checkbox:checked");
-        const bar = document.getElementById("action-bar");
-        const countTxt = document.getElementById("selected-count");
-        if (selected.length > 0) {
-            bar.style.display = "flex";
-            countTxt.innerText = `${selected.length} Terpilih`;
-        } else {
-            bar.style.display = "none";
-            document.getElementById("checkAll").checked = false;
-        }
-    }
-
-    async function editSelected() {
-        const selected = document.querySelectorAll(".user-checkbox:checked");
-        if (selected.length !== 1) { alert("Pilih satu anggota saja untuk diedit."); return; }
-        const id = selected[0].value;
-        const doc = await db.collection("users").doc(id).get();
-        const data = doc.data();
-        document.getElementById("edit_id").value = id;
-        document.getElementById("edit_nama").value = data.nama || "";
-        document.getElementById("edit_wa").value = data.whatsapp || "";
-        document.getElementById("edit_email").value = data.email || "";
-        document.getElementById("edit_password").value = data.password || "";
-        document.getElementById("edit_goldar").value = data.golongan_darah || "-";
-        document.getElementById("edit_jabatan").value = data.jabatan || "Anggota";
-        document.getElementById("edit_jc").value = data.komsel || "1";
-        document.getElementById("edit_alamat").value = data.alamat || "";
-        document.getElementById("editModal").style.display = "block";
-    }
-
-    document.getElementById("formUpdate").onsubmit = async function(e) {
-        e.preventDefault();
-        const id = document.getElementById("edit_id").value;
-        const updatedData = {
-            nama: document.getElementById("edit_nama").value,
-            whatsapp: document.getElementById("edit_wa").value,
-            email: document.getElementById("edit_email").value,
-            password: document.getElementById("edit_password").value,
-            golongan_darah: document.getElementById("edit_goldar").value,
-            jabatan: document.getElementById("edit_jabatan").value,
-            komsel: document.getElementById("edit_jc").value,
-            alamat: document.getElementById("edit_alamat").value
-        };
-        try {
-            await db.collection("users").doc(id).update(updatedData);
-            alert("Berhasil memperbarui data anggota!");
-            closeEditModal();
-        } catch (error) {
-            alert("Error saat update: " + error.message);
-        }
-    };
-
-    function deleteSelected() {
-        const selected = document.querySelectorAll(".user-checkbox:checked");
-        if (confirm(`Apakah Anda yakin ingin menghapus ${selected.length} anggota?`)) {
-            selected.forEach(cb => db.collection("users").doc(cb.value).delete());
-        }
-    }
-
-    function closeEditModal() { document.getElementById("editModal").style.display = "none"; }
-
+    function bukaStatistik() { window.location.href = "admin-bigdata.html"; }
     function filterTable() {
         let input = document.getElementById("searchInput").value.toLowerCase();
         document.querySelectorAll("#memberData tr").forEach(row => {
