@@ -81,6 +81,8 @@
 
         .card-body { padding: 25px; }
 
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #475569; }
+        
         input, select, textarea {
             width: 100%;
             padding: 12px 15px;
@@ -115,21 +117,19 @@
             width: 32px; height: 32px; border-radius: 8px; border: none; 
             cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin: 0 2px;
         }
+        .btn-play-sm { background: #eff6ff; color: var(--primary); }
         .btn-up { background: #f0fdf4; color: #16a34a; }
         .btn-down { background: #fff7ed; color: #ea580c; }
         .btn-del-sm { background: #fef2f2; color: var(--danger); }
-        
-        .playlist-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            background: #f1f5f9;
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-        }
 
+        .status-dot { height: 8px; width: 8px; background-color: #cbd5e1; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .status-dot.active { background-color: var(--success); box-shadow: 0 0 8px var(--success); }
+
+        .playlist-controls {
+            display: flex; gap: 10px; align-items: center; background: #f1f5f9; padding: 15px; border-radius: 15px; margin-bottom: 20px;
+        }
         input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+        .divider-modern { border: 0; height: 1px; background: linear-gradient(to right, transparent, #e2e8f0, transparent); margin: 25px 0; }
     </style>
 </head>
 <body>
@@ -138,29 +138,95 @@
     <div class="header">
         <div>
             <h1 style="margin:0; font-size: 26px; font-weight: 800; background: linear-gradient(to right, #1e3a8a, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Portal Media</h1>
-            <p style="margin:5px 0 0; color:#64748b; font-size: 14px;"><i class="fa-solid fa-layer-group"></i> Smart Content Management System</p>
+            <p style="margin:5px 0 0; color:#64748b; font-size: 14px;"><i class="fa-solid fa-layer-group"></i> Smart CMS</p>
         </div>
         <a href="admin.html" class="btn-back"><i class="fas fa-arrow-left"></i> Dashboard</a>
+    </div>
+
+    <div class="card-modern">
+        <div class="card-header-gradient" style="background: linear-gradient(45deg, #f59e0b, #fbbf24);">
+            <span><i class="fas fa-bullhorn"></i> Fitur Koleksi & Otomasi Running Text</span>
+        </div>
+        <div class="card-body">
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <div style="flex: 2; min-width: 300px;">
+                    <label>Input Teks Baru & Koleksi</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="rt_input" placeholder="Tulis pengumuman baru...">
+                        <input type="number" id="rt_durasi" placeholder="Detik" style="max-width: 90px;" value="15">
+                        <button onclick="saveRunningTextToCollection()" class="btn-submit" style="width: auto;">
+                            <i class="fas fa-plus"></i> Simpan
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <hr class="divider-modern">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 100px;">Status</th>
+                            <th>Isi Pesan</th>
+                            <th style="width: 80px;">Durasi</th>
+                            <th style="width: 100px; text-align: center;">Kontrol</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rt_history_list"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-modern">
+        <div class="card-header-gradient">
+            <span><i class="fa-solid fa-circle-plus"></i> Tambah Konten Monitor Utama</span>
+        </div>
+        <div class="card-body">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                <div>
+                    <label>Judul Konten</label>
+                    <input type="text" id="judul" placeholder="Contoh: Ibadah Minggu">
+                </div>
+                <div>
+                    <label>Tipe Media</label>
+                    <select id="tipe_media" onchange="toggleInputFields()">
+                        <option value="gambar">Gambar (Poster/Foto)</option>
+                        <option value="video_youtube">Video (YouTube)</option>
+                        <option value="video_player">Video MP4 (Direct)</option>
+                        <option value="audio_player">Audio (MP3)</option>
+                        <option value="teks">Text World (Artikel)</option>
+                    </select>
+                </div>
+            </div>
+            <div id="input_url_container" style="margin-bottom: 20px;">
+                <label>Link / URL Media</label>
+                <input type="text" id="url_media" placeholder="https://...">
+            </div>
+            <div id="input_teks_container" style="display:none; margin-bottom: 20px;">
+                <label>Isi Artikel Lengkap</label>
+                <textarea id="isi_artikel" rows="4"></textarea>
+            </div>
+            <button onclick="uploadKePortal()" id="btnPublish" class="btn-submit" style="width: 100%;">
+                <i class="fa-solid fa-paper-plane"></i> Publikasikan Konten
+            </button>
+        </div>
     </div>
 
     <div class="card-modern">
         <div class="card-header-gradient" style="background: #1e293b;">
             <span><i class="fas fa-list-ul"></i> Playlist Konten Aktif</span>
             <div style="font-size: 12px; background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px;">
-                Mode: <span id="currentModeDisplay">Looping</span>
+                Mode: <span id="currentModeDisplay">LOOPING</span>
             </div>
         </div>
         <div class="card-body">
-            
             <div class="playlist-controls">
                 <div style="flex: 1;">
-                    <label style="font-size: 12px; font-weight: bold; color: #64748b;">MODE PEMUTARAN</label>
-                    <select id="play_mode" onchange="updatePlayMode()" style="padding: 8px; margin-top: 5px;">
+                    <label style="font-size: 11px; color: #64748b;">MODE PEMUTARAN</label>
+                    <select id="play_mode" onchange="updatePlayMode()" style="padding: 8px;">
                         <option value="looping">Play Looping (Berurutan)</option>
                         <option value="shuffle">Play Shuffle (Acak)</option>
                         <option value="custom">Play Custom (Pilihan)</option>
-                        <option value="single">Play Single (Satu kali)</option>
-                        <option value="repeat">Play Repeat (Ulang Satu)</option>
                     </select>
                 </div>
                 <button onclick="deleteSelected()" class="btn-submit" style="background: var(--danger); padding: 10px 15px; font-size: 13px;">
@@ -173,15 +239,13 @@
                     <thead>
                         <tr>
                             <th style="width: 40px;"><input type="checkbox" id="checkAll" onclick="toggleSelectAll()"></th>
-                            <th style="width: 80px; text-align: center;">Urutan</th>
+                            <th style="width: 60px; text-align: center;">No</th>
                             <th>Judul Konten</th>
                             <th>Tipe</th>
-                            <th style="width: 100px;">Durasi</th>
-                            <th style="text-align: center; width: 150px;">Navigasi & Aksi</th>
+                            <th style="text-align: center; width: 180px;">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody id="mediaList">
-                        </tbody>
+                    <tbody id="mediaList"></tbody>
                 </table>
             </div>
         </div>
@@ -203,93 +267,141 @@
 
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
-
+    let runningItems = [];
     let playlistData = [];
 
-    // Load Playlist
+    // --- LOGIKA RUNNING TEXT ---
+    async function saveRunningTextToCollection() {
+        const text = document.getElementById('rt_input').value;
+        const durasi = document.getElementById('rt_durasi').value;
+        if(!text) return alert("Teks kosong!");
+        await db.collection("rt_collection").add({
+            text: text, durasi: parseInt(durasi),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            isActive: false
+        });
+        document.getElementById('rt_input').value = "";
+    }
+
+    function loadRTCollection() {
+        db.collection("rt_collection").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+            const list = document.getElementById('rt_history_list');
+            list.innerHTML = ""; runningItems = [];
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                runningItems.push({ id: doc.id, ...data });
+                list.innerHTML += `
+                    <tr>
+                        <td><span class="status-dot ${data.isActive ? 'active' : ''}"></span> ${data.isActive ? 'Active' : 'Queue'}</td>
+                        <td>${data.text}</td>
+                        <td>${data.durasi}s</td>
+                        <td style="text-align:center;">
+                            <button onclick="playRTManual('${doc.id}')" class="btn-action btn-play-sm"><i class="fas fa-play"></i></button>
+                            <button onclick="deleteRT('${doc.id}')" class="btn-action btn-del-sm"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+            });
+        });
+    }
+
+    async function playRTManual(id) {
+        const batch = db.batch();
+        runningItems.forEach(item => batch.update(db.collection("rt_collection").doc(item.id), { isActive: false }));
+        batch.update(db.collection("rt_collection").doc(id), { isActive: true });
+        const selected = runningItems.find(i => i.id === id);
+        batch.set(db.collection("config").doc("running_text"), { pesan: selected.text }, { merge: true });
+        await batch.commit();
+    }
+
+    async function deleteRT(id) { if(confirm("Hapus teks?")) await db.collection("rt_collection").doc(id).delete(); }
+
+    // --- LOGIKA MEDIA & PLAYLIST ---
+    function toggleInputFields() {
+        const tipe = document.getElementById('tipe_media').value;
+        document.getElementById('input_url_container').style.display = tipe === 'teks' ? "none" : "block";
+        document.getElementById('input_teks_container').style.display = tipe === 'teks' ? "block" : "none";
+    }
+
+    async function uploadKePortal() {
+        const judul = document.getElementById('judul').value;
+        if(!judul) return alert("Judul wajib diisi!");
+        await db.collection("portal_media").add({
+            judul: judul,
+            tipe: document.getElementById('tipe_media').value,
+            url: document.getElementById('url_media').value || "",
+            isi_artikel: document.getElementById('isi_artikel').value || "",
+            urutan: Date.now(),
+            durasi: 10,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alert("Konten Terbit!");
+        location.reload();
+    }
+
     function loadMedia() {
         db.collection("portal_media").orderBy("urutan", "asc").onSnapshot(snapshot => {
             const list = document.getElementById('mediaList');
-            list.innerHTML = "";
-            playlistData = [];
-            
+            list.innerHTML = ""; playlistData = [];
             snapshot.forEach(doc => {
                 const data = doc.data();
                 playlistData.push({ id: doc.id, ...data });
                 list.innerHTML += `
                     <tr>
                         <td><input type="checkbox" class="item-checkbox" value="${doc.id}"></td>
-                        <td style="text-align: center; font-weight: bold; color: var(--primary);">${data.urutan}</td>
+                        <td style="text-align:center;">${playlistData.length}</td>
                         <td style="font-weight:600;">${data.judul}</td>
-                        <td><span style="background:#e0e7ff; color:#4338ca; padding:4px 8px; border-radius:10px; font-size:11px;">${data.tipe}</span></td>
-                        <td>${data.durasi}m</td>
+                        <td><span style="font-size:11px; background:#e0e7ff; color:#4338ca; padding:4px 8px; border-radius:10px;">${data.tipe}</span></td>
                         <td style="text-align:center;">
                             <button onclick="moveItem('${doc.id}', -1)" class="btn-action btn-up"><i class="fas fa-chevron-up"></i></button>
                             <button onclick="moveItem('${doc.id}', 1)" class="btn-action btn-down"><i class="fas fa-chevron-down"></i></button>
+                            <button onclick="playSekarang('${doc.id}')" class="btn-action btn-play-sm"><i class="fas fa-desktop"></i></button>
                             <button onclick="deleteMedia('${doc.id}')" class="btn-action btn-del-sm"><i class="fas fa-trash"></i></button>
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
             });
         });
     }
 
-    // Fitur Check All
+    async function moveItem(id, direction) {
+        const index = playlistData.findIndex(item => item.id === id);
+        const newIndex = index + direction;
+        if (newIndex >= 0 && newIndex < playlistData.length) {
+            const batch = db.batch();
+            batch.update(db.collection("portal_media").doc(playlistData[index].id), { urutan: playlistData[newIndex].urutan });
+            batch.update(db.collection("portal_media").doc(playlistData[newIndex].id), { urutan: playlistData[index].urutan });
+            await batch.commit();
+        }
+    }
+
+    async function playSekarang(id) {
+        await db.collection("config").doc("playlist").update({ activeContentId: id, triggerChange: Date.now() });
+        alert("Diputar di monitor!");
+    }
+
+    async function deleteMedia(id) { if(confirm("Hapus?")) await db.collection("portal_media").doc(id).delete(); }
+
     function toggleSelectAll() {
         const isChecked = document.getElementById('checkAll').checked;
         document.querySelectorAll('.item-checkbox').forEach(cb => cb.checked = isChecked);
     }
 
-    // Re-order Logic (Naik/Turun)
-    async function moveItem(id, direction) {
-        const index = playlistData.findIndex(item => item.id === id);
-        const newIndex = index + direction;
-
-        if (newIndex >= 0 && newIndex < playlistData.length) {
-            const currentItem = playlistData[index];
-            const swappingItem = playlistData[newIndex];
-
+    async function deleteSelected() {
+        const selected = Array.from(document.querySelectorAll('.item-checkbox:checked')).map(cb => cb.value);
+        if (selected.length === 0) return alert("Pilih konten!");
+        if (confirm(`Hapus ${selected.length} konten?`)) {
             const batch = db.batch();
-            batch.update(db.collection("portal_media").doc(currentItem.id), { urutan: swappingItem.urutan });
-            batch.update(db.collection("portal_media").doc(swappingItem.id), { urutan: currentItem.urutan });
-            
+            selected.forEach(id => batch.delete(db.collection("portal_media").doc(id)));
             await batch.commit();
         }
     }
 
-    // Update Mode Pemutaran ke Firebase
     async function updatePlayMode() {
         const mode = document.getElementById('play_mode').value;
-        await db.collection("config").doc("playlist_settings").set({
-            mode: mode,
-            updatedAt: Date.now()
-        }, { merge: true });
+        await db.collection("config").doc("playlist_settings").set({ mode: mode, updatedAt: Date.now() }, { merge: true });
         document.getElementById('currentModeDisplay').innerText = mode.toUpperCase();
     }
 
-    // Hapus Satuan
-    async function deleteMedia(id) {
-        if(confirm("Hapus konten dari playlist?")) {
-            await db.collection("portal_media").doc(id).delete();
-        }
-    }
-
-    // Hapus Terpilih (Bulk Delete)
-    async function deleteSelected() {
-        const selected = Array.from(document.querySelectorAll('.item-checkbox:checked')).map(cb => cb.value);
-        if (selected.length === 0) return alert("Pilih konten yang ingin dihapus!");
-        
-        if (confirm(`Hapus ${selected.length} konten terpilih?`)) {
-            const batch = db.batch();
-            selected.forEach(id => {
-                batch.delete(db.collection("portal_media").doc(id));
-            });
-            await batch.commit();
-            document.getElementById('checkAll').checked = false;
-        }
-    }
-
-    window.onload = loadMedia;
+    window.onload = () => { loadRTCollection(); loadMedia(); };
 </script>
 </body>
 </html>
