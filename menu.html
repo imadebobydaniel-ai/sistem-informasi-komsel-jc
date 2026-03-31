@@ -238,19 +238,24 @@
         let ytPlayer; 
         const userEmail = localStorage.getItem("userEmail");
 
-        // --- FUNGSI SINKRONISASI RUNNING TEXT (OTOMATIS) ---
+        // --- FUNGSI SINKRONISASI RUNNING TEXT (VERSI TERBARU) ---
         function syncRunningText() {
-            db.collection("running_text").orderBy("timestamp", "desc").limit(1).onSnapshot(snapshot => {
-                if (!snapshot.empty) {
-                    const data = snapshot.docs[0].data();
+            // Membaca dari koleksi 'config' dokumen 'running_text'
+            db.collection("config").doc("running_text")
+            .onSnapshot((doc) => {
+                if (doc.exists) {
+                    const teksBaru = doc.data().pesan; 
                     const textElement = document.getElementById("running-text");
+                    
                     if (textElement) {
-                        // Jangan timpa jika sedang ulang tahun (fitur ditangani di applyBirthdayEffect)
-                        if (!textElement.innerText.includes("HAPPY BIRTHDAY")) {
-                             textElement.innerText = data.isi || "Selamat Datang di Pondok Pemulihan Papua";
+                        // Hanya update jika tidak sedang menampilkan ucapan ulang tahun
+                        if (!textElement.innerText.includes("HAPPY BIRTHDAY") && !textElement.innerText.includes("SELAMAT ULANG TAHUN")) {
+                             textElement.innerText = teksBaru || "Selamat Datang di Pondok Pemulihan Papua";
                         }
                     }
                 }
+            }, (error) => {
+                console.error("Gagal sinkron running text: ", error);
             });
         }
 
@@ -411,7 +416,6 @@
                         if (d.tgl_lahir && d.tgl_lahir.startsWith(formatHariH)) {
                             applyBirthdayEffect(d.nama);
                         } else {
-                            // Reset jika tidak sedang ultah
                             document.getElementById('photo-frame').classList.remove('ultah-active');
                         }
                     }
@@ -419,7 +423,6 @@
             }
         }
 
-        // Fungsi Animasi Ulang Tahun
         function applyBirthdayEffect(nama) {
             const frame = document.getElementById('photo-frame');
             const runningText = document.getElementById('running-text');
@@ -507,7 +510,7 @@
             updateTime(); 
             setInterval(updateTime, 1000); 
             syncUser(); 
-            syncRunningText(); 
+            syncRunningText(); // Pastikan dipanggil di sini
 
             const btnToggle = document.getElementById('toggleProfile');
             const profileCard = document.getElementById('profileCard');
