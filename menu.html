@@ -385,7 +385,7 @@
         window.onload = () => { 
             updateTime(); setInterval(updateTime, 1000); 
             syncUser(); 
-            // Cek jika API YouTube sudah siap (untuk jaga-jaga jika reload lambat)
+            // Cek jika API YouTube sudah siap (untuk jaga-jaga jika reload lambat) 
             if (typeof YT !== 'undefined' && YT.Player) { initMediaPlayer(); }
 
             const btnToggle = document.getElementById('toggleProfile');
