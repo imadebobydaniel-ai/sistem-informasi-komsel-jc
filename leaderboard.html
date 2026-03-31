@@ -279,50 +279,43 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <script>
-    // ... config firebase tetap sama ...
+    // --- KONFIGURASI FIREBASE (Ganti dengan milikmu) ---
+    const firebaseConfig = {
+        apiKey: "AIzaSy...",
+        authDomain: "project-id.firebaseapp.com",
+        projectId: "project-id",
+        storageBucket: "project-id.appspot.com",
+        messagingSenderId: "...",
+        appId: "..."
+    };
+    
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
 
-    // 1. PERBAIKAN FUNGSI SELEBRASI
-    // Menambahkan zIndex agar confetti muncul di atas overlay/modal
+    // GLOBAL VARIABLE UNTUK CHART
+    let myChart = null;
+
+    // 1. FUNGSI SELEBRASI
     function selebrasiJuara() {
-        const duration = 5 * 1000;
+        const duration = 3 * 1000;
         const animationEnd = Date.now() + duration;
-        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 5000 }; // zIndex ditingkatkan
-
-        function randomInRange(min, max) {
-            return Math.random() * (max - min) + min;
-        }
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 5000 };
 
         const interval = setInterval(function() {
             const timeLeft = animationEnd - Date.now();
-
-            if (timeLeft <= 0) {
-                return clearInterval(interval);
-            }
-
-            const particleCount = 50 * (timeLeft / duration);
+            if (timeLeft <= 0) return clearInterval(interval);
             
+            const particleCount = 50 * (timeLeft / duration);
             confetti(Object.assign({}, defaults, { 
                 particleCount, 
-                origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
-                colors: ['#D4AF37', '#FFD700']
-            }));
-
-            confetti(Object.assign({}, defaults, { 
-                particleCount, 
-                origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
-                colors: ['#0056b3', '#90e0ef'] 
+                origin: { x: Math.random(), y: Math.random() - 0.2 } 
             }));
         }, 250);
-
-        // Ledakan besar di tengah
-        confetti({
-            particleCount: 150,
-            spread: 70,
-            origin: { y: 0.6 },
-            zIndex: 5000
-        });
     }
 
+    // 2. FUNGSI UTAMA SYNC DATA
     async function syncLeaderboard() {
         const loading = document.getElementById('loading-overlay');
         loading.style.display = 'flex';
@@ -341,12 +334,11 @@
                 { nama: "laporan_bacaan", poin: 5 }
             ];
 
-            // Mengambil data dari semua koleksi
             for (const item of koleksiPoin) {
                 const snapshot = await db.collection(item.nama).get();
                 snapshot.forEach((doc) => {
                     let d = doc.data();
-                    let namaRaw = d.jc || d.komsel || d.nama_jc || "Umum";
+                    let namaRaw = d.jc || d.komsel || d.nama_jc || "UMUM";
                     let namaJC = namaRaw.trim().toUpperCase();
                     
                     if (!namaJC.startsWith("JC") && namaJC !== "UMUM") {
@@ -367,41 +359,84 @@
                 poin: skorJC[name]
             })).sort((a, b) => b.poin - a.poin);
 
-            // Tampilkan data ke UI terlebih dahulu
             tampilkanData(urutan);
-            document.getElementById('current-month').innerText = `Periode: ${periodeSekarang}`;
+            tampilkanGrafik(urutan);
             
-            // Hapus loading sebelum selebrasi
+            document.getElementById('current-month').innerText = `Periode: ${periodeSekarang}`;
             loading.style.display = 'none';
 
-            // 2. TRIGGER SELEBRASI (Diberi delay sedikit agar UI render selesai)
-            if (urutan.length > 0) {
-                setTimeout(() => {
-                    selebrasiJuara();
-                }, 500);
-            }
-
-            // Simpan ke Firestore (Background task)
-            const batch = db.batch();
-            urutan.forEach((item, index) => {
-                let docRef = db.collection("peringkat_jc").doc(item.nama);
-                batch.set(docRef, {
-                    ranking: index + 1,
-                    nama_jc: item.nama,
-                    poin: item.poin,
-                    periode: periodeSekarang,
-                    lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            });
-            await batch.commit();
+            if (urutan.length > 0) setTimeout(selebrasiJuara, 500);
 
         } catch (error) {
             console.error("Error Sync:", error);
             loading.style.display = 'none';
+            alert("Gagal mengambil data. Periksa koneksi atau Rule Firestore.");
         }
     }
 
-    // ... fungsi tampilkanData dan tampilkanGrafik tetap sama ...
+    // 3. FUNGSI TAMPILKAN DATA KE UI
+    function tampilkanData(data) {
+        // Update Podium
+        if (data[0]) {
+            document.getElementById('top1-name').innerText = data[0].nama;
+            document.getElementById('top1-val').innerText = data[0].poin + " Pts";
+        }
+        if (data[1]) {
+            document.getElementById('top2-name').innerText = data[1].nama;
+            document.getElementById('top2-val').innerText = data[1].poin + " Pts";
+        }
+        if (data[2]) {
+            document.getElementById('top3-name').innerText = data[2].nama;
+            document.getElementById('top3-val').innerText = data[2].poin + " Pts";
+        }
+
+        // Update List Bawah
+        const listContainer = document.getElementById('rank-list');
+        listContainer.innerHTML = '';
+        data.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = `rank-item ${index < 3 ? 'top-three' : ''}`;
+            div.innerHTML = `
+                <div class="rank-jc">${index + 1}. ${item.nama}</div>
+                <div class="rank-val">${item.poin} POIN</div>
+            `;
+            listContainer.appendChild(div);
+        });
+    }
+
+    // 4. FUNGSI GRAFIK
+    function tampilkanGrafik(data) {
+        const ctx = document.getElementById('chartJC').getContext('2d');
+        if (myChart) myChart.destroy();
+
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(d => d.nama),
+                datasets: [{
+                    label: 'Poin',
+                    data: data.map(d => d.poin),
+                    backgroundColor: '#0056b3',
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, display: false }, x: { grid: { display: false } } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // 5. FUNGSI MODAL
+    function toggleModal() {
+        const modal = document.getElementById('infoModal');
+        modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+    }
+
+    // --- JALANKAN SAAT HALAMAN DIBUKA ---
+    window.onload = syncLeaderboard;
 </script>
 </body>
 </html>
