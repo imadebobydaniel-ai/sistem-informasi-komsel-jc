@@ -11,6 +11,31 @@
         .sla-urgent { color: #dc3545; font-weight: bold; }
         .sla-normal { color: #198754; }
         @media print { .no-print { display: none; } }
+        
+        /* Style Tambahan untuk Tombol Hapus & Badge */
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-delete:hover { background: #a71d2a; }
+        .btn-view {
+            background: #0dcaf0;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .clickable-cat {
+            cursor: pointer;
+            color: #0d6efd;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -68,7 +93,7 @@
     </div>
 
     <div class="card shadow-sm">
-        <div class="card-header bg-white font-weight-bold">Daftar Detail Tiket</div>
+        <div class="card-header bg-white fw-bold">Daftar Detail Tiket</div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0" id="tiketTable">
                 <thead class="table-light">
@@ -80,6 +105,7 @@
                         <th>Durasi SLA</th>
                         <th>Penyelesaian</th>
                         <th>Status</th>
+                        <th class="no-print">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="tiketData">
@@ -89,19 +115,21 @@
     </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script>
-    // Contoh Data (Nanti hubungkan dengan Firebase Firestore Anda)
-    const dataTiket = [
-        { id: 1, kategori: "Tiket Permohonan Doa", tglMasuk: "2026-03-25 08:00", tglClose: "2026-03-25 10:30", solusi: "Didoakan oleh Tim Pendoa", status: "Closed" },
-        { id: 2, kategori: "Tiket Problem Aplikasi", tglMasuk: "2026-03-26 09:00", tglClose: "2026-03-28 15:00", solusi: "Update Patch v1.2", status: "Closed" },
-        { id: 3, kategori: "Tiket Saran dan Masukan", tglMasuk: "2026-03-27 10:00", tglClose: "-", solusi: "-", status: "Open" }
-    ];
+    // Konfigurasi Firebase Anda (Ganti dengan config milik Anda)
+    const firebaseConfig = {
+        // paste config firebase anda di sini
+    };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
 
     function hitungSLA(masuk, keluar) {
-        if (keluar === "-") return "Sedang Berjalan";
+        if (!keluar || keluar === "-") return "Sedang Berjalan";
         const d1 = new Date(masuk);
         const d2 = new Date(keluar);
         const diffMs = d2 - d1;
@@ -110,34 +138,95 @@
         return `${diffHrs} Jam ${diffMins} Menit`;
     }
 
-    function renderTable() {
-        const tbody = document.getElementById('tiketData');
-        tbody.innerHTML = "";
-        let countDoa = 0, countProb = 0, countSaran = 0;
+    // Fungsi Load Data Real-time
+    function loadTickets() {
+        db.collection("tiket").orderBy("tanggalMasuk", "desc").onSnapshot(snap => {
+            const tbody = document.getElementById('tiketData');
+            tbody.innerHTML = "";
+            
+            let countDoa = 0, countProb = 0, countSaran = 0, total = 0;
 
-        dataTiket.forEach((t, index) => {
-            if(t.kategori === "Tiket Permohonan Doa") countDoa++;
-            if(t.kategori === "Tiket Problem Aplikasi") countProb++;
-            if(t.kategori === "Tiket Saran dan Masukan") countSaran++;
+            snap.forEach((doc, index) => {
+                const t = doc.data();
+                const id = doc.id;
+                total++;
 
-            const sla = hitungSLA(t.tglMasuk, t.tglClose);
-            tbody.innerHTML += `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td><span class="badge bg-info text-dark">${t.kategori}</span></td>
-                    <td>${t.tglMasuk}</td>
-                    <td>${t.tglClose}</td>
-                    <td class="${t.tglClose !== '-' ? 'sla-normal' : 'sla-urgent'}">${sla}</td>
-                    <td>${t.solusi}</td>
-                    <td><span class="badge ${t.status === 'Closed' ? 'bg-success' : 'bg-warning'}">${t.status}</span></td>
-                </tr>
-            `;
+                if(t.kategori.includes("Doa")) countDoa++;
+                if(t.kategori.includes("Problem")) countProb++;
+                if(t.kategori.includes("Saran")) countSaran++;
+
+                const sla = hitungSLA(t.tanggalMasuk, t.tanggalClose);
+                
+                // Logika Tombol Hapus hanya untuk 'Closed'
+                const deleteBtn = t.status === 'Closed' ? 
+                    `<button class="btn-delete" onclick="deleteTicket('${id}')" title="Hapus Tiket">
+                        <i class="fas fa-trash"></i>
+                    </button>` : '';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${total}</td>
+                        <td class="clickable-cat" onclick="showDetail('${id}')">
+                            <span class="badge bg-info text-dark">${t.kategori}</span>
+                        </td>
+                        <td>${t.tanggalMasuk}</td>
+                        <td>${t.tanggalClose || '-'}</td>
+                        <td class="${t.tanggalClose ? 'sla-normal' : 'sla-urgent'}">${sla}</td>
+                        <td>${t.penyelesaian || '-'}</td>
+                        <td>
+                            <span class="badge ${t.status === 'Closed' ? 'bg-success' : 'bg-warning'}">
+                                ${t.status}
+                            </span>
+                        </td>
+                        <td class="no-print">
+                            <div class="d-flex gap-2">
+                                <button class="btn-view" onclick="showDetail('${id}')" title="Lihat Detail">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                ${deleteBtn}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('totalTiket').innerText = total;
+            document.getElementById('countDoa').innerText = countDoa;
+            document.getElementById('countProblem').innerText = countProb;
+            document.getElementById('countSaran').innerText = countSaran;
         });
+    }
 
-        document.getElementById('totalTiket').innerText = dataTiket.length;
-        document.getElementById('countDoa').innerText = countDoa;
-        document.getElementById('countProblem').innerText = countProb;
-        document.getElementById('countSaran').innerText = countSaran;
+    // Fungsi Popup Detail
+    function showDetail(id) {
+        db.collection("tiket").doc(id).get().then(doc => {
+            if (doc.exists) {
+                const data = doc.data();
+                alert(`
+                    --- DETAIL TIKET ---
+                    Pengirim: ${data.namaPengirim || 'Tidak Diketahui'}
+                    Asal JC: ${data.asalJC || '-'}
+                    Kategori: ${data.kategori}
+                    
+                    ISI PESAN:
+                    "${data.isiTiket || 'Tidak ada pesan.'}"
+                    
+                    Status: ${data.status}
+                    ----------------------
+                `);
+            }
+        });
+    }
+
+    // Fungsi Hapus Tiket
+    function deleteTicket(id) {
+        if(confirm("Apakah Anda yakin ingin menghapus tiket yang sudah selesai ini?")) {
+            db.collection("tiket").doc(id).delete().then(() => {
+                alert("Tiket berhasil dihapus secara permanen.");
+            }).catch((error) => {
+                console.error("Error removing document: ", error);
+            });
+        }
     }
 
     async function exportPDF() {
@@ -152,7 +241,8 @@
         });
     }
 
-    window.onload = renderTable;
+    // Jalankan load data saat halaman siap
+    window.onload = loadTickets;
 </script>
 </body>
 </html>
