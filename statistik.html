@@ -27,12 +27,6 @@
         .progress-group-top { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed #eee; }
         .text-orange { color: var(--orange) !important; }
         .bg-orange { background-color: var(--orange) !important; }
-        .blood-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f8f8f8; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .blood-item:hover { background: #fff5f5; }
-        .count-darah { color: var(--merah-absen); font-size: 14px; }
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(3px); }
-        .popup { background: var(--putih); width: 100%; max-width: 350px; border-radius: 20px; padding: 20px; position: relative; border-top: 6px solid var(--emas); }
-        .close-btn { position: absolute; right: 15px; top: 10px; font-size: 24px; cursor: pointer; color: #999; }
         .btn-back { display: block; text-align: center; padding: 14px; background: white; color: var(--biru-utama); text-decoration: none; font-weight: bold; border-radius: 12px; border: 1px solid #ddd; margin-top: 10px; font-size: 13px; }
         .bg-emas-doa { background-color: var(--emas-doa) !important; }
     </style>
@@ -51,7 +45,8 @@
             </div>
             <div class="input-box">
                 <label>PERIODE</label>
-                <select id="periode-alkitab"> <option>12 Bulan terakhir</option>
+                <select id="periode-alkitab" onchange="syncStatistikAlkitab()">
+                    <option value="1">1 Bulan terakhir</option><option value="2">2 Bulan terakhir</option><option value="3">3 Bulan terakhir</option><option value="4">4 Bulan terakhir</option><option value="5">5 Bulan terakhir</option><option value="6">6 Bulan terakhir</option><option value="7">7 Bulan terakhir</option><option value="8">8 Bulan terakhir</option><option value="9">9 Bulan terakhir</option><option value="10">10 Bulan terakhir</option><option value="11">11 Bulan terakhir</option><option value="12" selected>12 Bulan terakhir</option>
                 </select>
             </div>
         </div>
@@ -82,7 +77,8 @@
             </div>
             <div class="input-box">
                 <label>PERIODE</label>
-                <select id="periode-hadir"> <option>12 Bulan terakhir</option>
+                <select id="periode-hadir" onchange="syncStatistikHadir()">
+                    <option value="1">1 Bulan terakhir</option><option value="2">2 Bulan terakhir</option><option value="3">3 Bulan terakhir</option><option value="4">4 Bulan terakhir</option><option value="5">5 Bulan terakhir</option><option value="6">6 Bulan terakhir</option><option value="7">7 Bulan terakhir</option><option value="8">8 Bulan terakhir</option><option value="9">9 Bulan terakhir</option><option value="10">10 Bulan terakhir</option><option value="11">11 Bulan terakhir</option><option value="12" selected>12 Bulan terakhir</option>
                 </select>
             </div>
         </div>
@@ -113,7 +109,8 @@
             </div>
             <div class="input-box">
                 <label>PERIODE</label>
-                <select id="periode-izin"> <option>12 Bulan terakhir</option>
+                <select id="periode-izin" onchange="syncStatistikIzin()">
+                    <option value="1">1 Bulan terakhir</option><option value="2">2 Bulan terakhir</option><option value="3">3 Bulan terakhir</option><option value="4">4 Bulan terakhir</option><option value="5">5 Bulan terakhir</option><option value="6">6 Bulan terakhir</option><option value="7">7 Bulan terakhir</option><option value="8">8 Bulan terakhir</option><option value="9">9 Bulan terakhir</option><option value="10">10 Bulan terakhir</option><option value="11">11 Bulan terakhir</option><option value="12" selected>12 Bulan terakhir</option>
                 </select>
             </div>
         </div>
@@ -144,7 +141,8 @@
             </div>
             <div class="input-box">
                 <label>PERIODE</label>
-                <select id="periode-doa"> <option>12 Bulan terakhir</option>
+                <select id="periode-doa" onchange="syncStatistikDoa()">
+                    <option value="1">1 Bulan terakhir</option><option value="2">2 Bulan terakhir</option><option value="3">3 Bulan terakhir</option><option value="4">4 Bulan terakhir</option><option value="5">5 Bulan terakhir</option><option value="6">6 Bulan terakhir</option><option value="7">7 Bulan terakhir</option><option value="8">8 Bulan terakhir</option><option value="9">9 Bulan terakhir</option><option value="10">10 Bulan terakhir</option><option value="11">11 Bulan terakhir</option><option value="12" selected>12 Bulan terakhir</option>
                 </select>
             </div>
         </div>
@@ -171,7 +169,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    // Inisialisasi Firebase & Fungsi JS Anda (sama seperti kode sebelumnya)
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -183,12 +180,22 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Fungsi-fungsi sync (Alkitab, Hadir, Izin, Doa) tetap dilanjutkan di sini...
-    // [Gunakan fungsi sync dari pesan sebelumnya]
-    
+    // Fungsi pembantu untuk mendapatkan filter tanggal awal (start date)
+    function getStartDate(monthsBack) {
+        let d = new Date();
+        d.setMonth(d.getMonth() - monthsBack);
+        return d;
+    }
+
     async function syncStatistikAlkitab() {
         const jc = document.getElementById("select-komsel-alkitab").value;
-        db.collection("laporan_bacaan").where("jc", "==", jc).onSnapshot(snap => {
+        const bulan = parseInt(document.getElementById("periode-alkitab").value);
+        const startDate = getStartDate(bulan);
+
+        db.collection("laporan_bacaan")
+          .where("jc", "==", jc)
+          .where("timestamp", ">=", startDate)
+          .onSnapshot(snap => {
             let userUnik = new Set();
             snap.forEach(doc => { if(doc.data().nama) userUnik.add(doc.data().nama.trim()); });
             const jmlLapor = userUnik.size;
@@ -202,10 +209,72 @@
         });
     }
 
-    // Fungsi sync lainnya dipanggil saat window load
+    async function syncStatistikHadir() {
+        const jc = document.getElementById("select-jc-laporan").value;
+        const bulan = parseInt(document.getElementById("periode-hadir").value);
+        const startDate = getStartDate(bulan);
+
+        db.collection("kehadiran")
+          .where("jc", "==", jc)
+          .where("status", "==", "Hadir")
+          .where("timestamp", ">=", startDate)
+          .onSnapshot(snap => {
+            const jmlHadir = snap.size;
+            document.getElementById("text-laporan-orang-hadir").innerText = jmlHadir + " Orang";
+            document.getElementById("count-lapor-hadir").innerText = jmlHadir + " Orang Hadir";
+            const persen = ((jmlHadir / 50) * 100).toFixed(1);
+            document.getElementById("txt-kehadiran-persen").innerText = persen + "%";
+            document.getElementById("bar-kehadiran-progres").style.width = Math.min(persen, 100) + "%";
+            document.getElementById("bar-laporan-orang-hadir").style.width = Math.min(persen, 100) + "%";
+        });
+    }
+
+    async function syncStatistikIzin() {
+        const jc = document.getElementById("select-jc-izin").value;
+        const bulan = parseInt(document.getElementById("periode-izin").value);
+        const startDate = getStartDate(bulan);
+
+        db.collection("kehadiran")
+          .where("jc", "==", jc)
+          .where("status", "in", ["Izin", "Sakit", "Alpha"])
+          .where("timestamp", ">=", startDate)
+          .onSnapshot(snap => {
+            const jmlAbsen = snap.size;
+            document.getElementById("text-laporan-orang-izin").innerText = jmlAbsen + " Orang";
+            document.getElementById("count-lapor-izin").innerText = jmlAbsen + " Orang Izin/Alpha";
+            const persen = ((jmlAbsen / 50) * 100).toFixed(1);
+            document.getElementById("txt-absen-persen").innerText = persen + "%";
+            document.getElementById("bar-absen-progres").style.width = Math.min(persen, 100) + "%";
+            document.getElementById("bar-laporan-orang-izin").style.width = Math.min(persen, 100) + "%";
+        });
+    }
+
+    async function syncStatistikDoa() {
+        const jc = document.getElementById("select-jc-doa").value;
+        const bulan = parseInt(document.getElementById("periode-doa").value);
+        const startDate = getStartDate(bulan);
+
+        db.collection("doa")
+          .where("jc", "==", jc)
+          .where("timestamp", ">=", startDate)
+          .onSnapshot(snap => {
+            let terjawab = 0;
+            snap.forEach(doc => { if(doc.data().status === "Terjawab") terjawab++; });
+            const total = snap.size;
+            const persen = total > 0 ? ((terjawab / total) * 100).toFixed(1) : 0;
+            document.getElementById("text-doa-masuk").innerText = total + " Laporan";
+            document.getElementById("count-doa-masuk-orang").innerText = total + " Laporan Masuk";
+            document.getElementById("txt-doa-jawab-jc").innerText = persen + "%";
+            document.getElementById("bar-doa-jawab-jc").style.width = persen + "%";
+            document.getElementById("bar-doa-masuk").style.width = Math.min((total/50)*100, 100) + "%";
+        });
+    }
+
     window.onload = () => {
         syncStatistikAlkitab();
-        // syncStatistikHadir(); dst...
+        syncStatistikHadir();
+        syncStatistikIzin();
+        syncStatistikDoa();
     };
 </script>
 </body>
