@@ -253,7 +253,6 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    // FUNGSI TOGGLE INPUT DINAMIS
     function toggleInputFields() {
         const tipe = document.getElementById('tipe_media').value;
         const urlContainer = document.getElementById('input_url_container');
@@ -282,7 +281,6 @@
         }
     }
 
-    // FUNGSI UPLOAD DENGAN AUTO-EMBED YOUTUBE
     async function uploadKePortal() {
         const btn = document.getElementById('btnPublish');
         const judul = document.getElementById('judul').value;
@@ -292,7 +290,6 @@
 
         if(!judul) { alert("Judul harus diisi!"); return; }
 
-        // --- LOGIKA AUTO-EMBED YOUTUBE ---
         if (tipe === 'video_youtube' && urlValue) {
             let videoId = "";
             if (urlValue.includes('v=')) {
@@ -304,27 +301,29 @@
             }
 
             if (videoId) {
-                // Konversi ke format embed agar bisa diputar di monitor
                 urlValue = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&playlist=${videoId}&loop=1`;
             }
         }
-        // ---------------------------------
 
         btn.disabled = true;
         btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Sedang Memproses...";
 
         try {
+            // --- BAGIAN SCRIPT PENGAMAN YANG DIMASUKKAN ---
             const snapshot = await db.collection("portal_media").get();
+            const currentSize = snapshot.empty ? 0 : snapshot.size; 
+
             const data = {
                 judul: judul,
                 tipe: tipe,
                 url: urlValue,
                 isi_artikel: isiArtikel,
                 deskripsi: document.getElementById('deskripsi').value,
-                urutan: snapshot.size + 1,
-                durasi: parseInt(document.getElementById('defaultDurasi').value),
+                urutan: currentSize + 1, 
+                durasi: parseInt(document.getElementById('defaultDurasi').value) || 10,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
+            // ----------------------------------------------
 
             await db.collection("portal_media").add(data);
             alert("Berhasil dipublikasikan!");
@@ -336,7 +335,6 @@
         }
     }
 
-    // FUNGSI LOAD DATA TABEL
     async function loadMedia() {
         const list = document.getElementById('mediaList');
         try {
@@ -381,7 +379,6 @@
         } catch (e) { console.error(e); }
     }
 
-    // FITUR PUTAR SEKARANG
     async function playSekarang(id) {
         try {
             await db.collection("config").doc("playlist").update({
@@ -394,7 +391,6 @@
         }
     }
 
-    // NAVIGASI & MANAJEMEN
     async function pindahUrutan(id, arah) {
         const ref = db.collection("portal_media");
         const doc = await ref.doc(id).get();
