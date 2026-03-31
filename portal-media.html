@@ -3,296 +3,434 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Media - Pondok Pemulihan</title>
+    <title>Portal Media - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
         :root {
-            --bg-dark: #121212;
-            --card-bg: #1e1e1e;
-            --primary-green: #2ecc71;
-            --border-color: #333333;
-            --text-main: #ffffff;
-            --text-dim: #b0b0b0;
+            --primary: #007bff;
+            --dark: #333;
+            --light: #f4f7f6;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
+            background-color: var(--light);
             margin: 0;
-            display: flex;
-            height: 100vh;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 240px;
-            background-color: var(--card-bg);
-            border-right: 2px solid var(--border-color);
             padding: 20px;
-            display: flex;
-            flex-direction: column;
+            color: var(--dark);
         }
 
-        .sidebar h2 { color: var(--primary-green); font-size: 1.2rem; margin-bottom: 30px; }
+        .container { max-width: 1000px; margin: auto; }
 
-        .nav-item {
-            padding: 12px;
-            color: var(--text-dim);
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .btn-back {
             text-decoration: none;
-            border: 1px solid transparent;
-            margin-bottom: 8px;
-            border-radius: 6px;
+            color: #666;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             transition: 0.3s;
         }
 
-        .nav-item:hover, .nav-item.active {
-            background: #2a2a2a;
-            border: 1px solid var(--primary-green);
-            color: white;
+        .btn-back:hover { color: var(--primary); }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
         }
 
-        /* Main Panel Area */
-        .main-panel {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-        }
-
-        .glass-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
-
-        .section-title {
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+        .card h2, .card h3 {
+            margin-top: 0;
+            font-size: 1.2rem;
             display: flex;
             align-items: center;
             gap: 10px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
         }
 
-        /* Form Styling */
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px; }
-        
-        label { display: block; font-size: 0.85rem; color: var(--text-dim); margin-bottom: 5px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; }
         
         input, select, textarea {
             width: 100%;
-            padding: 10px;
-            background: #252525;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: white;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
             box-sizing: border-box;
         }
 
-        input:focus { border-color: var(--primary-green); outline: none; }
+        .playlist-config {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            font-size: 14px;
+            border: 1px solid #ffeeba;
+        }
 
-        .btn-publish {
-            background: var(--primary-green);
-            color: black;
+        .btn-submit {
+            background: var(--primary);
+            color: white;
             border: none;
-            padding: 12px 30px;
+            padding: 12px 20px;
+            border-radius: 8px;
             font-weight: bold;
-            border-radius: 6px;
             cursor: pointer;
-            float: right;
-        }
-
-        /* Tabel */
-        table {
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
-        th {
-            background: #252525;
-            color: var(--text-dim);
-            text-align: left;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            font-size: 0.8rem;
+        .table-responsive {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
         }
 
-        td {
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            font-size: 0.9rem;
-        }
-
-        tr:nth-child(even) { background: #1a1a1a; }
-        tr:hover { background: #252525; }
-
-        .btn-action {
-            background: none;
-            border: 1px solid var(--border-color);
-            color: var(--text-dim);
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 5px;
-        }
-
-        .btn-action:hover { border-color: var(--primary-green); color: white; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: var(--primary); color: white; padding: 15px; text-align: left; }
+        td { padding: 15px; border-bottom: 1px solid #eee; }
 
         .badge {
-            padding: 3px 8px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .badge-gambar { background: #e3f2fd; color: #1976d2; }
+        .badge-video_youtube { background: #fff3e0; color: #f57c00; }
+        .badge-teks { background: #eeeeee; color: #333333; }
+        .badge-video_player { background: #f3e5f5; color: #7b1fa2; }
+        .badge-audio_player { background: #e8f5e9; color: #2e7d32; }
+        
+        .btn-action { border: none; background: none; cursor: pointer; font-size: 18px; transition: 0.2s; }
+        .btn-action:hover { transform: scale(1.2); }
+        .btn-play { color: var(--success); }
+        .btn-delete { color: var(--danger); }
+        
+        .btn-nav {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 5px 8px;
             border-radius: 4px;
-            font-size: 0.75rem;
-            background: #333;
+            cursor: pointer;
+            font-size: 12px;
         }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <h2>MEDIA PORTAL</h2>
-        <a href="#" class="nav-item active"><i class="fas fa-desktop"></i> Dashboard</a>
-        <a href="#" class="nav-item"><i class="fas fa-history"></i> Media Library</a>
-        <a href="#" class="nav-item"><i class="fas fa-font"></i> Running Text</a>
-        <a href="statistik.html" class="nav-item"><i class="fas fa-chart-bar"></i> Lihat Statistik</a>
+<div class="container">
+    <div class="header">
+        <div>
+            <h1 style="margin:0; font-size: 24px;">Portal Media</h1>
+            <p style="margin:5px 0 0; color:#777; font-size: 13px;">Manajemen Berita & Konten Pondok Pemulihan</p>
+        </div>
+        <a href="admin.html" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
+        </a>
     </div>
 
-    <div class="main-panel">
-        <div class="glass-card">
-            <div class="section-title"><i class="fas fa-bullhorn"></i> PENGATURAN RUNNING TEXT</div>
-            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <input type="text" id="runningTextInput" placeholder="Ketik pesan baru di sini...">
-                <button class="btn-publish" style="float:none" onclick="postRunningText()">POSTING</button>
-            </div>
-            
-            <label>Riwayat Running Text:</label>
-            <table style="font-size: 0.8rem;">
-                <tbody id="historyRunningText">
-                </tbody>
-            </table>
+    <div class="card">
+        <h3><i class="fa-solid fa-circle-plus"></i> Tambah Konten Baru</h3>
+        
+        <div class="form-group">
+            <label>Judul Konten / Berita</label>
+            <input type="text" id="judul" placeholder="Contoh: Kegiatan Ibadah Raya Minggu...">
         </div>
 
-        <div class="glass-card">
-            <div class="section-title"><i class="fas fa-list"></i> PLAYLIST AKTIF</div>
+        <div class="form-group">
+            <label>Tipe Media</label>
+            <select id="tipe_media" onchange="toggleInputFields()" style="background: #f9f9f9;">
+                <option value="gambar">Gambar (Poster/Foto)</option>
+                <option value="video_youtube">Video (YouTube Link)</option>
+                <option value="video_player">Video MP4 (Upload/Link URL)</option>
+                <option value="audio_player">Audio (MP3/Podcast)</option>
+                <option value="teks">Text World (Artikel/Berita)</option>
+            </select>
+        </div>
+
+        <div id="input_url_container" class="form-group">
+            <label id="label_url">Link / URL Gambar</label>
+            <input type="text" id="url_media" placeholder="https://...">
+        </div>
+
+        <div id="input_teks_container" class="form-group" style="display:none;">
+            <label>Isi Artikel Lengkap</label>
+            <textarea id="isi_artikel" rows="5" placeholder="Tuliskan isi berita di sini agar muncul di monitor..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Deskripsi Singkat</label>
+            <textarea id="deskripsi" rows="2" placeholder="Tuliskan keterangan singkat konten di sini..."></textarea>
+        </div>
+
+        <button onclick="uploadKePortal()" id="btnPublish" class="btn-submit">
+            <i class="fa-solid fa-paper-plane"></i> Publikasikan ke Portal
+        </button>
+    </div>
+
+    <div class="card">
+        <h2><i class="fas fa-list-ul" style="color: var(--primary);"></i> Daftar Konten Terbit</h2>
+        
+        <div class="playlist-config">
+            <div>
+                <label>Mode Putar:</label>
+                <select id="modePutar" style="width: auto; padding: 5px;">
+                    <option value="berurutan">Berurutan (Normal)</option>
+                    <option value="acak">Acak (Shuffle)</option>
+                    <option value="loop">Loop (Ulangi Terus)</option>
+                </select>
+            </div>
+            <div>
+                <label>Default Durasi (Menit):</label>
+                <input type="number" id="defaultDurasi" value="10" style="width: 60px; padding: 5px;">
+            </div>
+            <button onclick="saveGlobalConfig()" class="btn-submit" style="width: auto; padding: 8px 15px;">Simpan Mode</button>
+        </div>
+
+        <div class="table-responsive">
             <table>
                 <thead>
                     <tr>
-                        <th width="50">ORD</th>
-                        <th>JUDUL KONTEN</th>
-                        <th width="120">TIPE</th>
-                        <th width="80">TIME</th>
-                        <th width="120">AKSI</th>
+                        <th>Urutan</th>
+                        <th>Judul Konten</th>
+                        <th>Tipe</th>
+                        <th>Durasi (Min)</th>
+                        <th style="text-align: center;">Aksi</th>
                     </tr>
                 </thead>
-                <tbody id="mediaTableBody">
+                <tbody id="mediaList">
+                    <tr>
+                        <td colspan="5" style="text-align:center; padding: 30px;">Memuat data...</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     </div>
+</div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
-            authDomain: "boby-apps-project.firebaseapp.com",
-            projectId: "boby-apps-project",
-            storageBucket: "boby-apps-project.appspot.com",
-            messagingSenderId: "125984859692",
-            appappId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
-        };
+<script>
+    // Konfigurasi Firebase Anda
+    const firebaseConfig = {
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+        authDomain: "boby-apps-project.firebaseapp.com",
+        projectId: "boby-apps-project",
+        storageBucket: "boby-apps-project.appspot.com",
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+    };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
 
-        // 1. UPDATE RUNNING TEXT KE DATABASE CONFIG
-        async function postRunningText() {
-            const text = document.getElementById('runningTextInput').value;
-            if(!text) return alert("Ketik pesan dulu!");
+    // FUNGSI TOGGLE INPUT DINAMIS
+    function toggleInputFields() {
+        const tipe = document.getElementById('tipe_media').value;
+        const urlContainer = document.getElementById('input_url_container');
+        const teksContainer = document.getElementById('input_teks_container');
+        const labelUrl = document.getElementById('label_url');
+        const inputUrl = document.getElementById('url_media');
 
-            try {
-                // Simpan ke riwayat untuk daftar di bawahnya
-                await db.collection("running_text_history").add({
-                    content: text,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
+        urlContainer.style.display = "block";
+        teksContainer.style.display = "none";
+
+        if (tipe === 'gambar') {
+            labelUrl.innerText = "Link / URL Gambar";
+            inputUrl.placeholder = "https://link-gambar.jpg";
+        } else if (tipe === 'video_youtube') {
+            labelUrl.innerText = "Link Video YouTube";
+            inputUrl.placeholder = "https://www.youtube.com/watch?v=...";
+        } else if (tipe === 'video_player') {
+            labelUrl.innerText = "URL File Video (MP4)";
+            inputUrl.placeholder = "https://server-anda.com/video.mp4";
+        } else if (tipe === 'audio_player') {
+            labelUrl.innerText = "URL File Audio (MP3)";
+            inputUrl.placeholder = "https://server-anda.com/lagu.mp3";
+        } else if (tipe === 'teks') {
+            urlContainer.style.display = "none";
+            teksContainer.style.display = "block";
+        }
+    }
+
+    // FUNGSI UPLOAD DENGAN AUTO-EMBED YOUTUBE
+    async function uploadKePortal() {
+        const btn = document.getElementById('btnPublish');
+        const judul = document.getElementById('judul').value;
+        const tipe = document.getElementById('tipe_media').value;
+        let urlValue = document.getElementById('url_media').value;
+        const isiArtikel = document.getElementById('isi_artikel').value;
+
+        if(!judul) { alert("Judul harus diisi!"); return; }
+
+        // --- LOGIKA AUTO-EMBED YOUTUBE ---
+        if (tipe === 'video_youtube' && urlValue) {
+            let videoId = "";
+            if (urlValue.includes('v=')) {
+                videoId = urlValue.split('v=')[1].split('&')[0];
+            } else if (urlValue.includes('youtu.be/')) {
+                videoId = urlValue.split('youtu.be/')[1].split('?')[0];
+            } else if (urlValue.includes('embed/')) {
+                videoId = urlValue.split('embed/')[1].split('?')[0];
+            }
+
+            if (videoId) {
+                // Konversi ke format embed agar bisa diputar di monitor
+                urlValue = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&playlist=${videoId}&loop=1`;
+            }
+        }
+        // ---------------------------------
+
+        btn.disabled = true;
+        btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Sedang Memproses...";
+
+        try {
+            const snapshot = await db.collection("portal_media").get();
+            const data = {
+                judul: judul,
+                tipe: tipe,
+                url: urlValue,
+                isi_artikel: isiArtikel,
+                deskripsi: document.getElementById('deskripsi').value,
+                urutan: snapshot.size + 1,
+                durasi: parseInt(document.getElementById('defaultDurasi').value),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            await db.collection("portal_media").add(data);
+            alert("Berhasil dipublikasikan!");
+            location.reload();
+        } catch (e) {
+            alert("Gagal: " + e.message);
+            btn.disabled = false;
+            btn.innerHTML = "Publikasikan ke Portal";
+        }
+    }
+
+    // FUNGSI LOAD DATA TABEL
+    async function loadMedia() {
+        const list = document.getElementById('mediaList');
+        try {
+            const snapshot = await db.collection("portal_media").orderBy("urutan", "asc").get();
+            list.innerHTML = "";
+            
+            if(snapshot.empty) {
+                list.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada konten.</td></tr>';
+                return;
+            }
+
+            snapshot.forEach((doc, index) => {
+                const data = doc.data();
+                const id = doc.id;
+                const badgeClass = "badge-" + data.tipe;
                 
-                // UPDATE UTAMA: Mengirim ke config/running_text (Sinkron dengan Portal Utama)
-                await db.collection("config").doc("running_text").set({ 
-                    message: text,
-                    isSyncActive: true,
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
-
-                alert("Running Text berhasil diperbarui!");
-                document.getElementById('runningTextInput').value = "";
-            } catch (error) {
-                console.error("Error:", error);
-                alert("Gagal update database!");
-            }
-        }
-
-        // 2. LOAD RIWAYAT & REUSE
-        function loadRunningHistory() {
-            db.collection("running_text_history").orderBy("timestamp", "desc").limit(5).onSnapshot(snap => {
-                let html = "";
-                snap.forEach(doc => {
-                    const data = doc.data();
-                    html += `<tr>
-                        <td>${data.content}</td>
-                        <td width="50"><button class="btn-action" onclick="reuseText('${data.content}')"><i class="fas fa-play"></i></button></td>
-                    </tr>`;
-                });
-                document.getElementById('historyRunningText').innerHTML = html;
+                list.innerHTML += `
+                    <tr>
+                        <td>
+                            <button class="btn-nav" onclick="pindahUrutan('${id}', -1)"><i class="fas fa-chevron-up"></i></button>
+                            <span style="margin: 0 10px; font-weight: bold;">${data.urutan || index + 1}</span>
+                            <button class="btn-nav" onclick="pindahUrutan('${id}', 1)"><i class="fas fa-chevron-down"></i></button>
+                        </td>
+                        <td><strong>${data.judul}</strong></td>
+                        <td><span class="badge ${badgeClass}">${data.tipe.replace('_', ' ')}</span></td>
+                        <td>
+                            <input type="number" value="${data.durasi || 10}" 
+                                   onchange="updateDurasi('${id}', this.value)" 
+                                   style="width: 50px; padding: 2px;">
+                        </td>
+                        <td style="text-align: center;">
+                            <button class="btn-action btn-play" onclick="playSekarang('${id}')" title="Putar Sekarang">
+                                <i class="fas fa-play-circle"></i>
+                            </button>
+                            <button class="btn-action btn-delete" onclick="deleteMedia('${id}')" title="Hapus">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
             });
-        }
+        } catch (e) { console.error(e); }
+    }
 
-        async function reuseText(txt) {
-            try {
-                await db.collection("config").doc("running_text").update({ message: txt });
-                alert("Pesan riwayat diaktifkan!");
-            } catch(e) {
-                alert("Gagal mengaktifkan pesan lama");
-            }
-        }
-
-        // 3. LOAD DATA PLAYLIST DARI portal_media
-        function loadPlaylist() {
-            db.collection("portal_media").orderBy("urutan", "asc").onSnapshot(snap => {
-                let html = "";
-                snap.forEach(doc => {
-                    const data = doc.data();
-                    html += `
-                        <tr>
-                            <td>${data.urutan || 0}</td>
-                            <td><strong>${data.judul}</strong></td>
-                            <td><span class="badge">${data.tipe}</span></td>
-                            <td>${data.durasi}m</td>
-                            <td>
-                                <button class="btn-action" onclick="playSekarang('${doc.id}', '${data.judul}')" title="Play"><i class="fas fa-play" style="color:var(--primary-green)"></i></button>
-                                <button class="btn-action" onclick="hapusKonten('${doc.id}')" title="Hapus"><i class="fas fa-trash" style="color:#e74c3c"></i></button>
-                            </td>
-                        </tr>`;
-                });
-                document.getElementById('mediaTableBody').innerHTML = html;
+    // FITUR PUTAR SEKARANG
+    async function playSekarang(id) {
+        try {
+            await db.collection("config").doc("playlist").update({
+                activeContentId: id,
+                triggerChange: Date.now() 
             });
+            alert("Konten segera diputar di monitor!");
+        } catch (e) {
+            alert("Gagal memicu putar: " + e.message);
         }
+    }
 
-        async function playSekarang(id, judul) {
-            await db.collection("settings").doc("current_media").set({
-                mediaId: id,
-                lastPlayed: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            alert("Memutar di Layar Utama: " + judul);
+    // NAVIGASI & MANAJEMEN
+    async function pindahUrutan(id, arah) {
+        const ref = db.collection("portal_media");
+        const doc = await ref.doc(id).get();
+        const urutanSekarang = doc.data().urutan;
+        const urutanBaru = urutanSekarang + arah;
+        if (urutanBaru < 1) return;
+
+        const swapQuery = await ref.where("urutan", "==", urutanBaru).get();
+        const batch = db.batch();
+        if (!swapQuery.empty) {
+            batch.update(ref.doc(swapQuery.docs[0].id), { urutan: urutanSekarang });
         }
+        batch.update(ref.doc(id), { urutan: urutanBaru });
+        await batch.commit();
+        loadMedia();
+    }
 
-        window.onload = () => {
-            loadPlaylist();
-            loadRunningHistory();
-        };
-    </script>
+    async function updateDurasi(id, menit) {
+        await db.collection("portal_media").doc(id).update({ durasi: parseInt(menit) });
+    }
+
+    async function deleteMedia(id) {
+        if(confirm("Hapus konten ini?")) {
+            await db.collection("portal_media").doc(id).delete();
+            loadMedia();
+        }
+    }
+
+    async function saveGlobalConfig() {
+        const mode = document.getElementById('modePutar').value;
+        await db.collection("config").doc("playlist").set({ mode: mode }, { merge: true });
+        alert("Mode Putar Disimpan!");
+    }
+
+    window.onload = loadMedia;
+</script>
+
 </body>
 </html>
