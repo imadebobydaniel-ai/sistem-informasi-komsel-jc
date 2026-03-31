@@ -207,7 +207,7 @@
         if(elBar) elBar.style.width = Math.min(value, 100) + "%";
     }
 
-    // FUNGSI ALKITAB YANG SUDAH DIGABUNG & DIPERBAIKI
+    // SYNC ALKITAB (ORANG UNIK)
     async function syncStatistikAlkitab() {
         const jcAlk = document.getElementById("select-komsel-alkitab").value;
         const blnAlk = parseInt(document.getElementById("select-periode-alkitab").value);
@@ -231,36 +231,56 @@
             
             const barAtas = document.getElementById("bar-laporan-orang-alkitab");
             if(barAtas) barAtas.style.width = Math.min(persen, 100) + "%";
-        }, err => {
-            console.error("Error Alkitab:", err);
-        });
+        }, err => console.error("Error Alkitab:", err));
     }
 
+    // SYNC HADIR (SUDAH DIUBAH KE ORANG UNIK)
     async function syncStatistikHadir() {
         const jcHdr = document.getElementById("select-jc-laporan").value;
         const blnHdr = parseInt(document.getElementById("select-periode-laporan").value);
 
-        db.collection("kehadiran").where("jc", "==", jcHdr).where("status", "==", "HADIR").where("tanggal", ">=", getStartDate(blnHdr))
-         .onSnapshot(snap => {
-            const jml = snap.size;
-            document.getElementById("text-laporan-orang-hadir").innerText = jml + " Orang";
-            document.getElementById("count-lapor-hadir").innerText = jml + " Orang Hadir";
-            const persen = ((jml / 50) * 100).toFixed(1);
+        db.collection("kehadiran")
+          .where("jc", "==", jcHdr)
+          .where("status", "==", "HADIR")
+          .where("tanggal", ">=", getStartDate(blnHdr))
+          .onSnapshot(snap => {
+            let userUnikHadir = new Set();
+            snap.forEach(doc => {
+                const data = doc.data();
+                if(data.nama) userUnikHadir.add(data.nama.trim());
+            });
+
+            const jmlHadir = userUnikHadir.size;
+            const persen = ((jmlHadir / 50) * 100).toFixed(1);
+            
+            document.getElementById("text-laporan-orang-hadir").innerText = jmlHadir + " Orang";
+            document.getElementById("count-lapor-hadir").innerText = jmlHadir + " Orang Hadir";
             updateStatistikBar('txt-hadir-jc', 'bar-hadir-jc', persen);
             document.getElementById("bar-laporan-orang-hadir").style.width = Math.min(persen, 100) + "%";
         }, err => console.error("Error Hadir:", err));
     }
 
+    // SYNC TIDAK HADIR (SUDAH DIUBAH KE ORANG UNIK)
     async function syncStatistikIzin() {
         const jcIz = document.getElementById("select-jc-izin").value;
         const blnIz = parseInt(document.getElementById("select-periode-izin").value);
 
-        db.collection("kehadiran").where("jc", "==", jcIz).where("status", "==", "TIDAK HADIR").where("tanggal", ">=", getStartDate(blnIz))
-         .onSnapshot(snap => {
-            const jml = snap.size;
-            document.getElementById("text-laporan-orang-izin").innerText = jml + " Orang";
-            document.getElementById("count-lapor-izin").innerText = jml + " Orang Izin/Alpha";
-            const persen = ((jml / 50) * 100).toFixed(1);
+        db.collection("kehadiran")
+          .where("jc", "==", jcIz)
+          .where("status", "==", "TIDAK HADIR")
+          .where("tanggal", ">=", getStartDate(blnIz))
+          .onSnapshot(snap => {
+            let userUnikIzin = new Set();
+            snap.forEach(doc => {
+                const data = doc.data();
+                if(data.nama) userUnikIzin.add(data.nama.trim());
+            });
+
+            const jmlIzin = userUnikIzin.size;
+            const persen = ((jmlIzin / 50) * 100).toFixed(1);
+
+            document.getElementById("text-laporan-orang-izin").innerText = jmlIzin + " Orang";
+            document.getElementById("count-lapor-izin").innerText = jmlIzin + " Orang Izin/Alpha";
             updateStatistikBar('txt-izin-jc', 'bar-izin-jc', persen);
             document.getElementById("bar-laporan-orang-izin").style.width = Math.min(persen, 100) + "%";
         }, err => console.error("Error Izin:", err));
