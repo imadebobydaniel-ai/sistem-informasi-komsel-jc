@@ -194,11 +194,14 @@
 
     let listNamaGoldar = { 'A': [], 'B': [], 'O': [], 'AB': [] };
 
-    function getStartDate(monthsBack) {
+    // FUNGSI BARU: Menghasilkan string tanggal YYYY-MM-DD untuk kueri Firestore String
+    function getStartDateString(monthsBack) {
         let d = new Date();
         d.setMonth(d.getMonth() - monthsBack);
-        d.setHours(0,0,0,0);
-        return d; 
+        let yyyy = d.getFullYear();
+        let mm = String(d.getMonth() + 1).padStart(2, '0');
+        let dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`; 
     }
 
     function updateStatistikBar(textId, barId, value) {
@@ -215,7 +218,7 @@
         
         db.collection("laporan_bacaan")
           .where("komsel", "==", jcAlk)
-          .where("tanggal", ">=", getStartDate(blnAlk))
+          .where("tanggal", ">=", getStartDateString(blnAlk)) // Menggunakan String
           .onSnapshot(snap => {
             let userUnik = new Set();
             snap.forEach(doc => { if(doc.data().nama) userUnik.add(doc.data().nama.trim()); });
@@ -228,15 +231,15 @@
         }, err => console.error("Error Alkitab:", err));
     }
 
-    // --- SYNC KEHADIRAN (HADIR) ---
+    // --- SYNC KEHADIRAN (HADIR) - DIPERBAIKI KE FIELD "jc" ---
     async function syncStatistikHadir() {
         const jcHdr = document.getElementById("select-jc-laporan").value;
         const blnHdr = parseInt(document.getElementById("select-periode-laporan").value);
 
         db.collection("kehadiran")
-          .where("komsel", "==", jcHdr)
+          .where("jc", "==", jcHdr) // Perbaikan field "komsel" -> "jc"
           .where("status", "==", "HADIR")
-          .where("tanggal", ">=", getStartDate(blnHdr))
+          .where("tanggal", ">=", getStartDateString(blnHdr)) // Perbaikan format tanggal
           .onSnapshot(snap => {
             const jml = snap.size;
             document.getElementById("text-laporan-orang-hadir").innerText = jml + " Orang";
@@ -247,15 +250,15 @@
         }, err => console.error("Error Hadir:", err));
     }
 
-    // --- SYNC KETIDAKHADIRAN (IZIN/ALPHA/TIDAK HADIR) ---
+    // --- SYNC KETIDAKHADIRAN - DIPERBAIKI KE FIELD "jc" ---
     async function syncStatistikIzin() {
         const jcIz = document.getElementById("select-jc-izin").value;
         const blnIz = parseInt(document.getElementById("select-periode-izin").value);
 
         db.collection("kehadiran")
-          .where("komsel", "==", jcIz)
+          .where("jc", "==", jcIz) // Perbaikan field "komsel" -> "jc"
           .where("status", "in", ["TIDAK HADIR", "IZIN", "ALPHA", "Sakit"]) 
-          .where("tanggal", ">=", getStartDate(blnIz))
+          .where("tanggal", ">=", getStartDateString(blnIz)) // Perbaikan format tanggal
           .onSnapshot(snap => {
             const jml = snap.size;
             document.getElementById("text-laporan-orang-izin").innerText = jml + " Orang";
@@ -273,7 +276,7 @@
 
         db.collection("laporan_doa")
           .where("jc", "==", jcDoa)
-          .where("tglInput", ">=", getStartDate(blnDoa))
+          .where("tglInput", ">=", getStartDateString(blnDoa))
           .onSnapshot(snap => {
             let terjawab = 0;
             snap.forEach(doc => { if(doc.data().terjawab === true) terjawab++; });
