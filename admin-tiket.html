@@ -12,30 +12,24 @@
         .sla-normal { color: #198754; }
         @media print { .no-print { display: none; } }
         
-        /* Style Tambahan untuk Tombol Hapus & Badge */
         .btn-delete {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: 0.2s;
+            background: #dc3545; color: white; border: none;
+            padding: 4px 8px; border-radius: 4px; cursor: pointer; transition: 0.2s;
         }
         .btn-delete:hover { background: #a71d2a; }
         .btn-view {
-            background: #0dcaf0;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
+            background: #0dcaf0; color: white; border: none;
+            padding: 4px 8px; border-radius: 4px; cursor: pointer;
+        }
+        .btn-update {
+            background: #198754; color: white; border: none;
+            padding: 4px 8px; border-radius: 4px; cursor: pointer;
         }
         .clickable-cat {
-            cursor: pointer;
-            color: #0d6efd;
-            text-decoration: underline;
+            cursor: pointer; color: #0d6efd; text-decoration: underline;
         }
+        .badge-proses { background-color: #fd7e14; }
+        .badge-selesai { background-color: #198754; }
     </style>
 </head>
 <body class="bg-light">
@@ -56,19 +50,19 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-left border-warning shadow-sm p-3" style="border-left: 5px solid #ffc107;">
+            <div class="card shadow-sm p-3" style="border-left: 5px solid #ffc107;">
                 <small class="text-muted">Permohonan Doa</small>
                 <h3 id="countDoa">0</h3>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-left border-danger shadow-sm p-3" style="border-left: 5px solid #dc3545;">
+            <div class="card shadow-sm p-3" style="border-left: 5px solid #dc3545;">
                 <small class="text-muted">Problem Aplikasi</small>
                 <h3 id="countProblem">0</h3>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-left border-success shadow-sm p-3" style="border-left: 5px solid #198754;">
+            <div class="card shadow-sm p-3" style="border-left: 5px solid #198754;">
                 <small class="text-muted">Saran & Masukan</small>
                 <h3 id="countSaran">0</h3>
             </div>
@@ -78,11 +72,11 @@
     <div class="card shadow-sm mb-4 no-print">
         <div class="card-body d-flex justify-content-between align-items-center">
             <div class="d-flex gap-2">
-                <select class="form-select w-auto" id="filterKategori">
+                <select class="form-select w-auto" id="filterKategori" onchange="loadTickets()">
                     <option value="">Semua Kategori</option>
-                    <option value="Tiket Permohonan Doa">Tiket Permohonan Doa</option>
-                    <option value="Tiket Problem Aplikasi">Tiket Problem Aplikasi</option>
-                    <option value="Tiket Saran dan Masukan">Tiket Saran dan Masukan</option>
+                    <option value="Permohonan Doa">Permohonan Doa</option>
+                    <option value="Masalah Aplikasi">Masalah Aplikasi</option>
+                    <option value="Saran & Masukan">Saran & Masukan</option>
                 </select>
             </div>
             <div class="btn-group">
@@ -93,23 +87,22 @@
     </div>
 
     <div class="card shadow-sm">
-        <div class="card-header bg-white fw-bold">Daftar Detail Tiket</div>
+        <div class="card-header bg-white fw-bold">Daftar Detail Tiket (Koleksi: saran_masukan)</div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0" id="tiketTable">
                 <thead class="table-light">
                     <tr>
-                        <th>No</th>
+                        <th>No Tiket</th>
                         <th>Kategori</th>
                         <th>Tanggal Masuk</th>
                         <th>Tanggal Close</th>
                         <th>Durasi SLA</th>
-                        <th>Penyelesaian</th>
+                        <th>Pengirim</th>
                         <th>Status</th>
                         <th class="no-print">Aksi</th>
                     </tr>
                 </thead>
-                <tbody id="tiketData">
-                    </tbody>
+                <tbody id="tiketData"></tbody>
             </table>
         </div>
     </div>
@@ -121,69 +114,80 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script>
-    // Konfigurasi Firebase Anda (Ganti dengan config milik Anda)
+    // Konfigurasi Firebase
     const firebaseConfig = {
-        // paste config firebase anda di sini
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+        authDomain: "boby-apps-project.firebaseapp.com",
+        projectId: "boby-apps-project",
+        storageBucket: "boby-apps-project.appspot.com",
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
+    
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    function hitungSLA(masuk, keluar) {
-        if (!keluar || keluar === "-") return "Sedang Berjalan";
-        const d1 = new Date(masuk);
-        const d2 = new Date(keluar);
-        const diffMs = d2 - d1;
-        const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-        const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-        return `${diffHrs} Jam ${diffMins} Menit`;
+    // Fungsi Hitung SLA (Durasi)
+    function hitungSLA(masukStr, timestamp) {
+        if (!timestamp) return "Sedang Berjalan";
+        
+        // Mengubah string tanggal "23/3/2026" menjadi objek Date
+        const parts = masukStr.split('/');
+        const dMasuk = new Date(parts[2], parts[1] - 1, parts[0]);
+        const dSelesai = timestamp.toDate();
+        
+        const diffMs = dSelesai - dMasuk;
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        
+        return diffDays > 0 ? `${diffDays} Hari` : "Hari yang sama";
     }
 
-    // Fungsi Load Data Real-time
+    // Fungsi Load Data Real-time dari koleksi 'saran_masukan'
     function loadTickets() {
-        db.collection("tiket").orderBy("tanggalMasuk", "desc").onSnapshot(snap => {
+        const filterVal = document.getElementById('filterKategori').value;
+
+        db.collection("saran_masukan").orderBy("timestamp", "desc").onSnapshot(snap => {
             const tbody = document.getElementById('tiketData');
             tbody.innerHTML = "";
             
-            let countDoa = 0, countProb = 0, countSaran = 0, total = 0;
+            let cDoa = 0, cProb = 0, cSaran = 0, total = 0;
 
-            snap.forEach((doc, index) => {
+            snap.forEach((doc) => {
                 const t = doc.data();
                 const id = doc.id;
+
+                // Hitung Statistik
+                if(t.kategori === "Permohonan Doa") cDoa++;
+                if(t.kategori === "Masalah Aplikasi") cProb++;
+                if(t.kategori === "Saran & Masukan") cSaran++;
                 total++;
 
-                if(t.kategori.includes("Doa")) countDoa++;
-                if(t.kategori.includes("Problem")) countProb++;
-                if(t.kategori.includes("Saran")) countSaran++;
+                // Filter Kategori
+                if(filterVal !== "" && t.kategori !== filterVal) return;
 
-                const sla = hitungSLA(t.tanggalMasuk, t.tanggalClose);
+                const sla = (t.status === 'Selesai' || t.status === 'proses') ? 
+                             hitungSLA(t.tanggal_kirim, t.timestamp) : "-";
                 
-                // Logika Tombol Hapus hanya untuk 'Closed'
-                const deleteBtn = t.status === 'Closed' ? 
-                    `<button class="btn-delete" onclick="deleteTicket('${id}')" title="Hapus Tiket">
-                        <i class="fas fa-trash"></i>
-                    </button>` : '';
+                const statusClass = t.status === 'Selesai' ? 'badge-selesai' : 'badge-proses';
 
                 tbody.innerHTML += `
                     <tr>
-                        <td>${total}</td>
+                        <td><small class="text-muted">${t.nomor_tiket || '-'}</small></td>
                         <td class="clickable-cat" onclick="showDetail('${id}')">
                             <span class="badge bg-info text-dark">${t.kategori}</span>
                         </td>
-                        <td>${t.tanggalMasuk}</td>
-                        <td>${t.tanggalClose || '-'}</td>
-                        <td class="${t.tanggalClose ? 'sla-normal' : 'sla-urgent'}">${sla}</td>
-                        <td>${t.penyelesaian || '-'}</td>
+                        <td>${t.tanggal_kirim} <br><small>${t.jam_kirim || ''}</small></td>
+                        <td>${t.status === 'Selesai' ? t.tanggal_kirim : '-'}</td>
+                        <td class="${t.status === 'Selesai' ? 'sla-normal' : 'sla-urgent'}">${t.status === 'Selesai' ? 'Selesai' : 'Proses'}</td>
+                        <td><b>${t.nama}</b><br><small>${t.jc || '-'}</small></td>
                         <td>
-                            <span class="badge ${t.status === 'Closed' ? 'bg-success' : 'bg-warning'}">
-                                ${t.status}
-                            </span>
+                            <span class="badge ${statusClass}">${t.status ? t.status.toUpperCase() : 'PROSES'}</span>
                         </td>
                         <td class="no-print">
-                            <div class="d-flex gap-2">
-                                <button class="btn-view" onclick="showDetail('${id}')" title="Lihat Detail">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                ${deleteBtn}
+                            <div class="d-flex gap-1">
+                                <button class="btn-view" onclick="showDetail('${id}')" title="Lihat Detail"><i class="fas fa-eye"></i></button>
+                                ${t.status !== 'Selesai' ? `<button class="btn-update" onclick="updateStatus('${id}')" title="Selesaikan"><i class="fas fa-check"></i></button>` : ''}
+                                <button class="btn-delete" onclick="deleteTicket('${id}')" title="Hapus"><i class="fas fa-trash"></i></button>
                             </div>
                         </td>
                     </tr>
@@ -191,40 +195,48 @@
             });
 
             document.getElementById('totalTiket').innerText = total;
-            document.getElementById('countDoa').innerText = countDoa;
-            document.getElementById('countProblem').innerText = countProb;
-            document.getElementById('countSaran').innerText = countSaran;
+            document.getElementById('countDoa').innerText = cDoa;
+            document.getElementById('countProblem').innerText = cProb;
+            document.getElementById('countSaran').innerText = cSaran;
         });
     }
 
-    // Fungsi Popup Detail
+    // Popup Detail
     function showDetail(id) {
-        db.collection("tiket").doc(id).get().then(doc => {
+        db.collection("saran_masukan").doc(id).get().then(doc => {
             if (doc.exists) {
-                const data = doc.data();
+                const d = doc.data();
                 alert(`
-                    --- DETAIL TIKET ---
-                    Pengirim: ${data.namaPengirim || 'Tidak Diketahui'}
-                    Asal JC: ${data.asalJC || '-'}
-                    Kategori: ${data.kategori}
-                    
-                    ISI PESAN:
-                    "${data.isiTiket || 'Tidak ada pesan.'}"
-                    
-                    Status: ${data.status}
-                    ----------------------
+DETAIL TIKET [${d.nomor_tiket}]
+---------------------------------
+Pengirim : ${d.nama}
+Email    : ${d.email}
+JC       : ${d.jc}
+Kategori : ${d.kategori}
+
+PESAN:
+"${d.isi_saran}"
+
+Status   : ${d.status || 'proses'}
                 `);
             }
         });
     }
 
-    // Fungsi Hapus Tiket
+    // Update Status ke Selesai
+    function updateStatus(id) {
+        if(confirm("Tandai tiket ini sebagai Selesai?")) {
+            db.collection("saran_masukan").doc(id).update({
+                status: "Selesai"
+            }).then(() => alert("Status diperbarui!"));
+        }
+    }
+
+    // Hapus Tiket
     function deleteTicket(id) {
-        if(confirm("Apakah Anda yakin ingin menghapus tiket yang sudah selesai ini?")) {
-            db.collection("tiket").doc(id).delete().then(() => {
-                alert("Tiket berhasil dihapus secara permanen.");
-            }).catch((error) => {
-                console.error("Error removing document: ", error);
+        if(confirm("Hapus tiket ini secara permanen?")) {
+            db.collection("saran_masukan").doc(id).delete().then(() => {
+                alert("Tiket dihapus.");
             });
         }
     }
@@ -237,11 +249,10 @@
         await html2canvas(element).then(canvas => {
             const imgData = canvas.toDataURL('image/png');
             doc.addImage(imgData, 'PNG', 10, 10, 280, 150);
-            doc.save('Laporan_Tiket_Pondok_Pemulihan.pdf');
+            doc.save('Laporan_Tiket_Saran_Masukan.pdf');
         });
     }
 
-    // Jalankan load data saat halaman siap
     window.onload = loadTickets;
 </script>
 </body>
