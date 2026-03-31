@@ -38,7 +38,6 @@
             text-transform: uppercase; letter-spacing: 1px;
         }
 
-        /* --- Search Area --- */
         .search-wrapper { 
             padding: 12px; background: var(--biru-tua); 
             border-radius: 0 0 20px 20px;
@@ -59,7 +58,6 @@
 
         .content-area { padding: 10px; }
 
-        /* --- Card Design --- */
         .card-lacak {
             background: white; border-radius: 15px;
             margin-bottom: 10px; overflow: hidden;
@@ -95,7 +93,6 @@
             background: #eee; position: relative;
         }
 
-        /* Tombol Navigasi */
         .btn-navigasi {
             background: var(--biru-tua); color: white;
             border: none; width: 100%; padding: 12px;
@@ -104,7 +101,6 @@
             cursor: pointer;
         }
 
-        /* --- MODAL POPUP (Half Display) --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); z-index: 2000;
@@ -215,13 +211,12 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    let targetUrl = ""; // Simpan URL maps sementara
+    let targetUrl = ""; 
 
     function toggleCard(el) {
         el.parentElement.classList.toggle('active');
     }
 
-    // Fungsi Pop-up
     function mintaAkses(url) {
         targetUrl = url;
         document.getElementById('modalPassword').style.display = 'flex';
@@ -247,12 +242,21 @@
 
     function cekAkses() {
         const pass = document.getElementById('inputPass').value;
-        // Silakan ganti "admin123" dengan password yang anda inginkan
         if (pass === "admin123" || pass === "pks2026") {
+            // Membuka URL maps menggunakan window.open
             window.open(targetUrl, '_blank');
             tutupModal();
         } else {
             alert("Password Salah! Akses Ditolak.");
+        }
+    }
+
+    function filterMembers() {
+        let input = document.getElementById('memberSearch').value.toLowerCase();
+        let cards = document.getElementsByClassName('card-lacak');
+        for (let i = 0; i < cards.length; i++) {
+            let name = cards[i].getAttribute('data-name').toLowerCase();
+            cards[i].style.display = name.includes(input) ? "block" : "none";
         }
     }
 
@@ -263,6 +267,8 @@
             querySnapshot.forEach((doc) => {
                 const d = doc.data();
                 const timeStr = d.lastSeen ? new Date(d.lastSeen.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "Aktif";
+                
+                // Perbaikan skema URL: Menggunakan HTTPS agar kompatibel dengan WebView APK
                 const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${d.lat},${d.lng}`;
 
                 htmlContent += `
