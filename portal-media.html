@@ -143,8 +143,12 @@
             font-weight: 700;
             text-transform: uppercase;
         }
+        /* Badge Styles per Type */
         .badge-gambar { background: rgba(56, 189, 248, 0.1); color: var(--primary); }
         .badge-video_youtube { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .badge-video_player { background: rgba(34, 197, 94, 0.1); color: var(--success); }
+        .badge-audio_player { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .badge-teks { background: rgba(148, 163, 184, 0.1); color: var(--secondary); }
         
         .btn-action {
             width: 35px;
@@ -164,7 +168,6 @@
         }
         .order-btn:hover { color: var(--primary); }
 
-        /* Config Bar */
         .config-bar {
             display: flex;
             gap: 20px;
@@ -279,7 +282,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    // Konfigurasi Firebase tetap sama
+    // Konfigurasi Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -292,6 +295,7 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
+    // Fungsi Update Running Text
     async function updateRunningText() {
         const text = document.getElementById('runningTextInput').value;
         const btn = document.getElementById('btnSaveRunningText');
@@ -308,12 +312,23 @@
         btn.innerHTML = "<i class='fa-solid fa-sync'></i> Sync ke Monitor";
     }
 
+    // Perbaikan: Toggle input fields lebih dinamis
     function toggleInputFields() {
         const tipe = document.getElementById('tipe_media').value;
-        document.getElementById('input_url_container').style.display = tipe === 'teks' ? "none" : "block";
-        document.getElementById('input_teks_container').style.display = tipe === 'teks' ? "block" : "none";
+        const urlContainer = document.getElementById('input_url_container');
+        const teksContainer = document.getElementById('input_teks_container');
+        const labelUrl = document.getElementById('label_url');
+
+        urlContainer.style.display = tipe === 'teks' ? "none" : "block";
+        teksContainer.style.display = tipe === 'teks' ? "block" : "none";
+
+        if (tipe === 'gambar') labelUrl.innerText = "URL Gambar (Link Direct)";
+        else if (tipe === 'video_youtube') labelUrl.innerText = "Link YouTube (v=...)";
+        else if (tipe === 'video_player') labelUrl.innerText = "Link Direct MP4";
+        else if (tipe === 'audio_player') labelUrl.innerText = "Link Direct MP3";
     }
 
+    // Fungsi Upload Media ke Firestore
     async function uploadKePortal() {
         const btn = document.getElementById('btnPublish');
         const judul = document.getElementById('judul').value;
@@ -323,6 +338,7 @@
 
         if(!judul) return alert("Judul wajib diisi!");
 
+        // Otomatis convert link YouTube ke embed agar bisa autoplay
         if (tipe === 'video_youtube' && urlValue) {
             let videoId = "";
             if (urlValue.includes('v=')) videoId = urlValue.split('v=')[1].split('&')[0];
@@ -331,6 +347,7 @@
         }
 
         btn.disabled = true;
+        btn.innerHTML = "<i class='fas fa-spinner fa-spin'></i> Processing...";
         try {
             const snapshot = await db.collection("portal_media").get();
             await db.collection("portal_media").add({
@@ -342,9 +359,10 @@
             });
             await db.collection("config").doc("playlist").update({ lastUpdate: Date.now() });
             location.reload();
-        } catch (e) { alert(e.message); btn.disabled = false; }
+        } catch (e) { alert(e.message); btn.disabled = false; btn.innerHTML = "<i class='fa-solid fa-paper-plane'></i> Publish Sekarang"; }
     }
 
+    // Fungsi Load Daftar Media
     function loadMedia() {
         db.collection("config").doc("running_text").get().then(doc => {
             if(doc.exists) document.getElementById('runningTextInput').value = doc.data().message;
@@ -353,6 +371,10 @@
         db.collection("portal_media").orderBy("urutan", "asc").onSnapshot(snapshot => {
             const list = document.getElementById('mediaList');
             list.innerHTML = "";
+            if(snapshot.empty) {
+                list.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 40px; color: var(--text-muted);">Belum ada konten media.</td></tr>`;
+                return;
+            }
             snapshot.forEach(doc => {
                 const data = doc.data();
                 const id = doc.id;
@@ -367,7 +389,7 @@
                         </td>
                         <td>
                             <div style="font-weight:600">${data.judul}</div>
-                            <div style="font-size:11px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; max-width:250px; white-space:nowrap">${data.url || 'Konten Teks'}</div>
+                            <div style="font-size:11px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; max-width:250px; white-space:nowrap">${data.url || 'Konten Teks/Artikel'}</div>
                         </td>
                         <td><span class="badge badge-${data.tipe}">${data.tipe.replace('_', ' ')}</span></td>
                         <td>${data.durasi}m</td>
@@ -380,6 +402,7 @@
         });
     }
 
+    // Fungsi Mengatur Urutan (Swap)
     async function pindahUrutan(id, arah) {
         const ref = db.collection("portal_media");
         const doc = await ref.doc(id).get();
@@ -393,21 +416,24 @@
         await batch.commit();
     }
 
+    // Fungsi Paksa Putar Konten Tertentu
     async function playSekarang(id) {
         await db.collection("config").doc("playlist").update({ activeContentId: id, forcePlay: Date.now() });
         alert("Sinyal 'Play' dikirim ke monitor.");
     }
 
+    // Fungsi Hapus Konten
     async function deleteMedia(id) {
-        if(confirm("Hapus konten ini?")) {
+        if(confirm("Hapus konten ini secara permanen?")) {
             await db.collection("portal_media").doc(id).delete();
         }
     }
 
+    // Fungsi Simpan Mode Putar
     async function saveGlobalConfig() {
         const mode = document.getElementById('modePutar').value;
         await db.collection("config").doc("playlist").set({ mode: mode }, { merge: true });
-        alert("Konfigurasi disimpan.");
+        alert("Mode putar berhasil disimpan.");
     }
 
     window.onload = loadMedia;
