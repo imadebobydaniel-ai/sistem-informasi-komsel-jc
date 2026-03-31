@@ -60,7 +60,10 @@
                     <option value="JC 1">JC 1</option><option value="JC 2">JC 2</option><option value="JC 3">JC 3</option><option value="JC 4">JC 4</option><option value="JC 5" selected>JC 5</option>
                 </select>
             </div>
-            <div class="input-box"><label>PERIODE</label><select disabled><option>12 Bulan terakhir</option></select></div>
+            <div class="input-box">
+                <label>PERIODE</label>
+                <select disabled> <option>12 Bulan terakhir</option></select>
+            </div>
         </div>
         <div class="progress-group-top">
             <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
@@ -87,7 +90,10 @@
                     <option value="JC 1">JC 1</option><option value="JC 2">JC 2</option><option value="JC 3">JC 3</option><option value="JC 4">JC 4</option><option value="JC 5" selected>JC 5</option>
                 </select>
             </div>
-            <div class="input-box"><label>PERIODE</label><select disabled><option>12 Bulan terakhir</option></select></div>
+            <div class="input-box">
+                <label>PERIODE</label>
+                <select disabled> <option>12 Bulan terakhir</option></select>
+            </div>
         </div>
         <div class="progress-group-top">
             <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
@@ -114,7 +120,10 @@
                     <option value="JC 1">JC 1</option><option value="JC 2">JC 2</option><option value="JC 3">JC 3</option><option value="JC 4">JC 4</option><option value="JC 5" selected>JC 5</option>
                 </select>
             </div>
-            <div class="input-box"><label>PERIODE</label><select disabled><option>12 Bulan terakhir</option></select></div>
+            <div class="input-box">
+                <label>PERIODE</label>
+                <select disabled> <option>12 Bulan terakhir</option></select>
+            </div>
         </div>
         <div class="progress-group-top">
             <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
@@ -141,7 +150,10 @@
                     <option value="JC 1">JC 1</option><option value="JC 2">JC 2</option><option value="JC 3">JC 3</option><option value="JC 4">JC 4</option><option value="JC 5" selected>JC 5</option>
                 </select>
             </div>
-            <div class="input-box"><label>PERIODE</label><select disabled><option>12 Bulan terakhir</option></select></div>
+            <div class="input-box">
+                <label>PERIODE</label>
+                <select disabled> <option>12 Bulan terakhir</option></select>
+            </div>
         </div>
         <div class="progress-group-top">
             <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
@@ -198,7 +210,6 @@
 
     let listNamaGoldar = { 'A': [], 'B': [], 'O': [], 'AB': [] };
 
-    // --- FUNGSI UPDATE SESUAI TARGET 50 ORANG ---
     function updateStatistikAlkitab(jmlMelapor) {
         const TARGET_MAX = 50; 
         const persen = ((jmlMelapor / TARGET_MAX) * 100).toFixed(1);
@@ -220,7 +231,6 @@
         document.getElementById("bar-absen-progres").style.width = Math.min(persen, 100) + "%";
     }
 
-    // --- HANDLERS SYNC ---
     function tutupPopupDarah() { document.getElementById('pop-detail-nama-darah').style.display = 'none'; }
 
     function bukaPopupNamaGoldar(gol) {
@@ -239,15 +249,10 @@
         db.collection("laporan_bacaan").where("jc", "==", jc).onSnapshot(snap => {
             let userUnik = new Set();
             snap.forEach(doc => { if(doc.data().nama) userUnik.add(doc.data().nama.trim()); });
-            
             const jmlLapor = userUnik.size;
             document.getElementById("text-laporan-orang-alkitab").innerText = snap.size + " Laporan";
             document.getElementById("progres-komsel-text-alkitab").innerText = jmlLapor + " Anggota Melapor";
-            
-            // Panggil fungsi target 50
             updateStatistikAlkitab(jmlLapor);
-            
-            // Update bar penunjang kecil di atas
             document.getElementById("bar-laporan-orang-alkitab").style.width = Math.min((jmlLapor/50)*100, 100) + "%";
         });
     }
@@ -256,21 +261,15 @@
         const idSelect = tipe === 'HADIR' ? 'select-jc-laporan' : 'select-jc-izin';
         const jc = document.getElementById(idSelect).value;
         const statusTarget = tipe === 'HADIR' ? 'HADIR' : 'TIDAK HADIR';
-
         db.collection("kehadiran").where("jc", "==", jc).where("status", "==", statusTarget).onSnapshot(snap => {
             let unik = new Set();
             snap.forEach(doc => { if(doc.data().nama) unik.add(doc.data().nama.trim()); });
-
             const jml = unik.size;
             const prefix = tipe === 'HADIR' ? 'hadir' : 'izin';
-
             document.getElementById(`text-laporan-orang-${prefix}`).innerText = jml + " Orang";
             document.getElementById(`count-lapor-${prefix}`).innerText = jml + " Orang Melapor";
-            
-            // Panggil fungsi target 50 masing-masing
             if(tipe === 'HADIR') updateStatistikKehadiran(jml);
             else updateStatistikAbsensi(jml);
-
             document.getElementById(`bar-laporan-orang-${prefix}`).style.width = Math.min((jml/50)*100, 100) + "%";
         });
     }
