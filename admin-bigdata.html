@@ -77,6 +77,33 @@
 
 <div id="loading">Memproses Data...</div>
 
+<div id="exportModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; justify-content:center; align-items:center;">
+    <div style="background:white; padding:30px; border-radius:20px; width:90%; max-width:500px; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+        <h3 id="modalTitle" style="margin-top:0;"><i class="fas fa-file-export"></i> Opsi Ekspor Laporan</h3>
+        <p>Silakan pilih metode pengambilan data:</p>
+        
+        <div style="display:flex; flex-direction:column; gap:12px; margin-top:20px;">
+            <button class="tab-btn" onclick="processExport('current')" style="justify-content:flex-start; width:100%;">
+                <i class="fas fa-table"></i> Ekspor Data Saat Ini (Tab Aktif)
+            </button>
+            <button class="tab-btn" onclick="processExport('all')" style="justify-content:flex-start; width:100%;">
+                <i class="fas fa-layer-group"></i> Ekspor Semua Kategori (Satu File PDF)
+            </button>
+            <button class="tab-btn" onclick="toggleCustomSection()" style="justify-content:flex-start; width:100%;">
+                <i class="fas fa-check-square"></i> Pilih Custom (Pilih Kategori)
+            </button>
+        </div>
+
+        <div id="customSection" style="display:none; margin-top:15px; padding:15px; background:#f8f9fa; border-radius:10px; border:1px solid #ddd;">
+            <p style="font-weight:bold; font-size:12px; margin-bottom:10px;">Pilih Kategori:</p>
+            <div id="customCheckboxes" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:12px;"></div>
+            <button class="action-btn btn-pdf" onclick="processExport('custom')" style="width:100%; margin-top:15px; justify-content:center;">Proses Pilihan</button>
+        </div>
+
+        <button onclick="closeExportModal()" style="margin-top:20px; width:100%; border:none; background:none; color:var(--danger); cursor:pointer; font-weight:bold;">Batal</button>
+    </div>
+</div>
+
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
         <h2><i class="fas fa-database"></i> Dashboard Statistik Central</h2>
@@ -95,8 +122,8 @@
         <button class="tab-btn" onclick="switchTab('saran', this)"><i class="fas fa-comment-dots"></i> Saran & Tiket</button>
         
         <div style="margin-left: auto; display: flex; gap: 8px;">
-            <button class="action-btn btn-pdf" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> Export</button>
-            <button class="action-btn btn-print" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+            <button class="action-btn btn-pdf" onclick="openExportModal('export')"><i class="fas fa-file-pdf"></i> Export</button>
+            <button class="action-btn btn-print" onclick="openExportModal('print')"><i class="fas fa-print"></i> Print</button>
         </div>
     </div>
 
@@ -144,6 +171,7 @@
 
     let myCharts = { pie: null, line: null, bar: null };
     let activeType = 'ibadah';
+    let currentAction = 'export';
 
     const menuConfig = {
         ibadah: { title: 'Ibadah Raya', col: 'kehadiran', fields: ['Nama', 'JC', 'Tanggal', 'Status', 'Keterangan'] },
@@ -159,6 +187,98 @@
 
     function showLoading(show) { document.getElementById('loading').style.display = show ? 'flex' : 'none'; }
 
+    // --- FUNGSI MODAL & EXPORT BARU ---
+    function openExportModal(action) {
+        currentAction = action;
+        document.getElementById('modalTitle').innerHTML = action === 'export' ? 
+            '<i class="fas fa-file-pdf"></i> Opsi Export PDF' : 
+            '<i class="fas fa-print"></i> Opsi Cetak Laporan';
+        
+        document.getElementById('customSection').style.display = 'none';
+        const container = document.getElementById('customCheckboxes');
+        container.innerHTML = "";
+        
+        Object.keys(menuConfig).forEach(key => {
+            container.innerHTML += `
+                <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
+                    <input type="checkbox" class="custom-chk" value="${key}"> ${menuConfig[key].title}
+                </label>
+            `;
+        });
+        document.getElementById('exportModal').style.display = 'flex';
+    }
+
+    function closeExportModal() { document.getElementById('exportModal').style.display = 'none'; }
+    function toggleCustomSection() {
+        const sec = document.getElementById('customSection');
+        sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
+    }
+
+    async function processExport(mode) {
+        showLoading(true);
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('l', 'mm', 'a4');
+        let categoriesToExport = [];
+
+        if (mode === 'current') categoriesToExport = [activeType];
+        else if (mode === 'all') categoriesToExport = Object.keys(menuConfig);
+        else if (mode === 'custom') {
+            const checkboxes = document.querySelectorAll('.custom-chk:checked');
+            categoriesToExport = Array.from(checkboxes).map(cb => cb.value);
+        }
+
+        if (categoriesToExport.length === 0) {
+            alert("Pilih setidaknya satu kategori!");
+            showLoading(false); return;
+        }
+
+        for (let i = 0; i < categoriesToExport.length; i++) {
+            const type = categoriesToExport[i];
+            const cfg = menuConfig[type];
+            const snapshot = await db.collection(cfg.col).orderBy("tanggal", "desc").limit(100).get();
+            const rows = [];
+            
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                if(type === 'saran') {
+                    rows.push([d.pengirim || d.nama || '-', d.komsel || '-', d.kategori || '-', d.pesan || d.isi || '-', d.tanggal || '-']);
+                } else if(type === 'bacaan') {
+                    rows.push([d.nama, d.kitab, d.pasal, d.tanggal, d.pesan || '-']);
+                } else if(type === 'peringkat_jc'){
+                    rows.push([d.ranking || '-', d.nama_jc, d.poin, d.periode, "AKTIF"]);
+                } else {
+                    rows.push([d.nama || d.nama_jc, d.jc || d.komsel || '-', d.tanggal || d.tglInput || '-', (d.status || 'HADIR').toUpperCase(), d.alasan || d.materi || '-']);
+                }
+            });
+
+            doc.setFontSize(16);
+            doc.text(`Laporan: ${cfg.title}`, 14, 15);
+            doc.setFontSize(10);
+            doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 14, 22);
+
+            doc.autoTable({
+                head: [cfg.fields],
+                body: rows,
+                startY: 25,
+                theme: 'grid',
+                headStyles: { fillColor: [0, 123, 255] }
+            });
+
+            if (i < categoriesToExport.length - 1) doc.addPage();
+        }
+
+        if (currentAction === 'export') {
+            doc.save(`Laporan_BigData_${new Date().getTime()}.pdf`);
+        } else {
+            doc.autoPrint();
+            window.open(doc.output('bloburl'), '_blank');
+        }
+
+        showLoading(false);
+        closeExportModal();
+    }
+
+    // --- FUNGSI LOAD DATA (Dashboard Utama) ---
     async function loadData(type) {
         showLoading(true);
         activeType = type;
@@ -175,29 +295,23 @@
 
             snapshot.forEach((doc) => {
                 const d = doc.data();
-
                 if(type === 'saran') {
                     const kategori = d.kategori || "Saran & Masukan";
                     const tgl = d.tanggal || "-";
                     const pengirim = d.pengirim || d.nama || "Anonim";
-
                     stats.pie[kategori] = (stats.pie[kategori] || 0) + 1;
                     stats.line[tgl] = (stats.line[tgl] || 0) + 1;
                     stats.bar[pengirim] = (stats.bar[pengirim] || 0) + 1;
-
                     html += `<tr><td><b>${pengirim}</b></td><td>${d.komsel || '-'}</td><td><span class="badge badge-info">${kategori}</span></td><td>${d.pesan || d.isi || '-'}</td><td>${tgl}</td></tr>`;
-                } 
-                else if(type === 'bacaan') {
+                } else if(type === 'bacaan') {
                     const tgl = d.tanggal || "-";
-                    stats.pie[d.kitab] = (stats.pie[d.kitab] || 0) + 1;
+                    stats.pie[d.kitab || "Lainnya"] = (stats.pie[d.kitab] || 0) + 1;
                     stats.line[tgl] = (stats.line[tgl] || 0) + 1;
                     html += `<tr><td>${d.nama}</td><td>${d.kitab}</td><td>${d.pasal}</td><td>${tgl}</td><td>${d.pesan || '-'}</td></tr>`;
-                } 
-                else {
+                } else {
                     const jc = d.jc || d.komsel || d.nama_jc || "Umum";
                     const tgl = d.tanggal || d.tglInput || d.periode || "-";
                     const status = (d.status || d.status_doa || "Hadir").toUpperCase();
-
                     stats.pie[status] = (stats.pie[status] || 0) + 1;
                     stats.line[tgl] = (stats.line[tgl] || 0) + 1;
                     stats.bar[jc] = (stats.bar[jc] || 0) + 1;
@@ -211,7 +325,6 @@
                     }
                 }
             });
-
             document.getElementById('data-list').innerHTML = html;
             refreshCharts(stats);
             showLoading(false);
@@ -233,7 +346,6 @@
                 options: { maintainAspectRatio: false }
             });
         };
-
         createChart('pie', 'doughnut', Object.keys(stats.pie), Object.values(stats.pie), ['#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6f42c1'], 'Kategori/Status');
         createChart('line', 'line', Object.keys(stats.line).reverse().slice(-7), Object.values(stats.line).reverse().slice(-7), 'rgba(0, 123, 255, 0.1)', 'Tren');
         createChart('bar', 'bar', Object.keys(stats.bar).slice(0,10), Object.values(stats.bar).slice(0,10), '#6f42c1', 'Volume');
@@ -243,14 +355,6 @@
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         loadData(type);
-    }
-
-    function exportToPDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('l', 'mm', 'a4');
-        doc.text("Laporan Statistik - " + menuConfig[activeType].title, 14, 15);
-        doc.autoTable({ html: '#mainTable', startY: 25, theme: 'grid' });
-        doc.save(`Laporan_${activeType}.pdf`);
     }
 
     window.onload = () => loadData('ibadah');
