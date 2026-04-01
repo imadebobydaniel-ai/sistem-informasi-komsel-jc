@@ -219,7 +219,7 @@
         if(elBar) elBar.style.width = Math.min(value, 100) + "%";
     }
  
-    // --- FUNGSI ALKITAB YANG BARU ---
+    // --- FUNGSI ALKITAB YANG SUDAH DISINKRONKAN ---
     async function syncStatistikAlkitab() {
         const jcAlk = document.getElementById("select-komsel-alkitab").value;
         const valPeriode = document.getElementById("select-periode-alkitab").value;
@@ -251,18 +251,21 @@
             });
 
             const jmlOrangMelapor = userUnik.size;
-            const TARGET_ORANG = 50;
+            const TARGET_ORANG = 50; 
 
+            // Update Teks Angka
             document.getElementById("text-laporan-orang-alkitab").innerText = totalLaporanMasuk + " Laporan";
             document.getElementById("progres-komsel-text-alkitab").innerText = jmlOrangMelapor + " Orang Melapor";
 
+            // SINKRONISASI: Hitung persen berdasarkan jumlah orang yang melapor
             const persen = ((jmlOrangMelapor / TARGET_ORANG) * 100).toFixed(1);
+
+            // Update Visual Bar (Atas & Bawah) menggunakan variabel 'persen' yang sama
             updateStatistikBar('txt-alkitab-komsel', 'bar-alkitab-komsel', persen);
             
             const barAtas = document.getElementById("bar-laporan-orang-alkitab");
             if(barAtas) {
-                const persenLaporan = ((totalLaporanMasuk / TARGET_ORANG) * 100).toFixed(1);
-                barAtas.style.width = Math.min(persenLaporan, 100) + "%";
+                barAtas.style.width = Math.min(persen, 100) + "%";
             }
         });
     }
