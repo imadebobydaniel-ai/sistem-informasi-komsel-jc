@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Data Anggota - Pondok Pemulihan Papua</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; }
+        .form-container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h3>Edit Data Anggota</h3>
+    <form id="editForm">
+        <input type="text" id="nama" placeholder="Nama Lengkap" required>
+        <input type="text" id="whatsapp" placeholder="WhatsApp">
+        <input type="email" id="email" placeholder="Email">
+        <select id="jabatan">
+            <option value="Anggota">Anggota</option>
+            <option value="Ketua Komsel">Ketua Komsel</option>
+        </select>
+        <input type="text" id="alamat" placeholder="Alamat">
+        <button type="submit">Update Data</button>
+        <button type="button" onclick="history.back()" style="background:#6c757d; margin-top:5px;">Batal</button>
+    </form>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<script>
+    // Gunakan Konfigurasi Firebase Anda yang sama
+    const firebaseConfig = {
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+        authDomain: "boby-apps-project.firebaseapp.com",
+        projectId: "boby-apps-project",
+        storageBucket: "boby-apps-project.appspot.com",
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // 1. Ambil ID dari URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const docId = urlParams.get('id');
+
+    // 2. Tarik data lama dari Firebase
+    if (docId) {
+        db.collection("users").doc(docId).get().then((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                document.getElementById("nama").value = data.nama || "";
+                document.getElementById("whatsapp").value = data.whatsapp || "";
+                document.getElementById("email").value = data.email || "";
+                document.getElementById("jabatan").value = data.jabatan || "Anggota";
+                document.getElementById("alamat").value = data.alamat || "";
+            }
+        });
+    }
+
+    // 3. Simpan perubahan
+    document.getElementById("editForm").onsubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await db.collection("users").doc(docId).update({
+                nama: document.getElementById("nama").value,
+                whatsapp: document.getElementById("whatsapp").value,
+                email: document.getElementById("email").value,
+                jabatan: document.getElementById("jabatan").value,
+                alamat: document.getElementById("alamat").value
+            });
+            alert("Data berhasil diperbarui!");
+            window.location.href = "admin.html";
+        } catch (error) {
+            alert("Gagal update: " + error.message);
+        }
+    };
+</script>
+</body>
+</html>
