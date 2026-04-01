@@ -219,7 +219,7 @@
         if(elBar) elBar.style.width = Math.min(value, 100) + "%";
     }
  
-    // --- FUNGSI ALKITAB YANG SUDAH DISINKRONKAN ---
+    // --- FUNGSI ALKITAB: LOGIKA AKUMULASI LAPORAN ---
     async function syncStatistikAlkitab() {
         const jcAlk = document.getElementById("select-komsel-alkitab").value;
         const valPeriode = document.getElementById("select-periode-alkitab").value;
@@ -232,7 +232,7 @@
         .where("komsel", "==", jcAlk)
         .onSnapshot(snap => {
             let userUnik = new Set();
-            let totalLaporanMasuk = 0;
+            let totalLaporanMasuk = 0; // Inilah variabel hitung akumulasi
 
             snap.forEach(doc => {
                 const data = doc.data();
@@ -244,23 +244,23 @@
                     tglData = new Date(data.tanggal);
                 }
 
+                // Filter berdasarkan periode waktu
                 if (tglData >= limitDate) {
-                    totalLaporanMasuk++;
+                    totalLaporanMasuk++; // Setiap dokumen masuk hitungan progres
                     if (data.nama) userUnik.add(data.nama.trim());
                 }
             });
 
-            const jmlOrangMelapor = userUnik.size;
-            const TARGET_ORANG = 50; 
-
-            // Update Teks Angka
+            const TARGET = 50; 
+            
+            // 1. Update Teks Dashboard
             document.getElementById("text-laporan-orang-alkitab").innerText = totalLaporanMasuk + " Laporan";
-            document.getElementById("progres-komsel-text-alkitab").innerText = jmlOrangMelapor + " Orang Melapor";
+            document.getElementById("progres-komsel-text-alkitab").innerText = userUnik.size + " Orang Melapor";
 
-            // SINKRONISASI: Hitung persen berdasarkan jumlah orang yang melapor
-            const persen = ((jmlOrangMelapor / TARGET_ORANG) * 100).toFixed(1);
+            // 2. Hitung Persentase (Berdasarkan TOTAL LAPORAN)
+            const persen = ((totalLaporanMasuk / TARGET) * 100).toFixed(1);
 
-            // Update Visual Bar (Atas & Bawah) menggunakan variabel 'persen' yang sama
+            // 3. Update Visual Bar
             updateStatistikBar('txt-alkitab-komsel', 'bar-alkitab-komsel', persen);
             
             const barAtas = document.getElementById("bar-laporan-orang-alkitab");
@@ -270,11 +270,11 @@
         });
     }
 
+    // --- Fungsi lainnya (Hadir, Izin, Doa, Goldar) tetap sesuai kode awal Anda ---
     async function syncStatistikHadir() {
         const jcHdr = document.getElementById("select-jc-laporan").value;
         const valPeriode = document.getElementById("select-periode-laporan").value;
         if(!valPeriode) return;
- 
         const blnHdr = parseInt(valPeriode);
         db.collection("kehadiran").where("jc", "==", jcHdr).where("status", "==", "HADIR").where("tanggal", ">=", getStartDate(blnHdr))
         .onSnapshot(snap => {
@@ -293,7 +293,6 @@
         const jcIz = document.getElementById("select-jc-izin").value;
         const valPeriode = document.getElementById("select-periode-izin").value;
         if(!valPeriode) return;
- 
         const blnIz = parseInt(valPeriode);
         const TARGET_PESERTA = 50; 
         db.collection("kehadiran").where("jc", "==", jcIz).where("status", "==", "Tidak Hadir").where("tanggal", ">=", getStartDate(blnIz))
@@ -315,17 +314,10 @@
         const jcDoa = document.getElementById('select-jc-doa').value;
         const valPeriode = document.getElementById("select-periode-doa").value;
         if(!valPeriode) return;
-
         const blnDoa = parseInt(valPeriode);
         const startDate = getStartDate(blnDoa);
-
-        db.collection("saran_masukan")
-        .where("jc", "==", jcDoa)
-        .onSnapshot(snap => {
-            let total = 0;
-            let terjawab = 0;
-            let totalSLA = 0;
-
+        db.collection("saran_masukan").where("jc", "==", jcDoa).onSnapshot(snap => {
+            let total = 0; let terjawab = 0; let totalSLA = 0;
             snap.forEach(doc => { 
                 const data = doc.data();
                 if(data.kategori && data.kategori.includes("Doa")) {
@@ -342,22 +334,15 @@
                     }
                 }
             });
-
             const persenJawab = total > 0 ? ((terjawab / total) * 100).toFixed(1) : 0;
             const rataSLA = terjawab > 0 ? Math.round(totalSLA / terjawab) : 0;
-            
             document.getElementById('text-laporan-doa-masuk').innerText = total + " Laporan";
             const persenMasuk = (total / 50) * 100; 
             document.getElementById('bar-laporan-doa-masuk').style.width = Math.min(persenMasuk, 100) + "%";
-
             updateStatistikBar('txt-doa-jawab-jc', 'bar-doa-jawab-jc', persenJawab);
             document.getElementById('txt-doa-sla-jc').innerText = rataSLA + " Hari";
-            
             const slaBarWidth = rataSLA > 0 ? Math.max(100 - (rataSLA * 10), 10) : 0;
             document.getElementById('bar-doa-sla-jc').style.width = (total > 0 ? slaBarWidth : 0) + "%";
-            
-        }, error => {
-            console.error("Error Detail Load Doa:", error);
         });
     }
  
