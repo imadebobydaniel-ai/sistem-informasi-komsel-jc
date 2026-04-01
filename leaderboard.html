@@ -16,8 +16,6 @@
             --biru-tua: #003366;
             --biru-safir: #0056b3;
             --emas-lux: #D4AF37;
-            --perak: #C0C0C0;
-            --perunggu: #CD7F32;
             --putih-bg: #f4f7fa;
         }
 
@@ -43,215 +41,77 @@
             overflow: hidden;
         }
 
-        /* Ikon Info Pojok Kiri */
-        .info-icon {
-            position: absolute;
-            top: 15px;
-            left: 20px;
-            font-size: 20px;
-            color: var(--biru-safir);
-            cursor: pointer;
-            opacity: 0.7;
-            transition: 0.3s;
-            z-index: 10;
+        /* Animasi Juara 1 */
+        .rank-1 { animation: celebrate 2s infinite ease-in-out; }
+        @keyframes celebrate {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
-        .info-icon:hover { opacity: 1; transform: scale(1.1); }
+
+        .info-icon {
+            position: absolute; top: 15px; left: 20px;
+            font-size: 20px; color: var(--biru-safir);
+            cursor: pointer; opacity: 0.7; z-index: 10;
+        }
 
         h2 { color: var(--biru-tua); font-size: 20px; font-weight: 900; margin-bottom: 5px; text-transform: uppercase; }
         .info-sub { color: #888; font-size: 13px; font-weight: 600; margin-bottom: 25px; }
 
-        /* Podium Visual */
-        .podium-container {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            margin-bottom: 30px;
-            gap: 10px;
-            position: relative;
-        }
-        .podium-item { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-        }
+        /* Podium */
+        .podium-container { display: flex; justify-content: center; align-items: flex-end; margin-bottom: 30px; gap: 10px; }
+        .podium-item { flex: 1; display: flex; flex-direction: column; align-items: center; }
         
         .trophy-box {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            margin-bottom: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            position: relative;
-            z-index: 2;
+            width: 50px; height: 50px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
-        .rank-1 .trophy-box { 
-            background: linear-gradient(135deg, #FFD700, #FDB931); 
-            color: white; width: 65px; height: 65px; font-size: 32px; 
-            border: 3px solid white;
-        }
+        .rank-1 .trophy-box { background: linear-gradient(135deg, #FFD700, #FDB931); color: white; width: 65px; height: 65px; font-size: 32px; border: 3px solid white; }
         .rank-2 .trophy-box { background: linear-gradient(135deg, #E0E0E0, #BDBDBD); color: white; }
         .rank-3 .trophy-box { background: linear-gradient(135deg, #f0a26d, #CD7F32); color: white; }
 
-        .podium-name { font-weight: 900; font-size: 14px; color: var(--biru-tua); margin-top: 5px; }
-        .podium-score { 
-            font-size: 11px; 
-            background: var(--biru-tua); 
-            color: white; 
-            padding: 2px 8px; 
-            border-radius: 10px; 
-            margin-top: 4px;
-            font-weight: 700;
-        }
+        .podium-name { font-weight: 900; font-size: 14px; color: var(--biru-tua); }
+        .podium-score { font-size: 11px; background: var(--biru-tua); color: white; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
         
-        .chart-box { 
-            height: 200px; 
-            width: 100%; 
-            margin-top: 15px; 
-            padding: 10px;
-            background: #fdfdfd;
-            border-radius: 15px;
-        }
+        .chart-box { height: 180px; width: 100%; margin-top: 15px; background: #fdfdfd; border-radius: 15px; }
 
-        .rank-list { text-align: left; margin-top: 10px; }
+        .rank-list { text-align: left; }
         .rank-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-            background: white;
-            border-radius: 18px;
-            margin-bottom: 10px;
-            border: 1.5px solid #f0f0f0;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 20px; background: white; border-radius: 18px;
+            margin-bottom: 10px; border: 1.5px solid #f0f0f0;
         }
-        .rank-item.top-three { 
-            border-left: 5px solid var(--emas-lux); 
-            background: linear-gradient(to right, #fffdf5, #ffffff);
-        }
-        .rank-jc { font-weight: 800; font-size: 15px; color: var(--biru-tua); }
-        .rank-val { 
-            background: var(--biru-safir); 
-            color: white; 
-            padding: 5px 12px; 
-            border-radius: 50px; 
-            font-size: 12px; 
-            font-weight: 900; 
-        }
+        .rank-item.top-three { border-left: 5px solid var(--emas-lux); background: linear-gradient(to right, #fffdf5, #ffffff); }
+        .rank-jc { font-weight: 800; color: var(--biru-tua); }
+        .rank-val { background: var(--biru-safir); color: white; padding: 5px 12px; border-radius: 50px; font-size: 12px; font-weight: 900; }
 
-        .btn-back-container {
-            position: fixed;
-            bottom: 0; left: 0; width: 100%;
-            padding: 20px; box-sizing: border-box;
-            background: white; border-top: 1px solid #eee; z-index: 1000;
-        }
-        .btn-back { 
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            background: var(--biru-tua); color: white; padding: 18px; 
-            border-radius: 50px; text-decoration: none; font-weight: 800; 
-            box-shadow: 0 8px 25px rgba(0,51,102,0.3);
-        }
+        .btn-back-container { position: fixed; bottom: 0; left: 0; width: 100%; padding: 20px; background: white; border-top: 1px solid #eee; z-index: 1000; box-sizing: border-box; }
+        .btn-back { display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--biru-tua); color: white; padding: 18px; border-radius: 50px; text-decoration: none; font-weight: 800; }
 
-        #loading-overlay {
-            position: fixed; top:0; left:0; width:100%; height:100%;
-            background: rgba(255,255,255,0.8); display: flex; flex-direction:column;
-            justify-content: center; align-items: center; z-index: 2000;
-        }
-
-        /* Modal Popup Transparan */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 51, 102, 0.4); 
-            backdrop-filter: blur(5px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 3000;
-            padding: 20px;
-        }
-
-        .modal-content {
-            background: rgba(255, 255, 255, 0.95);
-            width: 100%;
-            max-width: 400px;
-            padding: 25px;
-            border-radius: 25px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            text-align: left;
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .modal-content h3 { color: var(--biru-tua); margin-top: 0; display: flex; align-items: center; gap: 10px; }
-        .modal-body ul { padding-left: 20px; color: #444; margin: 15px 0; }
-        .modal-body li { margin-bottom: 10px; font-size: 14px; line-height: 1.4; }
-        
-        .btn-close {
-            width: 100%;
-            background: var(--biru-tua);
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 50px;
-            font-weight: 800;
-            margin-top: 10px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,51,102,0.2);
-        }
+        #loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.9); display: flex; flex-direction:column; justify-content: center; align-items: center; z-index: 2000; }
     </style>
 </head>
 <body>
 
 <div id="loading-overlay">
     <i class="fas fa-sync fa-spin fa-3x" style="color: var(--biru-safir);"></i>
-    <p style="margin-top: 15px; font-weight: bold;">Menghitung Skor JC...</p>
-</div>
-
-<div id="infoModal" class="modal-overlay" onclick="toggleModal()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <h3><i class="fas fa-info-circle" style="color: var(--biru-safir);"></i> Sistem Poin</h3>
-        <hr style="border: 0; border-top: 1px solid #eee;">
-        <div class="modal-body">
-            <p style="font-size: 14px; font-weight: bold; color: var(--biru-tua);">Cara Poin Dihitung:</p>
-            <ul>
-                <li><strong>Ibadah Raya / Arso 1:</strong> +10 Poin</li>
-                <li><strong>Laporan Komsel / Gabungan / Doa:</strong> +8 Poin</li>
-                <li><strong>Kelas Dasar (KD):</strong> +10 Poin</li>
-                <li><strong>Laporan Baca Alkitab:</strong> +5 Poin</li>
-            </ul>
-            <p style="font-size: 12px; color: #777; font-style: italic; background: #f9f9f9; padding: 10px; border-radius: 10px;">
-                * Poin otomatis terakumulasi jika status kegiatan adalah "HADIR" atau "SELESAI".
-            </p>
-        </div>
-        <button class="btn-close" onclick="toggleModal()">MENGERTI</button>
-    </div>
+    <p style="margin-top: 15px; font-weight: bold;">Menghitung Skor Terupdate...</p>
 </div>
 
 <div class="container">
     <div class="card">
-        <div class="info-icon" onclick="toggleModal()">
-            <i class="fas fa-info-circle"></i>
-        </div>
-
-        <h2><i class="fas fa-trophy" style="color: var(--emas-lux);"></i> Leaderboard</h2>
+        <div class="info-icon"><i class="fas fa-award"></i></div>
+        <h2><i class="fas fa-crown" style="color: var(--emas-lux);"></i> Leaderboard</h2>
         <p class="info-sub" id="current-month">Periode: Memuat...</p>
 
-        <div class="podium-container" id="podium">
+        <div class="podium-container">
             <div class="podium-item rank-2" style="order: 1;">
                 <div class="trophy-box"><i class="fas fa-medal"></i></div>
                 <div class="podium-name" id="top2-name">JC -</div>
                 <div class="podium-score" id="top2-val">0</div>
             </div>
-            <div class="podium-item rank-1" style="order: 2;" id="winner-zone">
-                <div class="trophy-box"><i class="fas fa-crown"></i></div>
+            <div class="podium-item rank-1" style="order: 2;">
+                <div class="trophy-box"><i class="fas fa-trophy"></i></div>
                 <div class="podium-name" id="top1-name">JC -</div>
                 <div class="podium-score" id="top1-val">0</div>
             </div>
@@ -288,110 +148,111 @@
     const db = firebase.firestore();
     let myChart;
 
-    // Fungsi Toggle Modal
-    function toggleModal() {
-        const modal = document.getElementById('infoModal');
-        if (modal.style.display === 'flex') {
-            modal.style.display = 'none';
-        } else {
-            modal.style.display = 'flex';
-        }
-    }
+    // --- FUNGSI EFEK MERIAH (Bintang & Bunga) ---
+    function selebrasiMeriah() {
+        const durasi = 4 * 1000;
+        const selesai = Date.now() + durasi;
 
-    function selebrasiJuara() {
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#D4AF37', '#003366', '#FFFFFF'] });
+        // Suara kembang api (opsional: bisa tambahkan audio jika perlu)
+        
+        const interval = setInterval(function() {
+            const sisaWaktu = selesai - Date.now();
+            if (sisaWaktu <= 0) return clearInterval(interval);
+
+            const particleCount = 40 * (sisaWaktu / durasi);
+
+            // 1. Efek Bintang Emas Berjatuhan
+            confetti({
+                particleCount: 2,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0 },
+                colors: ['#FFD700', '#D4AF37'],
+                shapes: ['star']
+            });
+            confetti({
+                particleCount: 2,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1 },
+                colors: ['#FFD700', '#D4AF37'],
+                shapes: ['star']
+            });
+
+            // 2. Efek Bunga (Emoji) yang ramai
+            const scalar = 2;
+            const bunga = confetti.shapeFromText({ text: '🌸', scalar });
+            const daun = confetti.shapeFromText({ text: '✨', scalar });
+
+            confetti({
+                particleCount: 1,
+                shapes: [bunga, daun],
+                origin: {
+                    x: Math.random(),
+                    y: Math.random() - 0.2
+                },
+                gravity: 0.6,
+                ticks: 300
+            });
+        }, 100);
+
+        // Ledakan besar di tengah saat awal
+        confetti({
+            particleCount: 150,
+            spread: 100,
+            origin: { y: 0.6 },
+            colors: ['#0056b3', '#FFD700', '#ffffff']
+        });
     }
 
     async function syncLeaderboard() {
         document.getElementById('loading-overlay').style.display = 'flex';
         try {
             let skorJC = {};
-            let periodeSekarang = new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' });
+            let periode = new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' });
             
-            const koleksiPoin = [
-                { nama: "kehadiran", poin: 10 },
-                { nama: "kehadiran_arso1", poin: 10 },
-                { nama: "laporan_komsel", poin: 8 },
-                { nama: "laporan_gabungan", poin: 8 },
-                { nama: "laporan_doa", poin: 8 },
-                { nama: "kehadiran_kd", poin: 10 },
-                { nama: "laporan_bacaan", poin: 5 }
-            ];
+            const koleksi = ["kehadiran", "kehadiran_arso1", "laporan_komsel", "laporan_gabungan", "laporan_doa", "kehadiran_kd", "laporan_bacaan"];
+            const poinMap = { "kehadiran": 10, "kehadiran_arso1": 10, "laporan_komsel": 8, "laporan_gabungan": 8, "laporan_doa": 8, "kehadiran_kd": 10, "laporan_bacaan": 5 };
 
-            await Promise.all(koleksiPoin.map(async (item) => {
-                const snapshot = await db.collection(item.nama).get();
-                snapshot.forEach((doc) => {
+            await Promise.all(koleksi.map(async (col) => {
+                const snap = await db.collection(col).get();
+                snap.forEach(doc => {
                     let d = doc.data();
-                    let namaJC = d.jc || d.komsel || d.nama_jc || "Umum";
-                    namaJC = namaJC.trim().toUpperCase();
-                    if (!namaJC.startsWith("JC") && namaJC !== "UMUM") namaJC = "JC " + namaJC;
-
-                    if (!skorJC[namaJC]) skorJC[namaJC] = 0;
-
+                    let nama = (d.jc || d.komsel || d.nama_jc || "Umum").trim().toUpperCase();
+                    if (!nama.startsWith("JC") && nama !== "UMUM") nama = "JC " + nama;
+                    
+                    if (!skorJC[nama]) skorJC[nama] = 0;
                     const status = (d.status || d.status_doa || "HADIR").toUpperCase();
-                    if (status === "HADIR" || status === "SELESAI" || item.nama === "laporan_bacaan") {
-                        skorJC[namaJC] += item.poin;
+                    if (status === "HADIR" || status === "SELESAI" || col === "laporan_bacaan") {
+                        skorJC[nama] += poinMap[col];
                     }
                 });
             }));
 
-            let urutan = Object.keys(skorJC).map(name => ({
-                nama: name,
-                poin: skorJC[name]
-            })).sort((a, b) => b.poin - a.poin);
-
-            const batch = db.batch();
-            urutan.forEach((item, index) => {
-                let docRef = db.collection("peringkat_jc").doc(item.nama);
-                batch.set(docRef, {
-                    ranking: index + 1,
-                    nama_jc: item.nama,
-                    poin: item.poin,
-                    periode: periodeSekarang,
-                    lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            });
-            await batch.commit();
+            let urutan = Object.keys(skorJC).map(n => ({ nama: n, poin: skorJC[n] })).sort((a, b) => b.poin - a.poin);
             
-            tampilkanData(urutan);
-            document.getElementById('current-month').innerText = `Periode: ${periodeSekarang}`;
-            selebrasiJuara();
+            // Render UI
+            document.getElementById('current-month').innerText = `Periode: ${periode}`;
+            if(urutan[0]) { document.getElementById('top1-name').innerText = urutan[0].nama; document.getElementById('top1-val').innerText = urutan[0].poin + " Pts"; }
+            if(urutan[1]) { document.getElementById('top2-name').innerText = urutan[1].nama; document.getElementById('top2-val').innerText = urutan[1].poin + " Pts"; }
+            if(urutan[2]) { document.getElementById('top3-name').innerText = urutan[2].nama; document.getElementById('top3-val').innerText = urutan[2].poin + " Pts"; }
 
-        } catch (error) {
-            console.error("Error Sync:", error);
-        } finally {
-            document.getElementById('loading-overlay').style.display = 'none';
-        }
-    }
-
-    function tampilkanData(urutan) {
-        if(urutan[0]) {
-            document.getElementById('top1-name').innerText = urutan[0].nama;
-            document.getElementById('top1-val').innerText = urutan[0].poin + " Pts";
-        }
-        if(urutan[1]) {
-            document.getElementById('top2-name').innerText = urutan[1].nama;
-            document.getElementById('top2-val').innerText = urutan[1].poin + " Pts";
-        }
-        if(urutan[2]) {
-            document.getElementById('top3-name').innerText = urutan[2].nama;
-            document.getElementById('top3-val').innerText = urutan[2].poin + " Pts";
-        }
-
-        let html = "";
-        urutan.forEach((item, index) => {
-            const isTop = index < 3 ? 'top-three' : '';
-            html += `
-                <div class="rank-item ${isTop}">
-                    <span class="rank-jc">${index + 1}. ${item.nama}</span>
+            let html = "";
+            urutan.forEach((item, i) => {
+                html += `<div class="rank-item ${i < 3 ? 'top-three' : ''}">
+                    <span class="rank-jc">${i + 1}. ${item.nama}</span>
                     <span class="rank-val">${item.poin} POIN</span>
                 </div>`;
-        });
-        document.getElementById('rank-list').innerHTML = html;
+            });
+            document.getElementById('rank-list').innerHTML = html;
 
-        const labels = urutan.map(i => i.nama);
-        const values = urutan.map(i => i.poin);
-        tampilkanGrafik(labels, values);
+            tampilkanGrafik(urutan.map(i => i.nama), urutan.map(i => i.poin));
+            
+            // TRIGGER EFEK MERIAH
+            setTimeout(selebrasiMeriah, 500);
+
+        } catch (e) { console.error(e); }
+        finally { document.getElementById('loading-overlay').style.display = 'none'; }
     }
 
     function tampilkanGrafik(labels, values) {
@@ -401,18 +262,12 @@
             type: 'bar',
             data: {
                 labels: labels,
-                datasets: [{
-                    label: 'Total Poin',
-                    data: values,
-                    backgroundColor: '#0056b3',
-                    borderRadius: 8,
-                }]
+                datasets: [{ data: values, backgroundColor: '#0056b3', borderRadius: 5 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, display: false }, x: { grid: { display: false } } }
+                scales: { y: { display: false }, x: { grid: { display: false } } }
             }
         });
     }
