@@ -14,61 +14,33 @@
             --warning: #ffc107; --purple: #6f42c1; --dark: #1a1a1a;
             --light: #f8f9fa;
         }
-
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #eef2f7; margin: 0; padding: 20px; color: var(--dark);
-        }
-
+        body { font-family: 'Segoe UI', sans-serif; background: #eef2f7; margin: 0; padding: 20px; color: var(--dark); }
         .container { max-width: 1400px; margin: auto; }
-
         #loading {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(255,255,255,0.8); z-index: 9999; justify-content: center;
             align-items: center; font-weight: bold; color: var(--primary);
         }
-
-        .tab-menu {
-            display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 10px;
-            align-items: center; border-bottom: 2px solid #ddd;
-        }
-        
+        .tab-menu { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 10px; align-items: center; border-bottom: 2px solid #ddd; }
         .tab-btn {
             padding: 12px 18px; border: none; border-radius: 12px; background: white;
             cursor: pointer; font-weight: bold; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             white-space: nowrap; display: flex; align-items: center; gap: 8px; font-size: 13px;
         }
         .tab-btn.active { background: var(--primary); color: white; transform: translateY(-3px); }
-
-        .action-btn {
-            padding: 10px 15px; border: none; border-radius: 10px;
-            cursor: pointer; font-weight: bold; transition: 0.3s;
-            display: flex; align-items: center; gap: 8px; color: white; font-size: 12px;
-        }
+        .action-btn { padding: 10px 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; display: flex; align-items: center; gap: 8px; color: white; font-size: 12px; }
         .btn-print { background: var(--dark); }
-
-        .stats-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 25px;
-        }
-        .chart-card {
-            background: white; padding: 20px; border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center;
-        }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 25px; }
+        .chart-card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; }
         .chart-title { font-weight: bold; margin-bottom: 15px; color: var(--dark); width: 100%; text-align: center; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-
         .data-section { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .table-wrapper { overflow-x: auto; margin-top: 15px; max-height: 500px; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1000px; }
         th { background: #f8f9fa; padding: 15px; text-align: left; border-bottom: 2px solid #eee; position: sticky; top: 0; z-index: 5; }
         td { padding: 12px 15px; border-bottom: 1px solid #f1f1f1; }
-        
         .badge { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; }
         .badge-success { background: #d4edda; color: #155724; }
-        .badge-danger { background: #f8d7da; color: #721c24; }
-
-        @media print {
-            .tab-menu, #loading, .action-btn, .fas.fa-arrow-left { display: none !important; }
-        }
+        @media print { .tab-menu, #loading, .action-btn, .fas.fa-arrow-left { display: none !important; } }
     </style>
 </head>
 <body>
@@ -91,9 +63,8 @@
         <button class="tab-btn" onclick="switchTab('doa_komsel', this)"><i class="fas fa-hands-praying"></i> Doa Komsel</button>
         <button class="tab-btn" onclick="switchTab('peringkat_jc', this)"><i class="fas fa-trophy"></i> Peringkat JC</button>
         <button class="tab-btn" onclick="switchTab('saran', this)"><i class="fas fa-comment-dots"></i> Saran & Tiket</button>
-        
-        <div style="margin-left: auto; display: flex; gap: 8px;">
-            <button class="action-btn btn-print" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+        <div style="margin-left: auto;">
+            <button class="action-btn btn-print" onclick="window.print()"><i class="fas fa-print"></i> Print Laporan</button>
         </div>
     </div>
 
@@ -170,7 +141,6 @@
         document.getElementById('table-head').innerHTML = `<tr>${cfg.fields.map(f => `<th>${f}</th>`).join('')}</tr>`;
 
         let query = db.collection(cfg.col);
-        
         if (type === 'peringkat_jc') {
             query = query.orderBy("ranking", "asc");
         } else if (type === 'bacaan' || type === 'saran') {
@@ -181,69 +151,44 @@
 
         currentListener = query.onSnapshot((snapshot) => {
             let html = "";
-            let pieData = {};
-            let barData = {};
-            let lineData = {};
+            let pieData = {}; let barData = {}; let lineData = {};
 
             snapshot.forEach((doc) => {
                 const d = doc.data();
-                
-                // 1. Standarisasi Nama & JC
                 const nama = d.nama || d.pengirim || "-";
                 const jc = d.jc || d.komsel || d.nama_jc || d.kelas || "Umum";
                 const status = (d.status || d.status_doa || "HADIR").toUpperCase();
                 
-                // 2. Penanganan Tanggal (Fixing Timestamp Error)
                 const rawDate = d.timestamp || d.tanggal || d.tgl_doa || d.tgl_kirim;
-                let displayDate = "-";
-                let chartLabel = "Unknown";
+                let displayDate = "-"; let chartLabel = "Unknown";
 
                 if (rawDate) {
                     const dateObj = rawDate.toDate ? rawDate.toDate() : new Date(rawDate);
                     if (!isNaN(dateObj)) {
-                        displayDate = dateObj.toLocaleDateString('id-ID', {
-                            day: '2-digit', month: 'short', year: 'numeric',
-                            hour: '2-digit', minute: '2-digit'
-                        });
-                        chartLabel = dateObj.toLocaleDateString('id-ID'); // Label untuk grafik
+                        displayDate = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                        chartLabel = dateObj.toLocaleDateString('id-ID');
                     }
                 }
 
-                // 3. Update Data Grafik
                 pieData[status] = (pieData[status] || 0) + 1;
                 barData[jc] = (barData[jc] || 0) + 1;
                 lineData[chartLabel] = (lineData[chartLabel] || 0) + 1;
 
-                // 4. Render Baris Tabel
                 if (type === 'peringkat_jc') {
                     html += `<tr><td>#${d.ranking}</td><td>${d.nama_jc}</td><td>${d.poin}</td><td>${d.periode}</td><td><span class="badge badge-success">AKTIF</span></td></tr>`;
                 } else if (type === 'bacaan') {
-                    // KHUSUS BACA ALKITAB: Nama | JC | Pasal | Tanggal | Pesan
-                    html += `<tr>
-                        <td>${nama}</td>
-                        <td>${jc}</td>
-                        <td><b style="color:var(--primary)">${d.pasal || "-"}</b></td>
-                        <td><span class="badge badge-success">${displayDate}</span></td>
-                        <td>${d.pesan || "-"}</td>
-                    </tr>`;
+                    html += `<tr><td>${nama}</td><td>${jc}</td><td><b style="color:var(--primary)">${d.pasal || "-"}</b></td><td><span class="badge badge-success">${displayDate}</span></td><td>${d.pesan || "-"}</td></tr>`;
                 } else {
-                    // Default untuk tab lainnya
                     let colTengah = d.materi || d.kategori || d.status_doa || "-";
-                    html += `<tr>
-                        <td>${nama}</td>
-                        <td>${jc}</td>
-                        <td>${colTengah}</td>
-                        <td><span class="badge badge-success">${displayDate}</span></td>
-                        <td>${d.pesan || d.isi_pesan || d.pokok_doa || d.keterangan || "-"}</td>
-                    </tr>`;
+                    html += `<tr><td>${nama}</td><td>${jc}</td><td>${colTengah}</td><td><span class="badge badge-success">${displayDate}</span></td><td>${d.pesan || d.isi_pesan || d.pokok_doa || d.keterangan || "-"}</td></tr>`;
                 }
             });
 
-            document.getElementById('data-list').innerHTML = html || "<tr><td colspan='5' style='text-align:center;'>Tidak ada data tersedia</td></tr>";
+            document.getElementById('data-list').innerHTML = html || "<tr><td colspan='5' style='text-align:center;'>Tidak ada data</td></tr>";
             updateCharts(pieData, lineData, barData);
             document.getElementById('loading').style.display = 'none';
         }, (err) => {
-            console.error("Firestore Error:", err);
+            console.error("Error:", err);
             document.getElementById('loading').style.display = 'none';
         });
     }
@@ -252,32 +197,22 @@
         if (myCharts.pie) myCharts.pie.destroy();
         myCharts.pie = new Chart(document.getElementById('pieChart'), {
             type: 'doughnut',
-            data: {
-                labels: Object.keys(pieData),
-                datasets: [{ data: Object.values(pieData), backgroundColor: ['#28a745', '#dc3545', '#ffc107', '#007bff'] }]
-            },
+            data: { labels: Object.keys(pieData), datasets: [{ data: Object.values(pieData), backgroundColor: ['#28a745', '#dc3545', '#ffc107', '#007bff'] }] },
             options: { responsive: true, maintainAspectRatio: false }
         });
 
-        // Urutkan label tanggal untuk line chart
         const lineLabels = Object.keys(lineData).sort().slice(-7);
         if (myCharts.line) myCharts.line.destroy();
         myCharts.line = new Chart(document.getElementById('lineChart'), {
             type: 'line',
-            data: {
-                labels: lineLabels,
-                datasets: [{ label: 'Aktivitas', data: lineLabels.map(l => lineData[l]), borderColor: '#007bff', fill: true, backgroundColor: 'rgba(0,123,255,0.1)' }]
-            },
+            data: { labels: lineLabels, datasets: [{ label: 'Aktivitas', data: lineLabels.map(l => lineData[l]), borderColor: '#007bff', fill: true, backgroundColor: 'rgba(0,123,255,0.1)' }] },
             options: { responsive: true, maintainAspectRatio: false }
         });
 
         if (myCharts.bar) myCharts.bar.destroy();
         myCharts.bar = new Chart(document.getElementById('barChart'), {
             type: 'bar',
-            data: {
-                labels: Object.keys(barData),
-                datasets: [{ label: 'Total Laporan', data: Object.values(barData), backgroundColor: '#6f42c1' }]
-            },
+            data: { labels: Object.keys(barData), datasets: [{ label: 'Total', data: Object.values(barData), backgroundColor: '#6f42c1' }] },
             options: { responsive: true, maintainAspectRatio: false }
         });
     }
