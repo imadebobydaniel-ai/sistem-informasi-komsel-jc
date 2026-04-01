@@ -152,19 +152,8 @@
         bacaan: { title: 'Laporan Baca Alkitab', col: 'laporan_alkitab', fields: ['Nama', 'JC', 'Pasal', 'Tanggal', 'Pesan'] },
         doa_komsel: { title: 'Hasil Doa Komsel', col: 'laporan_doa', fields: ['Nama', 'JC', 'Tgl Doa', 'Status Doa', 'Pokok Doa'] },
         peringkat_jc: { title: 'Peringkat JC', col: 'peringkat_jc', fields: ['Peringkat', 'Nama JC', 'Total Poin', 'Periode', 'Status'] },
-        saran: { title: 'Saran & Tiket Masuk', col: 'saran_masuk', fields: ['Pengirim', 'Komsel', 'Kategori', 'Isi Pesan', 'Tanggal'] }
+        saran: { title: 'Saran & Tiket Masuk', col: 'saran_masukan', fields: ['Pengirim', 'Komsel', 'Kategori', 'Isi Pesan', 'Tanggal'] }
     };
-
-    function formatIndoDate(timestamp) {
-        if (!timestamp) return "-";
-        try {
-            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-            return date.toLocaleDateString('id-ID', {
-                day: '2-digit', month: 'long', year: 'numeric',
-                hour: '2-digit', minute: '2-digit'
-            });
-        } catch (e) { return "-"; }
-    }
 
     function switchTab(type, btn) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -198,43 +187,59 @@
 
             snapshot.forEach((doc) => {
                 const d = doc.data();
-                const status = (d.status || d.status_doa || "HADIR").toUpperCase();
-                const jc = d.jc || d.komsel || d.nama_jc || d.kelas || "Umum";
                 
+                // 1. Standarisasi Nama & JC
+                const nama = d.nama || d.pengirim || "-";
+                const jc = d.jc || d.komsel || d.nama_jc || d.kelas || "Umum";
+                const status = (d.status || d.status_doa || "HADIR").toUpperCase();
+                
+                // 2. Penanganan Tanggal (Fixing Timestamp Error)
                 const rawDate = d.timestamp || d.tanggal || d.tgl_doa || d.tgl_kirim;
                 let displayDate = "-";
+                let chartLabel = "Unknown";
 
                 if (rawDate) {
-                    if (typeof rawDate.toDate === 'function' || rawDate instanceof Date) {
-                        displayDate = formatIndoDate(rawDate);
-                    } else {
-                        displayDate = String(rawDate);
+                    const dateObj = rawDate.toDate ? rawDate.toDate() : new Date(rawDate);
+                    if (!isNaN(dateObj)) {
+                        displayDate = dateObj.toLocaleDateString('id-ID', {
+                            day: '2-digit', month: 'short', year: 'numeric',
+                            hour: '2-digit', minute: '2-digit'
+                        });
+                        chartLabel = dateObj.toLocaleDateString('id-ID'); // Label untuk grafik
                     }
                 }
 
+                // 3. Update Data Grafik
                 pieData[status] = (pieData[status] || 0) + 1;
                 barData[jc] = (barData[jc] || 0) + 1;
-
-                const chartLabel = displayDate.includes(',') ? displayDate.split(',')[0] : displayDate;
                 lineData[chartLabel] = (lineData[chartLabel] || 0) + 1;
 
-                if(type === 'peringkat_jc') {
+                // 4. Render Baris Tabel
+                if (type === 'peringkat_jc') {
                     html += `<tr><td>#${d.ranking}</td><td>${d.nama_jc}</td><td>${d.poin}</td><td>${d.periode}</td><td><span class="badge badge-success">AKTIF</span></td></tr>`;
-                } else {
-                    let colTengah = d.pasal || d.materi || d.kategori || '-';
-                    if (type === 'bacaan') colTengah = `<b>${d.pasal || '-'}</b>`;
-
+                } else if (type === 'bacaan') {
+                    // KHUSUS BACA ALKITAB: Nama | JC | Pasal | Tanggal | Pesan
                     html += `<tr>
-                        <td>${d.nama || d.pengirim || '-'}</td>
+                        <td>${nama}</td>
+                        <td>${jc}</td>
+                        <td><b style="color:var(--primary)">${d.pasal || "-"}</b></td>
+                        <td><span class="badge badge-success">${displayDate}</span></td>
+                        <td>${d.pesan || "-"}</td>
+                    </tr>`;
+                } else {
+                    // Default untuk tab lainnya
+                    let colTengah = d.materi || d.kategori || d.status_doa || "-";
+                    html += `<tr>
+                        <td>${nama}</td>
                         <td>${jc}</td>
                         <td>${colTengah}</td>
-                        <td><span class="badge bg-success">${displayDate}</span></td>
-                        <td>${d.pesan || d.isi_pesan || d.pokok_doa || d.keterangan || '-'}</td>
+                        <td><span class="badge badge-success">${displayDate}</span></td>
+                        <td>${d.pesan || d.isi_pesan || d.pokok_doa || d.keterangan || "-"}</td>
                     </tr>`;
                 }
             });
 
-            document.getElementById('data-list').innerHTML = html || "<tr><td colspan='5' style='text-align:center;'>Tidak ada data</td></tr>";
+            document.getElementById('data-list').innerHTML = html || "<tr><td colspan='5' style='text-align:center;'>Tidak ada data tersedia</td></tr>";
             updateCharts(pieData, lineData, barData);
             document.getElementById('loading').style.display = 'none';
         }, (err) => {
@@ -254,6 +259,7 @@
             options: { responsive: true, maintainAspectRatio: false }
         });
 
+        // Urutkan label tanggal untuk line chart
         const lineLabels = Object.keys(lineData).sort().slice(-7);
         if (myCharts.line) myCharts.line.destroy();
         myCharts.line = new Chart(document.getElementById('lineChart'), {
@@ -270,7 +276,7 @@
             type: 'bar',
             data: {
                 labels: Object.keys(barData),
-                datasets: [{ label: 'Total', data: Object.values(barData), backgroundColor: '#6f42c1' }]
+                datasets: [{ label: 'Total Laporan', data: Object.values(barData), backgroundColor: '#6f42c1' }]
             },
             options: { responsive: true, maintainAspectRatio: false }
         });
