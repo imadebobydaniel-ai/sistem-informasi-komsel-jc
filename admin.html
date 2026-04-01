@@ -3,96 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administrator - Pondok Pemulihan Papua</title>
+    <title>Dashboard Admin - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { 
             --primary: #003366; --accent: #007bff; --dark: #333; 
             --light: #f4f7f6; --success: #28a745; --emas: #D4AF37;
-            --danger: #dc3545; --purple: #6f42c1; --orange: #fd7e14;
+            --danger: #dc3545; --purple: #6f42c1; --orange: #fd7e14; --cyan: #17a2b8;
         }
 
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--light); margin: 0; padding: 10px; }
         .admin-container { max-width: 1400px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
         
         .header-section { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--emas); padding-bottom: 15px; margin-bottom: 20px; }
-        .header-section h2 { margin: 0; color: var(--primary); font-size: 1.4rem; }
         .btn-logout { background: #dc3545; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 12px; }
 
-        .table-controls { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 15px; min-height: 45px; }
+        /* Stats Grid - DIKEMBALIKAN KE 6 KOLOM */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .stat-card { padding: 15px; border-radius: 10px; color: white; position: relative; min-height: 80px; }
+        .stat-card h4 { margin: 0; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card p { margin: 5px 0 0; font-size: 24px; font-weight: bold; }
+        .stat-card i { position: absolute; right: 10px; bottom: 10px; font-size: 1.8rem; opacity: 0.3; }
+
+        .table-controls { display: flex; gap: 15px; margin-bottom: 15px; }
         .search-box { position: relative; flex: 1; }
-        .search-box input { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 10px; outline: none; box-sizing: border-box; }
+        .search-box input { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 10px; }
         .search-box i { position: absolute; right: 15px; top: 13px; color: #aaa; }
 
-        #action-bar { display: none; align-items: center; gap: 10px; background: #f8f9fa; padding: 5px 15px; border-radius: 10px; border: 1px solid #eee; }
-        .btn-action { border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; font-size: 12px; display: flex; align-items: center; gap: 5px; }
-        #selected-count { font-size: 12px; font-weight: bold; color: var(--primary); border-right: 1px solid #ccc; padding-right: 10px; }
+        .table-responsive { overflow-x: auto; border: 1px solid #eee; border-radius: 10px; margin-bottom: 25px; }
+        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+        table th { background: var(--primary); color: white; padding: 12px; font-size: 12px; text-align: left; }
+        table td { padding: 10px; border-bottom: 1px solid #eee; font-size: 11.5px; }
 
-        .table-responsive { overflow-x: auto; border-radius: 10px; border: 1px solid #eee; margin-bottom: 30px; }
-        table { width: 100%; border-collapse: collapse; min-width: 1200px; }
-        table th { background: var(--primary); color: white; padding: 12px; text-align: left; font-size: 12px; }
-        table td { padding: 10px 12px; border-bottom: 1px solid #eee; font-size: 11.5px; vertical-align: middle; }
-        .freeze-col { position: sticky; left: 0; z-index: 2; background: white !important; border-right: 2px solid #eee; }
-
-        .admin-grid-forms { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
-        .admin-card { background: white; padding: 20px; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .admin-card h3 { color: var(--primary); margin: 0 0 15px; font-size: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        /* Grid Bawah untuk Form dan Absensi */
+        .bottom-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .card-box { background: white; padding: 18px; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .card-box h3 { font-size: 14px; color: var(--primary); margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; color: #666; }
-        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; box-sizing: border-box; }
-        .btn-save { width: 100%; padding: 12px; background: var(--success); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
-
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .stat-card { padding: 15px; border-radius: 12px; color: white; position: relative; }
-        .stat-card i { position: absolute; right: 10px; bottom: 10px; font-size: 2rem; opacity: 0.3; }
-        .stat-card p { margin: 5px 0 0; font-size: 22px; font-weight: bold; }
-
-        /* Modal Styles */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); overflow-y: auto; }
-        .modal-content { background: white; margin: 30px auto; padding: 25px; border-radius: 15px; width: 90%; max-width: 550px; position: relative; }
-        .close-modal { position: absolute; right: 20px; top: 15px; font-size: 24px; cursor: pointer; }
-        .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .full-width { grid-column: span 2; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn-submit { width: 100%; padding: 10px; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="admin-container">
     <div class="header-section">
-        <h2>Dashboard Administrator</h2>
+        <h2 style="color:var(--primary); margin:0;">Dashboard Administrator</h2>
         <a href="login.html" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Keluar</a>
     </div>
 
     <div class="stats-grid">
-        <div class="stat-card" style="background: linear-gradient(135deg, #007bff, #003366);">
-            <h4 style="margin:0; font-size:11px;">TOTAL ANGGOTA</h4><p id="stat_total">0</p><i class="fas fa-users"></i>
+        <div class="stat-card" style="background: #007bff;">
+            <h4>Portal Tiket</h4><p id="stat_tiket">0</p><i class="fas fa-ticket-alt"></i>
         </div>
-        <div class="stat-card" style="background: linear-gradient(135deg, #28a745, #1e7e34);">
-            <h4 style="margin:0; font-size:11px;">HADIR HARI INI</h4><p id="stat_hadir">0</p><i class="fas fa-check-circle"></i>
+        <div class="stat-card" style="background: #28a745;">
+            <h4>Hadir Hari Ini</h4><p id="stat_hadir">0</p><i class="fas fa-check-circle"></i>
         </div>
-        <div class="stat-card" style="background: linear-gradient(135deg, #dc3545, #a71d2a);">
-            <h4 style="margin:0; font-size:11px;">POKOK DOA</h4><p id="stat_doa">0</p><i class="fas fa-hands-praying"></i>
+        <div class="stat-card" style="background: #dc3545;">
+            <h4>Pokok Doa</h4><p id="stat_doa">0</p><i class="fas fa-hands-praying"></i>
+        </div>
+        <div class="stat-card" style="background: #6f42c1;">
+            <h4>Portal Media</h4><p id="stat_media">3</p><i class="fas fa-icons"></i>
+        </div>
+        <div class="stat-card" style="background: #fd7e14;">
+            <h4>Informasi Kegiatan</h4><p id="stat_info">0</p><i class="fas fa-calendar-alt"></i>
+        </div>
+        <div class="stat-card" style="background: #17a2b8;">
+            <h4>Statistik Big Data</h4><p id="stat_bigdata">0</p><i class="fas fa-chart-line"></i>
         </div>
     </div>
 
     <div class="table-controls">
         <div class="search-box">
-            <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Cari nama, email, atau alamat...">
+            <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Cari nama anggota...">
             <i class="fas fa-search"></i>
-        </div>
-        <div id="action-bar">
-            <span id="selected-count">0 Terpilih</span>
-            <button class="btn-action" style="background:var(--accent)" onclick="editSelected()"><i class="fas fa-edit"></i> Edit</button>
-            <button class="btn-action" style="background:var(--danger)" onclick="deleteSelected()"><i class="fas fa-trash"></i> Hapus</button>
         </div>
     </div>
 
     <div class="table-responsive">
-        <table id="adminTable">
+        <table>
             <thead>
                 <tr>
-                    <th style="width:40px; text-align:center;"><input type="checkbox" id="checkAll" onclick="toggleSelectAll()"></th>
-                    <th class="freeze-col">Nama Anggota</th>
+                    <th>Nama Anggota</th>
                     <th>WhatsApp</th>
                     <th>Email</th>
                     <th>Gol. Darah</th>
@@ -105,66 +99,30 @@
         </table>
     </div>
 
-    <div class="admin-grid-forms">
-        <div class="admin-card">
-            <h3><i class="fas fa-bullhorn"></i> Kirim Informasi</h3>
+    <div class="bottom-grid">
+        <div class="card-box">
+            <h3><i class="fas fa-bullhorn"></i> Kirim Informasi Baru</h3>
             <form id="formInfo">
-                <div class="form-group"><label>Judul</label><input type="text" id="info_judul" required></div>
-                <div class="form-group"><label>Pesan</label><textarea id="info_pesan" rows="3" required></textarea></div>
-                <button type="submit" class="btn-save">PUBLIKASIKAN</button>
+                <div class="form-group"><label>Judul Kegiatan</label><input type="text" id="info_judul" required></div>
+                <div class="form-group"><label>Isi Pengumuman</label><textarea id="info_pesan" rows="3" required></textarea></div>
+                <button type="submit" class="btn-submit" style="background: var(--orange);">PUBLIKASIKAN</button>
             </form>
         </div>
-        <div class="admin-card">
-            <h3><i class="fas fa-heart" style="color:var(--danger)"></i> Doa Global</h3>
-            <div id="doaData" style="max-height: 180px; overflow-y:auto; font-size:11px; margin-bottom:10px; border:1px solid #f0f0f0; padding:5px;"></div>
-        </div>
-        <div class="admin-card">
-            <h3><i class="fas fa-fingerprint" style="color:var(--success)"></i> Absensi Hari Ini</h3>
-            <div id="absensiData" style="max-height: 180px; overflow-y:auto;"></div>
-        </div>
-    </div>
-</div>
 
-<div id="editModal" class="modal">
-    <div class="modal-content">
-        <span class="close-modal" onclick="closeEditModal()">&times;</span>
-        <h3><i class="fas fa-user-edit"></i> Edit Profil Anggota</h3>
-        <form id="formUpdate">
-            <input type="hidden" id="edit_id">
-            <div class="modal-grid">
-                <div class="form-group full-width"><label>Nama Lengkap</label><input type="text" id="edit_nama" required></div>
-                <div class="form-group"><label>WhatsApp</label><input type="text" id="edit_wa" required></div>
-                <div class="form-group"><label>Email</label><input type="email" id="edit_email" required></div>
-                <div class="form-group"><label>Password Baru</label><input type="text" id="edit_password" placeholder="Isi untuk ubah password"></div>
-                <div class="form-group"><label>Golongan Darah</label>
-                    <select id="edit_goldar">
-                        <option value="-">-</option>
-                        <option value="A">A</option>
-                        <option value="B">B</option>
-                        <option value="AB">AB</option>
-                        <option value="O">O</option>
-                    </select>
-                </div>
-                <div class="form-group"><label>Jabatan</label>
-                    <select id="edit_jabatan">
-                        <option value="Anggota">Anggota</option>
-                        <option value="Ketua Komsel">Ketua Komsel</option>
-                        <option value="Pengurus">Pengurus</option>
-                    </select>
-                </div>
-                <div class="form-group"><label>JC (Komsel)</label>
-                    <select id="edit_jc">
-                        <option value="1">JC 1</option>
-                        <option value="2">JC 2</option>
-                        <option value="3">JC 3</option>
-                        <option value="4">JC 4</option>
-                        <option value="5">JC 5</option>
-                    </select>
-                </div>
-                <div class="form-group full-width"><label>Alamat Lengkap</label><textarea id="edit_alamat" rows="2"></textarea></div>
-            </div>
-            <button type="submit" class="btn-save" style="background:var(--accent); margin-top: 10px;">UPDATE DATA SEKARANG</button>
-        </form>
+        <div class="card-box">
+            <h3><i class="fas fa-user-plus"></i> Add New User Admin</h3>
+            <form id="formAdd">
+                <div class="form-group"><label>Nama Lengkap</label><input type="text" id="add_nama" required></div>
+                <div class="form-group"><label>WhatsApp/ID</label><input type="text" id="add_wa" required></div>
+                <div class="form-group"><label>Password</label><input type="text" id="add_password" required></div>
+                <button type="submit" class="btn-submit" style="background: var(--success);">SIMPAN USER</button>
+            </form>
+        </div>
+
+        <div class="card-box">
+            <h3><i class="fas fa-fingerprint"></i> Log Absensi Hari Ini</h3>
+            <div id="absensiData" style="max-height: 150px; overflow-y:auto; font-size: 12px;"></div>
+        </div>
     </div>
 </div>
 
@@ -172,6 +130,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
+    // Inisialisasi Firebase Boby
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -183,133 +142,39 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    window.onload = function() { loadUsers(); loadAbsensi(); loadDoa(); };
-
-    function loadUsers() {
-        db.collection("users").onSnapshot((snapshot) => {
-            const tableBody = document.getElementById("memberData");
-            tableBody.innerHTML = "";
-            document.getElementById("stat_total").innerText = snapshot.size;
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                tableBody.innerHTML += `
-                    <tr>
-                        <td style="text-align:center;"><input type="checkbox" class="user-checkbox" value="${doc.id}" onclick="updateActionBar()"></td>
-                        <td class="freeze-col"><b>${data.nama || '-'}</b></td>
-                        <td>${data.whatsapp || '-'}</td>
-                        <td>${data.email || '-'}</td>
-                        <td style="text-align:center">${data.golongan_darah || '-'}</td>
-                        <td>${data.jabatan || '-'}</td>
-                        <td>JC ${data.komsel || '-'}</td>
-                        <td>${data.alamat || '-'}</td>
-                    </tr>`;
+    // Load Data
+    window.onload = function() {
+        db.collection("users").onSnapshot(snapshot => {
+            const table = document.getElementById("memberData");
+            table.innerHTML = "";
+            document.getElementById("stat_bigdata").innerText = snapshot.size; // Update Big Data
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                table.innerHTML += `<tr>
+                    <td><b>${d.nama || '-'}</b></td>
+                    <td>${d.whatsapp || '-'}</td>
+                    <td>${d.email || '-'}</td>
+                    <td>${d.golongan_darah || '-'}</td>
+                    <td>${d.jabatan || '-'}</td>
+                    <td>JC ${d.komsel || '-'}</td>
+                    <td>${d.alamat || '-'}</td>
+                </tr>`;
             });
-            updateActionBar();
         });
-    }
-
-    function toggleSelectAll() {
-        const isChecked = document.getElementById("checkAll").checked;
-        document.querySelectorAll(".user-checkbox").forEach(cb => cb.checked = isChecked);
-        updateActionBar();
-    }
-
-    function updateActionBar() {
-        const selected = document.querySelectorAll(".user-checkbox:checked");
-        const bar = document.getElementById("action-bar");
-        const countTxt = document.getElementById("selected-count");
-        if (selected.length > 0) {
-            bar.style.display = "flex";
-            countTxt.innerText = `${selected.length} Terpilih`;
-        } else {
-            bar.style.display = "none";
-            document.getElementById("checkAll").checked = false;
-        }
-    }
-
-    // FUNGSI EDIT DENGAN DATA BARU
-    async function editSelected() {
-        const selected = document.querySelectorAll(".user-checkbox:checked");
-        if (selected.length !== 1) { alert("Harap pilih satu anggota saja."); return; }
         
-        const id = selected[0].value;
-        const doc = await db.collection("users").doc(id).get();
-        const data = doc.data();
-        
-        document.getElementById("edit_id").value = id;
-        document.getElementById("edit_nama").value = data.nama || "";
-        document.getElementById("edit_wa").value = data.whatsapp || "";
-        document.getElementById("edit_email").value = data.email || "";
-        document.getElementById("edit_password").value = data.password || ""; // Load password lama
-        document.getElementById("edit_goldar").value = data.golongan_darah || "-";
-        document.getElementById("edit_jabatan").value = data.jabatan || "Anggota";
-        document.getElementById("edit_jc").value = data.komsel || "1";
-        document.getElementById("edit_alamat").value = data.alamat || "";
-        
-        document.getElementById("editModal").style.display = "block";
-    }
-
-    // SIMPAN PERUBAHAN KE FIREBASE
-    document.getElementById("formUpdate").onsubmit = async function(e) {
-        e.preventDefault();
-        const id = document.getElementById("edit_id").value;
-        const updatedData = {
-            nama: document.getElementById("edit_nama").value,
-            whatsapp: document.getElementById("edit_wa").value,
-            email: document.getElementById("edit_email").value,
-            password: document.getElementById("edit_password").value,
-            golongan_darah: document.getElementById("edit_goldar").value,
-            jabatan: document.getElementById("edit_jabatan").value,
-            komsel: document.getElementById("edit_jc").value,
-            alamat: document.getElementById("edit_alamat").value
+        // Simpan User Baru
+        document.getElementById("formAdd").onsubmit = async (e) => {
+            e.preventDefault();
+            await db.collection("users").add({
+                nama: document.getElementById("add_nama").value,
+                whatsapp: document.getElementById("add_wa").value,
+                password: document.getElementById("add_password").value,
+                jabatan: "Anggota", komsel: "1"
+            });
+            alert("User Admin Berhasil Ditambahkan!");
+            e.target.reset();
         };
-
-        try {
-            await db.collection("users").doc(id).update(updatedData);
-            alert("Data berhasil diperbarui!");
-            closeEditModal();
-        } catch (error) {
-            alert("Gagal update: " + error.message);
-        }
     };
-
-    function deleteSelected() {
-        const selected = document.querySelectorAll(".user-checkbox:checked");
-        if (confirm(`Hapus ${selected.length} anggota permanen?`)) {
-            selected.forEach(cb => db.collection("users").doc(cb.value).delete());
-        }
-    }
-
-    function closeEditModal() { document.getElementById("editModal").style.display = "none"; }
-
-    function filterTable() {
-        let input = document.getElementById("searchInput").value.toLowerCase();
-        document.querySelectorAll("#memberData tr").forEach(row => {
-            row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none";
-        });
-    }
-
-    function loadDoa() {
-        db.collection("doa_global").orderBy("timestamp", "desc").limit(10).onSnapshot(snap => { 
-            const div = document.getElementById("doaData");
-            div.innerHTML = "";
-            document.getElementById("stat_doa").innerText = snap.size;
-            snap.forEach(doc => {
-                div.innerHTML += `<div style="padding:4px; border-bottom:1px solid #eee;"><b>${doc.data().pengirim || 'Anonim'}:</b> ${doc.data().isi}</div>`;
-            });
-        });
-    }
-
-    function loadAbsensi() {
-        db.collection("absensi").where("tanggal", "==", new Date().toISOString().split('T')[0]).onSnapshot(snap => {
-            const div = document.getElementById("absensiData");
-            div.innerHTML = "";
-            document.getElementById("stat_hadir").innerText = snap.size;
-            snap.forEach(doc => {
-                div.innerHTML += `<div style="padding:6px; border-bottom:1px solid #f9f9f9; font-size:12px;"><i class="fas fa-check-circle" style="color:green"></i> ${doc.data().nama}</div>`;
-            });
-        });
-    }
 </script>
 </body>
 </html>
