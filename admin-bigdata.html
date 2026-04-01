@@ -12,7 +12,7 @@
         :root {
             --primary: #007bff; --success: #28a745; --danger: #dc3545;
             --warning: #ffc107; --purple: #6f42c1; --dark: #1a1a1a;
-            --light: #f8f9fa; --glass: rgba(255, 255, 255, 0.9);
+            --light: #f8f9fa;
         }
 
         body {
@@ -66,7 +66,6 @@
         .badge { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; }
         .badge-success { background: #d4edda; color: #155724; }
         .badge-danger { background: #f8d7da; color: #721c24; }
-        .badge-info { background: #e2e3e5; color: #383d41; }
 
         @media print {
             .tab-menu, #loading, .action-btn, .fas.fa-arrow-left { display: none !important; }
@@ -75,34 +74,7 @@
 </head>
 <body>
 
-<div id="loading">Memproses Data...</div>
-
-<div id="exportModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; justify-content:center; align-items:center;">
-    <div style="background:white; padding:30px; border-radius:20px; width:90%; max-width:500px; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
-        <h3 id="modalTitle" style="margin-top:0;"><i class="fas fa-file-export"></i> Opsi Ekspor Laporan</h3>
-        <p>Silakan pilih metode pengambilan data:</p>
-        
-        <div style="display:flex; flex-direction:column; gap:12px; margin-top:20px;">
-            <button class="tab-btn" onclick="processExport('current')" style="justify-content:flex-start; width:100%;">
-                <i class="fas fa-table"></i> Ekspor Data Saat Ini (Tab Aktif)
-            </button>
-            <button class="tab-btn" onclick="processExport('all')" style="justify-content:flex-start; width:100%;">
-                <i class="fas fa-layer-group"></i> Ekspor Semua Kategori (Satu File PDF)
-            </button>
-            <button class="tab-btn" onclick="toggleCustomSection()" style="justify-content:flex-start; width:100%;">
-                <i class="fas fa-check-square"></i> Pilih Custom (Pilih Kategori)
-            </button>
-        </div>
-
-        <div id="customSection" style="display:none; margin-top:15px; padding:15px; background:#f8f9fa; border-radius:10px; border:1px solid #ddd;">
-            <p style="font-weight:bold; font-size:12px; margin-bottom:10px;">Pilih Kategori:</p>
-            <div id="customCheckboxes" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:12px;"></div>
-            <button class="action-btn btn-pdf" onclick="processExport('custom')" style="width:100%; margin-top:15px; justify-content:center;">Proses Pilihan</button>
-        </div>
-
-        <button onclick="closeExportModal()" style="margin-top:20px; width:100%; border:none; background:none; color:var(--danger); cursor:pointer; font-weight:bold;">Batal</button>
-    </div>
-</div>
+<div id="loading">Sinkronisasi Data Real-time...</div>
 
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
@@ -122,28 +94,27 @@
         <button class="tab-btn" onclick="switchTab('saran', this)"><i class="fas fa-comment-dots"></i> Saran & Tiket</button>
         
         <div style="margin-left: auto; display: flex; gap: 8px;">
-            <button class="action-btn btn-pdf" onclick="openExportModal('export')"><i class="fas fa-file-pdf"></i> Export</button>
-            <button class="action-btn btn-print" onclick="openExportModal('print')"><i class="fas fa-print"></i> Print</button>
+            <button class="action-btn btn-print" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
         </div>
     </div>
 
     <div class="stats-grid">
         <div class="chart-card">
-            <div class="chart-title" id="pie-title">Proporsi Status Laporan</div>
+            <div class="chart-title">Proporsi Status</div>
             <div style="width: 100%; height: 250px;"><canvas id="pieChart"></canvas></div>
         </div>
         <div class="chart-card">
-            <div class="chart-title">Kurva Tren Aktivitas (7 Hari)</div>
+            <div class="chart-title">Tren Aktivitas (Real-time)</div>
             <div style="width: 100%; height: 250px;"><canvas id="lineChart"></canvas></div>
         </div>
         <div class="chart-card">
-            <div class="chart-title" id="bar-title">Distribusi Per JC/Komsel</div>
+            <div class="chart-title">Distribusi Per Komsel/JC</div>
             <div style="width: 100%; height: 250px;"><canvas id="barChart"></canvas></div>
         </div>
     </div>
 
     <div class="data-section">
-        <div class="chart-title" id="table-title" style="text-align: left;">Detail: Ibadah Raya</div>
+        <div class="chart-title" id="table-title" style="text-align: left;">Memuat Data...</div>
         <div class="table-wrapper">
             <table id="mainTable">
                 <thead id="table-head"></thead>
@@ -157,11 +128,8 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
+    // Firebase Initialization
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -175,7 +143,7 @@
     const db = firebase.firestore();
 
     let myCharts = { pie: null, line: null, bar: null };
-    let activeType = 'ibadah';
+    let currentListener = null;
 
     const menuConfig = {
         ibadah: { title: 'Ibadah Raya', col: 'kehadiran', fields: ['Nama', 'JC', 'Tanggal', 'Status', 'Keterangan'] },
@@ -192,18 +160,16 @@
     function switchTab(type, btn) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        loadData(type);
+        loadDataRealtime(type);
     }
 
-    function showLoading(show) { 
-        document.getElementById('loading').style.display = show ? 'flex' : 'none'; 
-    }
-
-    async function loadData(type) {
-        showLoading(true);
-        activeType = type;
-        const cfg = menuConfig[type];
+    function loadDataRealtime(type) {
+        document.getElementById('loading').style.display = 'flex';
         
+        // Unsubscribe from previous listener if exists
+        if (currentListener) currentListener();
+
+        const cfg = menuConfig[type];
         document.getElementById('table-title').innerText = "Detail: " + cfg.title;
         document.getElementById('table-head').innerHTML = `<tr>${cfg.fields.map(f => `<th>${f}</th>`).join('')}</tr>`;
 
@@ -211,26 +177,28 @@
         if (type === 'peringkat_jc') {
             query = query.orderBy("ranking", "asc");
         } else {
-            query = query.orderBy("tanggal", "desc").limit(50);
+            // Coba urutkan berdasarkan tanggal jika field ada
+            query = query.limit(100); 
         }
 
-        query.onSnapshot((snapshot) => {
+        currentListener = query.onSnapshot((snapshot) => {
             let html = "";
-            let pieData = { "HADIR": 0, "TIDAK HADIR": 0 };
+            let pieData = {};
             let barData = {};
             let lineData = {};
 
             snapshot.forEach((doc) => {
                 const d = doc.data();
-                const status = (d.status || d.status_doa || "HADIR").toUpperCase();
-                const jc = d.jc || d.komsel || d.nama_jc || "Umum";
-                const tgl = d.tanggal || d.tgl_kirim || d.tanggal_kirim || "Lainnya";
+                const status = (d.status || d.status_doa || "PROSES").toUpperCase();
+                const jc = d.jc || d.komsel || d.nama_jc || d.kelas || "Umum";
+                const tgl = d.tanggal || d.tgl_doa || d.tgl_kirim || "Lainnya";
 
-                // Hitung Data Statistik
+                // Update Stats
                 pieData[status] = (pieData[status] || 0) + 1;
                 barData[jc] = (barData[jc] || 0) + 1;
                 lineData[tgl] = (lineData[tgl] || 0) + 1;
 
+                // Build Table Row
                 if(type === 'peringkat_jc') {
                     html += `<tr><td>#${d.ranking}</td><td>${d.nama_jc}</td><td>${d.poin}</td><td>${d.periode}</td><td><span class="badge badge-success">AKTIF</span></td></tr>`;
                 } else {
@@ -238,44 +206,46 @@
                         <td>${d.nama || d.pengirim || '-'}</td>
                         <td>${jc}</td>
                         <td>${tgl}</td>
-                        <td><span class="badge ${status === 'HADIR' || status === 'PROSES' ? 'badge-success' : 'badge-danger'}">${status}</span></td>
-                        <td>${d.keterangan || d.materi || d.isi_pesan || d.pokok_doa || '-'}</td>
+                        <td><span class="badge ${status === 'HADIR' || status === 'TERJAWAB' ? 'badge-success' : 'badge-danger'}">${status}</span></td>
+                        <td>${d.keterangan || d.materi || d.isi_pesan || d.pokok_doa || d.kitab || '-'}</td>
                     </tr>`;
                 }
             });
 
-            document.getElementById('data-list').innerHTML = html;
+            document.getElementById('data-list').innerHTML = html || "<tr><td colspan='5' style='text-align:center;'>Tidak ada data tersedia</td></tr>";
             updateCharts(pieData, lineData, barData);
-            showLoading(false);
+            document.getElementById('loading').style.display = 'none';
+        }, (error) => {
+            console.error("Firestore Error: ", error);
+            document.getElementById('loading').style.display = 'none';
         });
     }
 
     function updateCharts(pieData, lineData, barData) {
-        // 1. Pie Chart (Status)
+        // Pie Chart
         if (myCharts.pie) myCharts.pie.destroy();
         myCharts.pie = new Chart(document.getElementById('pieChart'), {
             type: 'doughnut',
             data: {
                 labels: Object.keys(pieData),
-                datasets: [{ data: Object.values(pieData), backgroundColor: ['#28a745', '#dc3545', '#ffc107'] }]
+                datasets: [{ data: Object.values(pieData), backgroundColor: ['#28a745', '#dc3545', '#ffc107', '#007bff'] }]
             },
             options: { responsive: true, maintainAspectRatio: false }
         });
 
-        // 2. Line Chart (Tren)
+        // Line Chart
         const lineLabels = Object.keys(lineData).sort().slice(-7);
-        const lineValues = lineLabels.map(l => lineData[l]);
         if (myCharts.line) myCharts.line.destroy();
         myCharts.line = new Chart(document.getElementById('lineChart'), {
             type: 'line',
             data: {
                 labels: lineLabels,
-                datasets: [{ label: 'Aktivitas', data: lineValues, borderColor: '#007bff', fill: true, backgroundColor: 'rgba(0,123,255,0.1)' }]
+                datasets: [{ label: 'Aktivitas', data: lineLabels.map(l => lineData[l]), borderColor: '#007bff', fill: true, backgroundColor: 'rgba(0,123,255,0.1)' }]
             },
             options: { responsive: true, maintainAspectRatio: false }
         });
 
-        // 3. Bar Chart (Distribusi)
+        // Bar Chart
         if (myCharts.bar) myCharts.bar.destroy();
         myCharts.bar = new Chart(document.getElementById('barChart'), {
             type: 'bar',
@@ -287,7 +257,8 @@
         });
     }
 
-    window.onload = () => loadData('ibadah');
+    // Inisialisasi awal
+    window.onload = () => loadDataRealtime('ibadah');
 </script>
 </body>
 </html>
