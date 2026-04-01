@@ -208,6 +208,7 @@
     function getStartDate(monthsBack) {
         let d = new Date();
         d.setMonth(d.getMonth() - monthsBack);
+        d.setHours(0,0,0,0);
         return d;
     }
  
@@ -279,27 +280,52 @@
         });
     }
  
+    // PERBAIKAN UTAMA: Sinkronisasi dengan Indeks Baru (jc + kategori + timestamp)
     function syncStatistikDoa() {
-        const jcDoa = document.getElementById('select-jc-doa').value;
+        const jcDoa = document.getElementById('select-jc-doa').value; // Mengambil "JC 5"
         const valPeriode = document.getElementById("select-periode-doa").value;
-        if(!valPeriode) return;
+        if(!valPeriode || valPeriode === "") return;
  
         const blnDoa = parseInt(valPeriode);
-        db.collection("laporan_doa").where("jc", "==", jcDoa).where("tglInput", ">=", getStartDate(blnDoa))
+        const startDate = getStartDate(blnDoa);
+
+        // Filter menggunakan field yang sama dengan Indeks Enabled
+        db.collection("saran_masukan")
+        .where("jc", "==", jcDoa) 
+        .where("kategori", "==", "Permohonan Doa")
+        .where("timestamp", ">=", startDate)
         .onSnapshot(snap => {
             let terjawab = 0;
-            snap.forEach(doc => { if(doc.data().terjawab === true) terjawab++; });
+            let totalSLA = 0;
             const total = snap.size;
-            const persen = total > 0 ? ((terjawab / total) * 100).toFixed(1) : 0;
+
+            snap.forEach(doc => { 
+                const data = doc.data();
+                if(data.status === "Terjawab") {
+                    terjawab++; 
+                    // Hitung SLA nyata
+                    const tglAwal = data.timestamp ? data.timestamp.toDate() : new Date();
+                    const diff = Math.ceil(Math.abs(new Date() - tglAwal) / (1000 * 60 * 60 * 24));
+                    totalSLA += diff;
+                }
+            });
+
+            const persenJawab = total > 0 ? ((terjawab / total) * 100).toFixed(1) : 0;
+            const rataSLA = terjawab > 0 ? Math.round(totalSLA / terjawab) : 0;
             
-            // Update Bar Doa Yang Masuk
+            // Update UI Doa
             document.getElementById('text-laporan-doa-masuk').innerText = total + " Laporan";
-            const persenMasuk = (total / 50) * 100; // Target misal 50
+            const persenMasuk = (total / 50) * 100; 
             document.getElementById('bar-laporan-doa-masuk').style.width = Math.min(persenMasuk, 100) + "%";
 
-            updateStatistikBar('txt-doa-jawab-jc', 'bar-doa-jawab-jc', persen);
-            document.getElementById('txt-doa-sla-jc').innerText = (terjawab > 0 ? 2 : 0) + " Hari";
-            document.getElementById('bar-doa-sla-jc').style.width = (terjawab > 0 ? "20%" : "0%");
+            updateStatistikBar('txt-doa-jawab-jc', 'bar-doa-jawab-jc', persenJawab);
+            
+            document.getElementById('txt-doa-sla-jc').innerText = rataSLA + " Hari";
+            // Bar SLA (makin kecil hari makin penuh bar-nya sebagai indikator kecepatan)
+            const slaBarWidth = rataSLA > 0 ? Math.max(100 - (rataSLA * 10), 10) : 0;
+            document.getElementById('bar-doa-sla-jc').style.width = slaBarWidth + "%";
+        }, error => {
+            console.error("Error Gagal Load Data Doa:", error);
         });
     }
  
@@ -338,7 +364,9 @@
             if(el) {
                 let options = `<option value="">-- Pilih Periode --</option>`;
                 for (let i = 1; i <= 12; i++) {
-                    options += `<option value="${i}">${i} Bulan terakhir</option>`;
+                    // Beri default 1 bulan agar data langsung muncul
+                    let selected = i === 1 ? 'selected' : '';
+                    options += `<option value="${i}" ${selected}>${i} Bulan terakhir</option>`;
                 }
                 el.innerHTML = options;
             }
@@ -348,6 +376,11 @@
     window.onload = () => {
         setupPeriodeDropdown();
         syncGolonganDarah(); 
+        // Jalankan semua sync otomatis saat pertama load
+        syncStatistikAlkitab();
+        syncStatistikHadir();
+        syncStatistikIzin();
+        syncStatistikDoa();
     };
 </script>
 </body>
