@@ -9,18 +9,15 @@
         :root { --biru-tua: #003366; --emas: #D4AF37; --bg: #f0f2f5; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; overflow-x: hidden; }
         
-        /* Header & Sticky Control di Atas */
         .header-app { background: var(--biru-tua); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
         .control-panel { display: flex; justify-content: space-around; background: white; padding: 10px; border-bottom: 2px solid var(--emas); position: sticky; top: 50px; z-index: 99; }
         .btn-action { border: none; background: none; color: #555; font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.3s; opacity: 0.4; pointer-events: none; }
         .btn-action.active { opacity: 1; pointer-events: auto; color: var(--biru-tua); }
         .btn-action i { font-size: 18px; margin-bottom: 3px; }
 
-        /* Main Content */
         .container { padding: 15px; max-width: 500px; margin: auto; }
         .btn-add { width: 100%; background: var(--emas); color: var(--biru-tua); border: none; padding: 12px; border-radius: 8px; font-weight: bold; margin-bottom: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
-        /* Card Doa */
         .doa-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative; border-left: 5px solid var(--emas); display: flex; gap: 12px; }
         .doa-checkbox { width: 20px; height: 20px; accent-color: var(--biru-tua); cursor: pointer; margin-top: 3px; }
         .doa-content { flex: 1; }
@@ -30,14 +27,12 @@
         .doa-text { font-size: 13px; color: #444; line-height: 1.4; margin-bottom: 10px; }
         .sla-info { font-size: 11px; color: #888; background: #f8f9fa; padding: 5px; border-radius: 5px; display: inline-block; }
 
-        /* Popups (Block Display) */
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
         .popup { background: white; width: 100%; max-width: 350px; border-radius: 20px; padding: 20px; position: relative; border-top: 5px solid var(--emas); max-height: 90vh; overflow-y: auto; }
         .popup h3 { margin-top: 0; color: var(--biru-tua); font-size: 16px; text-align: center; }
         .form-group { margin-bottom: 12px; text-align: left; }
         .form-group label { font-size: 11px; color: #888; display: block; margin-bottom: 4px; }
         .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; background: #fdfdfd; box-sizing: border-box; }
-        .form-group input[readonly] { background: #f0f2f5; color: #555; }
         .btn-save { width: 100%; background: var(--biru-tua); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-cancel { display: block; text-align: center; margin-top: 15px; color: #888; font-size: 12px; cursor: pointer; text-decoration: none; }
     </style>
@@ -62,34 +57,17 @@
     <button class="btn-add" onclick="bukaPopupAdd()">
         <i class="fa-solid fa-plus-circle"></i> ADD DOA BARU
     </button>
-
-    <div id="list-doa-container">
-        </div>
+    <div id="list-doa-container"></div>
 </div>
 
 <div id="popup-add" class="overlay">
     <div class="popup">
         <h3>Form Tiket Doa</h3>
-        <div class="form-group">
-            <label>Nomor Tiket (Otomatis)</label>
-            <input type="text" id="add-nomor" readonly>
-        </div>
-        <div class="form-group">
-            <label>Nama Lengkap (Paten)</label>
-            <input type="text" id="add-nama" readonly>
-        </div>
-        <div class="form-group">
-            <label>Komsel (Paten)</label>
-            <input type="text" id="add-jc" readonly>
-        </div>
-        <div class="form-group">
-            <label>Tanggal Input (Paten)</label>
-            <input type="text" id="add-tgl" readonly>
-        </div>
-        <div class="form-group">
-            <label>Pergumulan Doa</label>
-            <textarea id="add-doa" placeholder="Tulis doa Anda..."></textarea>
-        </div>
+        <div class="form-group"><label>Nomor Tiket</label><input type="text" id="add-nomor" readonly></div>
+        <div class="form-group"><label>Nama Lengkap</label><input type="text" id="add-nama" readonly></div>
+        <div class="form-group"><label>Komsel</label><input type="text" id="add-jc" readonly></div>
+        <div class="form-group"><label>Tanggal Input</label><input type="text" id="add-tgl" readonly></div>
+        <div class="form-group"><label>Pergumulan Doa</label><textarea id="add-doa"></textarea></div>
         <button class="btn-save" onclick="simpanDoaBaru()">KIRIM TIKET</button>
         <div class="btn-cancel" onclick="tutupPopup()">Batal</div>
     </div>
@@ -98,10 +76,7 @@
 <div id="popup-edit" class="overlay">
     <div class="popup">
         <h3>Edit Pergumulan Doa</h3>
-        <div class="form-group">
-            <label>Isi Doa yang Ingin Diubah</label>
-            <textarea id="edit-doa" style="height: 120px;"></textarea>
-        </div>
+        <div class="form-group"><textarea id="edit-doa" style="height: 120px;"></textarea></div>
         <button class="btn-save" onclick="updateDoa()">SIMPAN PERUBAHAN</button>
         <div class="btn-cancel" onclick="tutupPopup()">Batal</div>
     </div>
@@ -124,7 +99,6 @@
 
     let userNama = "", userJC = "", selectedDoaId = null;
 
-    // 1. Ambil Identitas Paten & Load Data
     window.onload = function() {
         const email = localStorage.getItem("userEmail");
         if (!email) return window.location.href = "index.html";
@@ -139,7 +113,62 @@
         });
     };
 
-    // 2. Load List Doa dengan Checkbox
+    // FUNGSI BARU YANG ANDA BERIKAN (Disisipkan di sini)
+    function syncStatistikDoa() {
+        const jcDoa = userJC; // Mengambil dari identitas user yang login
+        const valPeriode = new Date().getMonth() + 1; // Contoh: Ambil bulan berjalan jika select tidak ada
+        
+        db.collection("saran_masukan")
+        .where("jc", "==", jcDoa) 
+        .where("kategori", "==", "Permohonan Doa")
+        .onSnapshot(snap => {
+            let terjawab = 0;
+            let totalSLA = 0;
+
+            snap.forEach(doc => {
+                const data = doc.data();
+                if(data.status === "Terjawab") {
+                    terjawab++;
+                    const tglAwal = data.timestamp ? data.timestamp.toDate() : new Date();
+                    const diff = Math.ceil(Math.abs(new Date() - tglAwal) / (1000 * 60 * 60 * 24));
+                    totalSLA += diff;
+                }
+            });
+
+            const total = snap.size;
+            const persen = total > 0 ? ((terjawab / total) * 100).toFixed(1) : 0;
+            const rataSLA = terjawab > 0 ? Math.round(totalSLA / terjawab) : 0;
+            
+            // Update UI jika elemen ada (untuk menghindari error di halaman tanpa dashboard)
+            const elDoaMasukText = document.getElementById('text-laporan-doa-masuk');
+            if(elDoaMasukText) elDoaMasukText.innerText = total + " Laporan";
+
+            const elDoaMasukBar = document.getElementById('bar-laporan-doa-masuk');
+            if(elDoaMasukBar) {
+                const persenBarMasuk = (total / 50) * 100;
+                elDoaMasukBar.style.width = Math.min(persenBarMasuk, 100) + "%";
+            }
+
+            if(document.getElementById('txt-doa-sla-jc')) {
+                document.getElementById('txt-doa-sla-jc').innerText = rataSLA + " Hari";
+            }
+        });
+    }
+
+    // Fungsi Pendukung yang dibutuhkan script baru
+    function getStartDate(month) {
+        const d = new Date();
+        return new Date(d.getFullYear(), month - 1, 1);
+    }
+
+    function updateStatistikBar(txtId, barId, val) {
+        const txt = document.getElementById(txtId);
+        const bar = document.getElementById(barId);
+        if(txt) txt.innerText = val + "%";
+        if(bar) bar.style.width = val + "%";
+    }
+
+    // Fungsi Existing lainnya
     function loadListDoa() {
         db.collection("saran_masukan").where("nama", "==", userNama).orderBy("timestamp", "desc").onSnapshot(snap => {
             let html = "";
@@ -156,20 +185,19 @@
                             <span class="tiket-id">${data.nomor_tiket}</span>
                             <div class="doa-user">${data.nama} (${data.jc})</div>
                             <div class="doa-text" id="text-${doc.id}">${data.isi_saran}</div>
-                            <div class="sla-info">SLA: ${diff} Hari sejak diinput</div>
+                            <div class="sla-info">SLA: ${diff} Hari</div>
                             <input type="hidden" id="tgl-${doc.id}" value="${tglAwal.toISOString()}">
                         </div>
                     </div>`;
             });
             document.getElementById('list-doa-container').innerHTML = html;
+            syncStatistikDoa(); // Panggil sinkronisasi setiap ada perubahan data
         });
     }
 
-    // 3. Kontrol Tombol Atas berdasarkan Checkbox
     function toggleControls() {
         const checked = document.querySelectorAll('.doa-checkbox:checked');
         const btns = document.querySelectorAll('.btn-action');
-        
         if (checked.length === 1) {
             btns.forEach(b => b.classList.add('active'));
             selectedDoaId = checked[0].value;
@@ -179,13 +207,11 @@
         }
     }
 
-    // 4. Popup ADD DOA dengan Data Paten
     function bukaPopupAdd() {
         document.getElementById('popup-add').style.display = 'flex';
         document.getElementById('add-nama').value = userNama;
         document.getElementById('add-jc').value = userJC;
         document.getElementById('add-tgl').value = new Date().toLocaleDateString('id-ID');
-        
         db.collection("saran_masukan").get().then(snap => {
             const urut = (snap.size + 1).toString().padStart(3, '0');
             document.getElementById('add-nomor').value = `NK-DOA-${userJC}-${urut}-${new Date().getFullYear()}`;
@@ -195,7 +221,6 @@
     async function simpanDoaBaru() {
         const doa = document.getElementById('add-doa').value;
         if (!doa) return alert("Isi doa Anda!");
-
         await db.collection("saran_masukan").add({
             nomor_tiket: document.getElementById('add-nomor').value,
             nama: userNama,
@@ -206,19 +231,15 @@
             kategori: "Permohonan Doa"
         });
         tutupPopup();
-        document.getElementById('add-doa').value = "";
     }
 
-    // 5. Doa Terjawab & Hitung Hari
     function prosesTerjawab() {
         const tglAwal = new Date(document.getElementById(`tgl-${selectedDoaId}`).value);
         const diff = Math.ceil(Math.abs(new Date() - tglAwal) / (1000 * 60 * 60 * 24));
-        
         alert(`Puji Tuhan Doa anda terjawab dalam kurun waktu ${diff} Hari`);
         db.collection("saran_masukan").doc(selectedDoaId).update({ status: "Terjawab" });
     }
 
-    // 6. Edit & Hapus
     function bukaEditDoa() {
         document.getElementById('popup-edit').style.display = 'flex';
         document.getElementById('edit-doa').value = document.getElementById(`text-${selectedDoaId}`).innerText;
@@ -228,7 +249,6 @@
         await db.collection("saran_masukan").doc(selectedDoaId).update({
             isi_saran: document.getElementById('edit-doa').value
         });
-        alert("Doa Telah disimpan");
         tutupPopup();
     }
 
