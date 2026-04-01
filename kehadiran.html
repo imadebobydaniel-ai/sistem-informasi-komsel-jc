@@ -153,18 +153,6 @@
         const today = new Date().toISOString().split('T')[0];
         const subjekLaporan = (menu === "Absen Extention") ? document.getElementById("ext-nama").value : leaderName;
 
-        // 1. CEK DATA GANDA DI KOLEKSI "kehadiran"
-        const check = await db.collection("kehadiran")
-            .where("nama", "==", subjekLaporan)
-            .where("kegiatan", "==", menu)
-            .where("tanggal", "==", today)
-            .get();
-
-        if (!check.empty) {
-            showLockDisplay('error', 'Laporan Ditolak', 'Anda Tadi Sudah Kirim Laporan untuk kegiatan ini hari ini.');
-            return;
-        }
-
         if (navigator.geolocation) {
             showLockDisplay('loading', 'Mencari Lokasi...', 'Sedang memverifikasi lokasi Anda...');
             
@@ -190,6 +178,16 @@
         const menu = document.getElementById("jenis-kegiatan").value;
         const now = new Date();
         
+        // SINKRONISASI KOLEKSI: Menentukan ke folder mana data disimpan
+        let targetCollection = "kehadiran"; // Default: Ibadah Raya
+        
+        if (menu === "Absen Doa") targetCollection = "laporan_doa";
+        else if (menu === "Absen KD") targetCollection = "kehadiran_kd";
+        else if (menu === "Absen Komsel Reguler") targetCollection = "laporan_komsel";
+        else if (menu === "Absen Komsel Gabungan") targetCollection = "laporan_gabungan";
+        else if (menu === "Absen Pelayanan") targetCollection = "kehadiran_arso1";
+        else if (menu === "Absen Extention") targetCollection = "kehadiran"; 
+
         let payload = {
             status: tipe,
             tanggal: now.toISOString().split('T')[0],
@@ -201,13 +199,22 @@
             lokasi_alamat: alamat
         };
 
+        // Tambahan field spesifik agar terbaca sempurna di Big Data
         if (menu === "Absen Extention") payload.absensi_helper = leaderName;
-        if (menu === "Absen Komsel Gabungan") payload.gabungan_info = document.getElementById("gabungan-info").value;
-        if (tipe === 'TIDAK HADIR') payload.alasan = document.getElementById("alasan").value;
+        if (menu === "Absen Komsel Gabungan") payload.lokasi = document.getElementById("gabungan-info").value;
+        if (menu === "Absen KD") payload.kelas = leaderJC; 
+        if (tipe === 'TIDAK HADIR') payload.keterangan = document.getElementById("alasan").value;
+        else payload.keterangan = "Hadir di Lokasi";
 
-        // SIMPAN KE KOLEKSI "kehadiran" AGAR SINKRON DENGAN STATISTIK
         try {
-            await db.collection("kehadiran").add(payload);
+            // Simpan ke koleksi spesifik agar muncul di tab Dashboard yang benar
+            await db.collection(targetCollection).add(payload);
+            
+            // Juga simpan ke 'kehadiran' pusat jika belum ada di sana (untuk statistik global)
+            if (targetCollection !== "kehadiran") {
+                await db.collection("kehadiran").add(payload);
+            }
+
             showLockDisplay('success', 'Terimakasih Atas Laporan Anda', alamat);
         } catch (err) {
             showLockDisplay('error', 'Gagal Simpan', err.message);
