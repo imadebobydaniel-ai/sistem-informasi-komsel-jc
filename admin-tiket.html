@@ -18,10 +18,22 @@
         .btn-delete:hover { background: #a71d2a; }
         .btn-view { background: #0dcaf0; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
         .btn-update { background: #198754; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
-        .clickable-cat { cursor: pointer; color: #0d6efd; text-decoration: underline; }
         .badge-proses { background-color: #fd7e14; }
         .badge-selesai { background-color: #198754; }
         .chart-container { position: relative; height: 300px; width: 100%; }
+
+        /* Style untuk Modal Detail Tiket */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 9999;
+        }
+        .modal-card {
+            background: white; width: 90%; max-width: 500px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        .ticket-body { padding: 20px; color: #333; }
+        .ticket-header { background: #0d6efd; color: white; padding: 15px; text-align: center; }
+        .btn-red-custom { background: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; }
+        .btn-red-custom:hover { background: #a71d2a; color: white; }
     </style>
 </head>
 <body class="bg-light">
@@ -74,15 +86,13 @@
 
     <div class="card shadow-sm mb-4 no-print">
         <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <div class="d-flex gap-2">
-                <select class="form-select w-auto" id="filterKategori" onchange="loadTickets()">
-                    <option value="">Semua Kategori</option>
-                    <option value="Permohonan Doa">Permohonan Doa</option>
-                    <option value="Konseling / Keluarga">Konseling / Keluarga</option>
-                    <option value="Masalah Aplikasi">Masalah Aplikasi</option>
-                    <option value="Saran & Masukan">Saran & Masukan</option>
-                </select>
-            </div>
+            <select class="form-select w-auto" id="filterKategori" onchange="loadTickets()">
+                <option value="">Semua Kategori</option>
+                <option value="Permohonan Doa">Permohonan Doa</option>
+                <option value="Konseling / Keluarga">Konseling / Keluarga</option>
+                <option value="Masalah Aplikasi">Masalah Aplikasi</option>
+                <option value="Saran & Masukan">Saran & Masukan</option>
+            </select>
             <div class="btn-group">
                 <button onclick="exportPDF()" class="btn btn-danger"><i class="fas fa-file-pdf"></i> Export PDF</button>
                 <button onclick="window.print()" class="btn btn-dark"><i class="fas fa-print"></i> Print</button>
@@ -91,7 +101,7 @@
     </div>
 
     <div class="card shadow-sm">
-        <div class="card-header bg-white fw-bold">Daftar Detail Tiket (Koleksi: saran_masukan)</div>
+        <div class="card-header bg-white fw-bold">Daftar Detail Tiket</div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0" id="tiketTable">
                 <thead class="table-light">
@@ -108,6 +118,30 @@
                 </thead>
                 <tbody id="tiketData"></tbody>
             </table>
+        </div>
+    </div>
+</div>
+
+<div id="modalDetail" class="modal-overlay">
+    <div class="modal-card" id="captureArea">
+        <div class="ticket-header">
+            <h5 class="mb-0">DETAIL TIKET</h5>
+            <small id="det-nomor"></small>
+        </div>
+        <div class="ticket-body">
+            <p><strong>Pengirim :</strong> <span id="det-nama"></span></p>
+            <p><strong>Email :</strong> <span id="det-email"></span></p>
+            <p><strong>JC :</strong> <span id="det-jc"></span></p>
+            <p><strong>Kategori :</strong> <span id="det-kategori"></span></p>
+            <hr>
+            <p><strong>PESAN:</strong></p>
+            <p id="det-pesan" style="white-space: pre-wrap; background: #f8f9fa; padding: 10px; border-radius: 5px; border-left: 3px solid #0d6efd;"></p>
+            
+            <div class="mt-4 d-flex gap-2 no-print">
+                <button onclick="copyTicketText()" class="btn-red-custom flex-grow-1"><i class="fas fa-copy"></i> Copy</button>
+                <button onclick="shareAsImage()" class="btn-red-custom flex-grow-1"><i class="fas fa-share-alt"></i> Bagikan</button>
+                <button onclick="closeModal()" class="btn btn-secondary">Tutup</button>
+            </div>
         </div>
     </div>
 </div>
@@ -133,11 +167,9 @@
 
     let myChart;
 
-    // Fungsi Render Grafik
     function updateChart(cDoa, cKonseling, cProb, cSaran) {
         const ctx = document.getElementById('chartTiket').getContext('2d');
         if (myChart) { myChart.destroy(); }
-
         myChart = new Chart(ctx, {
             type: 'bar',
             data: {
@@ -149,32 +181,13 @@
                     borderRadius: 5
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-            }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
         });
     }
 
-    function hitungSLA(masukStr, timestamp) {
-        if (!timestamp) return "Sedang Berjalan";
-        try {
-            const parts = masukStr.split('/');
-            const dMasuk = new Date(parts[2], parts[1] - 1, parts[0]);
-            const dSelesai = timestamp.toDate();
-            const diffMs = dSelesai - dMasuk;
-            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-            return diffDays > 0 ? `${diffDays} Hari` : "Hari yang sama";
-        } catch (e) { return "-"; }
-    }
-
-    // --- FUNGSI LOAD TICKETS DENGAN PERBAIKAN DATABASE REALTIME ---
     function loadTickets() {
         const filterVal = document.getElementById('filterKategori').value;
-        const userJC = "JC 5"; // Sesuaikan dengan database Anda
-
+        const userJC = "JC 5"; 
         let query = db.collection("saran_masukan").where("jc", "==", userJC);
 
         if (filterVal !== "") {
@@ -186,18 +199,11 @@
         query.onSnapshot(snap => {
             const tbody = document.getElementById('tiketData');
             tbody.innerHTML = "";
-            
-            if (snap.empty) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted p-4">Tidak ada data tiket untuk ${userJC}</td></tr>`;
-            }
-
             let cDoa = 0, cKonseling = 0, cProb = 0, cSaran = 0, total = 0;
 
             snap.forEach((doc) => {
                 const t = doc.data();
                 const id = doc.id;
-
-                // Hitung Statistik Realtime
                 if(t.kategori === "Permohonan Doa") cDoa++;
                 else if(t.kategori === "Konseling / Keluarga") cKonseling++;
                 else if(t.kategori === "Masalah Aplikasi") cProb++;
@@ -205,83 +211,84 @@
                 total++;
 
                 const statusClass = t.status === 'Selesai' ? 'badge-selesai' : 'badge-proses';
-                const tglClose = t.status === 'Selesai' ? (t.tanggal_close || t.tanggal_kirim) : '-';
-                const slaText = hitungSLA(t.tanggal_kirim, t.timestamp);
-
                 tbody.innerHTML += `
                     <tr>
-                        <td><small class="text-muted">${t.nomor_tiket || '-'}</small></td>
+                        <td><small>${t.nomor_tiket || '-'}</small></td>
                         <td><span class="badge bg-info text-dark">${t.kategori}</span></td>
-                        <td>${t.tanggal_kirim} <br><small class="text-muted">${t.jam_kirim || ''}</small></td>
-                        <td>${tglClose}</td>
-                        <td class="${t.status === 'Selesai' ? 'sla-normal' : 'sla-urgent'}">
-                            ${t.status === 'Selesai' ? slaText : 'Proses'}
-                        </td>
-                        <td><b>${t.nama}</b><br><small>${t.jc || '-'}</small></td>
+                        <td>${t.tanggal_kirim}</td>
+                        <td>${t.status === 'Selesai' ? (t.tanggal_close || t.tanggal_kirim) : '-'}</td>
+                        <td>${t.status === 'Selesai' ? 'Selesai' : 'Proses'}</td>
+                        <td><b>${t.nama}</b></td>
                         <td><span class="badge ${statusClass}">${(t.status || 'proses').toUpperCase()}</span></td>
                         <td class="no-print">
-                            <div class="d-flex gap-1">
-                                <button class="btn-view" onclick="showDetail('${id}')" title="Lihat"><i class="fas fa-eye"></i></button>
-                                ${t.status !== 'Selesai' ? `<button class="btn-update" onclick="updateStatus('${id}')" title="Selesaikan"><i class="fas fa-check"></i></button>` : ''}
-                                <button class="btn-delete" onclick="deleteTicket('${id}')" title="Hapus"><i class="fas fa-trash"></i></button>
-                            </div>
+                            <button class="btn-view" onclick="showDetail('${id}')"><i class="fas fa-eye"></i></button>
+                            <button class="btn-delete" onclick="deleteTicket('${id}')"><i class="fas fa-trash"></i></button>
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
             });
-
-            // Update UI Angka & Grafik
             document.getElementById('totalTiket').innerText = total;
             document.getElementById('countDoa').innerText = cDoa;
             document.getElementById('countProblem').innerText = cProb;
             document.getElementById('countSaran').innerText = cSaran;
-
-            if (typeof updateChart === "function") {
-                updateChart(cDoa, cKonseling, cProb, cSaran);
-            }
-        }, err => {
-            console.error("Firebase Error:", err);
-            if(err.message.includes("FAILED_PRECONDITION")) {
-                alert("Index Firebase belum siap. Silakan klik link di console log browser untuk mengaktifkan index.");
-            }
+            updateChart(cDoa, cKonseling, cProb, cSaran);
         });
     }
 
+    // FUNGSI DETAIL BARU
     function showDetail(id) {
         db.collection("saran_masukan").doc(id).get().then(doc => {
             if (doc.exists) {
                 const d = doc.data();
-                alert(`DETAIL TIKET: ${d.nomor_tiket}\n------------------\nPengirim: ${d.nama}\nKategori: ${d.kategori}\nPesan: ${d.isi_saran}\nStatus: ${d.status || 'proses'}`);
+                document.getElementById('det-nomor').innerText = d.nomor_tiket || '-';
+                document.getElementById('det-nama').innerText = d.nama;
+                document.getElementById('det-email').innerText = d.email || '-';
+                document.getElementById('det-jc').innerText = d.jc || '-';
+                document.getElementById('det-kategori').innerText = d.kategori;
+                document.getElementById('det-pesan').innerText = d.isi_saran;
+                document.getElementById('modalDetail').style.display = 'flex';
             }
         });
     }
 
-    function updateStatus(id) {
-        if(confirm("Tandai tiket ini sebagai Selesai?")) {
-            const sekarang = new Date();
-            const tglSelesai = `${sekarang.getDate()}/${sekarang.getMonth()+1}/${sekarang.getFullYear()}`;
-            db.collection("saran_masukan").doc(id).update({ 
-                status: "Selesai", 
-                tanggal_close: tglSelesai,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-            });
-        }
+    function closeModal() {
+        document.getElementById('modalDetail').style.display = 'none';
+    }
+
+    // FUNGSI COPY TEKS
+    function copyTicketText() {
+        const nomor = document.getElementById('det-nomor').innerText;
+        const nama = document.getElementById('det-nama').innerText;
+        const pesan = document.getElementById('det-pesan').innerText;
+        const teks = `DETAIL TIKET [${nomor}]\nPengirim: ${nama}\nPesan: "${pesan}"`;
+        
+        navigator.clipboard.writeText(teks).then(() => alert("Teks berhasil disalin!"));
+    }
+
+    // FUNGSI BAGIKAN SEBAGAI GAMBAR
+    function shareAsImage() {
+        const area = document.getElementById('captureArea');
+        html2canvas(area, { useCORS: true, logging: false }).then(canvas => {
+            canvas.toBlob(blob => {
+                const file = new File([blob], "tiket.jpg", { type: "image/jpeg" });
+                if (navigator.share) {
+                    navigator.share({ files: [file], title: 'Tiket Layanan' });
+                } else {
+                    alert("Gunakan browser HP terbaru untuk fitur share gambar.");
+                }
+            }, 'image/jpeg');
+        });
     }
 
     function deleteTicket(id) {
-        if(confirm("Hapus tiket ini secara permanen?")) { 
-            db.collection("saran_masukan").doc(id).delete(); 
-        }
+        if(confirm("Hapus tiket?")) db.collection("saran_masukan").doc(id).delete();
     }
 
     async function exportPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('l', 'mm', 'a4');
-        const element = document.getElementById('contentToExport');
-        await html2canvas(element).then(canvas => {
-            const imgData = canvas.toDataURL('image/png');
-            doc.addImage(imgData, 'PNG', 10, 10, 280, 150);
-            doc.save('Laporan_Tiket_Layanan.pdf');
+        await html2canvas(document.getElementById('contentToExport')).then(canvas => {
+            doc.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, 280, 150);
+            doc.save('Laporan_Tiket.pdf');
         });
     }
 
