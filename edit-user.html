@@ -79,10 +79,18 @@
             align-items: center;
         }
 
-        .input-wrapper i {
+        .input-wrapper i.main-icon {
             position: absolute;
             left: 15px;
             color: #aaa;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            color: #aaa;
+            cursor: pointer;
+            z-index: 10;
         }
 
         input, select, textarea {
@@ -149,7 +157,8 @@
 
 <div class="form-container">
     <div class="logo-section">
-        <img src="logo_pondok.png" alt="Logo"> <h2>Pondok Pemulihan Papua</h2>
+        <img src="logo_pondok.png" alt="Logo"> 
+        <h2>Pondok Pemulihan Papua</h2>
         <p>Edit Data Anggota</p>
     </div>
 
@@ -157,7 +166,7 @@
         <div class="form-group">
             <label>Nama Lengkap</label>
             <div class="input-wrapper">
-                <i class="fas fa-user"></i>
+                <i class="fas fa-user main-icon"></i>
                 <input type="text" id="nama" placeholder="Contoh: Boby Daniel" required>
             </div>
         </div>
@@ -165,7 +174,7 @@
         <div class="form-group">
             <label>Email</label>
             <div class="input-wrapper">
-                <i class="fas fa-envelope"></i>
+                <i class="fas fa-envelope main-icon"></i>
                 <input type="email" id="email" placeholder="Contoh: email@gmail.com">
             </div>
         </div>
@@ -173,15 +182,24 @@
         <div class="form-group">
             <label>Nomor HP / WhatsApp</label>
             <div class="input-wrapper">
-                <i class="fab fa-whatsapp"></i>
+                <i class="fab fa-whatsapp main-icon"></i>
                 <input type="text" id="whatsapp" placeholder="08xxxxxx">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Kata Sandi Baru</label>
+            <div class="input-wrapper">
+                <i class="fas fa-lock main-icon"></i>
+                <input type="password" id="editPassword" placeholder="Kosongkan jika tidak diubah">
+                <i class="fas fa-eye toggle-password" id="btnToggle"></i>
             </div>
         </div>
 
         <div class="form-group">
             <label>Golongan Darah</label>
             <div class="input-wrapper">
-                <i class="fas fa-tint"></i>
+                <i class="fas fa-tint main-icon"></i>
                 <select id="golongan_darah">
                     <option value="">-- Pilih --</option>
                     <option value="A">A</option>
@@ -195,7 +213,7 @@
         <div class="form-group">
             <label>Jabatan</label>
             <div class="input-wrapper">
-                <i class="fas fa-briefcase"></i>
+                <i class="fas fa-briefcase main-icon"></i>
                 <select id="jabatan">
                     <option value="">-- Pilih Jabatan --</option>
                     <option value="Anggota">Anggota</option>
@@ -208,14 +226,14 @@
         <div class="form-group">
             <label>Komsel JC</label>
             <div class="input-wrapper">
-                <i class="fas fa-users"></i>
+                <i class="fas fa-users main-icon"></i>
                 <select id="komsel">
                     <option value="">-- Pilih Lokasi JC --</option>
-                    <option value="1">JC 1</option>
-                    <option value="2">JC 2</option>
-                    <option value="3">JC 3</option>
-                    <option value="4">JC 4</option>
-                    <option value="5">JC 5</option>
+                    <option value="JC 1">JC 1</option>
+                    <option value="JC 2">JC 2</option>
+                    <option value="JC 3">JC 3</option>
+                    <option value="JC 4">JC 4</option>
+                    <option value="JC 5">JC 5</option>
                 </select>
             </div>
         </div>
@@ -248,6 +266,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     const docId = urlParams.get('id');
 
+    // Load Data
     if (docId) {
         db.collection("users").doc(docId).get().then((doc) => {
             if (doc.exists) {
@@ -263,19 +282,41 @@
         });
     }
 
+    // Toggle Password Visibility
+    const btnToggle = document.getElementById('btnToggle');
+    const passInput = document.getElementById('editPassword');
+
+    btnToggle.addEventListener('click', () => {
+        const type = passInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passInput.setAttribute('type', type);
+        btnToggle.classList.toggle('fa-eye-slash');
+    });
+
+    // Update Data
     document.getElementById("editForm").onsubmit = async (e) => {
         e.preventDefault();
+        
+        const passwordBaru = document.getElementById("editPassword").value;
+
+        // Siapkan objek data dasar
+        const updatedData = {
+            nama: document.getElementById("nama").value,
+            email: document.getElementById("email").value,
+            whatsapp: document.getElementById("whatsapp").value,
+            golongan_darah: document.getElementById("golongan_darah").value,
+            jabatan: document.getElementById("jabatan").value,
+            komsel: document.getElementById("komsel").value,
+            alamat: document.getElementById("alamat").value
+        };
+
+        // Sinkronisasi: Hanya tambah password ke database jika user mengisi kolomnya
+        if (passwordBaru !== "") {
+            updatedData.password = passwordBaru;
+        }
+
         try {
-            await db.collection("users").doc(docId).update({
-                nama: document.getElementById("nama").value,
-                email: document.getElementById("email").value,
-                whatsapp: document.getElementById("whatsapp").value,
-                golongan_darah: document.getElementById("golongan_darah").value,
-                jabatan: document.getElementById("jabatan").value,
-                komsel: document.getElementById("komsel").value,
-                alamat: document.getElementById("alamat").value
-            });
-            alert("Data berhasil diperbarui!");
+            await db.collection("users").doc(docId).update(updatedData);
+            alert("Data berhasil diperbarui di database!");
             window.location.href = "admin.html";
         } catch (error) {
             alert("Gagal update: " + error.message);
