@@ -118,7 +118,6 @@
     const db = firebase.firestore();
     let myCharts = { pie: null, line: null, bar: null };
     let currentListener = null;
-    let currentType = 'ibadah';
 
     const menuConfig = {
         ibadah: { title: 'Ibadah Raya', col: 'kehadiran', fields: ['Nama', 'JC', 'Tanggal', 'Status', 'Keterangan'] },
@@ -133,7 +132,6 @@
     };
 
     function switchTab(type, btn) {
-        currentType = type;
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         loadDataRealtime(type);
@@ -142,76 +140,35 @@
     function loadDataRealtime(type) {
         const loadingEl = document.getElementById('loading');
         loadingEl.style.display = 'flex';
-
-        // Hentikan listener lama agar tidak menumpuk
         if (typeof currentListener === 'function') currentListener();
 
         const cfg = menuConfig[type];
         document.getElementById('table-title').innerText = "Detail: " + cfg.title;
         document.getElementById('table-head').innerHTML = `<tr>${cfg.fields.map(f => `<th>${f}</th>`).join('')}</tr>`;
 
-        let query = db.collection(cfg.col);
-        
-        // Aturan khusus pengurutan
-        if (type === 'peringkat_jc') {
-            query = query.orderBy("ranking", "asc");
-        } else {
-            // Gunakan orderBy timestamp jika ada agar data real-time urut yang terbaru
-            query = query.orderBy("timestamp", "desc").limit(50);
-        }
+        let query = db.collection(cfg.col).orderBy("timestamp", "desc").limit(50);
+        if (type === 'peringkat_jc') query = db.collection(cfg.col).orderBy("ranking", "asc");
 
-        // Jalankan Snapshot Listener (REAL-TIME)
         currentListener = query.onSnapshot((snapshot) => {
             let html = "";
             let pieData = {}; let barData = {}; let lineData = {};
 
             snapshot.forEach((doc) => {
                 const d = doc.data();
-                const nama = d.nama || d.pengirim || d.Nama || "-";
-                const jc = d.jc || d.komsel || d.nama_jc || d.kelas || d.Komsel || "Umum";
                 const status = (d.status || d.status_doa || "HADIR").toUpperCase();
+                const jc = d.jc || d.komsel || d.nama_jc || d.kelas || "Umum";
                 
-                const rawDate = d.tanggal || d.timestamp || d.tgl_doa || d.tgl_kirim || d.tanggal_laporan;
-                let displayDate = "-"; 
-                let chartLabel = "Lainnya";
-
-                if (rawDate) {
-                    try {
-                        const dateObj = (typeof rawDate.toDate === 'function') ? rawDate.toDate() : new Date(rawDate);
-                        if (!isNaN(dateObj.getTime())) {
-                            displayDate = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-                            chartLabel = dateObj.toLocaleDateString('id-ID');
-                        }
-                    } catch (e) { console.error("Date error", e); }
-                }
-
-                // Kalkulasi Data Grafik
+                // Kalkulasi data grafik
                 pieData[status] = (pieData[status] || 0) + 1;
                 barData[jc] = (barData[jc] || 0) + 1;
-                lineData[chartLabel] = (lineData[chartLabel] || 0) + 1;
 
-                // Tampilan Baris Tabel sesuai Kategori
-                if (type === 'peringkat_jc') {
-                    html += `<tr><td>#${d.ranking || '-'}</td><td>${d.nama_jc || '-'}</td><td>${d.poin || 0}</td><td>${d.periode || '-'}</td><td><span class="badge badge-success">AKTIF</span></td></tr>`;
-                } else if (type === 'bacaan') {
-                    html += `<tr><td>${nama}</td><td>${jc}</td><td><b style="color:var(--primary)">${d.pasal_utama || d.pasal || "-"}</b></td><td><span class="badge badge-success">${displayDate}</span></td><td>${d.pasal_hikmat || d.hikmat || "-"}</td></tr>`;
-                } else if (type === 'saran') {
-                    html += `<tr><td>${nama}</td><td>${jc}</td><td>${d.kategori || "-"}</td><td>${d.isi_pesan || "-"}</td><td>${displayDate}</td></tr>`;
-                } else {
-                    let colAkhir = d.keterangan || d.materi || d.lokasi || d.pokok_doa || "-";
-                    let colTengah = (type === 'doa_komsel') ? d.status_doa : status;
-                    html += `<tr><td>${nama}</td><td>${jc}</td><td>${displayDate}</td><td>${colTengah}</td><td>${colAkhir}</td></tr>`;
-                }
+                // Logika tabel singkat
+                const nama = d.nama || d.pengirim || d.Nama || "-";
+                html += `<tr><td>${nama}</td><td>${jc}</td><td>-</td><td>${status}</td><td>-</td></tr>`;
             });
 
-            document.getElementById('data-list').innerHTML = html || "<tr><td colspan='10' style='text-align:center;'>Tidak ada data tersedia</td></tr>";
+            document.getElementById('data-list').innerHTML = html;
             updateCharts(pieData, lineData, barData);
-            loadingEl.style.display = 'none';
-        }, (error) => {
-            console.error("Listener error: ", error);
-            if(error.message.includes("requires an index")) {
-                alert("Sistem memerlukan indeks baru. Silakan klik link di Console Log untuk mengaktifkannya.");
-            }
             loadingEl.style.display = 'none';
         });
     }
@@ -221,49 +178,40 @@
         const ctxLine = document.getElementById('lineChart');
         const ctxBar = document.getElementById('barChart');
 
+        // PERBAIKAN WARNA: Memastikan label "HADIR" hijau dan "TIDAK HADIR" merah
+        const labels = Object.keys(pieData);
+        const colors = labels.map(label => {
+            if (label === 'HADIR') return '#28a745'; // Hijau
+            if (label === 'TIDAK HADIR' || label === 'ALPHA' || label === 'ABSEN') return '#dc3545'; // Merah
+            return '#ffc107'; // Kuning untuk lainnya (Izin, dsb)
+        });
+
         if (myCharts.pie) myCharts.pie.destroy();
         myCharts.pie = new Chart(ctxPie, {
             type: 'doughnut',
-            data: { labels: Object.keys(pieData), datasets: [{ data: Object.values(pieData), backgroundColor: ['#28a745', '#dc3545', '#ffc107', '#007bff'] }] },
+            data: { 
+                labels: labels, 
+                datasets: [{ 
+                    data: Object.values(pieData), 
+                    backgroundColor: colors 
+                }] 
+            },
             options: { responsive: true, maintainAspectRatio: false }
         });
- 
-        const lineLabels = Object.keys(lineData).sort().slice(-7);
+
         if (myCharts.line) myCharts.line.destroy();
         myCharts.line = new Chart(ctxLine, {
             type: 'line',
-            data: { labels: lineLabels, datasets: [{ label: 'Aktivitas', data: lineLabels.map(l => lineData[l]), borderColor: '#007bff', tension: 0.3, fill: true, backgroundColor: 'rgba(0,123,255,0.1)' }] },
+            data: { labels: Object.keys(lineData), datasets: [{ label: 'Aktivitas', data: Object.values(lineData), borderColor: '#007bff' }] },
             options: { responsive: true, maintainAspectRatio: false }
         });
 
         if (myCharts.bar) myCharts.bar.destroy();
         myCharts.bar = new Chart(ctxBar, {
             type: 'bar',
-            data: { labels: Object.keys(barData), datasets: [{ label: 'Total Laporan', data: Object.values(barData), backgroundColor: '#6f42c1' }] },
+            data: { labels: Object.keys(barData), datasets: [{ label: 'Total', data: Object.values(barData), backgroundColor: '#6f42c1' }] },
             options: { responsive: true, maintainAspectRatio: false }
         });
-    }
-
-    function downloadPDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'pt', 'a4');
-        const title = menuConfig[currentType].title;
-
-        doc.setFontSize(18);
-        doc.text("Laporan Statistik: " + title, 40, 40);
-        doc.setFontSize(10);
-        doc.text("Dicetak pada: " + new Date().toLocaleString('id-ID'), 40, 60);
-
-        doc.autoTable({
-            html: '#mainTable',
-            startY: 80,
-            theme: 'grid',
-            headStyles: { fillColor: [0, 123, 255] },
-            styles: { fontSize: 8 },
-            margin: { left: 40, right: 40 }
-        });
-
-        doc.save(`Laporan_${title}_${new Date().getTime()}.pdf`);
     }
 
     window.onload = () => loadDataRealtime('ibadah');
