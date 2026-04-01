@@ -155,22 +155,15 @@
         saran: { title: 'Saran & Tiket Masuk', col: 'saran_masuk', fields: ['Pengirim', 'Komsel', 'Kategori', 'Isi Pesan', 'Tanggal'] }
     };
 
-    // Fungsi format tanggal Indonesia
     function formatIndoDate(timestamp) {
         if (!timestamp) return "-";
         try {
-            // Cek apakah timestamp adalah Firebase Timestamp object
             const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
             return date.toLocaleDateString('id-ID', {
-                day: '2-digit',
-                month: 'long',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+                day: '2-digit', month: 'long', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
             });
-        } catch (e) {
-            return "-";
-        }
+        } catch (e) { return "-"; }
     }
 
     function switchTab(type, btn) {
@@ -189,11 +182,10 @@
 
         let query = db.collection(cfg.col);
         
-        // Pengurutan pintar berdasarkan koleksi
         if (type === 'peringkat_jc') {
             query = query.orderBy("ranking", "asc");
-        } else if (type === 'bacaan') {
-            query = query.orderBy("timestamp", "desc");
+        } else if (type === 'bacaan' || type === 'saran') {
+            query = query.orderBy("timestamp", "desc").limit(100);
         } else {
             query = query.limit(100); 
         }
@@ -209,21 +201,33 @@
                 const status = (d.status || d.status_doa || "HADIR").toUpperCase();
                 const jc = d.jc || d.komsel || d.nama_jc || d.kelas || "Umum";
                 
-                // Gunakan formatter untuk tanggal
                 const rawDate = d.timestamp || d.tanggal || d.tgl_doa || d.tgl_kirim;
-                const displayDate = (type === 'bacaan' || d.timestamp) ? formatIndoDate(rawDate) : (rawDate || "-");
+                let displayDate = "-";
+
+                if (rawDate) {
+                    if (typeof rawDate.toDate === 'function' || rawDate instanceof Date) {
+                        displayDate = formatIndoDate(rawDate);
+                    } else {
+                        displayDate = String(rawDate);
+                    }
+                }
 
                 pieData[status] = (pieData[status] || 0) + 1;
                 barData[jc] = (barData[jc] || 0) + 1;
-                lineData[displayDate.split(',')[0]] = (lineData[displayDate.split(',')[0]] || 0) + 1;
+
+                const chartLabel = displayDate.includes(',') ? displayDate.split(',')[0] : displayDate;
+                lineData[chartLabel] = (lineData[chartLabel] || 0) + 1;
 
                 if(type === 'peringkat_jc') {
                     html += `<tr><td>#${d.ranking}</td><td>${d.nama_jc}</td><td>${d.poin}</td><td>${d.periode}</td><td><span class="badge badge-success">AKTIF</span></td></tr>`;
                 } else {
+                    let colTengah = d.pasal || d.materi || d.kategori || '-';
+                    if (type === 'bacaan') colTengah = `<b>${d.pasal || '-'}</b>`;
+
                     html += `<tr>
                         <td>${d.nama || d.pengirim || '-'}</td>
                         <td>${jc}</td>
-                        <td>${type === 'bacaan' ? `<b>${d.pasal || '-'}</b>` : (d.pasal || d.materi || d.kategori || '-')}</td>
+                        <td>${colTengah}</td>
                         <td><span class="badge bg-success">${displayDate}</span></td>
                         <td>${d.pesan || d.isi_pesan || d.pokok_doa || d.keterangan || '-'}</td>
                     </tr>`;
@@ -234,7 +238,7 @@
             updateCharts(pieData, lineData, barData);
             document.getElementById('loading').style.display = 'none';
         }, (err) => {
-            console.error(err);
+            console.error("Firestore Error:", err);
             document.getElementById('loading').style.display = 'none';
         });
     }
