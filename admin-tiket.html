@@ -78,7 +78,7 @@
                 <select class="form-select w-auto" id="filterKategori" onchange="loadTickets()">
                     <option value="">Semua Kategori</option>
                     <option value="Permohonan Doa">Permohonan Doa</option>
-                    <option value="Konseling">Konseling</option>
+                    <option value="Konseling / Keluarga">Konseling / Keluarga</option>
                     <option value="Masalah Aplikasi">Masalah Aplikasi</option>
                     <option value="Saran & Masukan">Saran & Masukan</option>
                 </select>
@@ -99,6 +99,7 @@
                         <th>No Tiket</th>
                         <th>Kategori</th>
                         <th>Tanggal Masuk</th>
+                        <th>Tanggal Close</th>
                         <th>Durasi SLA</th>
                         <th>Pengirim</th>
                         <th>Status</th>
@@ -130,7 +131,7 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    let myChart; // Variabel global untuk Chart
+    let myChart;
 
     // Fungsi Render Grafik
     function updateChart(cDoa, cKonseling, cProb, cSaran) {
@@ -159,70 +160,90 @@
 
     function hitungSLA(masukStr, timestamp) {
         if (!timestamp) return "Sedang Berjalan";
-        const parts = masukStr.split('/');
-        const dMasuk = new Date(parts[2], parts[1] - 1, parts[0]);
-        const dSelesai = timestamp.toDate();
-        const diffMs = dSelesai - dMasuk;
-        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        return diffDays > 0 ? `${diffDays} Hari` : "Hari yang sama";
+        try {
+            const parts = masukStr.split('/');
+            const dMasuk = new Date(parts[2], parts[1] - 1, parts[0]);
+            const dSelesai = timestamp.toDate();
+            const diffMs = dSelesai - dMasuk;
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            return diffDays > 0 ? `${diffDays} Hari` : "Hari yang sama";
+        } catch (e) { return "-"; }
     }
 
+    // --- FUNGSI LOAD TICKETS DENGAN PERBAIKAN DATABASE REALTIME ---
     function loadTickets() {
         const filterVal = document.getElementById('filterKategori').value;
+        const userJC = "JC 5"; // Sesuaikan dengan database Anda
 
-        db.collection("saran_masukan").orderBy("timestamp", "desc").onSnapshot(snap => {
+        let query = db.collection("saran_masukan").where("jc", "==", userJC);
+
+        if (filterVal !== "") {
+            query = query.where("kategori", "==", filterVal).orderBy("timestamp", "desc");
+        } else {
+            query = query.orderBy("timestamp", "desc");
+        }
+
+        query.onSnapshot(snap => {
             const tbody = document.getElementById('tiketData');
             tbody.innerHTML = "";
             
+            if (snap.empty) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted p-4">Tidak ada data tiket untuk ${userJC}</td></tr>`;
+            }
+
             let cDoa = 0, cKonseling = 0, cProb = 0, cSaran = 0, total = 0;
 
             snap.forEach((doc) => {
                 const t = doc.data();
                 const id = doc.id;
 
-                // Hitung Statistik (Menangani variasi penulisan kategori)
+                // Hitung Statistik Realtime
                 if(t.kategori === "Permohonan Doa") cDoa++;
-                else if(t.kategori === "Konseling" || t.kategori === "Konseling / Keluarga") cKonseling++;
-                else if(t.kategori === "Masalah Aplikasi" || t.kategori === "Laporan Masalah") cProb++;
-                else if(t.kategori === "Saran & Masukan" || t.kategori === "Saran/Masukan") cSaran++;
-                
+                else if(t.kategori === "Konseling / Keluarga") cKonseling++;
+                else if(t.kategori === "Masalah Aplikasi") cProb++;
+                else if(t.kategori === "Saran & Masukan") cSaran++;
                 total++;
 
-                // Logika Filter
-                if(filterVal !== "" && t.kategori !== filterVal) return;
-
                 const statusClass = t.status === 'Selesai' ? 'badge-selesai' : 'badge-proses';
+                const tglClose = t.status === 'Selesai' ? (t.tanggal_close || t.tanggal_kirim) : '-';
                 const slaText = hitungSLA(t.tanggal_kirim, t.timestamp);
 
                 tbody.innerHTML += `
                     <tr>
                         <td><small class="text-muted">${t.nomor_tiket || '-'}</small></td>
-                        <td class="clickable-cat" onclick="showDetail('${id}')">
-                            <span class="badge bg-info text-dark">${t.kategori}</span>
+                        <td><span class="badge bg-info text-dark">${t.kategori}</span></td>
+                        <td>${t.tanggal_kirim} <br><small class="text-muted">${t.jam_kirim || ''}</small></td>
+                        <td>${tglClose}</td>
+                        <td class="${t.status === 'Selesai' ? 'sla-normal' : 'sla-urgent'}">
+                            ${t.status === 'Selesai' ? slaText : 'Proses'}
                         </td>
-                        <td>${t.tanggal_kirim} <br><small>${t.jam_kirim || ''}</small></td>
-                        <td class="${t.status === 'Selesai' ? 'sla-normal' : 'sla-urgent'}">${t.status === 'Selesai' ? slaText : 'Proses'}</td>
                         <td><b>${t.nama}</b><br><small>${t.jc || '-'}</small></td>
                         <td><span class="badge ${statusClass}">${(t.status || 'proses').toUpperCase()}</span></td>
                         <td class="no-print">
                             <div class="d-flex gap-1">
-                                <button class="btn-view" onclick="showDetail('${id}')"><i class="fas fa-eye"></i></button>
-                                ${t.status !== 'Selesai' ? `<button class="btn-update" onclick="updateStatus('${id}')"><i class="fas fa-check"></i></button>` : ''}
-                                <button class="btn-delete" onclick="deleteTicket('${id}')"><i class="fas fa-trash"></i></button>
+                                <button class="btn-view" onclick="showDetail('${id}')" title="Lihat"><i class="fas fa-eye"></i></button>
+                                ${t.status !== 'Selesai' ? `<button class="btn-update" onclick="updateStatus('${id}')" title="Selesaikan"><i class="fas fa-check"></i></button>` : ''}
+                                <button class="btn-delete" onclick="deleteTicket('${id}')" title="Hapus"><i class="fas fa-trash"></i></button>
                             </div>
                         </td>
                     </tr>
                 `;
             });
 
-            // Update UI Angka
+            // Update UI Angka & Grafik
             document.getElementById('totalTiket').innerText = total;
             document.getElementById('countDoa').innerText = cDoa;
             document.getElementById('countProblem').innerText = cProb;
             document.getElementById('countSaran').innerText = cSaran;
 
-            // Update Grafik
-            updateChart(cDoa, cKonseling, cProb, cSaran);
+            if (typeof updateChart === "function") {
+                updateChart(cDoa, cKonseling, cProb, cSaran);
+            }
+        }, err => {
+            console.error("Firebase Error:", err);
+            if(err.message.includes("FAILED_PRECONDITION")) {
+                alert("Index Firebase belum siap. Silakan klik link di console log browser untuk mengaktifkan index.");
+            }
         });
     }
 
@@ -230,19 +251,27 @@
         db.collection("saran_masukan").doc(id).get().then(doc => {
             if (doc.exists) {
                 const d = doc.data();
-                alert(`DETAIL TIKET: ${d.nomor_tiket}\n------------------\nPengirim: ${d.nama}\nKategori: ${d.kategori}\nPesan: ${d.isi_saran}`);
+                alert(`DETAIL TIKET: ${d.nomor_tiket}\n------------------\nPengirim: ${d.nama}\nKategori: ${d.kategori}\nPesan: ${d.isi_saran}\nStatus: ${d.status || 'proses'}`);
             }
         });
     }
 
     function updateStatus(id) {
-        if(confirm("Selesaikan tiket ini?")) {
-            db.collection("saran_masukan").doc(id).update({ status: "Selesai", timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+        if(confirm("Tandai tiket ini sebagai Selesai?")) {
+            const sekarang = new Date();
+            const tglSelesai = `${sekarang.getDate()}/${sekarang.getMonth()+1}/${sekarang.getFullYear()}`;
+            db.collection("saran_masukan").doc(id).update({ 
+                status: "Selesai", 
+                tanggal_close: tglSelesai,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+            });
         }
     }
 
     function deleteTicket(id) {
-        if(confirm("Hapus tiket?")) { db.collection("saran_masukan").doc(id).delete(); }
+        if(confirm("Hapus tiket ini secara permanen?")) { 
+            db.collection("saran_masukan").doc(id).delete(); 
+        }
     }
 
     async function exportPDF() {
