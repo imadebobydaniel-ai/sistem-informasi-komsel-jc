@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen User - Pondok Pemulihan</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #007bff; color: white; padding: 12px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #eee; }
+        .btn { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-add { background: #28a745; color: white; }
+        .btn-edit { background: #ffc107; color: black; }
+        .btn-delete { background: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2><i class="fas fa-users-cog"></i> Manajemen Data Anggota</h2>
+        <a href="admin.html" style="text-decoration:none; color: #007bff; font-weight:bold;"><i class="fas fa-arrow-left"></i> Kembali ke Dashboard</a>
+    </div>
+
+    <button class="btn btn-add" onclick="tambahUser()"><i class="fas fa-user-plus"></i> Tambah Anggota Baru</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nama Anggota</th>
+                <th>Email</th>
+                <th>Jabatan</th>
+                <th>JC</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="user-list">
+            </tbody>
+    </table>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script>
+    // Konfigurasi Firebase Boby
+    const firebaseConfig = {
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+        authDomain: "boby-apps-project.firebaseapp.com",
+        projectId: "boby-apps-project",
+        storageBucket: "boby-apps-project.appspot.com",
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Fungsi Load Data Anggota (Collection: users)
+    function loadUsers() {
+        db.collection("users").onSnapshot(snapshot => {
+            let html = "";
+            snapshot.forEach(doc => {
+                const u = doc.data();
+                html += `<tr>
+                    <td>${u.nama || '-'}</td>
+                    <td>${u.email || '-'}</td>
+                    <td>${u.jabatan || '-'}</td>
+                    <td>${u.jc || '-'}</td>
+                    <td>
+                        <button class="btn btn-edit" onclick="editUser('${doc.id}')">Edit</button>
+                        <button class="btn btn-delete" onclick="hapusUser('${doc.id}')">Hapus</button>
+                    </td>
+                </tr>`;
+            });
+            document.getElementById('user-list').innerHTML = html;
+        });
+    }
+
+    loadUsers();
+</script>
+</body>
+</html>
