@@ -390,7 +390,7 @@
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'pt', 'a4');
 
-        if (mode === 'single') {
+        if (mode === 'single') { 
             await processTabToPDF(doc, currentType);
         } else {
             const keys = Object.keys(menuConfig);
