@@ -26,7 +26,7 @@
             border-radius: 10px; 
             color: white; 
             position: relative; 
-            min-height: 60px; /* Diperkecil karena angka dihapus */
+            min-height: 60px; 
             cursor: pointer; 
             transition: transform 0.2s; 
             display: flex;
@@ -147,7 +147,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    // Konfigurasi Firebase Anda
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -160,21 +159,35 @@
     const db = firebase.firestore();
 
     window.onload = function() {
-        // Tetap mengambil data untuk mengisi tabel, tapi tidak lagi menampilkan angka di menu
+        // Penarikan data realtime menggunakan onSnapshot
         db.collection("users").onSnapshot(snapshot => {
             const table = document.getElementById("memberData");
             table.innerHTML = "";
             snapshot.forEach(doc => {
                 const d = doc.data();
+                
+                // Mendeteksi field NIK (fallback ke nomor_induk atau username)
+                const tampilNIK = d.nik || d.nomor_induk || d.username || "-";
+                
+                // Mendeteksi field Golongan Darah (fallback ke goldar)
+                const tampilGoldar = d.golongan_darah || d.goldar || "-";
+
+                // Mendeteksi field WhatsApp (fallback ke hp atau nomor_wa)
+                const tampilWA = d.whatsapp || d.hp || d.nomor_wa || "-";
+                
+                // Pastikan JC (Komsel) terpanggil dengan benar
+                const tampilJC = d.komsel ? `JC ${d.komsel}` : "-";
+
                 table.innerHTML += `
                 <tr>
                     <td class="check-col"><input type="checkbox" class="user-checkbox" value="${doc.id}" onclick="updateActionMenu()"></td>
-                    <td class="nik-col">${d.nik || '-'}</td> <td><b>${d.nama || '-'}</b></td>
-                    <td>${d.whatsapp || '-'}</td>
+                    <td class="nik-col">${tampilNIK}</td> 
+                    <td><b>${d.nama || '-'}</b></td>
+                    <td>${tampilWA}</td>
                     <td>${d.email || '-'}</td>
-                    <td>${d.golongan_darah || '-'}</td>
+                    <td style="text-align:center; font-weight:bold; color:var(--danger);">${tampilGoldar}</td>
                     <td>${d.jabatan || '-'}</td>
-                    <td>JC ${d.komsel || '-'}</td>
+                    <td>${tampilJC}</td>
                     <td>${d.alamat || '-'}</td>
                 </tr>`;
             });
@@ -195,7 +208,9 @@
         const checkAll = document.getElementById('checkAll');
         const selectedLabel = document.getElementById('selectedCount');
 
-        checkAll.checked = (checkedOnes.length === checkboxes.length && checkboxes.length > 0);
+        if (checkAll) {
+            checkAll.checked = (checkedOnes.length === checkboxes.length && checkboxes.length > 0);
+        }
 
         if (checkedOnes.length > 0) {
             actionMenu.style.display = 'flex';
