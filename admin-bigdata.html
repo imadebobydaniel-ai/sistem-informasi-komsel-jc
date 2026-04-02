@@ -160,7 +160,6 @@
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -175,22 +174,6 @@
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const auth = firebase.auth();
-
-    // --- PROTEKSI ROLE (HANYA SUPER ADMIN YANG BISA EKSPOR) ---
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            db.collection('admins').doc(user.uid).get().then(doc => {
-                if (doc.exists) {
-                    const role = doc.data().role;
-                    if (role !== 'super_admin') {
-                        document.getElementById('btnExportMain').style.display = 'none';
-                        console.warn("Fitur Ekspor dinonaktifkan untuk role:", role);
-                    }
-                }
-            });
-        }
-    });
 
     let myCharts = { pie: null, line: null, bar: null };
     let currentType = 'ibadah';
@@ -334,11 +317,6 @@
         const snapshot = await db.collection(cfg.col).orderBy("timestamp", "desc").get();
         const { tableRows } = formatTableData(type, snapshot);
 
-        try {
-            const logo = "https://raw.githubusercontent.com/imadebobydaniel-ai/sistem-informasi-komsel-jc/main/logo_pondok.png";
-            doc.addImage(logo, 'PNG', 40, 30, 60, 60);
-        } catch(e) {}
-
         doc.setTextColor(0, 0, 0);
         doc.setFont("helvetica", "bold");
         doc.setFontSize(20);
@@ -350,46 +328,15 @@
         doc.text(`Laporan Statistik: ${cfg.title} | Periode: ${periodText}`, 115, 85);
         doc.line(40, 100, pageWidth - 40, 100);
 
-        doc.setFont("helvetica", "bold");
-        doc.text("KATA PENGANTAR", 40, 130);
-        doc.setFont("helvetica", "normal");
-        doc.text(`Berikut adalah detail laporan aktivitas digital untuk menu ${cfg.title}.`, 40, 145);
-
         doc.autoTable({
             head: [cfg.fields],
             body: tableRows,
-            startY: 160,
+            startY: 120,
             theme: 'grid',
             headStyles: { fillColor: [0, 123, 255] },
             styles: { fontSize: 7 },
             margin: { left: 40, right: 40 }
         });
-
-        let finalY = doc.lastAutoTable.finalY + 30;
-        if (finalY > 550) { doc.addPage(); finalY = 50; }
-
-        doc.setFont("helvetica", "bold");
-        doc.text("VISUALISASI & STATISTIK", 40, finalY);
-        
-        if (type === currentType) {
-            const canvasCharts = await html2canvas(document.getElementById('capture-charts'), { scale: 2 });
-            const imgCharts = canvasCharts.toDataURL('image/png');
-            doc.addImage(imgCharts, 'PNG', 40, finalY + 20, pageWidth - 80, 180);
-            finalY += 220;
-        } else {
-            doc.setFont("helvetica", "italic");
-            doc.text("[ Grafik hanya tersedia pada export tab yang aktif ]", 40, finalY + 20);
-            finalY += 40;
-        }
-
-        if (finalY > 750) { doc.addPage(); finalY = 50; }
-        doc.setFillColor(240, 240, 240);
-        doc.rect(40, finalY, pageWidth - 80, 40, 'F');
-        doc.setFont("helvetica", "bolditalic");
-        doc.setFontSize(9);
-        doc.text(`KESIMPULAN: Total ${tableRows.length} data berhasil diverifikasi.`, 50, finalY + 18);
-        doc.setFont("helvetica", "normal");
-        doc.text("Demikian laporan ini dibuat secara otomatis oleh sistem untuk digunakan sebagaimana mestinya.", 50, finalY + 32);
     }
 
     async function handleExport(mode) {
