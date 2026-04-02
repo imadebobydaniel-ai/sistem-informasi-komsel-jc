@@ -153,24 +153,42 @@
         const today = new Date().toISOString().split('T')[0];
         const subjekLaporan = (menu === "Absen Extention") ? document.getElementById("ext-nama").value : leaderName;
 
+        // Tentukan Target Koleksi untuk Cek Data Ganda
+        let targetCollection = "kehadiran";
+        if (menu === "Absen Doa") targetCollection = "laporan_doa";
+        else if (menu === "Absen KD") targetCollection = "kehadiran_kd";
+        else if (menu === "Absen Komsel Reguler") targetCollection = "laporan_komsel";
+        else if (menu === "Absen Komsel Gabungan") targetCollection = "laporan_gabungan";
+        else if (menu === "Absen Pelayanan") targetCollection = "kehadiran_arso1";
+
+        // 1. CEK DATA GANDA AGAR DATABASE TIDAK SAMPAH
+        const check = await db.collection(targetCollection)
+            .where("nama", "==", subjekLaporan)
+            .where("tanggal", "==", today)
+            .where("kegiatan", "==", menu)
+            .get();
+
+        if (!check.empty) {
+            showLockDisplay('error', 'Laporan Ditolak', 'Anda sudah kirim laporan untuk kegiatan ini hari ini.');
+            return;
+        }
+
         if (navigator.geolocation) {
-            showLockDisplay('loading', 'Mencari Lokasi...', 'Sedang memverifikasi lokasi Anda...');
+            showLockDisplay('loading', 'Mencari Lokasi...', 'Sedang memverifikasi lokasi & waktu...');
             
             navigator.geolocation.getCurrentPosition(async (pos) => {
                 const lat = pos.coords.latitude;
                 const lon = pos.coords.longitude;
-                
                 try {
                     const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
                     const addr = await res.json();
-                    const alamatJalan = addr.display_name || "Alamat tidak ditemukan";
-                    saveData(tipe, `${lat}, ${lon}`, alamatJalan, subjekLaporan);
+                    saveData(tipe, `${lat}, ${lon}`, addr.display_name || "Alamat ditemukan", subjekLaporan);
                 } catch (e) {
-                    saveData(tipe, `${lat}, ${lon}`, "Gagal mendeteksi nama jalan", subjekLaporan);
+                    saveData(tipe, `${lat}, ${lon}`, "Gagal deteksi alamat", subjekLaporan);
                 }
             }, () => saveData(tipe, "GPS Off", "Lokasi tidak diizinkan", subjekLaporan), { timeout: 10000 });
         } else {
-            saveData(tipe, "No GPS Support", "Perangkat tidak mendukung GPS", subjekLaporan);
+            saveData(tipe, "No GPS", "Perangkat tidak dukung GPS", subjekLaporan);
         }
     }
 
@@ -178,20 +196,17 @@
         const menu = document.getElementById("jenis-kegiatan").value;
         const now = new Date();
         
-        // SINKRONISASI KOLEKSI: Menentukan ke folder mana data disimpan
-        let targetCollection = "kehadiran"; // Default: Ibadah Raya
-        
+        let targetCollection = "kehadiran"; 
         if (menu === "Absen Doa") targetCollection = "laporan_doa";
         else if (menu === "Absen KD") targetCollection = "kehadiran_kd";
         else if (menu === "Absen Komsel Reguler") targetCollection = "laporan_komsel";
         else if (menu === "Absen Komsel Gabungan") targetCollection = "laporan_gabungan";
         else if (menu === "Absen Pelayanan") targetCollection = "kehadiran_arso1";
-        else if (menu === "Absen Extention") targetCollection = "kehadiran"; 
 
         let payload = {
             status: tipe,
             tanggal: now.toISOString().split('T')[0],
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(), // PENTING: Untuk pengurutan di Big Data
             kegiatan: menu,
             nama: subjek,
             jc: (menu === "Absen Extention" ? document.getElementById("ext-jc").value : leaderJC),
@@ -199,18 +214,16 @@
             lokasi_alamat: alamat
         };
 
-        // Tambahan field spesifik agar terbaca sempurna di Big Data
         if (menu === "Absen Extention") payload.absensi_helper = leaderName;
         if (menu === "Absen Komsel Gabungan") payload.lokasi = document.getElementById("gabungan-info").value;
         if (menu === "Absen KD") payload.kelas = leaderJC; 
-        if (tipe === 'TIDAK HADIR') payload.keterangan = document.getElementById("alasan").value;
-        else payload.keterangan = "Hadir di Lokasi";
+        payload.keterangan = (tipe === 'TIDAK HADIR') ? document.getElementById("alasan").value : "Hadir di Lokasi";
 
         try {
-            // Simpan ke koleksi spesifik agar muncul di tab Dashboard yang benar
+            // SIMPAN KE DATABASE (Koleksi Spesifik)
             await db.collection(targetCollection).add(payload);
             
-            // Juga simpan ke 'kehadiran' pusat jika belum ada di sana (untuk statistik global)
+            // Simpan ke Pusat Kehadiran jika folder berbeda
             if (targetCollection !== "kehadiran") {
                 await db.collection("kehadiran").add(payload);
             }
