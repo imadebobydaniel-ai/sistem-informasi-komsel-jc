@@ -50,7 +50,6 @@
         }
         
         .icon-circle { background: white; padding: 25px; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
-
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -123,7 +122,7 @@
     </div>
 
     <button id="btnKirim" class="btn-kirim btn-disabled" disabled onclick="prosesLaporan()">KIRIM LAPORAN SEKARANG</button>
-    <a href="menu.html" class="btn-home" style="display: block; margin-top: 20px; text-decoration: none; color: var(--biru-bca); font-weight: bold; font-size: 13px;"><i class="fa-solid fa-house"></i> Kembali ke Menu Utama</a>
+    <a href="menu.html" style="display: block; margin-top: 20px; text-decoration: none; color: var(--biru-bca); font-weight: bold; font-size: 13px;"><i class="fa-solid fa-house"></i> Kembali ke Menu Utama</a>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -198,72 +197,61 @@
 
     async function prosesLaporan() {
         const btn = document.getElementById('btnKirim');
-        const originalText = "KIRIM LAPORAN SEKARANG";
-        btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Mengecek Data...";
+        btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Menyimpan...";
         btn.disabled = true;
 
-        const hariIni = new Date();
-        hariIni.setHours(0,0,0,0);
-        const besok = new Date(hariIni);
-        besok.setDate(besok.getDate() + 1);
+        const sekarang = new Date();
+        const tglString = sekarang.toISOString().split('T')[0]; // Format YYYY-MM-DD
 
         try {
-            // 1. Cek apakah user sudah lapor hari ini
+            // 1. CEK DOUBLE INPUT (Berdasarkan Email dan Tanggal hari ini)
             const cekDouble = await db.collection("laporan_bacaan")
                 .where("email", "==", userEmail)
-                .where("tanggal", ">=", hariIni)
-                .where("tanggal", "<", besok)
+                .where("tanggal_str", "==", tglString)
                 .get();
 
             if (!cekDouble.empty) {
-                showBlock("GAGAL", "Anda sudah mengirim laporan hari ini.", "fa-circle-xmark", "#e74c3c");
+                showBlock("GAGAL", "Laporan sudah dikirim hari ini.", "fa-circle-xmark", "#e74c3c");
                 return;
             }
 
-            // 2. SAFETY CHECK: Ambil data user dari koleksi 'users'
+            // 2. AMBIL DATA USER
             const snapUser = await db.collection("users").where("email", "==", userEmail).get();
-            
             if (snapUser.empty) {
-                alert("Error: Data profil Anda tidak ditemukan. Silakan pastikan email Anda sudah terdaftar di sistem.");
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+                alert("Data profil tidak ditemukan!");
+                location.reload();
                 return;
             }
-            
             const u = snapUser.docs[0].data();
 
-            // 3. Susun Payload (Sinkron dengan Statistik Dashboard)
+            // 3. SUSUN PAYLOAD DENGAN TIMESTAMP AKURAT
             const payload = {
                 nama: u.nama || "Tanpa Nama", 
                 email: userEmail, 
-                jc: String(u.komsel || u.jc || "Umum").trim(), // Field utama untuk filter grafik
-                
-                // Field detail untuk perhitungan statistik
+                jc: String(u.komsel || u.jc || "Umum").trim(),
                 kitab: document.getElementById('kitab-utama').value,
-                pasal: document.getElementById('pasal-dari').value + "-" + document.getElementById('pasal-sampai').value,
-                
-                // Field string untuk tampilan riwayat
-                pasal_utama: `${document.getElementById('kitab-utama').value} ${document.getElementById('pasal-dari').value} - ${document.getElementById('pasal-sampai').value}`,
+                pasal_dari: parseInt(document.getElementById('pasal-dari').value),
+                pasal_sampai: parseInt(document.getElementById('pasal-sampai').value),
+                pasal_utama_full: `${document.getElementById('kitab-utama').value} ${document.getElementById('pasal-dari').value}-${document.getElementById('pasal-sampai').value}`,
                 pasal_hikmat: `Amsal ${document.getElementById('pasal-amsal').value}`,
                 
-                // Timestamp
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                tanggal: firebase.firestore.Timestamp.now()
+                // --- INI KUNCI PENGURUTAN ---
+                tanggal_str: tglString, // Untuk filter hari
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(), // Waktu Server (Detik)
+                created_at: sekarang.getTime() // Waktu Client (Milidetik) sebagai cadangan
             };
 
-            // Tambahkan Extension Jika Aktif
             if(document.getElementById('card-extension').style.display === "block") {
-                payload.pasal_extension = `${document.getElementById('kitab-ext').value} ${document.getElementById('pasal-dari-ext').value} - ${document.getElementById('pasal-sampai-ext').value}`;
+                payload.pasal_extension = `${document.getElementById('kitab-ext').value} ${document.getElementById('pasal-dari-ext').value}-${document.getElementById('pasal-sampai-ext').value}`;
             }
 
-            // 4. Kirim ke Firestore
+            // 4. KIRIM KE FIRESTORE
             await db.collection("laporan_bacaan").add(payload);
-            showBlock("BERHASIL", "Terimakasih! Laporan Anda telah tersimpan.", "fa-circle-check", "#2ecc71");
+            showBlock("BERHASIL", "Laporan Anda telah tersimpan rapi.", "fa-circle-check", "#2ecc71");
 
         } catch (e) {
-            console.error(e);
-            alert("Terjadi kesalahan sistem: " + e.message);
-            btn.innerHTML = originalText;
+            alert("Error: " + e.message);
+            btn.innerHTML = "KIRIM LAPORAN SEKARANG";
             btn.disabled = false;
         }
     }
@@ -278,7 +266,6 @@
 
     window.onload = function() {
         if(!userEmail) {
-            alert("Sesi berakhir, silakan login kembali.");
             window.location.href = "index.html";
             return;
         }
