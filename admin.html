@@ -158,35 +158,39 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
+    // FUNGSI PENARIKAN DATA TERBARU
     window.onload = function() {
-        // Penarikan data realtime menggunakan onSnapshot
         db.collection("users").onSnapshot(snapshot => {
             const table = document.getElementById("memberData");
             table.innerHTML = "";
+            
             snapshot.forEach(doc => {
                 const d = doc.data();
                 
-                // Mendeteksi field NIK (fallback ke nomor_induk atau username)
-                const tampilNIK = d.nik || d.nomor_induk || d.username || "-";
+                // 1. Deteksi NIK (Banyak pilihan fallback agar tidak muncul '-')
+                const tampilNIK = d.nik || d.nomor_induk || d.username || d.id || "-";
                 
-                // Mendeteksi field Golongan Darah (fallback ke goldar)
-                const tampilGoldar = d.golongan_darah || d.goldar || "-";
+                // 2. Deteksi Golongan Darah
+                const tampilGoldar = d.golongan_darah || d.goldar || d.gol_darah || "-";
 
-                // Mendeteksi field WhatsApp (fallback ke hp atau nomor_wa)
-                const tampilWA = d.whatsapp || d.hp || d.nomor_wa || "-";
+                // 3. Deteksi WhatsApp / Nomor HP
+                const tampilWA = d.whatsapp || d.hp || d.nomor_wa || d.nomor_hp || "-";
                 
-                // Pastikan JC (Komsel) terpanggil dengan benar
-                const tampilJC = d.komsel ? `JC ${d.komsel}` : "-";
+                // 4. Deteksi Nama
+                const tampilNama = d.nama || d.nama_lengkap || "-";
+
+                // 5. Deteksi JC / Komsel
+                const tampilJC = d.komsel || d.jc || (d.komsel ? `JC ${d.komsel}` : "-");
 
                 table.innerHTML += `
                 <tr>
                     <td class="check-col"><input type="checkbox" class="user-checkbox" value="${doc.id}" onclick="updateActionMenu()"></td>
                     <td class="nik-col">${tampilNIK}</td> 
-                    <td><b>${d.nama || '-'}</b></td>
+                    <td><b>${tampilNama}</b></td>
                     <td>${tampilWA}</td>
                     <td>${d.email || '-'}</td>
                     <td style="text-align:center; font-weight:bold; color:var(--danger);">${tampilGoldar}</td>
-                    <td>${d.jabatan || '-'}</td>
+                    <td>${d.jabatan || d.jenis_admin || '-'}</td>
                     <td>${tampilJC}</td>
                     <td>${d.alamat || '-'}</td>
                 </tr>`;
