@@ -99,7 +99,7 @@
         
         <div class="action-group">
             <div class="dropdown">
-                <button class="action-btn btn-pdf" onclick="toggleDropdown('pdfDropdown')">
+                <button id="btnExportMain" class="action-btn btn-pdf" onclick="toggleDropdown('pdfDropdown')">
                     <i class="fas fa-file-pdf"></i> Export PDF <i class="fas fa-chevron-down" style="font-size: 10px;"></i>
                 </button>
                 <div id="pdfDropdown" class="dropdown-content">
@@ -160,6 +160,7 @@
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -174,12 +175,27 @@
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    // --- PROTEKSI ROLE (HANYA SUPER ADMIN YANG BISA EKSPOR) ---
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            db.collection('admins').doc(user.uid).get().then(doc => {
+                if (doc.exists) {
+                    const role = doc.data().role;
+                    if (role !== 'super_admin') {
+                        document.getElementById('btnExportMain').style.display = 'none';
+                        console.warn("Fitur Ekspor dinonaktifkan untuk role:", role);
+                    }
+                }
+            });
+        }
+    });
 
     let myCharts = { pie: null, line: null, bar: null };
     let currentType = 'ibadah';
     let currentListener = null;
 
-    // --- KONFIGURASI MENU (DENGAN UPDATE LOKASI GPS) ---
     const menuConfig = {
         ibadah: { title: 'Ibadah Raya', col: 'kehadiran', fields: ['Nama', 'JC', 'Tanggal', 'Status', 'Keterangan'] },
         arso1: { title: 'Ibadah Arso 1', col: 'kehadiran_arso1', fields: ['Nama', 'JC', 'Tanggal', 'Status', 'Keterangan'] },
@@ -244,7 +260,6 @@
         });
     }
 
-    // --- LOGIKA FORMAT TABEL DENGAN LOKASI GPS ---
     function formatTableData(type, snapshot) {
         let html = "";
         let pData = {}, bData = {}, lData = {};
@@ -277,17 +292,9 @@
                 html += `<tr><td>#${d.ranking || '-'}</td><td>${d.nama_jc}</td><td>${d.poin}</td><td>${d.periode}</td><td>AKTIF</td></tr>`;
                 row = [`#${d.ranking || '-'}`, d.nama_jc, d.poin, d.periode, "AKTIF"];
             } else if (type === 'komsel') {
-                // UPDATE KHUSUS KOMSEL REGULER
                 let materi = d.materi || "-";
                 let alamat = d.lokasi_alamat || "Lokasi tidak terdeteksi";
-                html += `<tr>
-                            <td>${nama}</td>
-                            <td>${jc}</td>
-                            <td>${tglTampil}</td>
-                            <td>${status}</td>
-                            <td>${materi}</td>
-                            <td style="font-size: 10px; color: #555;"><i class="fas fa-map-marker-alt"></i> ${alamat}</td>
-                         </tr>`;
+                html += `<tr><td>${nama}</td><td>${jc}</td><td>${tglTampil}</td><td>${status}</td><td>${materi}</td><td style="font-size: 10px; color: #555;"><i class="fas fa-map-marker-alt"></i> ${alamat}</td></tr>`;
                 row = [nama, jc, tglTampil, status, materi, alamat];
             } else {
                 let ket = d.alasan || d.keterangan || d.materi || d.lokasi || d.pokok_doa || d.isi_pesan || "-";
@@ -354,7 +361,7 @@
             startY: 160,
             theme: 'grid',
             headStyles: { fillColor: [0, 123, 255] },
-            styles: { fontSize: 7 }, // Dikecilkan sedikit agar alamat muat
+            styles: { fontSize: 7 },
             margin: { left: 40, right: 40 }
         });
 
