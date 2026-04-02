@@ -26,7 +26,7 @@
             border-radius: 10px; 
             color: white; 
             position: relative; 
-            min-height: 60px; /* Diperkecil karena angka dihapus */
+            min-height: 60px; 
             cursor: pointer; 
             transition: transform 0.2s; 
             display: flex;
@@ -147,7 +147,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    // Konfigurasi Firebase Anda
+    // Konfigurasi Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -156,26 +156,42 @@
         messagingSenderId: "125984859692",
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
+
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
+    // KOLEKSI PENYIMPANAN DATA ANGGOTA (Bukan koleksi user login)
+    const collectionAnggota = "absensi"; 
+
     window.onload = function() {
-        // Tetap mengambil data untuk mengisi tabel, tapi tidak lagi menampilkan angka di menu
-        db.collection("users").onSnapshot(snapshot => {
+        db.collection(collectionAnggota).onSnapshot(snapshot => {
             const table = document.getElementById("memberData");
             table.innerHTML = "";
+            
             snapshot.forEach(doc => {
                 const d = doc.data();
+                
+                // Fallback field untuk memastikan data muncul jika nama field berbeda
+                const tampilNIK = d.nik || d.NIK || d.nomor_nik || "-";
+                const tampilNama = d.nama || d.nama_lengkap || "-";
+                const tampilWA = d.whatsapp || d.nomor_hp || d.no_wa || "-";
+                const tampilEmail = d.email || "-";
+                const tampilGoldar = d.golongan_darah || d.goldar || "-";
+                const tampilJabatan = d.jabatan || "Anggota";
+                const tampilJC = d.jc || d.komsel || (d.komsel ? `JC ${d.komsel}` : "-");
+                const tampilAlamat = d.alamat || "-";
+
                 table.innerHTML += `
                 <tr>
                     <td class="check-col"><input type="checkbox" class="user-checkbox" value="${doc.id}" onclick="updateActionMenu()"></td>
-                    <td class="nik-col">${d.nik || '-'}</td> <td><b>${d.nama || '-'}</b></td>
-                    <td>${d.whatsapp || '-'}</td>
-                    <td>${d.email || '-'}</td>
-                    <td>${d.golongan_darah || '-'}</td>
-                    <td>${d.jabatan || '-'}</td>
-                    <td>JC ${d.komsel || '-'}</td>
-                    <td>${d.alamat || '-'}</td>
+                    <td class="nik-col">${tampilNIK}</td> 
+                    <td><b>${tampilNama}</b></td>
+                    <td>${tampilWA}</td>
+                    <td>${tampilEmail}</td>
+                    <td style="text-align:center; font-weight:bold; color:var(--danger);">${tampilGoldar}</td>
+                    <td>${tampilJabatan}</td>
+                    <td>${tampilJC}</td>
+                    <td>${tampilAlamat}</td>
                 </tr>`;
             });
             updateActionMenu();
@@ -195,7 +211,9 @@
         const checkAll = document.getElementById('checkAll');
         const selectedLabel = document.getElementById('selectedCount');
 
-        checkAll.checked = (checkedOnes.length === checkboxes.length && checkboxes.length > 0);
+        if (checkAll) {
+            checkAll.checked = (checkedOnes.length === checkboxes.length && checkboxes.length > 0);
+        }
 
         if (checkedOnes.length > 0) {
             actionMenu.style.display = 'flex';
@@ -216,20 +234,22 @@
 
     function bulkDelete() {
         const selectedIds = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.value);
-        if (confirm(`Apakah Anda yakin ingin menghapus ${selectedIds.length} anggota ini secara permanen?`)) {
+        if (confirm(`Apakah Anda yakin ingin menghapus ${selectedIds.length} data pendaftar ini?`)) {
             selectedIds.forEach(id => {
-                db.collection("users").doc(id).delete().catch(error => {
+                db.collection(collectionAnggota).doc(id).delete().catch(error => {
                     console.error("Gagal menghapus:", error);
                 });
             });
-            alert("Data berhasil dihapus dari sistem.");
+            alert("Data berhasil dihapus.");
         }
     }
 
     function filterTable() {
         let input = document.getElementById("searchInput").value.toLowerCase();
         let rows = document.querySelectorAll("#memberData tr");
-        rows.forEach(row => { row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none"; });
+        rows.forEach(row => { 
+            row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none"; 
+        });
     }
 </script>
 </body>
