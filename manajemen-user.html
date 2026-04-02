@@ -9,42 +9,22 @@
         :root { --primary: #007bff; --success: #28a745; --danger: #dc3545; --warning: #ffc107; --dark: #333; }
         body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
         .container { max-width: 1200px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
         .action-bar { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
-        
         .btn { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; display: flex; align-items: center; gap: 8px; }
         .btn-add { background: var(--success); color: white; }
         .btn-edit { background: var(--warning); color: black; }
         .btn-delete { background: var(--danger); color: white; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f8f9fa; padding: 15px; text-align: left; border-bottom: 2px solid #dee2e6; }
-        td { padding: 12px; border-bottom: 1px solid #eee; }
-
-        /* MODAL CSS */
-        .modal-overlay { 
-            display: none; 
-            position: fixed; 
-            top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.6); 
-            z-index: 1000; 
-            justify-content: center; align-items: center; 
-        }
-        .modal-box { 
-            background: white; 
-            padding: 30px; 
-            border-radius: 15px; 
-            width: 450px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
-        }
+        th { background: #f8f9fa; padding: 15px; text-align: left; border-bottom: 2px solid #dee2e6; font-size: 14px; }
+        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-box { background: white; padding: 30px; border-radius: 15px; width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .modal-box h3 { margin-top: 0; color: var(--dark); border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #666; }
-        .form-group input, .form-group select { 
-            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; 
-        }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
         .modal-footer { display: flex; gap: 10px; margin-top: 20px; }
         .btn-full { flex: 1; justify-content: center; }
     </style>
@@ -58,7 +38,7 @@
     </div>
 
     <div class="action-bar">
-        <button class="btn btn-add" onclick="openModal()">
+        <button class="btn btn-add" onclick="openModal(false)">
             <i class="fas fa-user-plus"></i> Tambah Anggota Baru
         </button>
         <button class="btn btn-edit" id="btnEdit" disabled onclick="editUser()"><i class="fas fa-edit"></i> Edit</button>
@@ -69,10 +49,11 @@
         <thead>
             <tr>
                 <th width="40"><input type="checkbox" id="checkAll" onclick="toggleAll(this)"></th>
-                <th>Nama Anggota</th>
-                <th>Email</th>
+                <th>Nama Lengkap</th>
+                <th>Email (User Admin)</th>
                 <th>Nomor HP</th>
                 <th>Jenis Admin</th>
+                <th>Password</th>
             </tr>
         </thead>
         <tbody id="user-list"></tbody>
@@ -81,13 +62,13 @@
 
 <div class="modal-overlay" id="modalUser">
     <div class="modal-box">
-        <h3>Tambah User Baru</h3>
+        <h3 id="modalTitle">Tambah User Baru</h3>
         <div class="form-group">
             <label>Nama Lengkap</label>
             <input type="text" id="popNama" placeholder="Masukkan nama lengkap...">
         </div>
         <div class="form-group">
-            <label>Email</label>
+            <label>Email (Username untuk Login)</label>
             <input type="email" id="popEmail" placeholder="contoh@gmail.com">
         </div>
         <div class="form-group">
@@ -95,8 +76,8 @@
             <input type="number" id="popHp" placeholder="0812...">
         </div>
         <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="popPass" placeholder="******">
+            <label>Password Login</label>
+            <input type="text" id="popPass" placeholder="Masukkan password...">
         </div>
         <div class="form-group">
             <label>Pilih Jenis Admin</label>
@@ -108,7 +89,7 @@
         </div>
         <div class="modal-footer">
             <button class="btn btn-delete btn-full" onclick="closeModal()">Batal</button>
-            <button class="btn btn-add btn-full" onclick="createUser()">Create User</button>
+            <button class="btn btn-add btn-full" id="btnSave" onclick="saveData()">Simpan User</button>
         </div>
     </div>
 </div>
@@ -127,32 +108,48 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Fungsi Modal
-    function openModal() { document.getElementById('modalUser').style.display = 'flex'; }
+    let currentEditId = null;
+
+    function openModal(isEdit = false) {
+        document.getElementById('modalUser').style.display = 'flex';
+        document.getElementById('modalTitle').innerText = isEdit ? "Edit Data User" : "Tambah User Baru";
+        if(!isEdit) resetForm();
+    }
+
     function closeModal() { document.getElementById('modalUser').style.display = 'none'; }
 
-    // CREATE USER KE FIREBASE
-    function createUser() {
+    function resetForm() {
+        currentEditId = null;
+        document.querySelectorAll('.modal-box input').forEach(i => i.value = "");
+    }
+
+    // SIMPAN DATA (CREATE & UPDATE)
+    function saveData() {
         const data = {
             nama: document.getElementById('popNama').value,
             email: document.getElementById('popEmail').value,
             hp: document.getElementById('popHp').value,
-            password: document.getElementById('popPass').value, // Catatan: Sebaiknya gunakan Firebase Auth untuk password
+            password: document.getElementById('popPass').value,
             jabatan: document.getElementById('popRole').value,
-            createdAt: new Date()
+            updatedAt: new Date()
         };
 
-        if(!data.nama || !data.email) return alert("Nama dan Email wajib diisi!");
+        if(!data.nama || !data.email || !data.password) return alert("Nama, Email, dan Password wajib diisi!");
 
-        db.collection("users").add(data).then(() => {
-            alert("User Berhasil Dibuat!");
-            closeModal();
-            // Reset Form
-            document.querySelectorAll('.modal-box input').forEach(i => i.value = "");
-        });
+        if(currentEditId) {
+            db.collection("users").doc(currentEditId).update(data).then(() => {
+                alert("Data berhasil diupdate!");
+                closeModal();
+            });
+        } else {
+            data.createdAt = new Date();
+            db.collection("users").add(data).then(() => {
+                alert("User baru berhasil ditambahkan!");
+                closeModal();
+            });
+        }
     }
 
-    // LOAD DATA KE TABEL
     function loadUsers() {
         db.collection("users").orderBy("createdAt", "desc").onSnapshot(snapshot => {
             let html = "";
@@ -165,16 +162,11 @@
                     <td>${u.email || '-'}</td>
                     <td>${u.hp || '-'}</td>
                     <td><span style="background:#eee; padding:3px 8px; border-radius:4px; font-size:11px;">${u.jabatan || '-'}</span></td>
+                    <td><span style="color:#aaa; font-style:italic;">******</span></td>
                 </tr>`;
             });
             document.getElementById('user-list').innerHTML = html;
         });
-    }
-
-    // LOGIKA CHECKBOX & TOMBOL
-    function toggleAll(source) {
-        document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = source.checked);
-        updateButtons();
     }
 
     function updateButtons() {
@@ -183,10 +175,30 @@
         document.getElementById('btnDelete').disabled = checked.length === 0;
     }
 
+    function toggleAll(source) {
+        document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = source.checked);
+        updateButtons();
+    }
+
+    function editUser() {
+        const id = document.querySelector('.user-checkbox:checked').value;
+        currentEditId = id;
+        db.collection("users").doc(id).get().then(doc => {
+            const u = doc.data();
+            document.getElementById('popNama').value = u.nama;
+            document.getElementById('popEmail').value = u.email;
+            document.getElementById('popHp').value = u.hp;
+            document.getElementById('popPass').value = u.password;
+            document.getElementById('popRole').value = u.jabatan;
+            openModal(true);
+        });
+    }
+
     function hapusUser() {
         const ids = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.value);
         if(confirm(`Hapus ${ids.length} user?`)) {
             ids.forEach(id => db.collection("users").doc(id).delete());
+            document.getElementById('checkAll').checked = false;
         }
     }
 
