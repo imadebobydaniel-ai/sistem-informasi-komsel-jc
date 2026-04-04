@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tiket Saran - Pondok Pemulihan Papua</title>
+    <title>Halo Pope - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -52,7 +52,7 @@
 
 <div class="container">
     <div id="form-screen">
-        <h3><i class="fa-solid fa-ticket-alt"></i> Buat Tiket Baru</h3>
+        <h3><i class="fa-solid fa-laptop-code"></i> Halo Pope</h3>
         
         <div class="user-box">
             <div>Pengirim: <b id="txt-nama">Memuat...</b></div>
@@ -69,29 +69,29 @@
             <option value="Saran/Masukan">💡 Saran & Masukan</option>
         </select>
 
-        <textarea id="pesan-tiket" placeholder="Perihal: &#10;Ditujukan Kepada: &#10;(Gembala Sidang / PKS / Koordinator / Pendoa Syafaat / Full Timer / Administrator)"></textarea>
+        <textarea id="pesan-tiket" placeholder="Sampaikan pesan Anda di sini... &#10;&#10;Contoh: &#10;Perihal: Perlu Konseling Pernikahan&#10;Ditujukan Kepada: Koordinator PKS"></textarea>
 
         <button class="btn-kirim" onclick="kirimTiket()" id="btn-submit">
-            <i class="fa-solid fa-paper-plane"></i> KIRIM TIKET
+            <i class="fa-solid fa-paper-plane"></i> KIRIM KE POPE
         </button>
 
-        <a href="menu.html" class="btn-back"><i class="fa-solid fa-chevron-left"></i> Kembali</a>
+        <a href="menu.html" class="btn-back"><i class="fa-solid fa-chevron-left"></i> Kembali ke Menu</a>
     </div>
 
     <div id="success-screen">
         <i class="fa-solid fa-circle-check icon-check"></i>
-        <h2 style="color: var(--biru-tua);">Tiket Terkirim!</h2>
+        <h2 style="color: var(--biru-tua);">Pesan Terkirim!</h2>
         
         <div class="ticket-display">
-            <span style="font-size: 12px; color: #666;">Nomor Tiket Anda:</span><br>
+            <span style="font-size: 12px; color: #666;">Nomor Tiket Halo Pope:</span><br>
             <b id="display-nomor-tiket" style="font-size: 20px; color: var(--biru-tua); letter-spacing: 1px;">-</b>
         </div>
 
         <p style="color: #666; font-size: 14px; line-height: 1.5;">
-            Terima kasih. Detail tiket telah kami terima. <br>
-            Pesan konfirmasi otomatis sedang dikirim ke WhatsApp Anda.
+            Shalom! Pesan Anda telah kami terima melalui sistem Halo Pope. <br>
+            Konfirmasi otomatis akan segera muncul di WhatsApp Anda.
         </p>
-        <p style="font-size: 12px; color: var(--emas); font-weight: bold;">Mengarahkan kembali dalam 5 detik...</p>
+        <p style="font-size: 12px; color: var(--emas); font-weight: bold;">Kembali ke menu dalam 5 detik...</p>
     </div>
 </div>
 
@@ -133,11 +133,11 @@
         const komsel = document.getElementById('txt-komsel').innerText;
 
         if (!pesan || nama === "Memuat...") {
-            return alert("Mohon isi detail permohonan Anda!");
+            return alert("Mohon tuliskan isi pesan atau permohonan Anda!");
         }
 
         btn.disabled = true;
-        btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Memproses...";
+        btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Mengirim...";
 
         try {
             const now = new Date();
@@ -147,7 +147,7 @@
             const jamLengkap = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
             
             const randomNum = Math.floor(100 + Math.random() * 900);
-            const nomorTiket = `NK-TIKET-${randomNum}-${tahun}`;
+            const nomorTiket = `POPE-${randomNum}-${tahun}`;
 
             await db.collection("saran_masukan").add({
                 nomor_tiket: nomorTiket,         
@@ -167,14 +167,14 @@
             document.getElementById('form-screen').style.display = "none";
             document.getElementById('success-screen').style.display = "block";
 
-            const formatPesanWA = `Halo Admin, Terimakasih anda telah mengirimkan *${kategori}* anda kepada Admin Komsel JC Pondok pemulihan Papua.\n\n` +
-                                  `📌 *DETAIL TIKET LAYANAN*:\n` +
+            const formatPesanWA = `Halo Admin, saya baru saja mengirim pesan melalui *Halo Pope* Pondok Pemulihan Papua.\n\n` +
+                                  `📌 *DETAIL LAYANAN*:\n` +
                                   `- Nomor Tiket: *${nomorTiket}*\n` +
+                                  `- Kategori: *${kategori}*\n` +
                                   `- Waktu: ${hariNama}, ${tglLengkap} | ${jamLengkap}\n` +
-                                  `- Atas Nama: ${nama}\n` +
-                                  `- Unit/JC: ${komsel}\n\n` +
-                                  `📝 *DETAIL PESAN*:\n${pesan}\n\n` +
-                                  `Mohon ditunggu respon dari tim admin kami. GBU!`;
+                                  `- Pengirim: ${nama} (${komsel})\n\n` +
+                                  `📝 *ISI PESAN*:\n${pesan}\n\n` +
+                                  `Mohon bantuan Bapak/Ibu Admin untuk menindaklanjuti. Terima kasih, GBU!`;
 
             const linkWA = `https://api.whatsapp.com/send?text=${encodeURIComponent(formatPesanWA)}`;
             
@@ -185,9 +185,9 @@
 
         } catch (error) {
             console.error("Gagal:", error);
-            alert("Gangguan koneksi database.");
+            alert("Terjadi kesalahan sistem. Mohon coba lagi nanti.");
             btn.disabled = false;
-            btn.innerHTML = "KIRIM TIKET";
+            btn.innerHTML = "<i class='fa-solid fa-paper-plane'></i> KIRIM KE POPE";
         }
     }
 </script>
