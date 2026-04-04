@@ -113,68 +113,58 @@
         });
     };
 
-    // --- FUNGSI LOAD LIST DENGAN FILTER KATEGORI ---
+    // --- FUNGSI LOAD LIST DENGAN FILTER KOMSEL (PRIVASI TERJAGA) ---
     function loadListDoa() {
+        // Filter menggunakan userJC agar anggota di komsel yang sama bisa melihat listnya
         db.collection("saran_masukan")
-          .where("nama", "==", userNama)
-          .where("kategori", "==", "Permohonan Doa") // Memastikan saran aplikasi tidak masuk
+          .where("jc", "==", userJC) 
+          .where("kategori", "==", "Permohonan Doa")
           .orderBy("timestamp", "desc")
           .onSnapshot(snap => {
-            let html = "";
-            if (snap.empty) {
-                html = "<p style='text-align:center; color:#888; margin-top:20px;'>Belum ada data permohonan doa.</p>";
-            }
-            snap.forEach(doc => {
-                const data = doc.data();
-                const tglAwal = data.timestamp ? data.timestamp.toDate() : new Date();
-                const diff = Math.floor((new Date() - tglAwal) / (1000*60*60*24));
+              let html = "";
+              if (snap.empty) {
+                  html = "<p style='text-align:center; color:#888; margin-top:20px;'>Belum ada data permohonan doa untuk komsel " + userJC + ".</p>";
+              }
+              snap.forEach(doc => {
+                  const data = doc.data();
+                  const tglAwal = data.timestamp ? data.timestamp.toDate() : new Date();
+                  const diff = Math.floor((new Date() - tglAwal) / (1000*60*60*24));
 
-                html += `
-                    <div class="doa-card">
-                        <input type="checkbox" class="doa-checkbox" value="${doc.id}" onchange="toggleControls()">
-                        <div class="doa-content">
-                            <span class="status-badge">${data.status}</span>
-                            <span class="tiket-id">${data.nomor_tiket}</span>
-                            <div class="doa-user">${data.nama} (${data.jc})</div>
-                            <div class="doa-text" id="text-${doc.id}">${data.isi_saran}</div>
-                            <div class="sla-info">SLA: ${diff} Hari sejak diinput</div>
-                            <input type="hidden" id="tgl-${doc.id}" value="${tglAwal.toISOString()}">
-                        </div>
-                    </div>`;
-            });
-            document.getElementById('list-doa-container').innerHTML = html;
-            syncStatistikDoa(); 
-        }, error => {
-            console.error("Error loading data:", error);
-            // Jika muncul error index di Console, klik link yang disediakan Firebase.
-        });
+                  html += `
+                      <div class="doa-card">
+                          <input type="checkbox" class="doa-checkbox" value="${doc.id}" onchange="toggleControls()">
+                          <div class="doa-content">
+                              <span class="status-badge">${data.status}</span>
+                              <span class="tiket-id">${data.nomor_tiket}</span>
+                              <div class="doa-user">${data.nama} (${data.jc})</div>
+                              <div class="doa-text" id="text-${doc.id}">${data.isi_saran}</div>
+                              <div class="sla-info">SLA: ${diff} Hari sejak diinput</div>
+                              <input type="hidden" id="tgl-${doc.id}" value="${tglAwal.toISOString()}">
+                          </div>
+                      </div>`;
+              });
+              document.getElementById('list-doa-container').innerHTML = html;
+              syncStatistikDoa(); 
+          }, error => {
+              console.error("Error loading data:", error);
+              // Catatan: Jika error Index muncul di console, klik link yang diberikan oleh Firebase.
+          });
     }
 
-    // --- FUNGSI STATISTIK (DIBATASI HANYA KATEGORI DOA) ---
     function syncStatistikDoa() {
-        const jcDoa = userJC;
-        const blnDoa = new Date().getMonth() + 1;
-        const startDate = new Date(new Date().getFullYear(), blnDoa - 1, 1);
+        const startDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
         db.collection("saran_masukan")
-        .where("jc", "==", jcDoa) 
-        .where("kategori", "==", "Permohonan Doa") // Filter juga di statistik
+        .where("jc", "==", userJC) 
+        .where("kategori", "==", "Permohonan Doa")
         .where("timestamp", ">=", startDate)
         .onSnapshot(snap => {
             let terjawabCount = 0;
-            let totalSLA = 0;
             let totalLaporan = snap.size;
-
             snap.forEach(doc => {
-                const data = doc.data();
-                if (data.status === "Terjawab") {
-                    terjawabCount++;
-                    const tglAwal = data.timestamp ? data.timestamp.toDate() : new Date();
-                    const diff = Math.ceil(Math.abs(new Date() - tglAwal) / (1000 * 60 * 60 * 24));
-                    totalSLA += diff;
-                }
+                if (doc.data().status === "Terjawab") terjawabCount++;
             });
-            // Update UI statistik jika elemennya ada di halaman ini
+            // Update UI statistik di sini jika diperlukan
         });
     }
 
