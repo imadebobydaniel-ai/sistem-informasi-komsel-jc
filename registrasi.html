@@ -89,56 +89,39 @@
 
         <div class="form-step active" id="step-1">
             <h3 style="font-size: 15px; color: #28a745; margin-bottom: 15px;"><i class="fa-solid fa-user"></i> Data Pribadi</h3>
-            
             <div class="form-group"><label>Nama Lengkap (Sesuai KTP)</label><input type="text" id="nama" placeholder="Boby Daniel" required></div>
-            
             <div class="grid-2">
-                <div class="form-group"><label>Provinsi Kelahiran</label>
-                    <select id="provinsi_lahir" onchange="loadKota()" required><option value="">Pilih...</option></select>
-                </div>
-                <div class="form-group"><label>Kota Kelahiran</label>
-                    <select id="kota_lahir" required><option value="">Pilih...</option></select>
-                </div>
+                <div class="form-group"><label>Provinsi Kelahiran</label><select id="provinsi_lahir" onchange="loadKota()" required><option value="">Pilih...</option></select></div>
+                <div class="form-group"><label>Kota Kelahiran</label><select id="kota_lahir" required><option value="">Pilih...</option></select></div>
             </div>
-
             <div class="grid-2">
                 <div class="form-group"><label>Tanggal Lahir</label><input type="date" id="tgl_lahir" required></div>
-                <div class="form-group"><label>Gol. Darah</label>
-                    <select id="darah"><option value="-">-</option><option value="A">A</option><option value="B">B</option><option value="O">O</option><option value="AB">AB</option></select>
-                </div>
+                <div class="form-group"><label>Gol. Darah</label><select id="darah"><option value="-">-</option><option value="A">A</option><option value="B">B</option><option value="O">O</option><option value="AB">AB</option></select></div>
             </div>
-
             <div class="grid-2">
                 <div class="form-group"><label>No. KTP (16 Digit)</label><input type="number" id="ktp" required></div>
                 <div class="form-group"><label>No. KK</label><input type="number" id="kk" required></div>
             </div>
-
             <div class="grid-2">
                 <div class="form-group"><label>Email</label><input type="email" id="email" required></div>
                 <div class="form-group"><label>WhatsApp</label><input type="tel" id="hp" required></div>
             </div>
-
             <div class="form-group">
                 <label>Password Akun</label>
                 <div class="password-container"><input type="password" id="pass" required><i class="fa-solid fa-eye toggle-password" id="eyeIcon"></i></div>
             </div>
-
             <div class="form-group"><label>Alamat Tinggal Sekarang</label><textarea id="alamat" rows="2" required></textarea></div>
             <div class="form-group"><label>Jenis Pekerjaan</label><input type="text" id="pekerjaan" placeholder="Contoh: PNS / Wiraswasta"></div>
-
             <div class="grid-2">
                 <div class="form-group"><label>Jumlah Anak</label><input type="number" id="jml_anak" value="0"></div>
                 <div class="form-group"><label>Orang Serumah</label><input type="number" id="jml_serumah" value="1"></div>
             </div>
-            
             <div class="form-group"><label>Nama Istri / Suami</label><input type="text" id="pasangan" placeholder="Kosongkan jika belum menikah"></div>
-
             <button type="button" class="btn-next" onclick="nextStep(2)">Lanjut: Data Gerejawi <i class="fa-solid fa-arrow-right"></i></button>
         </div>
 
         <div class="form-step" id="step-2">
             <h3 style="font-size: 15px; color: #28a745; margin-bottom: 15px;"><i class="fa-solid fa-church"></i> Data Gerejawi</h3>
-            
             <div class="form-group"><label>Lokasi Berjemaat</label>
                 <select id="lokasi" required onchange="updateNIJPreview()">
                     <option value="">-- Pilih Lokasi --</option>
@@ -146,22 +129,13 @@
                     <option value="AR1">Arso 1</option><option value="AR2">Arso 2</option>
                 </select>
             </div>
-
             <div class="grid-2">
-                <div class="form-group"><label>Aktif Komsel?</label>
-                    <select id="aktif_komsel"><option value="Ya">Ya</option><option value="Tidak">Tidak</option></select>
-                </div>
+                <div class="form-group"><label>Aktif Komsel?</label><select id="aktif_komsel"><option value="Ya">Ya</option><option value="Tidak">Tidak</option></select></div>
                 <div class="form-group"><label>Wilayah Komsel</label><input type="text" id="wilayah_komsel" placeholder="Nama Komsel"></div>
             </div>
-
-            <div class="form-group"><label>Jabatan di Jemaat (Struktural)</label><input type="text" id="jabatan_jemaat" placeholder="Anggota / Penatua / Diaken"></div>
+            <div class="form-group"><label>Jabatan di Jemaat</label><input type="text" id="jabatan_jemaat" placeholder="Anggota / Penatua / Diaken"></div>
             <div class="form-group"><label>Spesifik Jabatan Pelayanan</label><input type="text" id="pelayanan" placeholder="Usher / Multimedia / Singer"></div>
-
-            <div class="form-group">
-                <label>Nomor Induk Jemaat (NIJ) Otomatis</label>
-                <input type="text" id="nij-display" readonly placeholder="Otomatis terisi">
-            </div>
-
+            <div class="form-group"><label>Nomor Induk Jemaat (NIJ) Otomatis</label><input type="text" id="nij-display" readonly placeholder="Otomatis terisi"></div>
             <div class="btn-group">
                 <button type="button" class="btn-prev" onclick="nextStep(1)">Kembali</button>
                 <button type="button" class="btn-next" onclick="nextStep(3)">Lanjut: Berkas <i class="fa-solid fa-arrow-right"></i></button>
@@ -175,7 +149,6 @@
                 <input type="file" id="berkas_jemaat" accept=".pdf, .jpg, .jpeg" required>
                 <p style="font-size: 11px; color: #888; margin-top: 10px;">*Pastikan foto jelas untuk verifikasi admin.</p>
             </div>
-
             <div class="btn-group">
                 <button type="button" class="btn-prev" onclick="nextStep(2)">Kembali</button>
                 <button type="button" id="btnSubmit" onclick="handleRegistrasi()" class="btn-next">FINALISASI & DAFTAR</button>
@@ -211,6 +184,93 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
+    // --- FUNGSI CEK DUPLIKAT ---
+    async function cekDuplikat(email, hp, ktp, kk) {
+        const usersRef = db.collection("users");
+        
+        const checkEmail = await usersRef.where("email", "==", email.toLowerCase()).get();
+        if (!checkEmail.empty) return "Email sudah terdaftar!";
+
+        const checkHP = await usersRef.where("whatsapp", "==", hp).get();
+        if (!checkHP.empty) return "Nomor WhatsApp sudah terdaftar!";
+
+        const checkKTP = await usersRef.where("ktp", "==", ktp).get();
+        if (!checkKTP.empty) return "Nomor KTP sudah terdaftar!";
+
+        const checkKK = await usersRef.where("kk", "==", kk).get();
+        if (!checkKK.empty) return "Nomor Kartu Keluarga sudah terdaftar!";
+
+        return null; 
+    }
+
+    // --- REGISTRATION HANDLER (REVISED) ---
+    async function handleRegistrasi() {
+        const btn = document.getElementById("btnSubmit");
+        const fileInput = document.getElementById("berkas_jemaat");
+
+        const email = document.getElementById("email").value;
+        const hp = document.getElementById("hp").value;
+        const ktp = document.getElementById("ktp").value;
+        const kk = document.getElementById("kk").value;
+
+        if (fileInput.files.length === 0) { alert("Harap unggah berkas validasi!"); return; }
+
+        btn.innerText = "Memvalidasi Data..."; 
+        btn.disabled = true;
+
+        try {
+            // 1. CEK DUPLIKAT
+            const pesanError = await cekDuplikat(email, hp, ktp, kk);
+            if (pesanError) {
+                alert("Pendaftaran Gagal: " + pesanError);
+                btn.innerText = "FINALISASI & DAFTAR";
+                btn.disabled = false;
+                return;
+            }
+
+            btn.innerText = "Mengunggah Berkas...";
+
+            // 2. Upload Cloudinary
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('upload_preset', 'pope_preset');
+            const cloudResponse = await fetch('https://api.cloudinary.com/v1_1/dxzllsbg/upload', { method: 'POST', body: formData });
+            const cloudData = await cloudResponse.json();
+            
+            // 3. Simpan Firestore
+            const userData = {
+                nama: document.getElementById("nama").value,
+                prov_lahir: document.getElementById("provinsi_lahir").value,
+                kota_lahir: document.getElementById("kota_lahir").value,
+                tgl_lahir: document.getElementById("tgl_lahir").value,
+                ktp: ktp,
+                kk: kk,
+                email: email.toLowerCase(),
+                whatsapp: hp,
+                password: document.getElementById("pass").value,
+                alamat: document.getElementById("alamat").value,
+                pekerjaan: document.getElementById("pekerjaan").value,
+                jml_anak: document.getElementById("jml_anak").value,
+                jml_serumah: document.getElementById("jml_serumah").value,
+                pasangan: document.getElementById("pasangan").value,
+                lokasi_berjemaat: document.getElementById("lokasi").value,
+                nij: document.getElementById("nij-display").value,
+                url_berkas: cloudData.secure_url,
+                status: "Pending",
+                tanggalDaftar: new Date().toLocaleString('id-ID')
+            };
+
+            const userRef = await db.collection("users").add(userData);
+            await db.collection("Administrator").doc("profile biodata").collection("daftar_anggota").doc(userRef.id).set(userData);
+
+            document.getElementById('blocking-message').style.display = 'flex';
+        } catch (e) {
+            alert("Terjadi kesalahan: " + e.message);
+            btn.innerText = "FINALISASI & DAFTAR"; 
+            btn.disabled = false;
+        }
+    }
+
     // --- LOGIC NAVIGASI STEP ---
     function nextStep(n) {
         if (n > 1) {
@@ -227,7 +287,7 @@
         window.scrollTo(0, 0);
     }
 
-    // --- API WILAYAH INDONESIA ---
+    // --- API WILAYAH ---
     async function loadProvinsi() {
         const resp = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
         const data = await resp.json();
@@ -246,70 +306,20 @@
         data.forEach(k => options += `<option value="${k.name}">${k.name}</option>`);
         document.getElementById('kota_lahir').innerHTML = options;
     }
-
     loadProvinsi();
 
-    // --- NIJ GENERATOR ---
+    // --- NIJ PREVIEW ---
     async function updateNIJPreview() {
         const lokasi = document.getElementById("lokasi").value;
         const nijInput = document.getElementById("nij-display");
         if (!lokasi) { nijInput.value = "Pilih Lokasi Dahulu"; return; }
-        nijInput.value = "Generating NIJ...";
+        nijInput.value = "Generating...";
         try {
             const snap = await db.collection("users").get();
             const formatUrutan = String(snap.size + 1).padStart(2, '0');
             const tahun = new Date().getFullYear();
             nijInput.value = `NIJ-PPP-${lokasi}-${formatUrutan}-${tahun}`;
-        } catch (e) { nijInput.value = "Error koneksi database"; }
-    }
-
-    // --- REGISTRATION HANDLER ---
-    async function handleRegistrasi() {
-        const btn = document.getElementById("btnSubmit");
-        const fileInput = document.getElementById("berkas_jemaat");
-        if (fileInput.files.length === 0) { alert("Harap unggah berkas validasi!"); return; }
-
-        btn.innerText = "Memproses..."; btn.disabled = true;
-
-        try {
-            // 1. Upload Cloudinary
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
-            formData.append('upload_preset', 'pope_preset');
-            const cloudResponse = await fetch('https://api.cloudinary.com/v1_1/dxzllsbg/upload', { method: 'POST', body: formData });
-            const cloudData = await cloudResponse.json();
-            
-            // 2. Simpan Firestore
-            const userData = {
-                nama: document.getElementById("nama").value,
-                prov_lahir: document.getElementById("provinsi_lahir").value,
-                kota_lahir: document.getElementById("kota_lahir").value,
-                tgl_lahir: document.getElementById("tgl_lahir").value,
-                ktp: document.getElementById("ktp").value,
-                kk: document.getElementById("kk").value,
-                email: document.getElementById("email").value.toLowerCase(),
-                whatsapp: document.getElementById("hp").value,
-                password: document.getElementById("pass").value,
-                alamat: document.getElementById("alamat").value,
-                pekerjaan: document.getElementById("pekerjaan").value,
-                jml_anak: document.getElementById("jml_anak").value,
-                jml_serumah: document.getElementById("jml_serumah").value,
-                pasangan: document.getElementById("pasangan").value,
-                lokasi_berjemaat: document.getElementById("lokasi").value,
-                nij: document.getElementById("nij-display").value,
-                url_berkas: cloudData.secure_url,
-                status: "Pending", // Admin perlu verifikasi berkas dulu
-                tanggalDaftar: new Date().toLocaleString('id-ID')
-            };
-
-            const userRef = await db.collection("users").add(userData);
-            await db.collection("Administrator").doc("profile biodata").collection("daftar_anggota").doc(userRef.id).set(userData);
-
-            document.getElementById('blocking-message').style.display = 'flex';
-        } catch (e) {
-            alert("Error: " + e.message);
-            btn.innerText = "FINALISASI & DAFTAR"; btn.disabled = false;
-        }
+        } catch (e) { nijInput.value = "Error koneksi"; }
     }
 
     // --- UI HELPERS ---
