@@ -42,7 +42,9 @@
 
         .password-container { position: relative; }
         .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666; }
-        #nij-display { background: #fff3cd !important; border: 2px solid #ffc107 !important; color: #856404; font-weight: bold; }
+        
+        /* Styling khusus untuk input NIJ */
+        #nij-display { background: #fff3cd !important; border: 2px solid #ffc107 !important; color: #856404; font-weight: bold; transition: all 0.3s ease; }
 
         /* MODAL SYARAT & KETENTUAN */
         #terms-modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(5px); box-sizing: border-box; }
@@ -184,6 +186,43 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
+    // --- FUNGSI UPDATE NIJ PREVIEW (TERBARU) ---
+    async function updateNIJPreview() {
+        const lokasi = document.getElementById("lokasi").value;
+        const nijInput = document.getElementById("nij-display");
+
+        // Jika lokasi belum dipilih, beri peringatan visual
+        if (!lokasi) { 
+            nijInput.value = "Pilih Lokasi Dahulu"; 
+            nijInput.style.color = "#856404";
+            return; 
+        }
+
+        nijInput.value = "Sedang generate nomor...";
+        nijInput.style.color = "#666";
+        
+        try {
+            // Mengambil data dari koleksi utama 'users'
+            const snap = await db.collection("users").get();
+            
+            // Membuat nomor urut otomatis (PadStart(3, '0') menghasilkan 001, 002, dst)
+            const nomorUrut = String(snap.size + 1).padStart(3, '0'); 
+            
+            const tahun = new Date().getFullYear();
+            
+            // Format Akhir: NIJ-PPP-ABE-001-2026
+            const generatedNIJ = `NIJ-PPP-${lokasi}-${nomorUrut}-${tahun}`;
+            
+            nijInput.value = generatedNIJ;
+            nijInput.style.color = "#28a745"; // Warna hijau jika berhasil
+            
+        } catch (e) { 
+            console.error("Error NIJ:", e);
+            nijInput.value = "Gagal memuat nomor (Cek Koneksi)"; 
+            nijInput.style.color = "#dc3545"; // Warna merah jika error
+        }
+    }
+
     // --- FUNGSI CEK DUPLIKAT ---
     async function cekDuplikat(email, hp, ktp, kk) {
         const usersRef = db.collection("users");
@@ -219,7 +258,6 @@
         btn.disabled = true;
 
         try {
-            // 1. CEK DUPLIKAT DI FIREBASE
             const pesanError = await cekDuplikat(email, hp, ktp, kk);
             if (pesanError) {
                 alert("Pendaftaran Gagal: " + pesanError);
@@ -229,8 +267,6 @@
             }
 
             btn.innerText = "Mengunggah Berkas...";
-
-            // 2. UPLOAD CLOUDINARY
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
             formData.append('upload_preset', 'pope_preset');
@@ -241,18 +277,15 @@
             });
             const cloudData = await cloudResponse.json();
             
-            // --- LOGIKA PENGAMAN BARU ---
             if (!cloudData.secure_url) {
-                console.error("Gagal mendapat URL dari Cloudinary:", cloudData);
-                alert("Gagal mengunggah berkas. Pastikan koneksi stabil dan ukuran file tidak terlalu besar.");
+                alert("Gagal mengunggah berkas. Periksa koneksi.");
                 btn.innerText = "FINALISASI & DAFTAR";
                 btn.disabled = false;
-                return; // BERHENTI, JANGAN LANJUT KE FIREBASE
+                return;
             }
 
             btn.innerText = "Menyimpan Data...";
 
-            // 3. SIMPAN KE FIRESTORE (Jika upload sukses)
             const userData = {
                 nama: document.getElementById("nama").value,
                 prov_lahir: document.getElementById("provinsi_lahir").value,
@@ -270,7 +303,7 @@
                 pasangan: document.getElementById("pasangan").value,
                 lokasi_berjemaat: document.getElementById("lokasi").value,
                 nij: document.getElementById("nij-display").value,
-                url_berkas: cloudData.secure_url, // Menggunakan URL yang divalidasi
+                url_berkas: cloudData.secure_url,
                 status: "Pending",
                 tanggalDaftar: new Date().toLocaleString('id-ID')
             };
@@ -304,7 +337,7 @@
         window.scrollTo(0, 0);
     }
 
-    // --- API WILAYAH INDONESIA ---
+    // --- API WILAYAH ---
     async function loadProvinsi() {
         const resp = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
         const data = await resp.json();
@@ -324,20 +357,6 @@
         document.getElementById('kota_lahir').innerHTML = options;
     }
     loadProvinsi();
-
-    // --- GENERATE NIJ PREVIEW ---
-    async function updateNIJPreview() {
-        const lokasi = document.getElementById("lokasi").value;
-        const nijInput = document.getElementById("nij-display");
-        if (!lokasi) { nijInput.value = "Pilih Lokasi Dahulu"; return; }
-        nijInput.value = "Generating...";
-        try {
-            const snap = await db.collection("users").get();
-            const formatUrutan = String(snap.size + 1).padStart(2, '0');
-            const tahun = new Date().getFullYear();
-            nijInput.value = `NIJ-PPP-${lokasi}-${formatUrutan}-${tahun}`;
-        } catch (e) { nijInput.value = "Error koneksi"; }
-    }
 
     // --- UI HELPERS ---
     function toggleAgreeButton() { document.getElementById('btn-agree-submit').disabled = !document.getElementById('check-agree').checked; }
