@@ -41,7 +41,7 @@
             overflow: hidden;
         }
 
-        /* --- STYLE MODAL POIN --- */
+        /* --- STYLE MODAL --- */
         .modal {
             display: none; 
             position: fixed; 
@@ -79,6 +79,23 @@
         }
 
         .modal-content h3 { color: var(--biru-tua); margin-top: 0; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+        
+        /* Style Detail Riwayat */
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+        .detail-item:last-child { border-bottom: none; }
+        .detail-category { font-weight: 600; color: var(--biru-tua); text-transform: capitalize; }
+        .detail-date { font-size: 11px; color: #888; }
+        .detail-pts { font-weight: 800; color: var(--biru-safir); }
+
+        #detailContent { max-height: 300px; overflow-y: auto; }
+
         .point-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f9f9f9; font-size: 14px; }
         .point-val { font-weight: bold; color: var(--biru-safir); }
 
@@ -93,9 +110,7 @@
             position: absolute; top: 15px; left: 20px;
             font-size: 20px; color: var(--biru-safir);
             cursor: pointer; opacity: 0.7; z-index: 10;
-            transition: 0.3s;
         }
-        .info-icon:hover { opacity: 1; transform: scale(1.1); }
 
         h2 { color: var(--biru-tua); font-size: 20px; font-weight: 900; margin-bottom: 5px; text-transform: uppercase; }
         .info-sub { color: #888; font-size: 13px; font-weight: 600; margin-bottom: 25px; }
@@ -125,7 +140,8 @@
         }
         .rank-item.top-three { border-left: 5px solid var(--emas-lux); background: linear-gradient(to right, #fffdf5, #ffffff); }
         .rank-jc { font-weight: 800; color: var(--biru-tua); font-size: 15px; }
-        .rank-val { background: var(--biru-safir); color: white; padding: 5px 12px; border-radius: 50px; font-size: 12px; font-weight: 900; }
+        .rank-val { background: var(--biru-safir); color: white; padding: 5px 12px; border-radius: 50px; font-size: 12px; font-weight: 900; cursor: pointer; transition: 0.2s; }
+        .rank-val:active { transform: scale(0.9); }
 
         .btn-back-container { position: fixed; bottom: 0; left: 0; width: 100%; padding: 20px; background: white; border-top: 1px solid #eee; z-index: 1000; box-sizing: border-box; }
         .btn-back { display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--biru-tua); color: white; padding: 18px; border-radius: 50px; text-decoration: none; font-weight: 800; box-shadow: 0 8px 25px rgba(0,51,102,0.3); }
@@ -145,6 +161,14 @@
         <div class="point-item"><span>Laporan Doa</span> <span class="point-val">+8 Pts</span></div>
         <div class="point-item"><span>Laporan Baca Alkitab</span> <span class="point-val">+5 Pts</span></div>
         <p style="font-size: 11px; color: #888; margin-top: 15px;">*Poin otomatis terupdate saat laporan disetujui.</p>
+    </div>
+</div>
+
+<div id="detailModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" id="closeDetail">&times;</span>
+        <h3 id="detailTitle">Riwayat Poin</h3>
+        <div id="detailContent"></div>
     </div>
 </div>
 
@@ -190,15 +214,6 @@
 </div>
 
 <script>
-    // --- LOGIC MODAL POIN ---
-    const modal = document.getElementById("pointModal");
-    const infoBtn = document.getElementById("openModal");
-    const closeBtn = document.getElementById("closeModal");
-
-    infoBtn.onclick = () => modal.style.display = "block";
-    closeBtn.onclick = () => modal.style.display = "none";
-    window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
-
     // Konfigurasi Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
@@ -212,21 +227,34 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     let myChart;
+    let riwayatPoin = {}; // Variabel global untuk simpan detail
+
+    // --- LOGIC MODAL ---
+    const pModal = document.getElementById("pointModal");
+    const openBtn = document.getElementById("openModal");
+    const closeBtn = document.getElementById("closeModal");
+
+    openBtn.onclick = () => pModal.style.display = "block";
+    closeBtn.onclick = () => pModal.style.display = "none";
+
+    document.getElementById("closeDetail").onclick = () => {
+        document.getElementById("detailModal").style.display = "none";
+    };
+
+    window.onclick = (event) => {
+        if (event.target == pModal) pModal.style.display = "none";
+        if (event.target == document.getElementById("detailModal")) {
+            document.getElementById("detailModal").style.display = "none";
+        }
+    };
 
     function selebrasiMeriah() {
-        const durasi = 4 * 1000;
-        const selesai = Date.now() + durasi;
-        const interval = setInterval(function() {
-            const sisaWaktu = selesai - Date.now();
-            if (sisaWaktu <= 0) return clearInterval(interval);
-            confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#FFD700', '#D4AF37'], shapes: ['star'] });
-            confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#FFD700', '#D4AF37'], shapes: ['star'] });
-        }, 150);
         confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 }, colors: ['#0056b3', '#FFD700', '#ffffff'] });
     }
 
     async function syncLeaderboard() {
         document.getElementById('loading-overlay').style.display = 'flex';
+        riwayatPoin = {}; 
         try {
             let skorJC = {};
             let periode = new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' });
@@ -247,11 +275,19 @@
                     let d = doc.data();
                     let nama = (d.jc || d.komsel || d.nama_jc || "Umum").trim().toUpperCase();
                     if (!nama.startsWith("JC") && nama !== "UMUM") nama = "JC " + nama;
-                    if (!skorJC[nama]) skorJC[nama] = 0;
                     
                     const status = (d.status || d.status_doa || "HADIR").toUpperCase();
                     if (status === "HADIR" || status === "SELESAI" || item.nama === "laporan_bacaan") {
+                        if (!skorJC[nama]) skorJC[nama] = 0;
                         skorJC[nama] += item.poin;
+
+                        // SIMPAN KE RIWAYAT DETAIL
+                        if (!riwayatPoin[nama]) riwayatPoin[nama] = [];
+                        riwayatPoin[nama].push({
+                            kategori: item.nama.replace(/_/g, ' '),
+                            poin: item.poin,
+                            tanggal: d.tanggal || d.tgl_laporan || "Terbaru"
+                        });
                     }
                 });
             }));
@@ -260,27 +296,21 @@
             
             document.getElementById('current-month').innerText = `Periode: ${periode}`;
             
-            if(urutan[0]) { 
-                document.getElementById('top1-name').innerText = urutan[0].nama; 
-                document.getElementById('top1-val').innerText = urutan[0].poin + " Pts"; 
-            }
-            if(urutan[1]) { 
-                document.getElementById('top2-name').innerText = urutan[1].nama; 
-                document.getElementById('top2-val').innerText = urutan[1].poin + " Pts"; 
-            }
-            if(urutan[2]) { 
-                document.getElementById('top3-name').innerText = urutan[2].nama; 
-                document.getElementById('top3-val').innerText = urutan[2].poin + " Pts"; 
-            }
+            // Update Podium
+            if(urutan[0]) { document.getElementById('top1-name').innerText = urutan[0].nama; document.getElementById('top1-val').innerText = urutan[0].poin + " Pts"; }
+            if(urutan[1]) { document.getElementById('top2-name').innerText = urutan[1].nama; document.getElementById('top2-val').innerText = urutan[1].poin + " Pts"; }
+            if(urutan[2]) { document.getElementById('top3-name').innerText = urutan[2].nama; document.getElementById('top3-val').innerText = urutan[2].poin + " Pts"; }
 
+            // Update List dengan Onclick Detail
             let html = "";
             urutan.forEach((item, i) => {
                 html += `<div class="rank-item ${i < 3 ? 'top-three' : ''}">
                     <span class="rank-jc">${i + 1}. ${item.nama}</span>
-                    <span class="rank-val">${item.poin} POIN</span>
+                    <span class="rank-val" onclick="bukaDetail('${item.nama}')">${item.poin} POIN</span>
                 </div>`;
             });
             document.getElementById('rank-list').innerHTML = html;
+
             tampilkanGrafik(urutan.map(i => i.nama), urutan.map(i => i.poin));
             setTimeout(selebrasiMeriah, 500);
 
@@ -291,6 +321,35 @@
         }
     }
 
+    // FUNGSI UNTUK MENAMPILKAN DETAIL
+    window.bukaDetail = function(namaJC) {
+        const modalDetail = document.getElementById("detailModal");
+        const title = document.getElementById("detailTitle");
+        const content = document.getElementById("detailContent");
+
+        title.innerText = `Riwayat: ${namaJC}`;
+        let listHtml = "";
+
+        if (riwayatPoin[namaJC]) {
+            // Urutkan riwayat (opsional: dari yang terbaru)
+            riwayatPoin[namaJC].forEach(r => {
+                listHtml += `
+                    <div class="detail-item">
+                        <div>
+                            <div class="detail-category">${r.kategori}</div>
+                            <div class="detail-date">${r.tanggal}</div>
+                        </div>
+                        <div class="detail-pts">+${r.poin}</div>
+                    </div>`;
+            });
+        } else {
+            listHtml = "<p style='text-align:center; padding:20px;'>Belum ada riwayat poin.</p>";
+        }
+
+        content.innerHTML = listHtml;
+        modalDetail.style.display = "block";
+    }
+
     function tampilkanGrafik(labels, values) {
         const ctx = document.getElementById('chartJC').getContext('2d');
         if (myChart) myChart.destroy();
@@ -298,20 +357,12 @@
             type: 'bar',
             data: {
                 labels: labels,
-                datasets: [{ 
-                    data: values, 
-                    backgroundColor: '#0056b3', 
-                    borderRadius: 5 
-                }]
+                datasets: [{ data: values, backgroundColor: '#0056b3', borderRadius: 5 }]
             },
             options: {
-                responsive: true, 
-                maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: { 
-                    y: { display: false, beginAtZero: true }, 
-                    x: { grid: { display: false } } 
-                }
+                scales: { y: { display: false, beginAtZero: true }, x: { grid: { display: false } } }
             }
         });
     }
