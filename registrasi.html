@@ -27,7 +27,7 @@
         .modal-box i { font-size: 50px; color: #28a745; margin-bottom: 15px; }
         .password-container { position: relative; }
         .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666; }
-        #nk-display { background: #fff3cd !important; border: 2px solid #ffc107 !important; color: #856404; font-weight: bold; }
+        #nij-display { background: #fff3cd !important; border: 2px solid #ffc107 !important; color: #856404; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -36,7 +36,7 @@
     <div class="header-logo"><img src="logo_pondok.png" alt="Logo"></div>
     <div class="header-text">
         <h2>PONDOK PEMULIHAN PAPUA</h2>
-        <p>Formulir Pendaftaran Anggota</p>
+        <p>Formulir Pendaftaran Jemaat</p>
     </div>
 
     <form id="formRegistrasi">
@@ -64,33 +64,26 @@
         </div>
 
         <div class="form-group">
-            <label>Jabatan</label>
-            <select id="jabatan" required>
-                <option value="">-- Pilih Jabatan --</option>
-                <option value="Anggota">Anggota</option>
-                <option value="Ketua Komsel">Ketua Komsel</option>
+            <label>Lokasi Berjemaat</label>
+            <select id="lokasi" required onchange="updateNIJPreview()">
+                <option value="">-- Pilih Lokasi --</option>
+                <option value="ABE">Abepura</option>
+                <option value="STN">Sentani</option>
+                <option value="DYO">Doyo</option>
+                <option value="AR1">Arso 1</option>
+                <option value="AR2">Arso 2</option>
             </select>
         </div>
 
         <div class="form-group">
-            <label>Komsel JC</label>
-            <select id="komsel" required onchange="updateNKPreview()">
-                <option value="">-- Pilih Lokasi JC --</option>
-                <option value="1">JC 1</option><option value="2">JC 2</option>
-                <option value="3">JC 3</option><option value="4">JC 4</option>
-                <option value="5">JC 5</option>
-            </select>
-        </div>
-
-        <div class="form-group" id="group-nk">
-            <label>Nomor Komsel (NK) Otomatis</label>
-            <input type="text" id="nk-display" readonly placeholder="Pilih Komsel Dahulu">
+            <label>Nomor Induk Jemaat (NIJ) Otomatis</label>
+            <input type="text" id="nij-display" readonly placeholder="Pilih Lokasi Dahulu">
         </div>
 
         <div class="form-group">
-            <label>Unggah Berkas Jemaat (PDF / JPG)</label>
+            <label>Unggah Berkas (KK/Akta/Baptis - PDF/JPG)</label>
             <input type="file" id="berkas_jemaat" accept=".pdf, .jpg, .jpeg" required>
-            <small style="font-size: 10px; color: #666;">*Wajib mengunggah dokumen pendukung</small>
+            <small style="font-size: 10px; color: #666;">*Dokumen wajib untuk validasi NIJ</small>
         </div>
 
         <button type="button" id="btnSubmit" onclick="handleRegistrasi()" class="btn-submit">DAFTAR SEKARANG</button>
@@ -101,7 +94,7 @@
 <div id="blocking-message">
     <div class="modal-box">
         <i class="fa-solid fa-circle-check"></i>
-        <p id="pesan-sukses">Data Berhasil Disimpan!</p>
+        <p id="pesan-sukses">Pendaftaran Berhasil!</p>
         <button onclick="window.location.href='login.html'" class="btn-submit" style="background:#007bff">OK / LOGIN</button>
     </div>
 </div>
@@ -110,6 +103,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
+    // 1. Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -121,6 +115,7 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
+    // 2. Real-time Clock (WIT)
     function updateClock() {
         const now = new Date();
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -130,26 +125,22 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    document.getElementById('eyeIcon').addEventListener('click', function() {
-        const passInput = document.getElementById('pass');
-        passInput.type = passInput.type === 'password' ? 'text' : 'password';
-        this.classList.toggle('fa-eye');
-        this.classList.toggle('fa-eye-slash');
-    });
-
-    async function updateNKPreview() {
-        const jc = document.getElementById("komsel").value;
-        const nkInput = document.getElementById("nk-display");
-        if (!jc) return;
-        nkInput.value = "Generating...";
+    // 3. Generate Auto NIJ (NIJ-PPP-LOKASI-NOMOR-TAHUN)
+    async function updateNIJPreview() {
+        const lokasi = document.getElementById("lokasi").value;
+        const nijInput = document.getElementById("nij-display");
+        if (!lokasi) { nijInput.value = "Pilih Lokasi Dahulu"; return; }
+        
+        nijInput.value = "Generating NIJ...";
         try {
             const snap = await db.collection("users").get();
-            const formatUrutan = String(snap.size + 1).padStart(3, '0');
-            nkInput.value = `NK-PPP-${formatUrutan}-JC${jc}-${new Date().getFullYear()}`;
-        } catch (e) { nkInput.value = "Error koneksi"; }
+            const formatUrutan = String(snap.size + 1).padStart(2, '0');
+            const tahun = new Date().getFullYear();
+            nijInput.value = `NIJ-PPP-${lokasi}-${formatUrutan}-${tahun}`;
+        } catch (e) { nijInput.value = "Error koneksi database"; }
     }
 
-    // FUNGSI REGISTRASI BARU (DENGAN CLOUDINARY & PROTEKSI DUPLIKAT)
+    // 4. Main Registration Logic
     async function handleRegistrasi() {
         const btn = document.getElementById("btnSubmit");
         const fileInput = document.getElementById("berkas_jemaat");
@@ -160,42 +151,27 @@
         const pass = document.getElementById("pass").value;
         const alamat = document.getElementById("alamat").value.trim();
         const darah = document.getElementById("darah").value; 
-        const jabatan = document.getElementById("jabatan").value;
-        const komsel = document.getElementById("komsel").value;
-        const nk = document.getElementById("nk-display").value;
+        const lokasi = document.getElementById("lokasi").value;
+        const nij = document.getElementById("nij-display").value;
 
-        if(!nama || !email || !hp || !pass || !darah || !komsel || !alamat || fileInput.files.length === 0) {
-            alert("Harap lengkapi semua data dan unggah berkas!");
+        if(!nama || !email || !hp || !pass || !lokasi || fileInput.files.length === 0) {
+            alert("Harap lengkapi data dan unggah berkas (KK/Akta/Baptis)!");
             return;
         }
 
-        btn.innerText = "Mengecek Duplikat...";
+        btn.innerText = "Memproses...";
         btn.disabled = true;
 
-        const usersRef = db.collection("users");
-
         try {
-            // --- PROTEKSI DUPLIKAT (LOGIKA ASLI ANDA) ---
-            const emailCheck = await usersRef.where("email", "==", email).get();
+            // --- PROTEKSI DUPLIKAT ---
+            const emailCheck = await db.collection("users").where("email", "==", email).get();
             if (!emailCheck.empty) {
-                alert("Maaf Email yang anda gunakan sudah terdaftar!");
+                alert("Email sudah terdaftar!");
                 btn.innerText = "DAFTAR SEKARANG"; btn.disabled = false; return;
             }
 
-            const namaCheck = await usersRef.where("nama", "==", nama).get();
-            if (!namaCheck.empty) {
-                alert("Maaf Nama tersebut sudah terdaftar!");
-                btn.innerText = "DAFTAR SEKARANG"; btn.disabled = false; return;
-            }
-
-            const hpCheck = await usersRef.where("whatsapp", "==", hp).get();
-            if (!hpCheck.empty) {
-                alert("Maaf nomor HP yang anda masukan sudah terdaftar!");
-                btn.innerText = "DAFTAR SEKARANG"; btn.disabled = false; return;
-            }
-
-            // --- PROSES CLOUDINARY ---
-            btn.innerText = "Mengunggah Berkas...";
+            // --- PROSES CLOUDINARY (dxzllsbg) ---
+            btn.innerText = "Mengunggah Berkas ke Server...";
             const file = fileInput.files[0];
             const formData = new FormData();
             formData.append('file', file);
@@ -208,11 +184,10 @@
             const cloudData = await cloudResponse.json();
             const urlBerkas = cloudData.secure_url;
 
-            if(!urlBerkas) throw new Error("Gagal mendapatkan link dari Cloudinary");
+            if(!urlBerkas) throw new Error("Gagal mengunggah berkas ke Cloudinary.");
 
-            // --- SIMPAN FIRESTORE ---
-            btn.innerText = "Menyimpan Data...";
-
+            // --- SIMPAN KE FIRESTORE ---
+            btn.innerText = "Finalisasi Data...";
             const userData = {
                 nama: nama,
                 email: email,
@@ -220,40 +195,35 @@
                 password: pass,
                 alamat: alamat,
                 goldarah: darah,
-                jabatan: jabatan,
-                komsel: komsel,
-                nomor_komsel: nk,
-                url_dokumen: urlBerkas, // Link Cloudinary
+                lokasi_berjemaat: lokasi,
+                nij: nij,
+                url_dokumen_fisik: urlBerkas, // Link Cloudinary KK/Akta/Baptis
                 status: "Aktif",
                 tanggalDaftar: new Date().toLocaleString('id-ID')
             };
 
-            const userRef = await usersRef.add(userData);
+            const userRef = await db.collection("users").add(userData);
             
+            // Simpan ke Admin Repository
             await db.collection("Administrator").doc("profile biodata")
                     .collection("daftar_anggota").doc(userRef.id).set(userData);
             
             document.getElementById('blocking-message').style.display = 'flex';
             
         } catch (error) { 
-            alert("Terjadi Kesalahan: " + error.message); 
+            alert("Kesalahan Sistem: " + error.message); 
             btn.innerText = "DAFTAR SEKARANG";
             btn.disabled = false;
         }
     }
 
-    // Monitoring tetap aktif
-    function monitorProfilDarah() {
-        db.collection("users").onSnapshot((snapshot) => {
-            let rekapDarah = { 'A': 0, 'B': 0, 'O': 0, 'AB': 0 };
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                const gol = (data.goldarah || "").toUpperCase().trim();
-                if (rekapDarah.hasOwnProperty(gol)) { rekapDarah[gol]++; }
-            });
-        });
-    }
-    monitorProfilDarah();
+    // Password Toggle
+    document.getElementById('eyeIcon').addEventListener('click', function() {
+        const passInput = document.getElementById('pass');
+        passInput.type = passInput.type === 'password' ? 'text' : 'password';
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
 </script>
 </body>
 </html>
