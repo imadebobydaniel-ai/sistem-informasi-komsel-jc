@@ -35,7 +35,6 @@
         .alert-box i { font-size: 40px; color: #dc3545; margin-bottom: 15px; }
         .alert-box p { font-size: 14px; color: #333; margin-bottom: 20px; white-space: pre-line; }
 
-        /* Existing Modals */
         #terms-modal, #blocking-message { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(5px); }
         #blocking-message { display: none; z-index: 15000; }
         .terms-box, .modal-box { background: white; padding: 25px; border-radius: 20px; max-width: 400px; width: 100%; text-align: center; }
@@ -49,7 +48,7 @@
 
 <div id="custom-alert">
     <div class="alert-box">
-        <i class="fa-solid fa-circle-exclamation"></i>
+        <i class="fa-solid fa-circle-exclamation" id="alert-icon"></i>
         <p id="alert-text"></p>
         <button class="btn-next" onclick="closeAlert()" style="padding: 10px;">MENGERTI</button>
     </div>
@@ -207,15 +206,16 @@
 
 <div id="blocking-message">
     <div class="modal-box">
-        <i class="fa-solid fa-circle-check" style="font-size: 50px; color: #28a745;"></i>
+        <i class="fa-solid fa-envelope-circle-check" style="font-size: 50px; color: #28a745;"></i>
         <p><b>Pendaftaran Berhasil!</b></p>
-        <p style="font-size: 12px;">Data Anda sedang diverifikasi admin.</p>
-        <button onclick="window.location.href='login.html'" class="btn-next" style="background:#007bff;">OK / LOGIN</button>
+        <p style="font-size: 13px; color: #444;">Link verifikasi telah dikirim ke email Anda.<br><b>Silakan verifikasi email Anda</b> sebelum mencoba login.</p>
+        <button onclick="window.location.href='login.html'" class="btn-next" style="background:#007bff;">KE HALAMAN LOGIN</button>
     </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
 <script>
     // --- KONFIGURASI FIREBASE ---
@@ -229,9 +229,13 @@
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const auth = firebase.auth();
 
     // --- CUSTOM NOTIFICATION LOGIC ---
-    function showAlert(message) {
+    function showAlert(message, isSuccess = false) {
+        const icon = document.getElementById('alert-icon');
+        icon.className = isSuccess ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-exclamation';
+        icon.style.color = isSuccess ? '#28a745' : '#dc3545';
         document.getElementById('alert-text').innerText = message;
         document.getElementById('custom-alert').style.display = 'flex';
     }
@@ -336,50 +340,57 @@
         document.getElementById("nij-display").value = `NIJ-PPP-${lokasi}-${urut}-2026`;
     }
 
+    // --- LOGIKA REGISTRASI DENGAN AUTH ---
     async function handleRegistrasi() {
         const btn = document.getElementById("btnSubmit");
         const fileInput = document.getElementById("berkas_jemaat");
+        const email = document.getElementById("email").value.trim().toLowerCase();
+        const password = document.getElementById("pass").value;
+
         const fields = [
-            { id: "nama", label: "Nama Lengkap" }, { id: "provinsi_lahir", label: "Provinsi Lahir" },
-            { id: "kota_lahir", label: "Kota Lahir" }, { id: "tgl_lahir", label: "Tanggal Lahir" },
-            { id: "ktp", label: "No. KTP" }, { id: "kk", label: "No. KK" },
-            { id: "email", label: "Email" }, { id: "hp", label: "WhatsApp" },
-            { id: "pass", label: "Password" }, { id: "alamat", label: "Alamat" },
-            { id: "status_pernikahan", label: "Status Pernikahan" }, { id: "pekerjaan", label: "Pekerjaan" },
-            { id: "lokasi", label: "Lokasi Berjemaat" }, { id: "komsel", label: "Komsel" },
-            { id: "jabatan_jemaat", label: "Jabatan Jemaat" }
+            { id: "nama", label: "Nama Lengkap" }, { id: "email", label: "Email" },
+            { id: "pass", label: "Password" }, { id: "lokasi", label: "Lokasi Berjemaat" }
         ];
 
         let emptyFields = [];
         fields.forEach(f => { if (!document.getElementById(f.id).value.trim()) emptyFields.push(f.label); });
 
         if (emptyFields.length > 0) {
-            showAlert("Harap isi data berikut:\n- " + emptyFields.join("\n- "));
+            showAlert("Harap isi data wajib:\n- " + emptyFields.join("\n- "));
             return; 
         }
 
         if (fileInput.files.length === 0) { showAlert("Unggah berkas KTP/KK!"); return; }
 
-        btn.innerText = "Memproses...";
+        btn.innerText = "Mendaftarkan Akun...";
         btn.disabled = true;
 
         try {
+            // 1. Buat User di Firebase Authentication
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            const user = userCredential.user;
+
+            // 2. Kirim Email Verifikasi
+            await user.sendEmailVerification();
+
+            // 3. Upload File ke Cloudinary
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
             formData.append('upload_preset', 'pope_preset');
             const cloudResponse = await fetch('https://api.cloudinary.com/v1_1/dxzllsbgi/upload', { method: 'POST', body: formData });
             const cloudData = await cloudResponse.json();
 
+            // 4. Simpan Data Lengkap ke Firestore
             const userData = {
+                uid: user.uid, // Simpan UID Auth
                 nama: document.getElementById("nama").value,
                 prov_lahir: document.getElementById("provinsi_lahir").value,
                 kota_lahir: document.getElementById("kota_lahir").value,
                 tgl_lahir: document.getElementById("tgl_lahir").value,
                 ktp: document.getElementById("ktp").value,
                 kk: document.getElementById("kk").value,
-                email: document.getElementById("email").value.toLowerCase(),
+                email: email,
                 whatsapp: document.getElementById("hp").value,
-                password: document.getElementById("pass").value,
                 alamat: document.getElementById("alamat").value,
                 pekerjaan: document.getElementById("pekerjaan").value,
                 status_pernikahan: document.getElementById("status_pernikahan").value,
@@ -397,11 +408,21 @@
                 tanggalDaftar: new Date().toLocaleString('id-ID')
             };
 
-            const userRef = await db.collection("users").add(userData);
-            await db.collection("Administrator").doc("profile biodata").collection("daftar_anggota").doc(userRef.id).set(userData);
+            await db.collection("users").doc(user.uid).set(userData);
+            await db.collection("Administrator").doc("profile biodata").collection("daftar_anggota").doc(user.uid).set(userData);
+
+            // 5. Logout agar tidak langsung masuk sebelum verifikasi
+            await auth.signOut();
+
+            // Selesai
             document.getElementById('blocking-message').style.display = 'flex';
+
         } catch (e) {
-            showAlert("Gagal: " + e.message);
+            let errorMsg = e.message;
+            if (e.code === 'auth/email-already-in-use') errorMsg = "Email sudah terdaftar. Gunakan email lain.";
+            if (e.code === 'auth/weak-password') errorMsg = "Password minimal 6 karakter.";
+            
+            showAlert("Gagal Daftar: " + errorMsg);
             btn.disabled = false;
             btn.innerText = "FINALISASI & DAFTAR";
         }
