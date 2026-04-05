@@ -28,18 +28,32 @@
         .btn-prev { width: 100%; padding: 15px; background-color: #6c757d; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; }
         .btn-group { display: flex; gap: 10px; margin-top: 20px; }
         .btn-back-login { display: block; text-align: center; text-decoration: none; color: #666; font-size: 14px; font-weight: bold; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-top: 15px; transition: 0.3s; }
-        .btn-back-login:hover { background: #f0f0f0; }
+        
+        /* Custom Alert Styling */
+        #custom-alert { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 20000; justify-content: center; align-items: center; padding: 20px; }
+        .alert-box { background: white; padding: 25px; border-radius: 15px; text-align: center; max-width: 300px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .alert-box i { font-size: 40px; color: #dc3545; margin-bottom: 15px; }
+        .alert-box p { font-size: 14px; color: #333; margin-bottom: 20px; white-space: pre-line; }
+
+        /* Existing Modals */
+        #terms-modal, #blocking-message { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(5px); }
+        #blocking-message { display: none; z-index: 15000; }
+        .terms-box, .modal-box { background: white; padding: 25px; border-radius: 20px; max-width: 400px; width: 100%; text-align: center; }
         .password-container { position: relative; }
         .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666; }
         #nij-display { background: #fff3cd !important; border: 2px solid #ffc107 !important; color: #856404; font-weight: bold; }
-        #terms-modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(5px); }
-        .terms-box { background: white; padding: 25px; border-radius: 20px; max-width: 400px; width: 100%; text-align: center; }
         .check-container { display: flex; align-items: flex-start; text-align: left; background: #f9f9f9; padding: 12px; border-radius: 10px; margin: 15px 0; cursor: pointer; }
-        #blocking-message { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
-        .modal-box { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; width: 100%; }
     </style>
 </head>
 <body>
+
+<div id="custom-alert">
+    <div class="alert-box">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <p id="alert-text"></p>
+        <button class="btn-next" onclick="closeAlert()" style="padding: 10px;">MENGERTI</button>
+    </div>
+</div>
 
 <div id="terms-modal">
     <div class="terms-box">
@@ -126,7 +140,6 @@
 
         <div class="form-step" id="step-2">
             <h3 style="font-size: 15px; color: #28a745;"><i class="fa-solid fa-church"></i> Data Jabatan & Pelayanan</h3>
-            
             <div class="form-group">
                 <label>Lokasi Berjemaat*</label>
                 <select id="lokasi" onchange="updateKomsel(); updateNIJPreview();">
@@ -138,14 +151,12 @@
                     <option value="ARS2">Arso 2</option>
                 </select>
             </div>
-
             <div class="form-group">
                 <label>Komsel / Jemaat Cell*</label>
                 <select id="komsel">
                     <option value="">-- Pilih Komsel --</option>
                 </select>
             </div>
-
             <div class="form-group">
                 <label>Jabatan di Jemaat*</label>
                 <select id="jabatan_jemaat" onchange="updateSubJabatan()">
@@ -157,26 +168,22 @@
                     <option value="Anggota Jemaat">Anggota Jemaat</option>
                 </select>
             </div>
-
             <div class="form-group">
                 <label>Sub Bidang Jabatan di Jemaat*</label>
                 <select id="sub_jabatan" onchange="updateSpesifikPelayanan()">
                     <option value="">-- Pilih Sub Bidang --</option>
                 </select>
             </div>
-
             <div class="form-group">
                 <label>Spesifik Bidang Jabatan Pelayanan</label>
                 <select id="pelayanan">
                     <option value="">-- Pilih Fungsi Spesifik --</option>
                 </select>
             </div>
-
             <div class="form-group">
                 <label>NIJ (Otomatis)</label>
                 <input type="text" id="nij-display" readonly>
             </div>
-
             <div class="btn-group">
                 <button type="button" class="btn-prev" onclick="nextStep(1)">Kembali</button>
                 <button type="button" class="btn-next" onclick="nextStep(3)">Lanjut <i class="fa-solid fa-arrow-right"></i></button>
@@ -223,6 +230,15 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // --- CUSTOM NOTIFICATION LOGIC ---
+    function showAlert(message) {
+        document.getElementById('alert-text').innerText = message;
+        document.getElementById('custom-alert').style.display = 'flex';
+    }
+    function closeAlert() {
+        document.getElementById('custom-alert').style.display = 'none';
+    }
+
     // --- DATA DINAMIS ---
     const dataKomsel = {
         "ABE": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "esther 8", "esther 9", "Esther 10", "esther 11", "Esther 12", "Komsel Mahasiswa Abe", "Komsel Profesi Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu"],
@@ -248,37 +264,15 @@
     };
 
     const dataSpesifik = {
-        "Koordinator Praise & Worship": [
-            "Drum Player", "Keyboard Player", "Piano Player", "Bass Player", 
-            "Guitar Player", "Violin Player", "Saxsophone Player", "Flute player", 
-            "Vocal coach", "Worship leader", "Singers", "choirs"
-        ],
-        "Koordinator Multimedia": [
-            "Director media", "Floor director", "Campers", "Crew equipment", 
-            "Streaming operator", "Video switcher operator", "Easy Worshipe / Presenter Operator"
-        ],
-        "Koordinator Sound Engineering & Elektrical": [
-            "Sound engineering", "Crew equipment", "Elektrical & Peripheral"
-        ],
-        "Koordinator User": [
-            "Front Desk user", "User direct", "Event organizer", "General Affairs"
-        ],
-        "Koordinator parkir dan keamanan": [
-            "Parkir leader", "Parkir Crew", "Security"
-        ],
-        "Koordinator Pelayanan Misi": [
-            "Team Misi bidang Fundraising", "Team Misi bidang research & Deplovement", 
-            "Team Road Map", "Public Relations"
-        ],
+        "Koordinator Praise & Worship": ["Drum Player", "Keyboard Player", "Piano Player", "Bass Player", "Guitar Player", "Violin Player", "Saxsophone Player", "Flute player", "Vocal coach", "Worship leader", "Singers", "choirs"],
+        "Koordinator Multimedia": ["Director media", "Floor director", "Campers", "Crew equipment", "Streaming operator", "Video switcher operator", "Easy Worshipe / Presenter Operator"],
+        "Koordinator Sound Engineering & Elektrical": ["Sound engineering", "Crew equipment", "Elektrical & Peripheral"],
+        "Koordinator User": ["Front Desk user", "User direct", "Event organizer", "General Affairs"],
+        "Koordinator parkir dan keamanan": ["Parkir leader", "Parkir Crew", "Security"],
+        "Koordinator Pelayanan Misi": ["Team Misi bidang Fundraising", "Team Misi bidang research & Deplovement", "Team Road Map", "Public Relations"],
         "Koordinator Pendoa": ["Team Doa Syafaat"],
-        "Koordinator dekorasi dan event": [
-            "Decoration leader", "Decoration Crew", "Art And Painting", "Special effect"
-        ],
-        "Fulltimer Gereja": [
-            "Kepala Sekolah PAUD & PPA", "Sekretaris Operasional Gereja", 
-            "Bendahara Operasional gereja", "Guru Paud", "Mentor PPA", 
-            "Staff Geraja", "Staff PPA", "Hospitality & Konsumsi", "Driver"
-        ]
+        "Koordinator dekorasi dan event": ["Decoration leader", "Decoration Crew", "Art And Painting", "Special effect"],
+        "Fulltimer Gereja": ["Kepala Sekolah PAUD & PPA", "Sekretaris Operasional Gereja", "Bendahara Operasional gereja", "Guru Paud", "Mentor PPA", "Staff Geraja", "Staff PPA", "Hospitality & Konsumsi", "Driver"]
     };
 
     // --- LOGIKA DROPDOWN ---
@@ -298,10 +292,8 @@
         const jabatan = document.getElementById("jabatan_jemaat").value;
         const subSelect = document.getElementById("sub_jabatan");
         const pelayananSelect = document.getElementById("pelayanan");
-        
         subSelect.innerHTML = '<option value="">-- Pilih Sub Bidang --</option>';
         pelayananSelect.innerHTML = '<option value="">-- Pilih Fungsi Spesifik --</option>';
-
         if (dataSubJabatan[jabatan]) {
             dataSubJabatan[jabatan].forEach(item => {
                 let opt = document.createElement("option"); opt.value = item; opt.text = item;
@@ -314,7 +306,6 @@
         const sub = document.getElementById("sub_jabatan").value;
         const spesifikSelect = document.getElementById("pelayanan");
         spesifikSelect.innerHTML = '<option value="">-- Pilih Fungsi Spesifik --</option>';
-        
         if (dataSpesifik[sub]) {
             dataSpesifik[sub].forEach(item => {
                 let opt = document.createElement("option"); opt.value = item; opt.text = item;
@@ -327,7 +318,6 @@
         }
     }
 
-    // --- LOGIKA SISTEM ---
     function nextStep(n) {
         document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.step').forEach(b => b.classList.remove('active'));
@@ -349,7 +339,6 @@
     async function handleRegistrasi() {
         const btn = document.getElementById("btnSubmit");
         const fileInput = document.getElementById("berkas_jemaat");
-        
         const fields = [
             { id: "nama", label: "Nama Lengkap" }, { id: "provinsi_lahir", label: "Provinsi Lahir" },
             { id: "kota_lahir", label: "Kota Lahir" }, { id: "tgl_lahir", label: "Tanggal Lahir" },
@@ -365,11 +354,11 @@
         fields.forEach(f => { if (!document.getElementById(f.id).value.trim()) emptyFields.push(f.label); });
 
         if (emptyFields.length > 0) {
-            alert("Harap isi data berikut:\n- " + emptyFields.join("\n- "));
+            showAlert("Harap isi data berikut:\n- " + emptyFields.join("\n- "));
             return; 
         }
 
-        if (fileInput.files.length === 0) { alert("Unggah berkas KTP/KK!"); return; }
+        if (fileInput.files.length === 0) { showAlert("Unggah berkas KTP/KK!"); return; }
 
         btn.innerText = "Memproses...";
         btn.disabled = true;
@@ -378,7 +367,6 @@
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
             formData.append('upload_preset', 'pope_preset');
-            
             const cloudResponse = await fetch('https://api.cloudinary.com/v1_1/dxzllsbgi/upload', { method: 'POST', body: formData });
             const cloudData = await cloudResponse.json();
 
@@ -411,10 +399,9 @@
 
             const userRef = await db.collection("users").add(userData);
             await db.collection("Administrator").doc("profile biodata").collection("daftar_anggota").doc(userRef.id).set(userData);
-
             document.getElementById('blocking-message').style.display = 'flex';
         } catch (e) {
-            alert("Gagal: " + e.message);
+            showAlert("Gagal: " + e.message);
             btn.disabled = false;
             btn.innerText = "FINALISASI & DAFTAR";
         }
@@ -441,7 +428,6 @@
 
     function toggleAgreeButton() { document.getElementById('btn-agree-submit').disabled = !document.getElementById('check-agree').checked; }
     function closeTermsModal() { document.getElementById('terms-modal').style.display = 'none'; }
-    
     loadProvinsi();
 
     document.getElementById('eyeIcon').addEventListener('click', function() {
