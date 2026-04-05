@@ -10,7 +10,7 @@
             --primary: #003366; --accent: #007bff; --dark: #333; 
             --light: #f4f7f6; --success: #28a745; --emas: #D4AF37;
             --danger: #dc3545; --purple: #6f42c1; --orange: #fd7e14; --cyan: #17a2b8;
-            --teal: #008080; /* Warna baru untuk Agenda */
+            --teal: #008080;
         }
 
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--light); margin: 0; padding: 10px; }
@@ -19,7 +19,6 @@
         .header-section { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--emas); padding-bottom: 15px; margin-bottom: 20px; }
         .btn-logout { background: #dc3545; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 12px; }
 
-        /* Stats Grid - Dioptimalkan untuk 7 item */
         .stats-grid { 
             display: grid; 
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); 
@@ -42,19 +41,22 @@
         .stat-card h4 { margin: 0; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2; padding-right: 30px; }
         .stat-card i { position: absolute; right: 12px; font-size: 1.3rem; opacity: 0.4; }
 
-        /* Sisanya tetap sama */
         #actionMenu { display: none; gap: 10px; margin-bottom: 15px; padding: 10px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; align-items: center; }
-        .btn-action { border: none; padding: 8px 15px; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; font-size: 12px; }
+        .btn-action { border: none; padding: 8px 15px; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; font-size: 11px; text-decoration: none; display: inline-block; }
         .table-controls { display: flex; gap: 15px; margin-bottom: 15px; align-items: center; }
         .search-box { position: relative; flex: 1; }
-        .search-box input { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 10px; }
+        .search-box input { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
         .search-box i { position: absolute; right: 15px; top: 13px; color: #aaa; }
+        
         .table-responsive { overflow-x: auto; border: 1px solid #eee; border-radius: 10px; }
-        table { width: 100%; border-collapse: collapse; min-width: 1100px; }
-        table th { background: var(--primary); color: white; padding: 12px; font-size: 12px; text-align: left; }
-        table td { padding: 10px; border-bottom: 1px solid #eee; font-size: 11.5px; }
-        .nik-col { color: var(--accent); font-weight: bold; font-family: 'Courier New', Courier, monospace; }
+        table { width: 100%; border-collapse: collapse; min-width: 1300px; }
+        table th { background: var(--primary); color: white; padding: 12px; font-size: 11px; text-align: left; text-transform: uppercase; }
+        table td { padding: 10px; border-bottom: 1px solid #eee; font-size: 11.5px; vertical-align: top; }
+        
+        .nij-col { color: var(--accent); font-weight: bold; font-family: monospace; font-size: 12px; }
         .check-col { width: 40px; text-align: center; }
+        .badge-pending { background: #ffc107; color: #000; padding: 3px 8px; border-radius: 5px; font-size: 10px; }
+        .badge-aktif { background: var(--success); color: #fff; padding: 3px 8px; border-radius: 5px; font-size: 10px; }
     </style>
 </head>
 <body>
@@ -66,48 +68,13 @@
     </div>
 
     <div class="stats-grid">
-        <a href="admin-tiket.html">
-            <div class="stat-card" style="background: #007bff;">
-                <h4>Portal Tiket</h4>
-                <i class="fas fa-ticket-alt"></i>
-            </div>
-        </a>
-        <a href="#memberData">
-            <div class="stat-card" style="background: #28a745;">
-                <h4>Raport Jemaat</h4>
-                <i class="fas fa-check-circle"></i>
-            </div>
-        </a>
-        <a href="portal-media.html">
-            <div class="stat-card" style="background: #6f42c1;">
-                <h4>Portal Media</h4>
-                <i class="fas fa-icons"></i>
-            </div>
-        </a>
-        <a href="informasi-kegiatan.html">
-            <div class="stat-card" style="background: #fd7e14;">
-                <h4>Informasi Kegiatan</h4>
-                <i class="fas fa-calendar-alt"></i>
-            </div>
-        </a>
-        <a href="admin-bigdata.html">
-            <div class="stat-card" style="background: #17a2b8;">
-                <h4>Big Data</h4>
-                <i class="fas fa-chart-line"></i>
-            </div>
-        </a>
-        <a href="agenda-tahunan.html">
-            <div class="stat-card" style="background: var(--teal);">
-                <h4>Agenda Tahunan Jemaat</h4>
-                <i class="fas fa-book-open"></i>
-            </div>
-        </a>
-        <a href="manajemen-user.html">
-            <div class="stat-card" style="background: var(--emas); color: #333;">
-                <h4 style="color: #333;">Manajemen User</h4>
-                <i class="fas fa-users-cog" style="color: #333; opacity: 0.6;"></i>
-            </div>
-        </a>
+        <a href="admin-tiket.html"><div class="stat-card" style="background: #007bff;"><h4>Portal Tiket</h4><i class="fas fa-ticket-alt"></i></div></a>
+        <a href="#memberData"><div class="stat-card" style="background: #28a745;"><h4>Raport Jemaat</h4><i class="fas fa-check-circle"></i></div></a>
+        <a href="portal-media.html"><div class="stat-card" style="background: #6f42c1;"><h4>Portal Media</h4><i class="fas fa-icons"></i></div></a>
+        <a href="informasi-kegiatan.html"><div class="stat-card" style="background: #fd7e14;"><h4>Informasi Kegiatan</h4><i class="fas fa-calendar-alt"></i></div></a>
+        <a href="admin-bigdata.html"><div class="stat-card" style="background: #17a2b8;"><h4>Big Data</h4><i class="fas fa-chart-line"></i></div></a>
+        <a href="agenda-tahunan.html"><div class="stat-card" style="background: var(--teal);"><h4>Agenda Tahunan</h4><i class="fas fa-book-open"></i></div></a>
+        <a href="manajemen-user.html"><div class="stat-card" style="background: var(--emas); color: #333;"><h4 style="color: #333;">Manajemen User</h4><i class="fas fa-users-cog" style="color: #333; opacity: 0.6;"></i></div></a>
     </div>
 
     <div id="actionMenu">
@@ -118,26 +85,31 @@
 
     <div class="table-controls">
         <div class="search-box">
-            <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Cari NIK, nama, email, atau alamat...">
+            <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Cari NIJ, nama, komsel, atau jabatan...">
             <i class="fas fa-search"></i>
         </div>
     </div>
 
     <div class="table-responsive">
-        <table>
+        <table id="memberTable">
             <thead>
                 <tr>
                     <th class="check-col"><input type="checkbox" id="checkAll" onclick="toggleAll(this)"></th>
-                    <th>NIK</th> <th>Nama Anggota</th>
-                    <th>WhatsApp</th>
-                    <th>Email</th>
-                    <th>Gol. Darah</th>
-                    <th>Jabatan</th>
-                    <th>JC</th>
-                    <th>Alamat</th>
+                    <th>NIJ</th>
+                    <th>Nama Lengkap</th>
+                    <th>Kontak (WA/Email)</th>
+                    <th>TTL / Darah</th>
+                    <th>KTP / KK</th>
+                    <th>Status / Pekerjaan</th>
+                    <th>Lokasi / Komsel</th>
+                    <th>Jabatan / Pelayanan</th>
+                    <th>Status</th>
+                    <th>Berkas</th>
+                    <th>Aksi</th>
                 </tr>
             </thead>
-            <tbody id="memberData"></tbody>
+            <tbody id="memberData">
+                </tbody>
         </table>
     </div>
 </div>
@@ -146,7 +118,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    // Konfigurasi Firebase Anda
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -158,28 +129,61 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
+    // Fungsi Load Data Real-time
     window.onload = function() {
-        db.collection("users").onSnapshot(snapshot => {
-            const table = document.getElementById("memberData");
-            table.innerHTML = "";
+        db.collection("users").orderBy("tanggalDaftar", "desc").onSnapshot(snapshot => {
+            const tableBody = document.getElementById("memberData");
+            tableBody.innerHTML = "";
+            
             snapshot.forEach(doc => {
                 const d = doc.data();
-                table.innerHTML += `
+                tableBody.innerHTML += `
                 <tr>
                     <td class="check-col"><input type="checkbox" class="user-checkbox" value="${doc.id}" onclick="updateActionMenu()"></td>
-                    <td class="nik-col">${d.nik || '-'}</td> <td><b>${d.nama || '-'}</b></td>
-                    <td>${d.whatsapp || '-'}</td>
-                    <td>${d.email || '-'}</td>
-                    <td>${d.golongan_darah || '-'}</td>
-                    <td>${d.jabatan || '-'}</td>
-                    <td>JC ${d.komsel || '-'}</td>
-                    <td>${d.alamat || '-'}</td>
+                    <td class="nij-col">${d.nij || '-'}</td>
+                    <td><strong>${d.nama || '-'}</strong></td>
+                    <td>
+                        <i class="fab fa-whatsapp text-success"></i> ${d.whatsapp || '-'}<br>
+                        <small class="text-muted">${d.email || '-'}</small>
+                    </td>
+                    <td>
+                        <small>${d.kota_lahir || '-'}, ${d.tgl_lahir || '-'}</small><br>
+                        <span style="font-size:10px; background:#eee; padding:2px 5px; border-radius:3px;">Gol: ${d.darah || '-'}</span>
+                    </td>
+                    <td>
+                        <small>KTP: ${d.ktp || '-'}</small><br>
+                        <small>KK: ${d.kk || '-'}</small>
+                    </td>
+                    <td>
+                        ${d.status_pernikahan || '-'}<br>
+                        <small class="text-muted">${d.pekerjaan || '-'}</small>
+                    </td>
+                    <td>
+                        <span style="color:var(--primary); font-weight:bold;">${d.lokasi_berjemaat || '-'}</span><br>
+                        <small>${d.wilayah_komsel || '-'}</small>
+                    </td>
+                    <td>
+                        <strong>${d.jabatan_jemaat || '-'}</strong><br>
+                        <small>${d.sub_jabatan || '-'}</small>
+                    </td>
+                    <td>
+                        <span class="badge-${(d.status || 'pending').toLowerCase()}">${d.status || 'Pending'}</span>
+                    </td>
+                    <td>
+                        ${d.url_berkas ? `<a href="${d.url_berkas}" target="_blank" class="btn-action" style="background:var(--cyan); padding:4px 8px;"><i class="fas fa-eye"></i> Lihat</a>` : '-'}
+                    </td>
+                    <td>
+                        <button onclick="deleteUser('${doc.id}')" class="btn-action" style="background:var(--danger); padding:4px 8px;"><i class="fas fa-trash"></i></button>
+                    </td>
                 </tr>`;
             });
             updateActionMenu();
+        }, error => {
+            console.error("Firestore Error:", error);
         });
     };
 
+    // Fungsi UI & Action
     function toggleAll(source) {
         const checkboxes = document.querySelectorAll('.user-checkbox');
         checkboxes.forEach(cb => cb.checked = source.checked);
@@ -193,7 +197,9 @@
         const checkAll = document.getElementById('checkAll');
         const selectedLabel = document.getElementById('selectedCount');
 
-        checkAll.checked = (checkedOnes.length === checkboxes.length && checkboxes.length > 0);
+        if (checkboxes.length > 0) {
+            checkAll.checked = (checkedOnes.length === checkboxes.length);
+        }
 
         if (checkedOnes.length > 0) {
             actionMenu.style.display = 'flex';
@@ -203,31 +209,28 @@
         }
     }
 
-    function bulkEdit() {
-        const selectedIds = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.value);
-        if (selectedIds.length === 1) {
-            window.location.href = `edit-user.html?id=${selectedIds[0]}`; 
-        } else {
-            alert("Pilih satu data saja untuk diedit.");
+    function deleteUser(id) {
+        if (confirm("Hapus anggota ini secara permanen?")) {
+            db.collection("users").doc(id).delete()
+            .then(() => alert("Data dihapus."))
+            .catch(err => alert("Gagal hapus: " + err));
         }
     }
 
     function bulkDelete() {
         const selectedIds = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.value);
-        if (confirm(`Apakah Anda yakin ingin menghapus ${selectedIds.length} anggota ini secara permanen?`)) {
-            selectedIds.forEach(id => {
-                db.collection("users").doc(id).delete().catch(error => {
-                    console.error("Gagal menghapus:", error);
-                });
-            });
-            alert("Data berhasil dihapus dari sistem.");
+        if (confirm(`Hapus ${selectedIds.length} data terpilih?`)) {
+            selectedIds.forEach(id => db.collection("users").doc(id).delete());
+            alert("Data berhasil dihapus.");
         }
     }
 
     function filterTable() {
         let input = document.getElementById("searchInput").value.toLowerCase();
         let rows = document.querySelectorAll("#memberData tr");
-        rows.forEach(row => { row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none"; });
+        rows.forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none";
+        });
     }
 </script>
 </body>
