@@ -17,7 +17,7 @@
         .step { flex: 1; height: 6px; background: #eee; border-radius: 10px; transition: 0.4s; }
         .step.active { background: #28a745; box-shadow: 0 0 8px rgba(40, 167, 69, 0.4); }
         .form-step { display: none; animation: fadeIn 0.4s ease; }
-        .form-step.active { display: block; }
+        .form-step.active { display: block !important; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-size: 12px; font-weight: bold; color: #444; margin-bottom: 5px; }
@@ -247,14 +247,30 @@
         "Fulltimer Gereja": ["Kepala Sekolah PAUD & PPA", "Sekretaris Operasional Gereja", "Bendahara Operasional gereja", "Guru Paud", "Mentor PPA", "Staff Geraja", "Staff PPA", "Hospitality & Konsumsi", "Driver"]
     };
 
-    // --- 3. LOGIKA FORM ---
+    // --- 3. LOGIKA FORM (UPDATED) ---
     function nextStep(n) {
-        document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.step').forEach(b => b.classList.remove('active'));
-        document.getElementById('step-' + n).classList.add('active');
-        for (let i = 1; i <= n; i++) {
-            document.getElementById('step-' + i + '-bar').classList.add('active');
+        // 1. Sembunyikan semua step form
+        document.querySelectorAll('.form-step').forEach(step => {
+            step.classList.remove('active');
+            step.style.display = 'none'; // Memastikan benar-benar hilang
+        });
+
+        // 2. Tampilkan step yang dituju
+        const targetStep = document.getElementById('step-' + n);
+        if (targetStep) {
+            targetStep.classList.add('active');
+            targetStep.style.display = 'block';
         }
+
+        // 3. Update Bar Indikator
+        document.querySelectorAll('.step').forEach((bar, index) => {
+            if (index < n) {
+                bar.classList.add('active');
+            } else {
+                bar.classList.remove('active');
+            }
+        });
+
         window.scrollTo(0, 0);
     }
 
@@ -273,7 +289,6 @@
         const email = document.getElementById("email").value.trim().toLowerCase();
         const password = document.getElementById("pass").value;
         
-        // Validasi Field
         const fields = [
             { id: "nama", label: "Nama Lengkap" }, { id: "email", label: "Email" },
             { id: "pass", label: "Password" }, { id: "lokasi", label: "Lokasi Berjemaat" }
@@ -286,18 +301,15 @@
         btn.disabled = true;
 
         try {
-            // A. UPLOAD CLOUDINARY
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
             formData.append('upload_preset', 'pope_preset');
             const cloudResp = await fetch('https://api.cloudinary.com/v1_1/dxzllsbgi/upload', { method: 'POST', body: formData });
             const cloudData = await cloudResp.json();
 
-            // B. CREATE AUTH USER (Verifikasi Email)
             const userCredential = await auth.createUserWithEmailAndPassword(email, password);
             await userCredential.user.sendEmailVerification();
 
-            // C. SIMPAN KE FIRESTORE
             const userData = {
                 uid: userCredential.user.uid,
                 nama: document.getElementById("nama").value,
