@@ -24,18 +24,16 @@
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box; outline: none; background: #fafafa; }
         .form-group input:focus { border-color: #28a745; background: #fff; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .time-info { font-size: 11px; color: #dc3545; text-align: center; margin-bottom: 15px; font-weight: bold; background: #fff1f1; padding: 5px; border-radius: 5px; }
         .btn-next { width: 100%; padding: 15px; background-color: #28a745; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; }
         .btn-prev { width: 100%; padding: 15px; background-color: #6c757d; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; }
         .btn-group { display: flex; gap: 10px; margin-top: 20px; }
         .btn-back-login { display: block; text-align: center; text-decoration: none; color: #666; font-size: 14px; font-weight: bold; padding: 10px; border: 1px solid #ddd; border-radius: 10px; margin-top: 15px; }
         .password-container { position: relative; }
         .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666; }
-        #nij-display { background: #fff3cd !important; border: 2px solid #ffc107 !important; color: #856404; font-weight: bold; transition: all 0.3s ease; }
-        #terms-modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(5px); box-sizing: border-box; }
+        #nij-display { background: #fff3cd !important; border: 2px solid #ffc107 !important; color: #856404; font-weight: bold; }
+        #terms-modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(5px); }
         .terms-box { background: white; padding: 25px; border-radius: 20px; max-width: 400px; width: 100%; text-align: center; }
-        .check-container { display: flex; align-items: flex-start; text-align: left; background: #f9f9f9; padding: 12px; border-radius: 10px; margin: 15px 0; cursor: pointer; border: 1px solid #eee; }
-        .check-container input { margin-top: 4px; margin-right: 10px; }
+        .check-container { display: flex; align-items: flex-start; text-align: left; background: #f9f9f9; padding: 12px; border-radius: 10px; margin: 15px 0; cursor: pointer; }
         #blocking-message { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
         .modal-box { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; width: 100%; }
     </style>
@@ -45,13 +43,11 @@
 <div id="terms-modal">
     <div class="terms-box">
         <img src="logo_pondok.png" alt="Logo" style="width: 70px; margin-bottom: 10px;">
-        <h2 style="font-size: 16px;">Syarat & Ketentuan Jemaat</h2>
-        <p style="font-size: 13px; color: #444; line-height: 1.5; text-align: justify;">
-            Selamat Datang di Sistem Informasi Jemaat Pondok Pemulihan Papua. Layanan ini bertujuan membangun integrasi pelayanan dan pertumbuhan rohani jemaat.
-        </p>
+        <h2>Syarat & Ketentuan Jemaat</h2>
+        <p style="font-size: 13px; color: #444; text-align: justify;">Selamat Datang di Sistem Informasi Jemaat Pondok Pemulihan Papua. Layanan ini bertujuan membangun integrasi pelayanan dan pertumbuhan rohani jemaat.</p>
         <label class="check-container">
             <input type="checkbox" id="check-agree" onchange="toggleAgreeButton()">
-            <span style="font-size: 12px;">Saya siap menggunakan aplikasi ini sebagai alat penunjang pertumbuhan rohani dan pelayanan.</span>
+            <span style="font-size: 12px; margin-left: 10px;">Saya siap menggunakan aplikasi ini sebagai alat penunjang pertumbuhan rohani dan pelayanan.</span>
         </label>
         <button id="btn-agree-submit" class="btn-next" disabled onclick="closeTermsModal()">SETUJU & LANJUTKAN</button>
     </div>
@@ -72,156 +68,103 @@
         </div>
 
         <div class="form-step active" id="step-1">
-            <h3 style="font-size: 15px; color: #28a745; margin-bottom: 15px;"><i class="fa-solid fa-user"></i> Data Pribadi</h3>
-            <div class="form-group"><label>Nama Lengkap (Sesuai KTP)</label><input type="text" id="nama" placeholder="Contoh: Boby Daniel" required></div>
-            
+            <h3 style="font-size: 15px; color: #28a745;"><i class="fa-solid fa-user"></i> Data Pribadi</h3>
+            <div class="form-group"><label>Nama Lengkap*</label><input type="text" id="nama" placeholder="Contoh: Boby Daniel" required></div>
             <div class="grid-2">
-                <div class="form-group"><label>Provinsi Kelahiran</label><select id="provinsi_lahir" onchange="loadKota()" required><option value="">Pilih...</option></select></div>
-                <div class="form-group"><label>Kota Kelahiran</label><select id="kota_lahir" required><option value="">Pilih...</option></select></div>
+                <div class="form-group"><label>Provinsi Lahir*</label><select id="provinsi_lahir" onchange="loadKota()" required><option value="">Pilih...</option></select></div>
+                <div class="form-group"><label>Kota Lahir*</label><select id="kota_lahir" required><option value="">Pilih...</option></select></div>
             </div>
-
             <div class="grid-2">
-                <div class="form-group"><label>Tanggal Lahir</label><input type="date" id="tgl_lahir" required></div>
+                <div class="form-group"><label>Tanggal Lahir*</label><input type="date" id="tgl_lahir" required></div>
                 <div class="form-group"><label>Gol. Darah</label><select id="darah"><option value="-">-</option><option value="A">A</option><option value="B">B</option><option value="O">O</option><option value="AB">AB</option></select></div>
             </div>
-
             <div class="grid-2">
-                <div class="form-group"><label>No. KTP (16 Digit)</label><input type="number" id="ktp" required></div>
-                <div class="form-group"><label>No. KK</label><input type="number" id="kk" required></div>
+                <div class="form-group"><label>No. KTP*</label><input type="number" id="ktp" required></div>
+                <div class="form-group"><label>No. KK*</label><input type="number" id="kk" required></div>
             </div>
-
             <div class="grid-2">
-                <div class="form-group"><label>Email</label><input type="email" id="email" required></div>
-                <div class="form-group"><label>WhatsApp</label><input type="tel" id="hp" required></div>
+                <div class="form-group"><label>Email*</label><input type="email" id="email" required></div>
+                <div class="form-group"><label>WhatsApp*</label><input type="tel" id="hp" required></div>
             </div>
-
             <div class="form-group">
-                <label>Password Akun</label>
+                <label>Password Akun*</label>
                 <div class="password-container"><input type="password" id="pass" required><i class="fa-solid fa-eye toggle-password" id="eyeIcon"></i></div>
             </div>
-
-            <div class="form-group"><label>Alamat Tinggal Sekarang</label><textarea id="alamat" rows="2" required></textarea></div>
-
+            <div class="form-group"><label>Alamat*</label><textarea id="alamat" rows="2" required></textarea></div>
             <div class="form-group">
-                <label>Status Pernikahan</label>
+                <label>Status Pernikahan*</label>
                 <select id="status_pernikahan" required>
                     <option value="">-- Pilih Status --</option>
                     <option value="Menikah">Menikah</option>
                     <option value="Single">Single</option>
                     <option value="Duda">Duda</option>
                     <option value="Janda">Janda</option>
-                    <option value="Relationship">Relationship</option>
                 </select>
             </div>
-
             <div class="form-group">
-                <label>Jenis Pekerjaan</label>
+                <label>Pekerjaan*</label>
                 <select id="pekerjaan" required>
                     <option value="">-- Pilih Pekerjaan --</option>
-                    <option value="TNI">TNI</option>
-                    <option value="Polri">Polri</option>
                     <option value="ASN">ASN</option>
-                    <option value="P3K">P3K</option>
-                    <option value="Honorer">Honorer</option>
                     <option value="Swasta">Swasta</option>
-                    <option value="Wiraswasta">Wiraswasta</option>
-                    <option value="Aktivis">Aktivis</option>
-                    <option value="Pejabat Publik">Pejabat Publik</option>
-                    <option value="Pejabat Executive">Pejabat Executive</option>
-                    <option value="Bidang Kerohaniaan">Bidang Kerohaniaan</option>
-                    <option value="Kader Partai">Kader Partai</option>
-                    <option value="Profesioanl Muda">Profesioanl Muda</option>
-                    <option value="Scientis">Scientis</option>
                     <option value="Mahasiswa">Mahasiswa</option>
-                    <option value="Pelajar">Pelajar</option>
+                    <option value="Lainnya">Lainnya</option>
                 </select>
             </div>
-
             <div class="grid-2">
                 <div class="form-group"><label>Jumlah Anak</label><input type="number" id="jml_anak" value="0"></div>
                 <div class="form-group"><label>Orang Serumah</label><input type="number" id="jml_serumah" value="1"></div>
             </div>
-
-            <div class="form-group">
-                <label>Nama Istri / Suami</label>
-                <input type="text" id="pasangan" placeholder="Jika single, duda, janda, dikosongkan saja">
-            </div>
-            
-            <button type="button" class="btn-next" onclick="nextStep(2)">Lanjut: Data Gerejawi <i class="fa-solid fa-arrow-right"></i></button>
+            <div class="form-group"><label>Nama Pasangan</label><input type="text" id="pasangan" placeholder="Kosongkan jika single"></div>
+            <button type="button" class="btn-next" onclick="nextStep(2)">Lanjut <i class="fa-solid fa-arrow-right"></i></button>
         </div>
 
         <div class="form-step" id="step-2">
-            <h3 style="font-size: 15px; color: #28a745; margin-bottom: 15px;"><i class="fa-solid fa-church"></i> Data Gerejawi</h3>
-            
+            <h3 style="font-size: 15px; color: #28a745;"><i class="fa-solid fa-church"></i> Data Gerejawi</h3>
             <div class="form-group">
-                <label>Lokasi Berjemaat</label>
+                <label>Lokasi Berjemaat*</label>
                 <select id="lokasi" required onchange="updateNIJPreview()">
                     <option value="">-- Pilih Lokasi --</option>
                     <option value="ABE">Abepura</option>
                     <option value="STN">Sentani</option>
                     <option value="DYO">Doyo</option>
-                    <option value="AR1">Arso 1</option>
-                    <option value="AR2">Arso 2</option>
                 </select>
             </div>
-
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Aktif Komsel?</label>
-                    <select id="aktif_komsel">
-                        <option value="Ya">Ya</option>
-                        <option value="Tidak">Tidak</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Wilayah Komsel</label>
-                    <select id="wilayah_komsel">
-                        <option value="">-- Pilih Komsel --</option>
-                    </select>
-                </div>
-            </div>
-
             <div class="form-group">
-                <label>Jabatan di Jemaat</label>
+                <label>Jabatan Utama*</label>
                 <select id="jabatan_jemaat" onchange="updateSubJabatan()" required>
                     <option value="">-- Pilih Jabatan --</option>
                     <option value="Gembala Sidang">Gembala Sidang</option>
                     <option value="Pemimpin / Koordinator">Pemimpin / Koordinator</option>
-                    <option value="PKS Komsel">PKS Komsel</option>
-                    <option value="Fulltimer">Fulltimer</option>
                     <option value="Anggota Jemaat">Anggota Jemaat</option>
                 </select>
             </div>
-
             <div class="form-group">
-                <label>Sub Bidang Jabatan di Jemaat</label>
-                <select id="sub_jabatan" onchange="updateSpesifikPelayanan()">
+                <label>Sub Bidang Jabatan*</label>
+                <select id="sub_jabatan" onchange="updateSpesifikPelayanan()" required>
                     <option value="">-- Pilih Sub Bidang --</option>
                 </select>
             </div>
-
             <div class="form-group">
-                <label>Spesifik Bidang Jabatan Pelayanan</label>
+                <label>Fungsi Pelayanan Spesifik</label>
                 <select id="pelayanan">
-                    <option value="">-- Pilih Fungsi Spesifik --</option>
+                    <option value="">-- Pilih Fungsi --</option>
                 </select>
             </div>
-
             <div class="form-group">
-                <label>Nomor Induk Jemaat (NIJ) Otomatis</label>
-                <input type="text" id="nij-display" readonly placeholder="Otomatis terisi">
+                <label>NIJ (Otomatis)</label>
+                <input type="text" id="nij-display" readonly>
             </div>
-
             <div class="btn-group">
                 <button type="button" class="btn-prev" onclick="goToPrev(1)">Kembali</button>
-                <button type="button" class="btn-next" onclick="nextStep(3)">Lanjut: Berkas <i class="fa-solid fa-arrow-right"></i></button>
+                <button type="button" class="btn-next" onclick="nextStep(3)">Lanjut <i class="fa-solid fa-arrow-right"></i></button>
             </div>
         </div>
 
         <div class="form-step" id="step-3">
-            <h3 style="font-size: 15px; color: #28a745; margin-bottom: 15px;"><i class="fa-solid fa-file-shield"></i> Validasi Dokumen</h3>
+            <h3 style="font-size: 15px; color: #28a745;"><i class="fa-solid fa-file-shield"></i> Validasi Dokumen</h3>
             <div class="form-group">
-                <label>Unggah KK / Akta Lahir / Surat Baptis (JPG/PDF)</label>
+                <label>Unggah Berkas (KK/KTP)*</label>
                 <input type="file" id="berkas_jemaat" accept=".pdf, .jpg, .jpeg" required>
             </div>
             <div class="btn-group">
@@ -229,17 +172,15 @@
                 <button type="button" id="btnSubmit" onclick="handleRegistrasi()" class="btn-next">FINALISASI & DAFTAR</button>
             </div>
         </div>
-
-        <a href="login.html" class="btn-back-login"><i class="fa-solid fa-arrow-left"></i> Kembali ke Login Page</a>
     </form>
 </div>
 
 <div id="blocking-message">
     <div class="modal-box">
-        <i class="fa-solid fa-circle-check" style="font-size: 50px; color: #28a745; margin-bottom: 15px;"></i>
-        <p style="font-weight: bold;">Pendaftaran Berhasil!</p>
-        <p style="font-size: 13px; color: #666;">Data Anda sedang diverifikasi oleh admin.</p>
-        <button onclick="window.location.href='login.html'" class="btn-next" style="background:#007bff; margin-top: 15px;">OK / LOGIN</button>
+        <i class="fa-solid fa-circle-check" style="font-size: 50px; color: #28a745;"></i>
+        <p><b>Pendaftaran Berhasil!</b></p>
+        <p style="font-size: 12px;">Data Anda sedang diverifikasi admin.</p>
+        <button onclick="window.location.href='login.html'" class="btn-next" style="background:#007bff;">OK / LOGIN</button>
     </div>
 </div>
 
@@ -255,139 +196,110 @@
         messagingSenderId: "125984859692",
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Mapping Data Komsel berdasarkan Lokasi
-    const dataKomsel = {
-        "ABE": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Komsel Mahasiswa Abe", "Komsel Profesi Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu"],
-        "STN": ["Komsel Lansia Sentani", "Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Komsel 5", "Siloam 6", "Siloam 8", "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", "Komsel Remaja Sentani", "Komsel Sekolah Minggu Sentani"],
-        "DYO": ["Komsel Bapak Doyo", "Komsel Ibu Doyo"],
-        "AR1": ["Komsel Keluarga Arso 1"],
-        "AR2": ["Komsel Keluarga Arso 2"]
-    };
-
-    // Mapping Data Sub Jabatan berdasarkan Jabatan Utama
     const dataSubJabatan = {
-        "Gembala Sidang": ["Gembala Sidang Jemaat", "Pdt. Pembantu", "Pdt. Muda"],
-        "Pemimpin / Koordinator": [
-            "Sekretaris Gereja", "Bendahara Gereja", "Komite Gereja", "Koordinator Lansia", 
-            "Koordinator Bapak", "Koordinator Ibu", "Koordinator Profesi", "Koordinator Mahasiswa", 
-            "Koordinator Pelajar", "Koordinator Sekolah minggu", "Koordinator Praise & Worship", 
-            "Koordinator Tamborin, flag", "Koordinator Multimedia", "Koordinator Sound Engineering & Elektrical", 
-            "Koordinator Pelayanan Misi", "Koordinator Pendoa", "Koordinator User", 
-            "Koordinator parkir dan keamanan", "Koordinator dekorasi dan event"
-        ],
-        "PKS Komsel": ["PKS Komsel"],
-        "Fulltimer": ["Fulltimer Gereja"],
+        "Gembala Sidang": ["Gembala Sidang Jemaat", "Pdt. Pembantu"],
+        "Pemimpin / Koordinator": ["Koordinator Multimedia", "Koordinator Praise & Worship", "Koordinator User"],
         "Anggota Jemaat": ["Anggota Jemaat Ordinari"]
     };
 
-    // Mapping Fungsi Spesifik berdasarkan Sub Bidang
     const dataSpesifik = {
-        "Koordinator Praise & Worship": ["Drum Player", "Keyboard Player", "Piano Player", "Bass Player", "Guitar Player", "Violin Player", "Saxsophone Player", "Flute player", "Vocal coach", "Worship leader", "Singers", "choirs"],
-        "Koordinator Multimedia": ["Director media", "Floor director", "Campers", "Crew equipment", "Streaming operator", "Video switcher operator", "Easy Worshipe / Presenter Operator"],
-        "Koordinator Sound Engineering & Elektrical": ["Sound engineering", "Crew equipment", "Elektrical & Peripheral"],
-        "Koordinator User": ["Front Desk user", "User direct", "Event organizer", "General Affairs"],
-        "Koordinator parkir dan keamanan": ["Parkir leader", "Parkir Crew", "Security"],
-        "Koordinator Pelayanan Misi": ["Team Doa Syafaat", "Team Misi bidang Fundraising", "Team Misi bidang research & Deplovement", "Team Road Map", "Public Relations"],
-        "Koordinator Pendoa": ["Team Doa Syafaat"],
-        "Koordinator dekorasi dan event": ["Decoration leader", "Decoration Crew", "Art And Painting", "Special effect"],
-        "Fulltimer Gereja": ["Kepala Sekolah PAUD & PPA", "Sekretaris Operasional Gereja", "Bendahara Operasional gereja", "Guru Paud", "Mentor PPA", "Staff Geraja", "Staff PPA", "Hospitality & Konsumsi", "Driver"]
+        "Koordinator Multimedia": ["Director media", "Streaming operator", "Video switcher"],
+        "Koordinator Praise & Worship": ["Drum Player", "Keyboard Player", "Singers"]
     };
 
     function updateSubJabatan() {
         const jabatan = document.getElementById("jabatan_jemaat").value;
         const subSelect = document.getElementById("sub_jabatan");
         subSelect.innerHTML = '<option value="">-- Pilih Sub Bidang --</option>';
-        
         if (dataSubJabatan[jabatan]) {
             dataSubJabatan[jabatan].forEach(item => {
-                let opt = document.createElement("option");
-                opt.value = item; opt.text = item;
+                let opt = document.createElement("option"); opt.value = item; opt.text = item;
                 subSelect.appendChild(opt);
             });
         }
-        updateSpesifikPelayanan();
     }
 
     function updateSpesifikPelayanan() {
-        const subJabatan = document.getElementById("sub_jabatan").value;
+        const sub = document.getElementById("sub_jabatan").value;
         const spesifikSelect = document.getElementById("pelayanan");
-        spesifikSelect.innerHTML = '<option value="">-- Pilih Fungsi Spesifik --</option>';
-
-        if (dataSpesifik[subJabatan]) {
-            dataSpesifik[subJabatan].forEach(item => {
-                let opt = document.createElement("option");
-                opt.value = item; opt.text = item;
+        spesifikSelect.innerHTML = '<option value="">-- Pilih Fungsi --</option>';
+        if (dataSpesifik[sub]) {
+            dataSpesifik[sub].forEach(item => {
+                let opt = document.createElement("option"); opt.value = item; opt.text = item;
                 spesifikSelect.appendChild(opt);
-            });
-        }
-    }
-
-    function updateKomselOptions() {
-        const lokasi = document.getElementById("lokasi").value;
-        const komselSelect = document.getElementById("wilayah_komsel");
-        komselSelect.innerHTML = '<option value="">-- Pilih Komsel --</option>';
-        if (dataKomsel[lokasi]) {
-            dataKomsel[lokasi].forEach(namaKomsel => {
-                const option = document.createElement("option");
-                option.value = namaKomsel; option.text = namaKomsel;
-                komselSelect.appendChild(option);
             });
         }
     }
 
     async function updateNIJPreview() {
         const lokasi = document.getElementById("lokasi").value;
-        const nijInput = document.getElementById("nij-display");
-        updateKomselOptions();
-        if (!lokasi) { nijInput.value = ""; return; }
-        try {
-            const snap = await db.collection("users").get();
-            const nomorUrut = String(snap.size + 1).padStart(3, '0');
-            const tahun = new Date().getFullYear();
-            nijInput.value = `NIJ-PPP-${lokasi}-${nomorUrut}-${tahun}`;
-        } catch (e) { console.error(e); }
+        if (!lokasi) return;
+        const snap = await db.collection("users").get();
+        const urut = String(snap.size + 1).padStart(3, '0');
+        document.getElementById("nij-display").value = `NIJ-PPP-${lokasi}-${urut}-2026`;
     }
 
     function nextStep(n) {
         const currentStep = document.querySelector('.form-step.active');
         const requiredFields = currentStep.querySelectorAll('[required]');
         for (let field of requiredFields) {
-            if (!field.value.trim()) {
-                alert("Harap lengkapi semua data wajib.");
-                field.focus(); return;
-            }
+            if (!field.value.trim()) { alert("Harap lengkapi semua kolom wajib!"); field.focus(); return; }
         }
-        document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.step').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.form-step, .step').forEach(el => el.classList.remove('active'));
         document.getElementById('step-' + n).classList.add('active');
         for (let i = 1; i <= n; i++) document.getElementById('step-' + i + '-bar').classList.add('active');
-        window.scrollTo(0, 0);
     }
 
     function goToPrev(n) {
-        document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.step').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.form-step, .step').forEach(el => el.classList.remove('active'));
         document.getElementById('step-' + n).classList.add('active');
         for (let i = 1; i <= n; i++) document.getElementById('step-' + i + '-bar').classList.add('active');
     }
 
+    // --- LOGIKA UTAMA HANDLE REGISTRASI ---
     async function handleRegistrasi() {
         const btn = document.getElementById("btnSubmit");
-        const fileInput = document.getElementById("berkas_jemaat");
-        if (fileInput.files.length === 0) { alert("Harap unggah berkas!"); return; }
+        const form = document.getElementById("formRegistrasi");
+        
+        // 1. VALIDASI INPUT REQUIRED
+        const requiredFields = form.querySelectorAll('[required]');
+        let missingFields = [];
 
-        btn.innerText = "Memproses..."; btn.disabled = true;
+        requiredFields.forEach((field) => {
+            if (!field.value.trim()) {
+                let labelName = "";
+                const label = field.closest('.form-group')?.querySelector('label');
+                labelName = label ? label.innerText.replace('*', '').trim() : (field.placeholder || field.id);
+                missingFields.push(labelName);
+            }
+        });
+
+        if (missingFields.length > 0) {
+            alert("Pendaftaran Gagal. Harap lengkapi kolom berikut:\n\n- " + missingFields.join("\n- "));
+            return;
+        }
+
+        // 2. VALIDASI FILE
+        const fileInput = document.getElementById("berkas_jemaat");
+        if (fileInput.files.length === 0) { alert("Harap unggah berkas validasi."); return; }
+
+        btn.innerText = "Memproses...";
+        btn.disabled = true;
 
         try {
+            // 3. UPLOAD KE CLOUDINARY
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
             formData.append('upload_preset', 'pope_preset');
+            
             const cloudResponse = await fetch('https://api.cloudinary.com/v1_1/dxzllsbgi/upload', { method: 'POST', body: formData });
             const cloudData = await cloudResponse.json();
+            if (!cloudData.secure_url) throw new Error("Gagal mengunggah berkas.");
 
+            // 4. SUSUN DATA UNTUK FIREBASE
             const userData = {
                 nama: document.getElementById("nama").value,
                 prov_lahir: document.getElementById("provinsi_lahir").value,
@@ -405,28 +317,28 @@
                 jml_serumah: document.getElementById("jml_serumah").value,
                 pasangan: document.getElementById("pasangan").value,
                 lokasi_berjemaat: document.getElementById("lokasi").value,
-                wilayah_komsel: document.getElementById("wilayah_komsel").value,
-                aktif_komsel: document.getElementById("aktif_komsel").value,
                 jabatan_jemaat: document.getElementById("jabatan_jemaat").value,
-                sub_jabatan: document.getElementById("sub_jabatan").value, // Data Baru
-                pelayanan: document.getElementById("pelayanan").value, // Data Baru
+                sub_jabatan: document.getElementById("sub_jabatan").value,
+                pelayanan: document.getElementById("pelayanan").value,
                 nij: document.getElementById("nij-display").value,
                 url_berkas: cloudData.secure_url,
                 status: "Pending",
                 tanggalDaftar: new Date().toLocaleString('id-ID')
             };
 
+            // 5. SIMPAN KE FIRESTORE
             const userRef = await db.collection("users").add(userData);
             await db.collection("Administrator").doc("profile biodata").collection("daftar_anggota").doc(userRef.id).set(userData);
 
             document.getElementById('blocking-message').style.display = 'flex';
+            
         } catch (e) {
             alert("Error: " + e.message);
-            btn.disabled = false; btn.innerText = "FINALISASI & DAFTAR";
+            btn.disabled = false;
+            btn.innerText = "FINALISASI & DAFTAR";
         }
     }
 
-    // Fungsi Pembantu Lainnya
     async function loadProvinsi() {
         const resp = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
         const data = await resp.json();
@@ -438,7 +350,6 @@
     async function loadKota() {
         const provEl = document.getElementById('provinsi_lahir');
         const idProv = provEl.options[provEl.selectedIndex].getAttribute('data-id');
-        if (!idProv) return;
         const resp = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${idProv}.json`);
         const data = await resp.json();
         let options = '<option value="">Pilih Kota</option>';
@@ -448,24 +359,7 @@
 
     function toggleAgreeButton() { document.getElementById('btn-agree-submit').disabled = !document.getElementById('check-agree').checked; }
     function closeTermsModal() { document.getElementById('terms-modal').style.display = 'none'; }
-    
     loadProvinsi();
-
-    document.getElementById('eyeIcon').addEventListener('click', function() {
-        const passInput = document.getElementById('pass');
-        passInput.type = passInput.type === 'password' ? 'text' : 'password';
-        this.classList.toggle('fa-eye'); this.classList.toggle('fa-eye-slash');
-    });
-
-    document.getElementById('status_pernikahan').addEventListener('change', function() {
-        const status = this.value;
-        const inputPasangan = document.getElementById('pasangan');
-        if (["Single", "Janda", "Duda"].includes(status)) {
-            inputPasangan.value = ""; inputPasangan.readOnly = true; inputPasangan.style.backgroundColor = "#e9ecef";
-        } else {
-            inputPasangan.readOnly = false; inputPasangan.style.backgroundColor = "#fafafa";
-        }
-    });
 </script>
 </body>
 </html>
