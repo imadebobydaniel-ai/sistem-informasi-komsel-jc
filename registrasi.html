@@ -38,7 +38,7 @@
             background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; 
             align-items: center; padding: 20px; backdrop-filter: blur(5px); 
         }
-        #terms-modal { display: flex; } /* Tampil saat load */
+        #terms-modal { display: flex; }
         .modal-box, .terms-box { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; width: 100%; }
         .terms-box { max-width: 400px; }
         
@@ -239,7 +239,7 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // 2. DATA DINAMIS (KOMSEL, JABATAN, DLL)
+    // 2. DATA DINAMIS
     const dataKomsel = {
         "ABE": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "esther 8", "esther 9", "Esther 10", "esther 11", "Esther 12", "Komsel Mahasiswa Abe", "Komsel Profesi Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu"],
         "STN": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Komsel 5", "Siloam 6", "Siloam 8", "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", "Komsel Remaja Sentani", "Komsel Sekolah Minggu Sentani"],
@@ -280,7 +280,14 @@
         "Pelayanan Parkiran & keamanan": ["Parkir leader", "Parkir Crew", "Security"],
         "Pelayanan Doa & Misi": ["Team Doa Syafaat", "Team Misi bidang Fundraising", "Team Misi bidang research & Deplovement", "Team Road Map", "Public Relations"],
         "Pelayanan Dekorasi & Event": ["Decoration leader", "Decoration Crew", "Art And Painting", "Special effect"],
-        "Pelayanan fulltimer Gereja": ["Kepala Sekolah PAUD & PPA", "Sekretaris Operasional Gereja", "Bendahara Operasional gereja", "Guru Paud", "Mentor PPA", "Staff Geraja", "Staff PPA", "Hospitality & Konsumsi", "Driver"]
+        "Pelayanan fulltimer Gereja": ["Kepala Sekolah PAUD & PPA", "Sekretaris Operasional Gereja", "Bendahara Operasional gereja", "Guru Paud", "Mentor PPA", "Staff Geraja", "Staff PPA", "Hospitality & Konsumsi", "Driver"],
+        "Praise & Worship": ["Drum Player", "Keyboard Player", "Piano Player", "Bass Player", "Guitar Player", "Violin Player", "Saxsophone Player", "Flute player", "Vocal coach", "Worship leader", "Singers", "choirs"],
+        "Multimedia": ["Director media", "Floor director", "Campers", "Crew equipment", "Streaming operator", "Video switcher operator", "Easy Worshipe / Presenter Operator"],
+        "Sound & Electrical Engineering": ["Sound engineering", "Crew equipment", "Elektrical & Peripheral"],
+        "User": ["Front Desk user", "User direct", "Event organizer", "General Affairs"],
+        "Parkiran & Keamanan": ["Parkir leader", "Parkir Crew", "Security"],
+        "Doa & Misi": ["Team Doa Syafaat", "Team Misi bidang Fundraising", "Team Misi bidang research & Deplovement", "Team Road Map", "Public Relations"],
+        "Dekorasi & Event": ["Decoration leader", "Decoration Crew", "Art And Painting", "Special effect"]
     };
 
     // 3. LOGIKA FORM STEPS
@@ -297,7 +304,7 @@
         window.scrollTo(0, 0);
     }
 
-    // 4. LOGIKA DROPDOWN DINAMIS
+    // 4. LOGIKA DROPDOWN DINAMIS (FIXED)
     function updateSubJabatan() {
         const jab = document.getElementById("jabatan_jemaat").value;
         const sub = document.getElementById("sub_jabatan");
@@ -323,6 +330,8 @@
         const pelVal = document.getElementById("pelayanan").value;
         const nonPel = document.getElementById("pelayanan_spesifik_non");
         nonPel.innerHTML = '<option value="">-- Pilih Detail Pelayanan --</option>';
+        
+        // Cek dataNonStruktural berdasarkan input dropdown Pelayanan
         if (dataNonStruktural[pelVal]) {
             dataNonStruktural[pelVal].forEach(i => nonPel.add(new Option(i, i)));
         }
@@ -347,15 +356,13 @@
         } catch (error) { console.error("Gagal NIJ:", error); }
     }
 
-    // 5. HANDLER REGISTRASI DENGAN BLOCKING DISPLAY
+    // 5. HANDLER REGISTRASI
     async function handleRegistrasi() {
         const fileInput = document.getElementById("berkas_jemaat");
         const email = document.getElementById("email").value.trim().toLowerCase();
         const password = document.getElementById("pass").value;
 
         if (fileInput.files.length === 0) return alert("Unggah foto KTP/KK!");
-
-        // TAMPILKAN LOADING
         document.getElementById('blocking-loading').style.display = 'flex';
 
         try {
@@ -388,8 +395,6 @@
             };
 
             await db.collection("users").doc(userCredential.user.uid).set(userData);
-
-            // TUTUP LOADING & TAMPILKAN BERHASIL
             document.getElementById('blocking-loading').style.display = 'none';
             document.getElementById('blocking-message').style.display = 'flex';
 
@@ -426,7 +431,6 @@
     function toggleAgreeButton() { document.getElementById('btn-agree-submit').disabled = !document.getElementById('check-agree').checked; }
     function closeTermsModal() { document.getElementById('terms-modal').style.display = 'none'; }
 
-    // INITIALIZATION
     loadProvinsi();
     document.getElementById('eyeIcon').addEventListener('click', function() {
         const p = document.getElementById('pass');
