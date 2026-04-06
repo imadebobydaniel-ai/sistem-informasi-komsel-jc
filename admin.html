@@ -162,10 +162,13 @@
                 
                 const namaTampil = d.Nama || d.nama_lengkap || '-';
                 const nij = d.nij || '-';
-                const goldar = d.golongan_darah || '-'; // Ambil data Golongan Darah
+                const goldar = d.golongan_darah || '-';
                 const whatsapp = d.WhatsApp || d.whatsapp || '-';
                 const email = d.email || '-';
-                const alamat = d.Alamat || d.alamat || 'Alamat tidak diisi';
+                
+                // Perbaikan kolom Alamat (mengambil dari field 'wilayah' di database)
+                const alamat = d.wilayah || d.Alamat || d.alamat || 'Alamat tidak diisi';
+                
                 const lokasi = d.lokasi_berjemaat || '-';
                 const komsel = d.Komsel || d.komsel || '-';
                 const jabatan = d.jabatan || '-';
@@ -174,13 +177,20 @@
                 const pasangan = d.nama_pasangan || '-';
                 const anak = d.jumlah_anak || '0';
 
+                // --- LOGIKA LAMPIRAN FILE (DETEKSI CLOUDINARY & FIREBASE) ---
                 let fileHtml = "";
+                // Cek field url_berkas sesuai struktur database terbaru Anda
+                if (d.url_berkas) {
+                    fileHtml += `<a href="${d.url_berkas}" target="_blank" class="file-link"><i class="fas fa-file-alt"></i> Lihat Berkas</a>`;
+                } 
+                // Cadangan untuk field lama
                 if (d.url_ktp || d.urlKtp) {
                     fileHtml += `<a href="${d.url_ktp || d.urlKtp}" target="_blank" class="file-link"><i class="fas fa-id-card"></i> Lihat KTP</a>`;
                 }
                 if (d.url_kk || d.urlKk) {
                     fileHtml += `<a href="${d.url_kk || d.urlKk}" target="_blank" class="file-link"><i class="fas fa-users"></i> Lihat KK</a>`;
                 }
+                
                 if (!fileHtml) {
                     fileHtml = "<small style='color:#dc3545;'>Tidak ada file</small>";
                 }
