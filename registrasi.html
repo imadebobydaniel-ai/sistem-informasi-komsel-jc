@@ -405,11 +405,102 @@
         } catch (error) { console.error("Gagal NIJ:", error); }
     }
 
-    async function handleRegistrasi() {
-        const btn = document.getElementById("btnSubmit");
-        const fileInput = document.getElementById("berkas_jemaat");
-        const email = document.getElementById("email").value.trim().toLowerCase();
-        const password = document.getElementById("pass").value;
+   // Perbaikan fungsi handleRegistrasi
+async function handleRegistrasi() {
+    const btn = document.getElementById("btnSubmit");
+    const fileInput = document.getElementById("berkas_jemaat");
+    const email = document.getElementById("email").value.trim().toLowerCase();
+    const password = document.getElementById("pass").value;
+
+    // Validasi Input Dasar
+    if (!email || !password || !document.getElementById("nama").value) {
+        showAlert("Mohon lengkapi data pribadi utama!", "error");
+        return;
+    }
+
+    if (fileInput.files.length === 0) {
+        showAlert("Unggah foto KTP/KK terlebih dahulu!", "error");
+        return;
+    }
+
+    btn.innerText = "Mendaftarkan...";
+    btn.disabled = true;
+
+    try {
+        // 1. Upload ke Cloudinary
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        formData.append('upload_preset', 'pope_preset');
+        
+        showAlert("Sedang mengunggah berkas...", "info");
+        const cloudResp = await fetch('https://api.cloudinary.com/v1_1/dxzllsbgi/upload', { method: 'POST', body: formData });
+        const cloudData = await cloudResp.json();
+
+        if (!cloudData.secure_url) throw new Error("Gagal mengunggah dokumen.");
+
+        // 2. Firebase Auth
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        await userCredential.user.sendEmailVerification();
+
+        // 3. Simpan ke Firestore
+        const userData = {
+            uid: userCredential.user.uid,
+            nama_lengkap: document.getElementById("nama").value,
+            email: email,
+            WhatsApp: document.getElementById("hp").value,
+            golongan_darah: document.getElementById("darah").value,
+            alamat: document.getElementById("alamat").value,
+            provinsi_lahir: document.getElementById("provinsi_lahir").value,
+            kota_lahir: document.getElementById("kota_lahir").value,
+            tanggal_lahir: document.getElementById("tgl_lahir").value,
+            no_ktp: document.getElementById("ktp").value,
+            no_kk: document.getElementById("kk").value,
+            pekerjaan: document.getElementById("pekerjaan").value,
+            status_pernikahan: document.getElementById("status_pernikahan").value,
+            jumlah_anak: document.getElementById("jumlah_anak").value || 0,
+            nama_pasangan: document.getElementById("nama_pasangan").value || "",
+            nama_ayah: document.getElementById("nama_ayah").value || "",
+            nama_ibu: document.getElementById("nama_ibu").value || "",
+            lokasi_berjemaat: document.getElementById("lokasi").value,
+            komsel: document.getElementById("komsel").value,
+            jabatan: document.getElementById("jabatan_jemaat").value,
+            sub_jabatan: document.getElementById("sub_jabatan").value,
+            fungsi_pelayanan: document.getElementById("pelayanan").value || "",
+            fungsi_non_struktural: document.getElementById("pelayanan_spesifik_non").value || "",
+            nij: document.getElementById("nij-display").value,
+            url_berkas: cloudData.secure_url,
+            status: "Pending",
+            status_akun: "Aktif",
+            tanggalDaftar: new Date().toLocaleString('id-ID')
+        };
+
+        await db.collection("users").doc(userCredential.user.uid).set(userData);
+        
+        // Tampilkan Modal Berhasil
+        document.getElementById('blocking-message').style.display = 'flex';
+        showAlert("Registrasi berhasil! Silakan cek email.", "success");
+
+    } catch (e) {
+        showAlert("Gagal: " + e.message, "error");
+        btn.disabled = false;
+        btn.innerText = "FINALISASI & DAFTAR";
+    }
+}
+
+// Fungsi penutup yang terpotong
+function toggleAgreeButton() { 
+    const isChecked = document.getElementById('check-agree').checked;
+    document.getElementById('btn-agree-submit').disabled = !isChecked; 
+}
+
+function closeTermsModal() {
+    document.getElementById('terms-modal').style.display = 'none';
+}
+
+// Inisialisasi data wilayah saat halaman dimuat
+window.onload = () => {
+    loadProvinsi();
+};
 
         // Validasi Dokumen Utama
         if (fileInput.files.length === 0) {
@@ -465,25 +556,42 @@
         }
     }
 
-    async function loadProvinsi() {
-        const resp = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
-        const data = await resp.json();
-        let options = '<option value="">Pilih Provinsi</option>';
-        data.forEach(p => options += `<option value="${p.name}" data-id="${p.id}">${p.name}</option>`);
-        document.getElementById('provinsi_lahir').innerHTML = options;
+ // Fungsi untuk memuat data Provinsi dari API
+async function loadProvinsi() {
+    const provSelect = document.getElementById("provinsi_lahir");
+    try {
+        const response = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
+        const data = await response.json();
+        data.forEach(prov => {
+            provSelect.add(new Option(prov.name, prov.id));
+        });
+    } catch (error) {
+        console.error("Gagal memuat provinsi:", error);
     }
+}
 
-    async function loadKota() {
-        const provEl = document.getElementById('provinsi_lahir');
-        const idProv = provEl.options[provEl.selectedIndex].getAttribute('data-id');
-        if(!idProv) return;
-        const resp = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${idProv}.json`);
-        const data = await resp.json();
-        let options = '<option value="">Pilih Kota</option>';
-        data.forEach(k => options += `<option value="${k.name}">${k.name}</option>`);
-        document.getElementById('kota_lahir').innerHTML = options;
+// Fungsi untuk memuat data Kota berdasarkan Provinsi yang dipilih
+async function loadKota() {
+    const provId = document.getElementById("provinsi_lahir").value;
+    const kotaSelect = document.getElementById("kota_lahir");
+    kotaSelect.innerHTML = '<option value="">Memuat...</option>';
+    
+    try {
+        const response = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${provId}.json`);
+        const data = await response.json();
+        kotaSelect.innerHTML = '<option value="">Pilih Kota...</option>';
+        data.forEach(kota => {
+            kotaSelect.add(new Option(kota.name, kota.name));
+        });
+    } catch (error) {
+        console.error("Gagal memuat kota:", error);
     }
+}
 
+// Inisialisasi saat halaman dibuka
+window.onload = () => {
+    loadProvinsi();
+};
     function toggleAgreeButton() { document.getElementById('btn-agree-submit').disabled = !document.getElementById('check-agree').checked; }
     function closeTermsModal() { document.getElementById('terms-modal').style.display = 'none'; }
 
