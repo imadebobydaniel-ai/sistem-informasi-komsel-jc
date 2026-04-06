@@ -136,8 +136,9 @@
 
     window.onload = function() { loadMembersRealtime(); };
 
+    // MENGGUNAKAN COLLECTION "jemaat"
     function loadMembersRealtime() {
-        db.collection("users").orderBy("tanggalDaftar", "desc").onSnapshot(snapshot => {
+        db.collection("jemaat").orderBy("tanggalDaftar", "desc").onSnapshot(snapshot => {
             const tableBody = document.getElementById("memberData");
             tableBody.innerHTML = "";
             snapshot.forEach(doc => {
@@ -195,7 +196,7 @@
         });
     }
 
-    // FUNGSI UTAMA: REDIRECT KE REGISTER DENGAN PARAMETER UID
+    // REDIRECT KE REGISTER.HTML DENGAN PARAMETER
     function openEditModal(uid) {
         window.location.href = `register.html?edit=${uid}`;
     }
@@ -208,19 +209,19 @@
 
     function toggleUserStatus(id, current) {
         const next = current === 'Aktif' ? 'Pending' : 'Aktif';
-        db.collection("users").doc(id).update({ status: next });
+        db.collection("jemaat").doc(id).update({ status: next });
     }
 
     function deleteUser(id) { 
         if(confirm("Hapus data jemaat ini secara permanen?")) {
-            db.collection("users").doc(id).delete(); 
+            db.collection("jemaat").doc(id).delete(); 
         }
     }
 
     function bulkDelete() {
         const selected = document.querySelectorAll('.user-checkbox:checked');
         if(confirm(`Hapus ${selected.length} data terpilih?`)) {
-            selected.forEach(cb => db.collection("users").doc(cb.value).delete());
+            selected.forEach(cb => db.collection("jemaat").doc(cb.value).delete());
         }
     }
 
