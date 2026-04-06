@@ -31,11 +31,22 @@
         .password-container { position: relative; }
         .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666; }
         #nij-display { background: #fff3cd !important; border: 2px solid #ffc107 !important; color: #856404; font-weight: bold; }
-        #terms-modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(5px); }
-        .terms-box { background: white; padding: 25px; border-radius: 20px; max-width: 400px; width: 100%; text-align: center; }
+        
+        /* Modal & Blocking UI */
+        #terms-modal, #blocking-message, #blocking-loading { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; 
+            align-items: center; padding: 20px; backdrop-filter: blur(5px); 
+        }
+        #terms-modal { display: flex; } /* Tampil saat load */
+        .modal-box, .terms-box { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; width: 100%; }
+        .terms-box { max-width: 400px; }
+        
+        /* Spinner */
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #28a745; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
         .check-container { display: flex; align-items: flex-start; text-align: left; background: #f9f9f9; padding: 12px; border-radius: 10px; margin: 15px 0; cursor: pointer; }
-        #blocking-message { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
-        .modal-box { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; width: 100%; }
     </style>
 </head>
 <body>
@@ -50,6 +61,23 @@
             <span style="font-size: 12px; margin-left: 10px;">Saya siap menggunakan aplikasi ini sebagai alat penunjang pertumbuhan rohani dan pelayanan.</span>
         </label>
         <button id="btn-agree-submit" class="btn-next" disabled onclick="closeTermsModal()">SETUJU & LANJUTKAN</button>
+    </div>
+</div>
+
+<div id="blocking-loading">
+    <div class="modal-box">
+        <div class="spinner"></div>
+        <p><b>Mohon Tunggu...</b></p>
+        <p style="font-size: 12px; color: #666;">Sedang memproses pendaftaran Anda.</p>
+    </div>
+</div>
+
+<div id="blocking-message">
+    <div class="modal-box">
+        <i class="fa-solid fa-circle-check" style="font-size: 50px; color: #28a745;"></i>
+        <p style="margin-top: 15px;"><b>Pendaftaran Berhasil!</b></p>
+        <p style="font-size: 12px; color: #666;">Link verifikasi telah dikirim ke email Anda. Silakan cek Inbox/Spam sebelum login.</p>
+        <button onclick="window.location.href='login.html'" class="btn-next" style="background:#007bff; margin-top: 10px; width: 100%;">SAYA MENGERTI</button>
     </div>
 </div>
 
@@ -112,7 +140,7 @@
                         <option value="Pelajar">Pelajar</option>
                         <option value="Pejabat Publik">Pejabat Publik</option>
                         <option value="Pejabat Executive">Pejabat Executive</option>
-                         <option value="Pejabat Executive">Diplomat</option>
+                        <option value="Diplomat">Diplomat</option>
                         <option value="Kader Partai">Kader Partai</option>
                         <option value="Pemerhati Bidang">Pemerhati Bidang</option>
                         <option value="Aktivis">Aktivis</option>
@@ -193,15 +221,6 @@
     <a href="login.html" class="btn-back-login"><i class="fa-solid fa-arrow-left"></i> Kembali ke Login</a>
 </div>
 
-<div id="blocking-message">
-    <div class="modal-box">
-        <i class="fa-solid fa-circle-check" style="font-size: 50px; color: #28a745;"></i>
-        <p><b>Pendaftaran Berhasil!</b></p>
-        <p style="font-size: 12px;">Link verifikasi telah dikirim ke email Anda. Silakan cek Inbox/Spam sebelum login.</p>
-        <button onclick="window.location.href='login.html'" class="btn-next" style="background:#007bff;">SAYA MENGERTI</button>
-    </div>
-</div>
-
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -220,7 +239,7 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // 2. DATA DINAMIS
+    // 2. DATA DINAMIS (KOMSEL, JABATAN, DLL)
     const dataKomsel = {
         "ABE": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "esther 8", "esther 9", "Esther 10", "esther 11", "Esther 12", "Komsel Mahasiswa Abe", "Komsel Profesi Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu"],
         "STN": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Komsel 5", "Siloam 6", "Siloam 8", "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", "Komsel Remaja Sentani", "Komsel Sekolah Minggu Sentani"],
@@ -261,17 +280,10 @@
         "Pelayanan Parkiran & keamanan": ["Parkir leader", "Parkir Crew", "Security"],
         "Pelayanan Doa & Misi": ["Team Doa Syafaat", "Team Misi bidang Fundraising", "Team Misi bidang research & Deplovement", "Team Road Map", "Public Relations"],
         "Pelayanan Dekorasi & Event": ["Decoration leader", "Decoration Crew", "Art And Painting", "Special effect"],
-        "Pelayanan fulltimer Gereja": ["Kepala Sekolah PAUD & PPA", "Sekretaris Operasional Gereja", "Bendahara Operasional gereja", "Guru Paud", "Mentor PPA", "Staff Geraja", "Staff PPA", "Hospitality & Konsumsi", "Driver"],
-        "Praise & Worship": ["Drum Player", "Keyboard Player", "Piano Player", "Bass Player", "Guitar Player", "Violin Player", "Saxsophone Player", "Flute player", "Vocal coach", "Worship leader", "Singers", "choirs"],
-        "Multimedia": ["Director media", "Floor director", "Campers", "Crew equipment", "Streaming operator", "Video switcher operator", "Easy Worshipe / Presenter Operator"],
-        "Sound & Electrical Engineering": ["Sound engineering", "Crew equipment", "Elektrical & Peripheral"],
-        "User": ["Front Desk user", "User direct", "Event organizer", "General Affairs"],
-        "Parkiran & Keamanan": ["Parkir leader", "Parkir Crew", "Security"],
-        "Doa & Misi": ["Team Doa Syafaat", "Team Misi bidang Fundraising", "Team Misi bidang research & Deplovement", "Team Road Map", "Public Relations"],
-        "Dekorasi & Event": ["Decoration leader", "Decoration Crew", "Art And Painting", "Special effect"]
+        "Pelayanan fulltimer Gereja": ["Kepala Sekolah PAUD & PPA", "Sekretaris Operasional Gereja", "Bendahara Operasional gereja", "Guru Paud", "Mentor PPA", "Staff Geraja", "Staff PPA", "Hospitality & Konsumsi", "Driver"]
     };
 
-    // 3. LOGIKA FORM
+    // 3. LOGIKA FORM STEPS
     function nextStep(n) {
         const steps = document.querySelectorAll('.form-step');
         steps.forEach(step => { step.classList.remove('active'); step.style.display = 'none'; });
@@ -285,6 +297,7 @@
         window.scrollTo(0, 0);
     }
 
+    // 4. LOGIKA DROPDOWN DINAMIS
     function updateSubJabatan() {
         const jab = document.getElementById("jabatan_jemaat").value;
         const sub = document.getElementById("sub_jabatan");
@@ -334,21 +347,22 @@
         } catch (error) { console.error("Gagal NIJ:", error); }
     }
 
+    // 5. HANDLER REGISTRASI DENGAN BLOCKING DISPLAY
     async function handleRegistrasi() {
-        const btn = document.getElementById("btnSubmit");
         const fileInput = document.getElementById("berkas_jemaat");
         const email = document.getElementById("email").value.trim().toLowerCase();
         const password = document.getElementById("pass").value;
 
         if (fileInput.files.length === 0) return alert("Unggah foto KTP/KK!");
 
-        btn.innerText = "Mendaftarkan...";
-        btn.disabled = true;
+        // TAMPILKAN LOADING
+        document.getElementById('blocking-loading').style.display = 'flex';
 
         try {
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
             formData.append('upload_preset', 'pope_preset');
+            
             const cloudResp = await fetch('https://api.cloudinary.com/v1_1/dxzllsbgi/upload', { method: 'POST', body: formData });
             const cloudData = await cloudResp.json();
 
@@ -360,6 +374,7 @@
                 nama: document.getElementById("nama").value,
                 email: email,
                 whatsapp: document.getElementById("hp").value,
+                pekerjaan: document.getElementById("pekerjaan").value,
                 lokasi_berjemaat: document.getElementById("lokasi").value,
                 komsel: document.getElementById("komsel").value,
                 jabatan: document.getElementById("jabatan_jemaat").value,
@@ -373,37 +388,45 @@
             };
 
             await db.collection("users").doc(userCredential.user.uid).set(userData);
+
+            // TUTUP LOADING & TAMPILKAN BERHASIL
+            document.getElementById('blocking-loading').style.display = 'none';
             document.getElementById('blocking-message').style.display = 'flex';
+
         } catch (e) {
+            document.getElementById('blocking-loading').style.display = 'none';
             alert("Error: " + e.message);
-            btn.disabled = false;
-            btn.innerText = "FINALISASI & DAFTAR";
         }
     }
 
+    // 6. UTILITIES
     async function loadProvinsi() {
-        const resp = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
-        const data = await resp.json();
-        let options = '<option value="">Pilih Provinsi</option>';
-        data.forEach(p => options += `<option value="${p.name}" data-id="${p.id}">${p.name}</option>`);
-        document.getElementById('provinsi_lahir').innerHTML = options;
+        try {
+            const resp = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
+            const data = await resp.json();
+            let options = '<option value="">Pilih Provinsi</option>';
+            data.forEach(p => options += `<option value="${p.name}" data-id="${p.id}">${p.name}</option>`);
+            document.getElementById('provinsi_lahir').innerHTML = options;
+        } catch(e) { console.error("Gagal load wilayah"); }
     }
 
     async function loadKota() {
         const provEl = document.getElementById('provinsi_lahir');
         const idProv = provEl.options[provEl.selectedIndex].getAttribute('data-id');
         if(!idProv) return;
-        const resp = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${idProv}.json`);
-        const data = await resp.json();
-        let options = '<option value="">Pilih Kota</option>';
-        data.forEach(k => options += `<option value="${k.name}">${k.name}</option>`);
-        document.getElementById('kota_lahir').innerHTML = options;
+        try {
+            const resp = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${idProv}.json`);
+            const data = await resp.json();
+            let options = '<option value="">Pilih Kota</option>';
+            data.forEach(k => options += `<option value="${k.name}">${k.name}</option>`);
+            document.getElementById('kota_lahir').innerHTML = options;
+        } catch(e) { console.error("Gagal load kota"); }
     }
 
     function toggleAgreeButton() { document.getElementById('btn-agree-submit').disabled = !document.getElementById('check-agree').checked; }
     function closeTermsModal() { document.getElementById('terms-modal').style.display = 'none'; }
 
-    // Init
+    // INITIALIZATION
     loadProvinsi();
     document.getElementById('eyeIcon').addEventListener('click', function() {
         const p = document.getElementById('pass');
