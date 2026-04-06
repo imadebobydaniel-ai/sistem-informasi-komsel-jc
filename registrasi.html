@@ -609,6 +609,43 @@ window.onload = () => {
         p.type = p.type === 'password' ? 'text' : 'password';
         this.classList.toggle('fa-eye-slash');
     });
+    // Tambahkan fungsi-fungsi ini agar JS tidak error
+function loadProvinsi() {
+    const prov = document.getElementById("provinsi_lahir");
+    const daftarProvinsi = ["Papua", "Papua Barat", "Papua Pegunungan", "Papua Selatan", "Papua Tengah", "Papua Barat Daya", "Lainnya"];
+    prov.innerHTML = '<option value="">Pilih...</option>';
+    daftarProvinsi.forEach(p => prov.add(new Option(p, p)));
+}
+
+function loadKota() {
+    const kota = document.getElementById("kota_lahir");
+    const prov = document.getElementById("provinsi_lahir").value;
+    kota.innerHTML = '<option value="">Pilih...</option>';
+    
+    // Contoh pengisian kota sederhana
+    if(prov.includes("Papua")) {
+        ["Jayapura", "Sentani", "Merauke", "Nabire", "Timika"].forEach(k => kota.add(new Option(k, k)));
+    } else {
+        kota.add(new Option("Luar Papua", "Luar Papua"));
+    }
+}
+
+// Tambahkan fungsi toggle password agar icon mata berfungsi
+document.getElementById('eyeIcon').addEventListener('click', function() {
+    const passInput = document.getElementById('pass');
+    if (passInput.type === 'password') {
+        passInput.type = 'text';
+        this.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        passInput.type = 'password';
+        this.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+});
+    // Tutup semua dengan rapi
+window.onload = () => {
+    loadProvinsi();
+};
+</script>
 </script>
 </body>
 </html>
