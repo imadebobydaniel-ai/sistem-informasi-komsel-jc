@@ -247,6 +247,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
 <script>
+    // 1. Konfigurasi Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -255,25 +256,12 @@
         messagingSenderId: "125984859692",
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
+
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    function showAlert(message, type = 'info') {
-        const container = document.getElementById('notification-container');
-        const alertBox = document.createElement('div');
-        alertBox.className = `alert-box alert-${type}`;
-        let icon = 'fa-circle-info';
-        if(type === 'success') icon = 'fa-circle-check';
-        if(type === 'error') icon = 'fa-circle-exclamation';
-        alertBox.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
-        container.appendChild(alertBox);
-        setTimeout(() => {
-            alertBox.style.opacity = '0';
-            setTimeout(() => alertBox.remove(), 500);
-        }, 4000);
-    }
-
+    // 2. Data Dropdown (Statis)
     const dataKomsel = {
         "ABE": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "esther 8", "esther 9", "Esther 10", "esther 11", "Esther 12", "Komsel Mahasiswa Abe", "Komsel Profesi Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu"],
         "STN": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Komsel 5", "Siloam 6", "Siloam 8", "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", "Komsel Remaja Sentani", "Komsel Sekolah Minggu Sentani"],
@@ -324,22 +312,33 @@
         "Dekorasi & Event": ["Decoration leader", "Decoration Crew", "Art And Painting", "Special effect"]
     };
 
+    // 3. Fungsi Utility & Notifikasi
+    function showAlert(message, type = 'info') {
+        const container = document.getElementById('notification-container');
+        if(!container) return alert(message);
+        const alertBox = document.createElement('div');
+        alertBox.className = `alert-box alert-${type}`;
+        let icon = 'fa-circle-info';
+        if(type === 'success') icon = 'fa-circle-check';
+        if(type === 'error') icon = 'fa-circle-exclamation';
+        alertBox.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+        container.appendChild(alertBox);
+        setTimeout(() => {
+            alertBox.style.opacity = '0';
+            setTimeout(() => alertBox.remove(), 500);
+        }, 4000);
+    }
+
+    // 4. Logika Form Navigasi & Pernikahan
     function handleStatusNikah() {
         const status = document.getElementById("status_pernikahan").value;
         const divMenikah = document.getElementById("form_menikah");
         const divSingle = document.getElementById("form_single");
-        divMenikah.style.display = "none";
-        divSingle.style.display = "none";
-        if (status === "Menikah") {
-            divMenikah.style.display = "block";
-        } else if (status === "Single" || status === "Duda" || status === "Janda") {
-            divSingle.style.display = "block";
-        }
+        divMenikah.style.display = (status === "Menikah") ? "block" : "none";
+        divSingle.style.display = (status === "Single" || status === "Duda" || status === "Janda") ? "block" : "none";
     }
 
-    // UPDATE LOGIC: Validasi hanya untuk Jabatan & Sub Jabatan di Step 2
     function nextStep(n) {
-        // Jika dari Step 2 mau ke Step 3, cek Jabatan & Sub Jabatan saja
         if (n === 3) {
             const jab = document.getElementById("jabatan_jemaat").value;
             const sub = document.getElementById("sub_jabatan").value;
@@ -348,12 +347,12 @@
                 return;
             }
         }
-
-        const steps = document.querySelectorAll('.form-step');
-        steps.forEach(step => { step.classList.remove('active'); step.style.display = 'none'; });
+        document.querySelectorAll('.form-step').forEach(step => { step.style.display = 'none'; });
         const targetStep = document.getElementById('step-' + n);
-        if (targetStep) { targetStep.classList.add('active'); targetStep.style.display = 'block'; }
+        if (targetStep) targetStep.style.display = 'block';
+        
         if (n === 2) updateNIJPreview();
+
         document.querySelectorAll('.step').forEach((bar, index) => {
             if (index < n) bar.classList.add('active');
             else bar.classList.remove('active');
@@ -361,13 +360,12 @@
         window.scrollTo(0, 0);
     }
 
+    // 5. Update Dropdown Bersambung
     function updateSubJabatan() {
         const jab = document.getElementById("jabatan_jemaat").value;
         const sub = document.getElementById("sub_jabatan");
         sub.innerHTML = '<option value="">-- Pilih Sub Bidang --</option>';
-        if (dataSubJabatan[jab]) {
-            dataSubJabatan[jab].forEach(i => sub.add(new Option(i, i)));
-        }
+        if (dataSubJabatan[jab]) dataSubJabatan[jab].forEach(i => sub.add(new Option(i, i)));
         updateSpesifikPelayanan(); 
     }
 
@@ -386,9 +384,7 @@
         const pelVal = document.getElementById("pelayanan").value;
         const nonPel = document.getElementById("pelayanan_spesifik_non");
         nonPel.innerHTML = '<option value="">-- Pilih Detail Pelayanan --</option>';
-        if (dataNonStruktural[pelVal]) {
-            dataNonStruktural[pelVal].forEach(i => nonPel.add(new Option(i, i)));
-        }
+        if (dataNonStruktural[pelVal]) dataNonStruktural[pelVal].forEach(i => nonPel.add(new Option(i, i)));
     }
 
     function updateKomsel() {
@@ -410,107 +406,18 @@
         } catch (error) { console.error("Gagal NIJ:", error); }
     }
 
-   // Perbaikan fungsi handleRegistrasi
-async function handleRegistrasi() {
-    const btn = document.getElementById("btnSubmit");
-    const fileInput = document.getElementById("berkas_jemaat");
-    const email = document.getElementById("email").value.trim().toLowerCase();
-    const password = document.getElementById("pass").value;
+    // 6. Logika Registrasi & Upload
+    async function handleRegistrasi() {
+        const btn = document.getElementById("btnSubmit");
+        const fileInput = document.getElementById("berkas_jemaat");
+        const email = document.getElementById("email").value.trim().toLowerCase();
+        const password = document.getElementById("pass").value;
 
-    // Validasi Input Dasar
-    if (!email || !password || !document.getElementById("nama").value) {
-        showAlert("Mohon lengkapi data pribadi utama!", "error");
-        return;
-    }
+        if (!email || !password || !document.getElementById("nama").value) {
+            showAlert("Mohon lengkapi data pribadi utama!", "error");
+            return;
+        }
 
-    if (fileInput.files.length === 0) {
-        showAlert("Unggah foto KTP/KK terlebih dahulu!", "error");
-        return;
-    }
-
-    btn.innerText = "Mendaftarkan...";
-    btn.disabled = true;
-
-    try {
-        // 1. Upload ke Cloudinary
-        const formData = new FormData();
-        formData.append('file', fileInput.files[0]);
-        formData.append('upload_preset', 'pope_preset');
-        
-        showAlert("Sedang mengunggah berkas...", "info");
-        const cloudResp = await fetch('https://api.cloudinary.com/v1_1/dxzllsbgi/upload', { method: 'POST', body: formData });
-        const cloudData = await cloudResp.json();
-
-        if (!cloudData.secure_url) throw new Error("Gagal mengunggah dokumen.");
-
-        // 2. Firebase Auth
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        await userCredential.user.sendEmailVerification();
-
-        // 3. Simpan ke Firestore
-        const userData = {
-            uid: userCredential.user.uid,
-            nama_lengkap: document.getElementById("nama").value,
-            email: email,
-            WhatsApp: document.getElementById("hp").value,
-            golongan_darah: document.getElementById("darah").value,
-            alamat: document.getElementById("alamat").value,
-            provinsi_lahir: document.getElementById("provinsi_lahir").value,
-            kota_lahir: document.getElementById("kota_lahir").value,
-            tanggal_lahir: document.getElementById("tgl_lahir").value,
-            no_ktp: document.getElementById("ktp").value,
-            no_kk: document.getElementById("kk").value,
-            pekerjaan: document.getElementById("pekerjaan").value,
-            status_pernikahan: document.getElementById("status_pernikahan").value,
-            jumlah_anak: document.getElementById("jumlah_anak").value || 0,
-            nama_pasangan: document.getElementById("nama_pasangan").value || "",
-            nama_ayah: document.getElementById("nama_ayah").value || "",
-            nama_ibu: document.getElementById("nama_ibu").value || "",
-            lokasi_berjemaat: document.getElementById("lokasi").value,
-            komsel: document.getElementById("komsel").value,
-            jabatan: document.getElementById("jabatan_jemaat").value,
-            sub_jabatan: document.getElementById("sub_jabatan").value,
-            fungsi_pelayanan: document.getElementById("pelayanan").value || "",
-            fungsi_non_struktural: document.getElementById("pelayanan_spesifik_non").value || "",
-            nij: document.getElementById("nij-display").value,
-            url_berkas: cloudData.secure_url,
-            status: "Pending",
-            status_akun: "Aktif",
-            tanggalDaftar: new Date().toLocaleString('id-ID')
-        };
-
-        await db.collection("users").doc(userCredential.user.uid).set(userData);
-        
-        // Tampilkan Modal Berhasil
-        document.getElementById('blocking-message').style.display = 'flex';
-        showAlert("Registrasi berhasil! Silakan cek email.", "success");
-
-    } catch (e) {
-        showAlert("Gagal: " + e.message, "error");
-        btn.disabled = false;
-        btn.innerText = "FINALISASI & DAFTAR";
-    }
-}
-
-// Fungsi penutup yang terpotong
-function toggleAgreeButton() {
-    const checkbox = document.getElementById('check-agree');
-    const submitBtn = document.getElementById('btn-agree-submit');
-    
-    // Jika dicentang, hilangkan status disabled (tombol aktif)
-    // Jika tidak dicentang, aktifkan status disabled (tombol freeze)
-    submitBtn.disabled = !checkbox.checked;
-}
-function closeTermsModal() {
-    document.getElementById('terms-modal').style.display = 'none';
-}
-
-// Inisialisasi data wilayah saat halaman dimuat
-window.onload = () => {
-    loadProvinsi();
-};
-
-        // Validasi Dokumen Utama
         if (fileInput.files.length === 0) {
             showAlert("Unggah foto KTP/KK terlebih dahulu!", "error");
             return;
@@ -527,36 +434,45 @@ window.onload = () => {
             showAlert("Sedang mengunggah berkas...", "info");
             const cloudResp = await fetch('https://api.cloudinary.com/v1_1/dxzllsbgi/upload', { method: 'POST', body: formData });
             const cloudData = await cloudResp.json();
+            if (!cloudData.secure_url) throw new Error("Gagal mengunggah dokumen.");
 
             const userCredential = await auth.createUserWithEmailAndPassword(email, password);
             await userCredential.user.sendEmailVerification();
 
             const userData = {
                 uid: userCredential.user.uid,
-                Nama: document.getElementById("nama").value,
+                nama_lengkap: document.getElementById("nama").value,
                 email: email,
                 WhatsApp: document.getElementById("hp").value,
+                golongan_darah: document.getElementById("darah").value,
+                alamat: document.getElementById("alamat").value,
+                provinsi_lahir: document.getElementById("provinsi_lahir").value,
+                kota_lahir: document.getElementById("kota_lahir").value,
+                tanggal_lahir: document.getElementById("tgl_lahir").value,
+                no_ktp: document.getElementById("ktp").value,
+                no_kk: document.getElementById("kk").value,
+                pekerjaan: document.getElementById("pekerjaan").value,
                 status_pernikahan: document.getElementById("status_pernikahan").value,
                 jumlah_anak: document.getElementById("jumlah_anak").value || 0,
                 nama_pasangan: document.getElementById("nama_pasangan").value || "",
                 nama_ayah: document.getElementById("nama_ayah").value || "",
                 nama_ibu: document.getElementById("nama_ibu").value || "",
                 lokasi_berjemaat: document.getElementById("lokasi").value,
-                Komsel: document.getElementById("komsel").value,
+                komsel: document.getElementById("komsel").value,
                 jabatan: document.getElementById("jabatan_jemaat").value,
                 sub_jabatan: document.getElementById("sub_jabatan").value,
-                // Kolom di bawah ini akan tersimpan kosong jika tidak diisi (opsional)
                 fungsi_pelayanan: document.getElementById("pelayanan").value || "",
                 fungsi_non_struktural: document.getElementById("pelayanan_spesifik_non").value || "",
                 nij: document.getElementById("nij-display").value,
                 url_berkas: cloudData.secure_url,
                 status: "Pending",
+                status_akun: "Aktif",
                 tanggalDaftar: new Date().toLocaleString('id-ID')
             };
 
             await db.collection("users").doc(userCredential.user.uid).set(userData);
             document.getElementById('blocking-message').style.display = 'flex';
-            showAlert("Registrasi berhasil disimpan!", "success");
+            showAlert("Registrasi berhasil! Silakan cek email.", "success");
         } catch (e) {
             showAlert("Gagal: " + e.message, "error");
             btn.disabled = false;
@@ -564,88 +480,62 @@ window.onload = () => {
         }
     }
 
- // Fungsi untuk memuat data Provinsi dari API
-async function loadProvinsi() {
-    const provSelect = document.getElementById("provinsi_lahir");
-    try {
-        const response = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
-        const data = await response.json();
-        data.forEach(prov => {
-            provSelect.add(new Option(prov.name, prov.id));
-        });
-    } catch (error) {
-        console.error("Gagal memuat provinsi:", error);
+    // 7. Fungsi UI (Modal & Password)
+    function toggleAgreeButton() { 
+        document.getElementById('btn-agree-submit').disabled = !document.getElementById('check-agree').checked; 
     }
-}
-
-// Fungsi untuk memuat data Kota berdasarkan Provinsi yang dipilih
-async function loadKota() {
-    const provId = document.getElementById("provinsi_lahir").value;
-    const kotaSelect = document.getElementById("kota_lahir");
-    kotaSelect.innerHTML = '<option value="">Memuat...</option>';
     
-    try {
-        const response = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${provId}.json`);
-        const data = await response.json();
-        kotaSelect.innerHTML = '<option value="">Pilih Kota...</option>';
-        data.forEach(kota => {
-            kotaSelect.add(new Option(kota.name, kota.name));
-        });
-    } catch (error) {
-        console.error("Gagal memuat kota:", error);
+    function closeTermsModal() { 
+        document.getElementById('terms-modal').style.display = 'none'; 
     }
-}
 
-// Inisialisasi saat halaman dibuka
-window.onload = () => {
-    loadProvinsi();
-};
-    function toggleAgreeButton() { document.getElementById('btn-agree-submit').disabled = !document.getElementById('check-agree').checked; }
-    function closeTermsModal() { document.getElementById('terms-modal').style.display = 'none'; }
-
-    loadProvinsi();
-    document.getElementById('eyeIcon').addEventListener('click', function() {
+    function togglePassword() {
         const p = document.getElementById('pass');
-        p.type = p.type === 'password' ? 'text' : 'password';
-        this.classList.toggle('fa-eye-slash');
-    });
-    // Tambahkan fungsi-fungsi ini agar JS tidak error
-function loadProvinsi() {
-    const prov = document.getElementById("provinsi_lahir");
-    const daftarProvinsi = ["Papua", "Papua Barat", "Papua Pegunungan", "Papua Selatan", "Papua Tengah", "Papua Barat Daya", "Lainnya"];
-    prov.innerHTML = '<option value="">Pilih...</option>';
-    daftarProvinsi.forEach(p => prov.add(new Option(p, p)));
-}
-
-function loadKota() {
-    const kota = document.getElementById("kota_lahir");
-    const prov = document.getElementById("provinsi_lahir").value;
-    kota.innerHTML = '<option value="">Pilih...</option>';
-    
-    // Contoh pengisian kota sederhana
-    if(prov.includes("Papua")) {
-        ["Jayapura", "Sentani", "Merauke", "Nabire", "Timika"].forEach(k => kota.add(new Option(k, k)));
-    } else {
-        kota.add(new Option("Luar Papua", "Luar Papua"));
+        const icon = document.getElementById('eyeIcon');
+        if (p.type === 'password') {
+            p.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            p.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
     }
-}
 
-// Tambahkan fungsi toggle password agar icon mata berfungsi
-document.getElementById('eyeIcon').addEventListener('click', function() {
-    const passInput = document.getElementById('pass');
-    if (passInput.type === 'password') {
-        passInput.type = 'text';
-        this.classList.replace('fa-eye', 'fa-eye-slash');
-    } else {
-        passInput.type = 'password';
-        this.classList.replace('fa-eye-slash', 'fa-eye');
+    // 8. Data Wilayah (Provinsi & Kota)
+    async function loadProvinsi() {
+        const provSelect = document.getElementById("provinsi_lahir");
+        try {
+            const response = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
+            const data = await response.json();
+            provSelect.innerHTML = '<option value="">Pilih Provinsi...</option>';
+            data.forEach(prov => { provSelect.add(new Option(prov.name, prov.id)); });
+        } catch (e) {
+            // Fallback jika API bermasalah
+            ["Papua", "Papua Barat", "Lainnya"].forEach(p => provSelect.add(new Option(p, p)));
+        }
     }
-});
-    // Tutup semua dengan rapi
-window.onload = () => {
-    loadProvinsi();
-};
-</script>
-</script>
+
+    async function loadKota() {
+        const provId = document.getElementById("provinsi_lahir").value;
+        const kotaSelect = document.getElementById("kota_lahir");
+        if(!provId) return;
+        kotaSelect.innerHTML = '<option value="">Memuat...</option>';
+        try {
+            const response = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${provId}.json`);
+            const data = await response.json();
+            kotaSelect.innerHTML = '<option value="">Pilih Kota...</option>';
+            data.forEach(kota => { kotaSelect.add(new Option(kota.name, kota.name)); });
+        } catch (e) {
+            kotaSelect.innerHTML = '<option value="Lainnya">Lainnya</option>';
+        }
+    }
+
+    // 9. Inisialisasi Saat Load
+    window.onload = () => {
+        loadProvinsi();
+        const eye = document.getElementById('eyeIcon');
+        if(eye) eye.addEventListener('click', togglePassword);
+    };
+</script></script>
 </body>
 </html>
