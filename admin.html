@@ -136,14 +136,27 @@
 
     window.onload = function() { loadMembersRealtime(); };
 
-    // MENGGUNAKAN COLLECTION "jemaat"
     function loadMembersRealtime() {
-        db.collection("jemaat").orderBy("tanggalDaftar", "desc").onSnapshot(snapshot => {
+        // Menggunakan collection "jemaat" sesuai database Anda
+        db.collection("jemaat").onSnapshot(snapshot => {
             const tableBody = document.getElementById("memberData");
             tableBody.innerHTML = "";
             snapshot.forEach(doc => {
                 const d = doc.data();
-                const status = (d.status || 'Pending');
+                
+                // DISINKRONKAN DENGAN NAMA FIELD DI FIREBASE ANDA
+                const namaTampil = d.nama_lengkap || '-';
+                const status = d.status_akun || 'Pending';
+                const nij = d.nij || '-';
+                const whatsapp = d.whatsapp || '-';
+                const email = d.email || '-';
+                const lokasi = d.lokasi_berjemaat || '-';
+                const komsel = d.komsel || '-';
+                const jabatan = d.jabatan || '-';
+                const subBidang = d.sub_bidang || '-';
+                const pekerjaan = d.pekerjaan || '-';
+                const statusNikah = d.status_nikah || '-';
+
                 const statusBadge = status === 'Aktif' ? 'badge-aktif' : 'badge-pending';
                 const statusIcon = status === 'Aktif' ? 'fa-check-square' : 'fa-stop-circle';
                 const statusBtnColor = status === 'Aktif' ? '#28a745' : '#dc3545';
@@ -156,28 +169,26 @@
                 tableBody.innerHTML += `
                 <tr>
                     <td class="check-col"><input type="checkbox" class="user-checkbox" value="${doc.id}" onclick="updateActionMenu()"></td>
-                    <td class="nij-col">${d.nij || '-'}</td>
-                    <td><strong>${d.nama || '-'}</strong></td>
+                    <td class="nij-col">${nij}</td>
+                    <td><strong>${namaTampil}</strong></td>
                     <td>
-                        <i class="fab fa-whatsapp" style="color:green;"></i> ${d.whatsapp || '-'}<br>
-                        <small><i class="fas fa-envelope"></i> ${d.email || '-'}</small>
+                        <i class="fab fa-whatsapp" style="color:green;"></i> ${whatsapp}<br>
+                        <small><i class="fas fa-envelope"></i> ${email}</small>
                     </td>
                     <td>
                         <small>
-                            Status: ${d.status_pernikahan || '-'}<br>
-                            Lahir: ${d.kota_lahir || '-'}, ${d.tgl_lahir || '-'}<br>
-                            Pekerjaan: ${d.pekerjaan || '-'}
+                            Status: ${statusNikah}<br>
+                            Pekerjaan: ${pekerjaan}
                         </small>
                     </td>
                     <td><small>${d.alamat || '-'}</small></td>
                     <td>
-                        <span style="color:var(--primary); font-weight:bold;">${d.lokasi_berjemaat || '-'}</span><br>
-                        <small>Komsel: ${d.wilayah_komsel || '-'}</small>
+                        <span style="color:var(--primary); font-weight:bold;">${lokasi}</span><br>
+                        <small>Komsel: ${komsel}</small>
                     </td>
                     <td>
-                        <strong>${d.jabatan_jemaat || '-'}</strong><br>
-                        <small>Sub: ${d.sub_bidang || '-'}</small><br>
-                        <small>Fungsi: ${d.fungsi_pelayanan || '-'}</small>
+                        <strong>${jabatan}</strong><br>
+                        <small>Sub: ${subBidang}</small>
                     </td>
                     <td>${fileHtml}</td>
                     <td>
@@ -196,7 +207,6 @@
         });
     }
 
-    // REDIRECT KE REGISTER.HTML DENGAN PARAMETER
     function openEditModal(uid) {
         window.location.href = `register.html?edit=${uid}`;
     }
@@ -209,7 +219,7 @@
 
     function toggleUserStatus(id, current) {
         const next = current === 'Aktif' ? 'Pending' : 'Aktif';
-        db.collection("jemaat").doc(id).update({ status: next });
+        db.collection("jemaat").doc(id).update({ status_akun: next });
     }
 
     function deleteUser(id) { 
