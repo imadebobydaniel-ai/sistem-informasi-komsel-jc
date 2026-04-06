@@ -62,7 +62,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    // Konfigurasi Firebase (Sama dengan admin.html)
+    // Konfigurasi Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -75,21 +75,26 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    // AMBIL ID DARI URL (Mendukung parameter 'edit' dari admin.html)
+    // 1. AMBIL ID DARI URL
     const urlParams = new URLSearchParams(window.location.search);
     const userId = urlParams.get('edit'); 
 
+    // Validasi Awal: Jika parameter 'edit' tidak ada di URL
     if (!userId) {
-        alert("ID Jemaat tidak ditemukan!");
+        alert("ID Jemaat tidak ditemukan di URL!");
         window.location.href = 'admin.html';
     }
 
-    // LOAD DATA SAAT HALAMAN DIBUKA
+    // 2. LOAD DATA SAAT HALAMAN DIBUKA
     window.onload = async function() {
         try {
+            console.log("Mencari Dokumen ID:", userId);
             const doc = await db.collection("jemaat").doc(userId).get();
+            
             if (doc.exists) {
                 const data = doc.data();
+                
+                // Isi input form dengan data dari Firebase
                 document.getElementById('nama_lengkap').value = data.nama_lengkap || '';
                 document.getElementById('nij').value = data.nij || '';
                 document.getElementById('whatsapp').value = data.whatsapp || '';
@@ -97,25 +102,29 @@
                 document.getElementById('alamat').value = data.alamat || '';
                 document.getElementById('status_akun').value = data.status_akun || 'Pending';
                 
+                // Hilangkan overlay loading
                 document.getElementById('loading').style.display = 'none';
             } else {
-                alert("Data jemaat tidak ada di database!");
+                alert("Dokumen dengan ID tersebut tidak ditemukan di database!");
                 window.location.href = 'admin.html';
             }
         } catch (error) {
             console.error("Error loading data:", error);
-            alert("Gagal mengambil data.");
+            alert("Error koneksi Firebase: " + error.message);
         }
     };
 
-    // SIMPAN PERUBAHAN KE FIREBASE
+    // 3. SIMPAN PERUBAHAN KE FIREBASE
     document.getElementById('editForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = e.target.querySelector('button');
+        
+        // Animasi loading pada tombol
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
 
         try {
+            // Update data ke collection 'jemaat'
             await db.collection("jemaat").doc(userId).update({
                 nama_lengkap: document.getElementById('nama_lengkap').value,
                 whatsapp: document.getElementById('whatsapp').value,
@@ -126,11 +135,12 @@
             });
 
             alert("Data berhasil diperbarui!");
-            window.location.href = 'admin.html';
+            window.location.href = 'admin.html'; // Kembali ke dashboard
         } catch (error) {
+            console.error("Error saving data:", error);
             alert("Gagal menyimpan: " + error.message);
             btn.disabled = false;
-            btn.innerHTML = 'Simpan Perubahan';
+            btn.innerHTML = '<i class="fas fa-save"></i> Simpan Perubahan';
         }
     };
 </script>
