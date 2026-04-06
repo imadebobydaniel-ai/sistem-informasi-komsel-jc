@@ -16,10 +16,8 @@
         .step-indicator { display: flex; justify-content: space-between; margin-bottom: 25px; gap: 10px; }
         .step { flex: 1; height: 6px; background: #eee; border-radius: 10px; transition: 0.4s; }
         .step.active { background: #28a745; box-shadow: 0 0 8px rgba(40, 167, 69, 0.4); }
-        
         .form-step { display: none; opacity: 0; transition: opacity 0.4s ease; }
         .form-step.active { display: block !important; opacity: 1; animation: fadeIn 0.4s ease; }
-
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-size: 11px; font-weight: bold; color: #444; margin-bottom: 5px; text-transform: uppercase; }
@@ -99,21 +97,39 @@
                     <label>Pekerjaan*</label>
                     <select id="pekerjaan">
                         <option value="">-- Pilih --</option>
-                        <option value="TNI">TNI</option><option value="Polri">Polri</option><option value="ASN">ASN</option>
-                        <option value="P3K">P3K</option><option value="Honorer">Honorer</option><option value="Mahasiswa">Mahasiswa</option>
-                        <option value="Pelajar">Pelajar</option><option value="Wiraswasta">Wiraswasta</option><option value="Lainnya">Lainnya</option>
+                        <option value="TNI">TNI</option>
+                        <option value="Polri">Polri</option>
+                        <option value="ASN">ASN</option>
+                        <option value="P3K">P3K</option>
+                        <option value="Honorer">Honorer</option>
+                        <option value="Pegawai Swasta">Pegawai Swasta</option>
+                        <option value="Pegawai BUMN">Pegawai BUMN</option>
+                        <option value="Wiraswasta">Wiraswasta</option>
+                        <option value="Profesional Muda">Profesional Muda</option>
+                        <option value="Bidang Kerohaniaan">Bidang Kerohaniaan</option>
+                        <option value="Petani/Peternak">Petani / Peternak / Pengolah Kebun</option>
+                        <option value="Mahasiswa">Mahasiswa</option>
+                        <option value="Pelajar">Pelajar</option>
+                        <option value="Pejabat Publik">Pejabat Publik</option>
+                        <option value="Pejabat Executive">Pejabat Executive</option>
+                         <option value="Pejabat Executive">Diplomat</option>
+                        <option value="Kader Partai">Kader Partai</option>
+                        <option value="Pemerhati Bidang">Pemerhati Bidang</option>
+                        <option value="Aktivis">Aktivis</option>
+                        <option value="Pekerja Seni">Pekerja Seni</option>
+                        <option value="Freelancer">Freelancer</option>
+                        <option value="Lainnya">Lainnya</option>
                     </select>
                 </div>
             </div>
             <div class="btn-group">
-                <a href="login.html" class="btn-prev" style="text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center;">Batal</a>
+                <a href="login.html" class="btn-prev" style="text-decoration: none; text-align: center; line-height: 1.5;">Kembali</a>
                 <button type="button" class="btn-next" onclick="nextStep(2)">Lanjut <i class="fa-solid fa-arrow-right"></i></button>
             </div>
         </div>
 
         <div class="form-step" id="step-2">
             <h3 style="font-size: 15px; color: #28a745;"><i class="fa-solid fa-church"></i> Data Jabatan & Pelayanan</h3>
-            
             <div class="form-group">
                 <label>Lokasi Berjemaat*</label>
                 <select id="lokasi" onchange="updateKomsel(); updateNIJPreview();">
@@ -125,12 +141,10 @@
                     <option value="ARS2">Arso 2</option>
                 </select>
             </div>
-
             <div class="form-group">
                 <label>Komsel / Jemaat Cell*</label>
                 <select id="komsel"><option value="">-- Pilih Komsel --</option></select>
             </div>
-
             <div class="form-group">
                 <label>Jabatan di Jemaat*</label>
                 <select id="jabatan_jemaat" onchange="updateSubJabatan()">
@@ -142,33 +156,22 @@
                     <option value="Anggota Jemaat">Anggota Jemaat</option>
                 </select>
             </div>
-
             <div class="form-group">
                 <label>Sub Bidang Jabatan*</label>
-                <select id="sub_jabatan" onchange="updateSpesifikPelayanan()">
-                    <option value="">-- Pilih Sub Bidang --</option>
-                </select>
+                <select id="sub_jabatan" onchange="updateSpesifikPelayanan()"><option value="">-- Pilih Sub Bidang --</option></select>
             </div>
-
             <div class="form-group">
                 <label>Fungsi Pelayanan Spesifik</label>
-                <select id="pelayanan" onchange="updateNonStruktural()">
-                    <option value="">-- Pilih Fungsi Spesifik --</option>
-                </select>
+                <select id="pelayanan" onchange="updateNonStruktural()"><option value="">-- Pilih Fungsi Spesifik --</option></select>
             </div>
-            
             <div class="form-group">
-                <label>Pelayanan Non-Struktural (Opsi)</label>
-                <select id="pelayanan_spesifik_non">
-                    <option value="">-- Pilih Detail Pelayanan --</option>
-                </select>
+                <label>Detail Pelayanan Non-Struktural</label>
+                <select id="pelayanan_spesifik_non"><option value="">-- Pilih Detail Pelayanan --</option></select>
             </div>
-
             <div class="form-group">
                 <label>NIJ (Otomatis)</label>
                 <input type="text" id="nij-display" readonly placeholder="Akan muncul setelah pilih lokasi">
             </div>
-
             <div class="btn-group">
                 <button type="button" class="btn-prev" onclick="nextStep(1)">Kembali</button>
                 <button type="button" class="btn-next" onclick="nextStep(3)">Lanjut <i class="fa-solid fa-arrow-right"></i></button>
@@ -187,6 +190,7 @@
             </div>
         </div>
     </form>
+    <a href="login.html" class="btn-back-login"><i class="fa-solid fa-arrow-left"></i> Kembali ke Login</a>
 </div>
 
 <div id="blocking-message">
@@ -216,7 +220,7 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // 2. DATA DINAMIS OBJEK
+    // 2. DATA DINAMIS
     const dataKomsel = {
         "ABE": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "esther 8", "esther 9", "Esther 10", "esther 11", "Esther 12", "Komsel Mahasiswa Abe", "Komsel Profesi Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu"],
         "STN": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Komsel 5", "Siloam 6", "Siloam 8", "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", "Komsel Remaja Sentani", "Komsel Sekolah Minggu Sentani"],
@@ -227,7 +231,7 @@
 
     const dataSubJabatan = {
         "Gembala Sidang": ["Gembala Sidang Jemaat", "Pdt. Pembantu", "Pdt. Muda"],
-        "Pemimpin / Koordinator": ["Sekretaris Gereja", "Bendahara Gereja", "Komite Gereja", "Koordinator Lansia", "Koordinator Bapak", "Koordinator Ibu", "Koordinator Profesi", "Koordinator Mahasiswa", "Koordinator Pelajar", "Koordinator Sekolah minggu", "Koordinator Praise & Worship", "Koordinator Multimedia", "Koordinator Sound Engineering & Elektrical", "Koordinator Pelayanan Misi", "Koordinator Pendoa", "Koordinator User", "Koordinator parkir dan keamanan", "Koordinator dekorasi dan event"],
+        "Pemimpin / Koordinator": ["Sekretaris Gereja", "Bendahara Gereja", "Komite Gereja", "Koordinator Lansia", "Koordinator Bapak", "Koordinator Ibu", "Koordinator Profesi", "Koordinator Mahasiswa", "Koordinator Pelajar", "Koordinator Sekolah minggu", "Koordinator Praise & Worship", "Koordinator Tamborin, flag", "Koordinator Multimedia", "Koordinator Sound Engineering & Elektrical", "Koordinator Pelayanan Misi", "Koordinator Pendoa", "Koordinator User", "Koordinator parkir dan keamanan", "Koordinator dekorasi dan event"],
         "PKS Komsel": ["PKS Komsel"],
         "Fulltimer": ["Fulltimer Gereja"],
         "Anggota Jemaat": ["Anggota Jemaat Ordinari"]
@@ -237,7 +241,6 @@
         "Gembala Sidang Jemaat": ["Penanggung Jawab Pengembalaan Jemaat"],
         "Pdt. Pembantu": ["Supporting Pelayanan Pengembalaan Jemaat"],
         "Pdt. Muda": ["Supporting Pelayanan Pengembalaan Jemaat"],
-        "PKS Komsel": ["Pelayanan Komsel"],
         "Anggota Jemaat Ordinari": ["Praise & Worship", "Multimedia", "Sound & Electrical Engineering", "User", "Parkiran & Keamanan", "Doa & Misi", "Dekorasi & Event", "Lainnya"],
         "Koordinator Praise & Worship": ["Pelayanan Praise & Worship"],
         "Koordinator Multimedia": ["Pelayanan Multimedia"],
@@ -251,42 +254,37 @@
     };
 
     const dataNonStruktural = {
-        "Pelayanan Praise & Worship": ["Drum Player", "Keyboard Player", "Piano Player", "Bass Player", "Guitar Player", "Worship leader", "Singers", "choirs"],
-        "Pelayanan Multimedia": ["Director media", "Floor director", "Campers", "Streaming operator", "Video switcher operator", "Easy Worshipe Operator"],
+        "Pelayanan Praise & Worship": ["Drum Player", "Keyboard Player", "Piano Player", "Bass Player", "Guitar Player", "Violin Player", "Saxsophone Player", "Flute player", "Vocal coach", "Worship leader", "Singers", "choirs"],
+        "Pelayanan Multimedia": ["Director media", "Floor director", "Campers", "Crew equipment", "Streaming operator", "Video switcher operator", "Easy Worshipe / Presenter Operator"],
         "Pelayanan Sound & electrical engineering": ["Sound engineering", "Crew equipment", "Elektrical & Peripheral"],
-        "Pelayanan User": ["Front Desk user", "User direct", "Event organizer"],
+        "Pelayanan User": ["Front Desk user", "User direct", "Event organizer", "General Affairs"],
         "Pelayanan Parkiran & keamanan": ["Parkir leader", "Parkir Crew", "Security"],
-        "Pelayanan Doa & Misi": ["Team Doa Syafaat", "Team Misi Fundraising", "Public Relations"],
-        "Pelayanan Dekorasi & Event": ["Decoration leader", "Decoration Crew", "Art And Painting"],
-        "Pelayanan fulltimer Gereja": ["Kepala Sekolah PAUD/PPA", "Sekretaris Gereja", "Guru Paud", "Staff Gereja", "Driver"],
-        "Praise & Worship": ["Drum Player", "Keyboard Player", "Worship leader", "Singers"],
-        "Multimedia": ["Camera Person", "Streaming Operator", "Easy Worshipe"],
-        "Sound & Electrical Engineering": ["Soundman", "Electrical"],
-        "User": ["Usher", "Greeter"],
-        "Parkiran & Keamanan": ["Parkir", "Security"],
-        "Doa & Misi": ["Pendoa", "Misi"],
-        "Dekorasi & Event": ["Dekor", "Event Crew"]
+        "Pelayanan Doa & Misi": ["Team Doa Syafaat", "Team Misi bidang Fundraising", "Team Misi bidang research & Deplovement", "Team Road Map", "Public Relations"],
+        "Pelayanan Dekorasi & Event": ["Decoration leader", "Decoration Crew", "Art And Painting", "Special effect"],
+        "Pelayanan fulltimer Gereja": ["Kepala Sekolah PAUD & PPA", "Sekretaris Operasional Gereja", "Bendahara Operasional gereja", "Guru Paud", "Mentor PPA", "Staff Geraja", "Staff PPA", "Hospitality & Konsumsi", "Driver"],
+        "Praise & Worship": ["Drum Player", "Keyboard Player", "Piano Player", "Bass Player", "Guitar Player", "Violin Player", "Saxsophone Player", "Flute player", "Vocal coach", "Worship leader", "Singers", "choirs"],
+        "Multimedia": ["Director media", "Floor director", "Campers", "Crew equipment", "Streaming operator", "Video switcher operator", "Easy Worshipe / Presenter Operator"],
+        "Sound & Electrical Engineering": ["Sound engineering", "Crew equipment", "Elektrical & Peripheral"],
+        "User": ["Front Desk user", "User direct", "Event organizer", "General Affairs"],
+        "Parkiran & Keamanan": ["Parkir leader", "Parkir Crew", "Security"],
+        "Doa & Misi": ["Team Doa Syafaat", "Team Misi bidang Fundraising", "Team Misi bidang research & Deplovement", "Team Road Map", "Public Relations"],
+        "Dekorasi & Event": ["Decoration leader", "Decoration Crew", "Art And Painting", "Special effect"]
     };
 
     // 3. LOGIKA FORM
     function nextStep(n) {
         const steps = document.querySelectorAll('.form-step');
-        steps.forEach(step => step.classList.remove('active'));
-        
-        setTimeout(() => {
-            steps.forEach(step => step.style.display = 'none');
-            const target = document.getElementById('step-' + n);
-            target.style.display = 'block';
-            setTimeout(() => target.classList.add('active'), 50);
-        }, 100);
-
+        steps.forEach(step => { step.classList.remove('active'); step.style.display = 'none'; });
+        const targetStep = document.getElementById('step-' + n);
+        if (targetStep) { targetStep.classList.add('active'); targetStep.style.display = 'block'; }
+        if (n === 2) updateNIJPreview();
         document.querySelectorAll('.step').forEach((bar, index) => {
-            bar.classList.toggle('active', index < n);
+            if (index < n) bar.classList.add('active');
+            else bar.classList.remove('active');
         });
         window.scrollTo(0, 0);
     }
 
-    // FUNGSI CASCADE DROPDOWN
     function updateSubJabatan() {
         const jab = document.getElementById("jabatan_jemaat").value;
         const sub = document.getElementById("sub_jabatan");
@@ -294,7 +292,7 @@
         if (dataSubJabatan[jab]) {
             dataSubJabatan[jab].forEach(i => sub.add(new Option(i, i)));
         }
-        updateSpesifikPelayanan();
+        updateSpesifikPelayanan(); 
     }
 
     function updateSpesifikPelayanan() {
@@ -303,7 +301,7 @@
         pel.innerHTML = '<option value="">-- Pilih Fungsi Spesifik --</option>';
         if (dataSpesifik[sub]) {
             dataSpesifik[sub].forEach(i => pel.add(new Option(i, i)));
-            if(dataSpesifik[sub].length === 1) pel.selectedIndex = 1;
+            if (dataSpesifik[sub].length === 1) pel.selectedIndex = 1;
         }
         updateNonStruktural();
     }
@@ -327,21 +325,24 @@
     async function updateNIJPreview() {
         const lokasi = document.getElementById("lokasi").value;
         const displayInput = document.getElementById("nij-display");
-        if (!lokasi) { displayInput.value = ""; return; }
+        if (!lokasi) { displayInput.value = "Pilih lokasi dahulu..."; return; }
         try {
             const snap = await db.collection("users").get();
             const urut = String(snap.size + 1).padStart(3, '0');
             const tahun = new Date().getFullYear();
             displayInput.value = `NIJ-PPP-${lokasi}-${urut}-${tahun}`;
-        } catch (e) { console.error(e); }
+        } catch (error) { console.error("Gagal NIJ:", error); }
     }
 
     async function handleRegistrasi() {
         const btn = document.getElementById("btnSubmit");
         const fileInput = document.getElementById("berkas_jemaat");
-        if (fileInput.files.length === 0) return alert("Wajib unggah foto KTP/KK!");
+        const email = document.getElementById("email").value.trim().toLowerCase();
+        const password = document.getElementById("pass").value;
 
-        btn.innerText = "Memproses...";
+        if (fileInput.files.length === 0) return alert("Unggah foto KTP/KK!");
+
+        btn.innerText = "Mendaftarkan...";
         btn.disabled = true;
 
         try {
@@ -351,37 +352,35 @@
             const cloudResp = await fetch('https://api.cloudinary.com/v1_1/dxzllsbgi/upload', { method: 'POST', body: formData });
             const cloudData = await cloudResp.json();
 
-            const email = document.getElementById("email").value.trim().toLowerCase();
-            const pass = document.getElementById("pass").value;
-            const userCred = await auth.createUserWithEmailAndPassword(email, pass);
-            await userCred.user.sendEmailVerification();
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            await userCredential.user.sendEmailVerification();
 
             const userData = {
-                uid: userCred.user.uid,
+                uid: userCredential.user.uid,
                 nama: document.getElementById("nama").value,
                 email: email,
                 whatsapp: document.getElementById("hp").value,
-                lokasi: document.getElementById("lokasi").value,
+                lokasi_berjemaat: document.getElementById("lokasi").value,
+                komsel: document.getElementById("komsel").value,
                 jabatan: document.getElementById("jabatan_jemaat").value,
                 sub_jabatan: document.getElementById("sub_jabatan").value,
-                fungsi: document.getElementById("pelayanan").value,
-                detail_non: document.getElementById("pelayanan_spesifik_non").value,
+                fungsi_pelayanan: document.getElementById("pelayanan").value,
+                fungsi_non_struktural: document.getElementById("pelayanan_spesifik_non").value,
                 nij: document.getElementById("nij-display").value,
                 url_berkas: cloudData.secure_url,
                 status: "Pending",
-                tanggalDaftar: new Date().toISOString()
+                tanggalDaftar: new Date().toLocaleString('id-ID')
             };
 
-            await db.collection("users").doc(userCred.user.uid).set(userData);
+            await db.collection("users").doc(userCredential.user.uid).set(userData);
             document.getElementById('blocking-message').style.display = 'flex';
         } catch (e) {
-            alert("Gagal: " + e.message);
+            alert("Error: " + e.message);
             btn.disabled = false;
             btn.innerText = "FINALISASI & DAFTAR";
         }
     }
 
-    // INIT DATA WILAYAH
     async function loadProvinsi() {
         const resp = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
         const data = await resp.json();
@@ -404,6 +403,7 @@
     function toggleAgreeButton() { document.getElementById('btn-agree-submit').disabled = !document.getElementById('check-agree').checked; }
     function closeTermsModal() { document.getElementById('terms-modal').style.display = 'none'; }
 
+    // Init
     loadProvinsi();
     document.getElementById('eyeIcon').addEventListener('click', function() {
         const p = document.getElementById('pass');
