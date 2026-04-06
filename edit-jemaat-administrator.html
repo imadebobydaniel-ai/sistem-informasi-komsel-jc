@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Data Jemaat - Admin</title>
+    <title>Edit Data Users - Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primary: #003366; --accent: #007bff; --light: #f4f7f6; --gold: #D4AF37; }
@@ -26,7 +26,7 @@
 
 <div class="edit-container">
     <a href="admin.html" class="btn-back"><i class="fas fa-arrow-left"></i> Kembali ke Dashboard</a>
-    <h2 class="section-title">Edit Profil Jemaat</h2>
+    <h2 class="section-title">Edit Profil User</h2>
     
     <form id="editForm">
         <div class="form-group">
@@ -69,7 +69,7 @@
         </div>
 
         <div class="form-group">
-            <label>Jabatan Utama di Jemaat</label>
+            <label>Jabatan Utama</label>
             <select id="jabatan">
                 <option value="Anggota Jemaat">Anggota Jemaat</option>
                 <option value="Gembala Sidang">Gembala Sidang</option>
@@ -149,7 +149,7 @@
     const userId = urlParams.get('edit'); 
 
     if (!userId) {
-        alert("ID Jemaat tidak ditemukan!");
+        alert("ID User tidak ditemukan!");
         window.location.href = 'admin.html';
     }
 
@@ -204,10 +204,10 @@
         }
     }
 
-    // LOAD DATA
+    // LOAD DATA - Menggunakan Koleksi "users"
     window.onload = async function() {
         try {
-            const doc = await db.collection("jemaat").doc(userId).get();
+            const doc = await db.collection("users").doc(userId).get();
             if (doc.exists) {
                 const data = doc.data();
                 document.getElementById('nama_lengkap').value = data.nama_lengkap || '';
@@ -217,7 +217,6 @@
                 document.getElementById('alamat').value = data.alamat || '';
                 document.getElementById('status_akun').value = data.status_akun || 'Pending';
                 
-                // Set Dropdown Dinamis
                 document.getElementById('wilayah').value = data.wilayah || '';
                 updateKomsel(data.komsel);
                 
@@ -227,16 +226,16 @@
 
                 document.getElementById('loading').style.display = 'none';
             } else {
-                alert("Data tidak ditemukan!");
+                alert("Data user tidak ditemukan di database!");
                 window.location.href = 'admin.html';
             }
         } catch (error) {
             console.error(error);
-            alert("Gagal memuat data.");
+            alert("Gagal memuat data: " + error.message);
         }
     };
 
-    // SIMPAN DATA
+    // SIMPAN DATA - Menggunakan Koleksi "users"
     document.getElementById('editForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = e.target.querySelector('button');
@@ -244,7 +243,7 @@
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
 
         try {
-            await db.collection("jemaat").doc(userId).update({
+            await db.collection("users").doc(userId).update({
                 nama_lengkap: document.getElementById('nama_lengkap').value,
                 whatsapp: document.getElementById('whatsapp').value,
                 email: document.getElementById('email').value,
@@ -257,12 +256,12 @@
                 status_akun: document.getElementById('status_akun').value,
                 last_update: new Date().toISOString()
             });
-            alert("Data Berhasil Diperbarui!");
+            alert("Data User Berhasil Diperbarui!");
             window.location.href = 'admin.html';
         } catch (error) {
             alert("Error: " + error.message);
             btn.disabled = false;
-            btn.innerHTML = 'Simpan Perubahan';
+            btn.innerHTML = '<i class="fas fa-save"></i> Simpan Perubahan';
         }
     };
 </script>
