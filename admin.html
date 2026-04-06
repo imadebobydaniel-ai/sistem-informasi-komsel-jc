@@ -61,6 +61,9 @@
         .badge-aktif { background: var(--success); color: #fff; padding: 3px 8px; border-radius: 5px; font-size: 10px; font-weight: bold; display: inline-block; }
         .btn-status-toggle { border: none; padding: 4px 10px; border-radius: 4px; color: white; font-size: 14px; cursor: pointer; margin-left: 5px; }
 
+        .file-link { color: var(--accent); text-decoration: none; font-weight: bold; display: block; margin-bottom: 5px; }
+        .file-link:hover { text-decoration: underline; }
+
         /* MODAL EDIT STYLES */
         #editModal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
@@ -125,12 +128,12 @@
                     <th class="check-col"><input type="checkbox" id="checkAll" onclick="toggleAll(this)"></th>
                     <th>NIJ</th>
                     <th>Nama Lengkap</th>
-                    <th>Kontak</th>
-                    <th>Info Pribadi</th>
-                    <th>Alamat</th>
-                    <th>Status / Pekerjaan</th>
-                    <th>Lokasi / Komsel</th>
-                    <th>Jabatan</th>
+                    <th>WhatsApp / Email</th>
+                    <th>Detail Data Diri</th>
+                    <th>Alamat Lengkap</th>
+                    <th>Lokasi & Komsel</th>
+                    <th>Jabatan & Pelayanan</th>
+                    <th>Lampiran File</th>
                     <th>Status Akun</th>
                     <th>Aksi</th>
                 </tr>
@@ -272,7 +275,6 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    // DATA MAPPING (Sesuaikan dengan data pendaftaran Anda)
     const dataKomsel = {
         "Abepura": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "esther 8", "esther 9", "Esther 10", "esther 11", "Esther 12", "Komsel Mahasiswa Abe", "Komsel Profesi Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu"],
         "Sentani": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Komsel 5", "Siloam 6", "Siloam 8", "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", "Komsel Remaja Sentani", "Komsel Sekolah Minggu Sentani"],
@@ -282,7 +284,7 @@
     };
 
     const dataSubJabatan = {
-        "Pemimpin / Koordinator": ["Koordinator Multimedia", "Koordinator Musik", "Koordinator Usher", "Koordinator Doa"],
+        "Pemimpin / Koordinator": ["Koordinator Multimedia", "Koordinator Musik", "Koordinator Usher", "Koordinator Doa", "Koordinator Profesi"],
         "Anggota Jemaat": ["Anggota Jemaat Ordinari", "Jemaat Baru"],
         "Fulltimer": ["Staf Kantor", "Operasional Gereja"],
         "PKS Komsel": ["PKS Senior", "PKS Pratama"]
@@ -290,6 +292,7 @@
 
     const dataSpesifik = {
         "Koordinator Multimedia": ["Video Director", "Operator LCD", "Kameramen"],
+        "Koordinator Profesi": ["Kesehatan", "Pendidikan", "Wirausaha"],
         "Anggota Jemaat Ordinari": ["-"]
     };
 
@@ -311,17 +314,39 @@
                 const statusIcon = status === 'aktif' ? 'fa-check-square' : 'fa-stop-circle';
                 const statusBtnColor = status === 'aktif' ? '#28a745' : '#dc3545';
 
+                // Logika Lampiran
+                let fileHtml = "";
+                if (d.urlKtp) fileHtml += `<a href="${d.urlKtp}" target="_blank" class="file-link"><i class="fas fa-id-card"></i> Lihat KTP</a>`;
+                if (d.urlKk) fileHtml += `<a href="${d.urlKk}" target="_blank" class="file-link"><i class="fas fa-users"></i> Lihat KK</a>`;
+                if (!fileHtml) fileHtml = "<small style='color:red;'>Tidak ada file</small>";
+
                 tableBody.innerHTML += `
                 <tr>
                     <td class="check-col"><input type="checkbox" class="user-checkbox" value="${doc.id}" onclick="updateActionMenu()"></td>
                     <td class="nij-col">${d.nij || '-'}</td>
                     <td><strong>${d.nama || '-'}</strong></td>
-                    <td><i class="fab fa-whatsapp" style="color:green;"></i> ${d.whatsapp || '-'}<br><small>${d.email || '-'}</small></td>
-                    <td><small>${d.kota_lahir || '-'}, ${d.tgl_lahir || '-'}</small></td>
+                    <td>
+                        <i class="fab fa-whatsapp" style="color:green;"></i> ${d.whatsapp || '-'}<br>
+                        <small><i class="fas fa-envelope"></i> ${d.email || '-'}</small>
+                    </td>
+                    <td>
+                        <small>
+                            Status: ${d.status_pernikahan || '-'}<br>
+                            Lahir: ${d.kota_lahir || '-'}, ${d.tgl_lahir || '-'}<br>
+                            Pekerjaan: ${d.pekerjaan || '-'}
+                        </small>
+                    </td>
                     <td><small>${d.alamat || '-'}</small></td>
-                    <td>${d.status_pernikahan || '-'}<br><small>${d.pekerjaan || '-'}</small></td>
-                    <td><span style="color:var(--primary); font-weight:bold;">${d.lokasi_berjemaat || '-'}</span><br><small>${d.wilayah_komsel || '-'}</small></td>
-                    <td><strong>${d.jabatan_jemaat || '-'}</strong><br><small>${d.sub_bidang || ''}</small></td>
+                    <td>
+                        <span style="color:var(--primary); font-weight:bold;">${d.lokasi_berjemaat || '-'}</span><br>
+                        <small>Komsel: ${d.wilayah_komsel || '-'}</small>
+                    </td>
+                    <td>
+                        <strong>${d.jabatan_jemaat || '-'}</strong><br>
+                        <small>Sub: ${d.sub_bidang || '-'}</small><br>
+                        <small>Fungsi: ${d.fungsi_pelayanan || '-'}</small>
+                    </td>
+                    <td>${fileHtml}</td>
                     <td>
                         <span class="${statusBadge}">${d.status || 'Pending'}</span>
                         <button class="btn-status-toggle" style="background:${statusBtnColor}" onclick="toggleUserStatus('${doc.id}', '${d.status}')">
@@ -338,7 +363,7 @@
         });
     }
 
-    // FUNGSI MODAL EDIT (YANG DISATUKAN)
+    // FUNGSI MODAL EDIT
     function nextEditStep(n) {
         document.querySelectorAll('#editModal .form-step').forEach(s => s.classList.remove('active'));
         document.getElementById('estep-' + n).classList.add('active');
@@ -360,7 +385,6 @@
         if (!doc.exists) return;
         const data = doc.data();
 
-        // Step 1
         document.getElementById("edit-uid").value = uid;
         document.getElementById("edit-nij-title").innerText = "NIJ: " + (data.nij || 'Belum Ada');
         document.getElementById("edit-nama").value = data.nama || "";
@@ -374,7 +398,6 @@
         document.getElementById("edit-nama_ayah").value = data.nama_ayah || "";
         document.getElementById("edit-nama_ibu").value = data.nama_ibu || "";
 
-        // Step 2
         document.getElementById("edit-lokasi").value = data.lokasi_berjemaat || "";
         updateEditKomsel();
         document.getElementById("edit-komsel").value = data.wilayah_komsel || "";
@@ -383,7 +406,6 @@
         updateEditSubJabatan();
         document.getElementById("edit-sub_jabatan").value = data.sub_bidang || "";
 
-        // Step 3
         updateEditSpesifik();
         document.getElementById("edit-pelayanan").value = data.fungsi_pelayanan || "";
         updateEditNonStruktural();
@@ -431,7 +453,6 @@
         }
     }
 
-    // HELPER DROPDOWN EDIT
     function updateEditKomsel() {
         const lok = document.getElementById("edit-lokasi").value;
         const sel = document.getElementById("edit-komsel");
@@ -457,7 +478,6 @@
         if(dataNonStruktural[pelVal]) dataNonStruktural[pelVal].forEach(i => nonPel.add(new Option(i, i)));
     }
 
-    // MANAJEMEN TABEL LAINNYA
     function openEditFromSelection() {
         const selected = document.querySelectorAll('.user-checkbox:checked');
         if (selected.length !== 1) return alert("Pilih satu data jemaat untuk diedit.");
