@@ -304,6 +304,7 @@
     window.onload = function() { loadMembersRealtime(); };
 
     function loadMembersRealtime() {
+        // Menggunakan koleksi 'users' sesuai struktur database Anda
         db.collection("users").orderBy("tanggalDaftar", "desc").onSnapshot(snapshot => {
             const tableBody = document.getElementById("memberData");
             tableBody.innerHTML = "";
@@ -383,6 +384,7 @@
         if (!doc.exists) return;
         const data = doc.data();
 
+        // Mengisi data ke dalam form modal
         document.getElementById("edit-uid").value = uid;
         document.getElementById("edit-nij-title").innerText = "NIJ: " + (data.nij || 'Belum Ada');
         document.getElementById("edit-nama").value = data.nama || "";
@@ -417,9 +419,13 @@
     async function saveEditJemaat() {
         const uid = document.getElementById("edit-uid").value;
         const btn = document.getElementById("btnSaveEdit");
+        
+        if(!uid) return alert("ID Jemaat tidak ditemukan.");
+
         btn.innerText = "Menyimpan...";
         btn.disabled = true;
 
+        // Menyusun objek data dari input form
         const updatedData = {
             nama: document.getElementById("edit-nama").value,
             email: document.getElementById("edit-email").value,
@@ -435,18 +441,25 @@
             sub_bidang: document.getElementById("edit-sub_jabatan").value,
             fungsi_pelayanan: document.getElementById("edit-pelayanan").value,
             fungsi_non_struktural: document.getElementById("edit-pelayanan_non").value,
-            status: document.getElementById("edit-status_akun").value
+            status: document.getElementById("edit-status_akun").value,
+            last_updated: firebase.firestore.FieldValue.serverTimestamp()
         };
 
         try {
+            // Melakukan update ke dokumen spesifik di Firestore
             await db.collection("users").doc(uid).update(updatedData);
-            alert("Data berhasil diperbarui!");
+            alert("Data jemaat berhasil diperbarui!");
             closeEditModal();
-        } catch (e) { alert("Error: " + e.message); }
-        finally { btn.disabled = false; btn.innerText = "SIMPAN PERUBAHAN"; }
+        } catch (e) { 
+            console.error("Update Error:", e);
+            alert("Gagal memperbarui data: " + e.message); 
+        } finally { 
+            btn.disabled = false; 
+            btn.innerText = "SIMPAN PERUBAHAN"; 
+        }
     }
 
-    // Helper functions for dynamic dropdowns
+    // Fungsi helper untuk dropdown dinamis
     function updateEditKomsel() {
         const lok = document.getElementById("edit-lokasi").value;
         const sel = document.getElementById("edit-komsel");
@@ -477,7 +490,11 @@
         db.collection("users").doc(id).update({ status: next });
     }
 
-    function deleteUser(id) { if(confirm("Hapus jemaat ini?")) db.collection("users").doc(id).delete(); }
+    function deleteUser(id) { 
+        if(confirm("Apakah Anda yakin ingin menghapus data jemaat ini secara permanen?")) {
+            db.collection("users").doc(id).delete(); 
+        }
+    }
 
     function filterTable() {
         let val = document.getElementById("searchInput").value.toLowerCase();
@@ -486,7 +503,10 @@
         });
     }
 
-    function closeEditModal() { document.getElementById("editModal").style.display = "none"; }
+    function closeEditModal() { 
+        document.getElementById("editModal").style.display = "none"; 
+        document.getElementById("formEditJemaat").reset();
+    }
     
     function toggleAll(source) {
         document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = source.checked);
@@ -501,7 +521,7 @@
 
     function openEditFromSelection() {
         const selected = document.querySelectorAll('.user-checkbox:checked');
-        if (selected.length !== 1) return alert("Pilih satu data untuk diedit.");
+        if (selected.length !== 1) return alert("Silakan pilih satu data jemaat untuk diedit.");
         openEditModal(selected[0].value);
     }
 </script>
