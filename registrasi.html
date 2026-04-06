@@ -118,18 +118,17 @@
                         <option value="Profesional Muda">Profesional Muda</option>
                         <option value="Bidang Kerohaniaan">Bidang Kerohaniaan</option>
                         <option value="Mahasiswa">Mahasiswa</option>
-                         <option value="Mahasiswa">Pelajar</option>
-                         <option value="Mahasiswa">Aktivis</option>
-                         <option value="Mahasiswa">Pekerja Seni</option>
-                         <option value="Mahasiswa">Kader Partai</option>
-                         <option value="Mahasiswa">Pejabat Publik</option>
-                         <option value="Mahasiswa">Pejabat executive</option>
-                         <option value="Mahasiswa">Pemerhati Bidang</option>
-                         <option value="Mahasiswa">Diplomat</option>
-                         <option value="Mahasiswa">Cendikiawan</option>
-                         <option value="Mahasiswa">Petani</option>
-                         <option value="Mahasiswa">Freelancer</option>
-                        
+                         <option value="Pelajar">Pelajar</option>
+                         <option value="Aktivis">Aktivis</option>
+                         <option value="Pekerja Seni">Pekerja Seni</option>
+                         <option value="Kader Partai">Kader Partai</option>
+                         <option value="Pejabat Publik">Pejabat Publik</option>
+                         <option value="Pejabat executive">Pejabat executive</option>
+                         <option value="Pemerhati Bidang">Pemerhati Bidang</option>
+                         <option value="Diplomat">Diplomat</option>
+                         <option value="Cendikiawan">Cendikiawan</option>
+                         <option value="Petani">Petani</option>
+                         <option value="Freelancer">Freelancer</option>
                         <option value="Lainnya">Lainnya</option>
                     </select>
                 </div>
@@ -246,6 +245,9 @@
     };
 
     const dataSpesifik = {
+        "Gembala Sidang Jemaat": ["Penanggung Jawab Pengembalaan Jemaat"],
+        "Pdt. Pembantu": ["Penanggung Jawab Pengembalaan Jemaat"],
+        "Pdt. Muda": ["Penanggung Jawab Pengembalaan Jemaat"],
         "Anggota Jemaat Ordinari": [
             "Praise & Worship (Singers/Musician)", 
             "Multimedia & Creative", 
@@ -298,7 +300,6 @@
             dataSubJabatan[jab].forEach(i => sub.add(new Option(i, i)));
         }
         
-        // PENTING: Reset/Update dropdown pelayanan setiap kali jabatan utama berubah
         updateSpesifikPelayanan(); 
     }
 
@@ -376,7 +377,6 @@
         }
     }
 
-    // --- Helper Functions ---
     async function loadProvinsi() {
         const resp = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
         const data = await resp.json();
@@ -399,7 +399,6 @@
     function toggleAgreeButton() { document.getElementById('btn-agree-submit').disabled = !document.getElementById('check-agree').checked; }
     function closeTermsModal() { document.getElementById('terms-modal').style.display = 'none'; }
 
-    // Init
     loadProvinsi();
     document.getElementById('eyeIcon').addEventListener('click', function() {
         const p = document.getElementById('pass');
