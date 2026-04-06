@@ -61,8 +61,8 @@
         .badge-aktif { background: var(--success); color: #fff; padding: 3px 8px; border-radius: 5px; font-size: 10px; font-weight: bold; display: inline-block; }
         .btn-status-toggle { border: none; padding: 4px 10px; border-radius: 4px; color: white; font-size: 14px; cursor: pointer; margin-left: 5px; }
 
-        .file-link { color: var(--accent); text-decoration: none; font-weight: bold; display: block; margin-bottom: 5px; }
-        .file-link:hover { text-decoration: underline; }
+        .file-link { color: var(--accent); text-decoration: none; font-weight: bold; display: block; margin-bottom: 5px; font-size: 10px; }
+        .file-link:hover { text-decoration: underline; color: var(--primary); }
     </style>
 </head>
 <body>
@@ -137,36 +137,40 @@
     window.onload = function() { loadMembersRealtime(); };
 
     function loadMembersRealtime() {
-        // DIUBAH KE "users" karena data Anda ada di collection ini
         db.collection("users").onSnapshot(snapshot => {
             const tableBody = document.getElementById("memberData");
             tableBody.innerHTML = "";
             snapshot.forEach(doc => {
                 const d = doc.data();
                 
-                // DISINKRONKAN DENGAN NAMA FIELD DI DATABASE (Berdasarkan Gambar 7)
+                // --- SINKRONISASI FIELD DATABASE ---
                 const namaTampil = d.Nama || d.nama_lengkap || '-';
                 const nij = d.nij || '-';
                 const whatsapp = d.WhatsApp || d.whatsapp || '-';
                 const email = d.email || '-';
+                const alamat = d.Alamat || d.alamat || 'Alamat tidak diisi'; // Sinkronisasi Alamat
                 const lokasi = d.lokasi_berjemaat || '-';
                 const komsel = d.Komsel || d.komsel || '-';
                 const jabatan = d.jabatan || '-';
-                const fungsi = d.fungsi_pelayanan || '-';
+                const fungsi = d.fungsi_pelayanan || d.fungsi_non_struktural || '-';
                 const status = d.status_akun || 'Pending';
-                
-                // Tambahan info keluarga (opsional)
                 const pasangan = d.nama_pasangan || '-';
                 const anak = d.jumlah_anak || '0';
+
+                // --- LOGIKA LAMPIRAN FILE ---
+                // Pastikan nama field ini (urlKtp / urlKk) sesuai dengan yang Anda simpan saat upload
+                let fileHtml = "";
+                if (d.url_ktp || d.urlKtp) {
+                    fileHtml += `<a href="${d.url_ktp || d.urlKtp}" target="_blank" class="file-link"><i class="fas fa-file-pdf"></i> Lihat KTP</a>`;
+                }
+                if (d.url_kk || d.urlKk) {
+                    fileHtml += `<a href="${d.url_kk || d.urlKk}" target="_blank" class="file-link"><i class="fas fa-file-pdf"></i> Lihat KK</a>`;
+                }
+                if (!fileHtml) fileHtml = "<small style='color:#999;'>Tidak ada file</small>";
 
                 const statusBadge = status === 'Aktif' ? 'badge-aktif' : 'badge-pending';
                 const statusIcon = status === 'Aktif' ? 'fa-check-square' : 'fa-stop-circle';
                 const statusBtnColor = status === 'Aktif' ? '#28a745' : '#dc3545';
-
-                let fileHtml = "";
-                if (d.urlKtp) fileHtml += `<a href="${d.urlKtp}" target="_blank" class="file-link"><i class="fas fa-id-card"></i> KTP</a>`;
-                if (d.urlKk) fileHtml += `<a href="${d.urlKk}" target="_blank" class="file-link"><i class="fas fa-users"></i> KK</a>`;
-                if (!fileHtml) fileHtml = "<small style='color:red;'>Tidak ada file</small>";
 
                 tableBody.innerHTML += `
                 <tr>
@@ -183,14 +187,14 @@
                             Anak: ${anak}
                         </small>
                     </td>
-                    <td><small>${d.alamat || '-'}</small></td>
+                    <td style="max-width: 200px;"><small>${alamat}</small></td>
                     <td>
                         <span style="color:var(--primary); font-weight:bold;">${lokasi}</span><br>
                         <small>Komsel: ${komsel}</small>
                     </td>
                     <td>
                         <strong>${jabatan}</strong><br>
-                        <small>Fungsi: ${fungsi}</small>
+                        <small>Pelayanan: ${fungsi}</small>
                     </td>
                     <td>${fileHtml}</td>
                     <td>
@@ -210,14 +214,7 @@
     }
 
     function openEditModal(uid) {
-        // Mengarahkan ke file edit dengan parameter ID
         window.location.href = `edit-jemaat-administrator.html?edit=${uid}`;
-    }
-
-    function openEditFromSelection() {
-        const selected = document.querySelectorAll('.user-checkbox:checked');
-        if (selected.length !== 1) return alert("Pilih satu data untuk diedit.");
-        openEditModal(selected[0].value);
     }
 
     function toggleUserStatus(id, current) {
@@ -226,15 +223,8 @@
     }
 
     function deleteUser(id) { 
-        if(confirm("Hapus data jemaat ini secara permanen?")) {
+        if(confirm("Hapus data ini secara permanen?")) {
             db.collection("users").doc(id).delete(); 
-        }
-    }
-
-    function bulkDelete() {
-        const selected = document.querySelectorAll('.user-checkbox:checked');
-        if(confirm(`Hapus ${selected.length} data terpilih?`)) {
-            selected.forEach(cb => db.collection("users").doc(cb.value).delete());
         }
     }
 
