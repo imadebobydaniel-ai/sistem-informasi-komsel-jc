@@ -61,7 +61,6 @@
         .badge-aktif { background: var(--success); color: #fff; padding: 3px 8px; border-radius: 5px; font-size: 10px; font-weight: bold; display: inline-block; }
         .btn-status-toggle { border: none; padding: 4px 10px; border-radius: 4px; color: white; font-size: 14px; cursor: pointer; margin-left: 5px; }
 
-        /* --- STYLING LINK FILE --- */
         .file-link {
             background: #e9ecef;
             padding: 4px 8px;
@@ -121,7 +120,7 @@
                     <th class="check-col"><input type="checkbox" id="checkAll" onclick="toggleAll(this)"></th>
                     <th>NIJ</th>
                     <th>Nama Lengkap</th>
-                    <th>WhatsApp / Email</th>
+                    <th>Gol. Darah</th> <th>WhatsApp / Email</th>
                     <th>Detail Keluarga</th>
                     <th>Alamat Lengkap</th>
                     <th>Lokasi & Komsel</th>
@@ -163,6 +162,7 @@
                 
                 const namaTampil = d.Nama || d.nama_lengkap || '-';
                 const nij = d.nij || '-';
+                const goldar = d.golongan_darah || '-'; // Ambil data Golongan Darah
                 const whatsapp = d.WhatsApp || d.whatsapp || '-';
                 const email = d.email || '-';
                 const alamat = d.Alamat || d.alamat || 'Alamat tidak diisi';
@@ -174,17 +174,12 @@
                 const pasangan = d.nama_pasangan || '-';
                 const anak = d.jumlah_anak || '0';
 
-                // --- LOGIKA LAMPIRAN FILE (INTEGRATED) ---
                 let fileHtml = "";
                 if (d.url_ktp || d.urlKtp) {
-                    fileHtml += `<a href="${d.url_ktp || d.urlKtp}" target="_blank" class="file-link">
-                                    <i class="fas fa-id-card"></i> Lihat KTP
-                                 </a>`;
+                    fileHtml += `<a href="${d.url_ktp || d.urlKtp}" target="_blank" class="file-link"><i class="fas fa-id-card"></i> Lihat KTP</a>`;
                 }
                 if (d.url_kk || d.urlKk) {
-                    fileHtml += `<a href="${d.url_kk || d.urlKk}" target="_blank" class="file-link">
-                                    <i class="fas fa-users"></i> Lihat KK
-                                 </a>`;
+                    fileHtml += `<a href="${d.url_kk || d.urlKk}" target="_blank" class="file-link"><i class="fas fa-users"></i> Lihat KK</a>`;
                 }
                 if (!fileHtml) {
                     fileHtml = "<small style='color:#dc3545;'>Tidak ada file</small>";
@@ -199,7 +194,7 @@
                     <td class="check-col"><input type="checkbox" class="user-checkbox" value="${doc.id}" onclick="updateActionMenu()"></td>
                     <td class="nij-col">${nij}</td>
                     <td><strong>${namaTampil}</strong></td>
-                    <td>
+                    <td style="text-align:center;"><strong>${goldar}</strong></td> <td>
                         <i class="fab fa-whatsapp" style="color:green;"></i> ${whatsapp}<br>
                         <small><i class="fas fa-envelope"></i> ${email}</small>
                     </td>
@@ -264,8 +259,11 @@
 
     function updateActionMenu() {
         const count = document.querySelectorAll('.user-checkbox:checked').length;
-        document.getElementById('actionMenu').style.display = count > 0 ? 'flex' : 'none';
-        document.getElementById('selectedCount').innerText = `${count} Terpilih`;
+        const menu = document.getElementById('actionMenu');
+        if(menu) {
+            menu.style.display = count > 0 ? 'flex' : 'none';
+            document.getElementById('selectedCount').innerText = `${count} Terpilih`;
+        }
     }
 </script>
 </body>
