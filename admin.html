@@ -61,8 +61,26 @@
         .badge-aktif { background: var(--success); color: #fff; padding: 3px 8px; border-radius: 5px; font-size: 10px; font-weight: bold; display: inline-block; }
         .btn-status-toggle { border: none; padding: 4px 10px; border-radius: 4px; color: white; font-size: 14px; cursor: pointer; margin-left: 5px; }
 
-        .file-link { color: var(--accent); text-decoration: none; font-weight: bold; display: block; margin-bottom: 5px; font-size: 10px; }
-        .file-link:hover { text-decoration: underline; color: var(--primary); }
+        /* --- STYLING LINK FILE --- */
+        .file-link {
+            background: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            border: 1px solid #ddd;
+            transition: 0.3s;
+            color: var(--accent) !important;
+            text-decoration: none !important;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+        .file-link:hover {
+            background: var(--accent);
+            color: white !important;
+            transform: scale(1.05);
+        }
+        .file-link i { margin-right: 5px; }
     </style>
 </head>
 <body>
@@ -143,12 +161,11 @@
             snapshot.forEach(doc => {
                 const d = doc.data();
                 
-                // --- SINKRONISASI FIELD DATABASE ---
                 const namaTampil = d.Nama || d.nama_lengkap || '-';
                 const nij = d.nij || '-';
                 const whatsapp = d.WhatsApp || d.whatsapp || '-';
                 const email = d.email || '-';
-                const alamat = d.Alamat || d.alamat || 'Alamat tidak diisi'; // Sinkronisasi Alamat
+                const alamat = d.Alamat || d.alamat || 'Alamat tidak diisi';
                 const lokasi = d.lokasi_berjemaat || '-';
                 const komsel = d.Komsel || d.komsel || '-';
                 const jabatan = d.jabatan || '-';
@@ -157,16 +174,21 @@
                 const pasangan = d.nama_pasangan || '-';
                 const anak = d.jumlah_anak || '0';
 
-                // --- LOGIKA LAMPIRAN FILE ---
-                // Pastikan nama field ini (urlKtp / urlKk) sesuai dengan yang Anda simpan saat upload
+                // --- LOGIKA LAMPIRAN FILE (INTEGRATED) ---
                 let fileHtml = "";
                 if (d.url_ktp || d.urlKtp) {
-                    fileHtml += `<a href="${d.url_ktp || d.urlKtp}" target="_blank" class="file-link"><i class="fas fa-file-pdf"></i> Lihat KTP</a>`;
+                    fileHtml += `<a href="${d.url_ktp || d.urlKtp}" target="_blank" class="file-link">
+                                    <i class="fas fa-id-card"></i> Lihat KTP
+                                 </a>`;
                 }
                 if (d.url_kk || d.urlKk) {
-                    fileHtml += `<a href="${d.url_kk || d.urlKk}" target="_blank" class="file-link"><i class="fas fa-file-pdf"></i> Lihat KK</a>`;
+                    fileHtml += `<a href="${d.url_kk || d.urlKk}" target="_blank" class="file-link">
+                                    <i class="fas fa-users"></i> Lihat KK
+                                 </a>`;
                 }
-                if (!fileHtml) fileHtml = "<small style='color:#999;'>Tidak ada file</small>";
+                if (!fileHtml) {
+                    fileHtml = "<small style='color:#dc3545;'>Tidak ada file</small>";
+                }
 
                 const statusBadge = status === 'Aktif' ? 'badge-aktif' : 'badge-pending';
                 const statusIcon = status === 'Aktif' ? 'fa-check-square' : 'fa-stop-circle';
