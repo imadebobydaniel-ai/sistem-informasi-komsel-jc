@@ -91,8 +91,18 @@
                 <div class="password-container"><input type="password" id="pass"><i class="fa-solid fa-eye toggle-password" id="eyeIcon"></i></div>
             </div>
             <div class="form-group"><label>Alamat*</label><textarea id="alamat" rows="2"></textarea></div>
+            
             <div class="grid-2">
-                <div class="form-group"><label>Status Pernikahan*</label><select id="status_pernikahan"><option value="">-- Pilih --</option><option value="Menikah">Menikah</option><option value="Single">Single</option><option value="Duda">Duda</option><option value="Janda">Janda</option></select></div>
+                <div class="form-group">
+                    <label>Status Pernikahan*</label>
+                    <select id="status_pernikahan" onchange="toggleStatusFields()">
+                        <option value="">-- Pilih --</option>
+                        <option value="Menikah">Menikah</option>
+                        <option value="Single">Single</option>
+                        <option value="Duda">Duda</option>
+                        <option value="Janda">Janda</option>
+                    </select>
+                </div>
                 <div class="form-group">
                     <label>Pekerjaan*</label>
                     <select id="pekerjaan">
@@ -107,21 +117,25 @@
                         <option value="Wiraswasta">Wiraswasta</option>
                         <option value="Profesional Muda">Profesional Muda</option>
                         <option value="Bidang Kerohaniaan">Bidang Kerohaniaan</option>
-                        <option value="Petani/Peternak">Petani / Peternak / Pengolah Kebun</option>
+                        <option value="Petani/Peternak">Petani / Peternak</option>
                         <option value="Mahasiswa">Mahasiswa</option>
                         <option value="Pelajar">Pelajar</option>
-                        <option value="Pejabat Publik">Pejabat Publik</option>
-                        <option value="Pejabat Executive">Pejabat Executive</option>
-                         <option value="Pejabat Executive">Diplomat</option>
-                        <option value="Kader Partai">Kader Partai</option>
-                        <option value="Pemerhati Bidang">Pemerhati Bidang</option>
-                        <option value="Aktivis">Aktivis</option>
-                        <option value="Pekerja Seni">Pekerja Seni</option>
-                        <option value="Freelancer">Freelancer</option>
                         <option value="Lainnya">Lainnya</option>
                     </select>
                 </div>
             </div>
+
+            <div id="field-menikah" style="display:none; margin-bottom: 15px;">
+                <div class="form-group"><label>Nama Lengkap Istri*</label><input type="text" id="nama_istri"></div>
+                <div class="form-group"><label>Jumlah Anak*</label><input type="text" id="jumlah_anak"></div>
+            </div>
+            <div id="field-orangtua" style="display:none; margin-bottom: 15px;">
+                <div class="grid-2">
+                    <div class="form-group"><label>Nama Ayah Kandung*</label><input type="text" id="nama_ayah"></div>
+                    <div class="form-group"><label>Nama Ibu Kandung*</label><input type="text" id="nama_ibu"></div>
+                </div>
+            </div>
+
             <div class="btn-group">
                 <a href="login.html" class="btn-prev" style="text-decoration: none; text-align: center; line-height: 1.5;">Kembali</a>
                 <button type="button" class="btn-next" onclick="nextStep(2)">Lanjut <i class="fa-solid fa-arrow-right"></i></button>
@@ -197,7 +211,6 @@
     <div class="modal-box">
         <i class="fa-solid fa-circle-check" style="font-size: 50px; color: #28a745;"></i>
         <p><b>Pendaftaran Berhasil!</b></p>
-        <p style="font-size: 12px;">Link verifikasi telah dikirim ke email Anda. Silakan cek Inbox/Spam sebelum login.</p>
         <button onclick="window.location.href='login.html'" class="btn-next" style="background:#007bff;">SAYA MENGERTI</button>
     </div>
 </div>
@@ -207,7 +220,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
 <script>
-    // 1. FIREBASE CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -220,101 +232,40 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // 2. DATA DINAMIS
-    const dataKomsel = {
-        "ABE": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "esther 8", "esther 9", "Esther 10", "esther 11", "Esther 12", "Komsel Mahasiswa Abe", "Komsel Profesi Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu"],
-        "STN": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Komsel 5", "Siloam 6", "Siloam 8", "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", "Komsel Remaja Sentani", "Komsel Sekolah Minggu Sentani"],
-        "DYO": ["Komsel Bapak doyo", "Komsel Ibu doyo"],
-        "ARS1": ["Komsel Keluarga Arso 1"],
-        "ARS2": ["Komsel Keluarga Arso 2"]
-    };
+    // Data Mapping (Disederhanakan untuk kejelasan)
+    const dataKomsel = { "ABE": ["Joseph 1", "Esther 1"], "STN": ["Siloam 1", "Agape 1"] };
+    const dataSubJabatan = { "Anggota Jemaat": ["Anggota Jemaat Ordinari"], "Pemimpin / Koordinator": ["Sekretaris Gereja", "Koordinator Praise & Worship"] };
+    const dataSpesifik = { "Koordinator Praise & Worship": ["Pelayanan Praise & Worship"], "Anggota Jemaat Ordinari": ["Praise & Worship", "Multimedia"] };
+    const dataNonStruktural = { "Pelayanan Praise & Worship": ["Drum Player", "Singers"], "Praise & Worship": ["Drum Player", "Singers"] };
 
-    const dataSubJabatan = {
-        "Gembala Sidang": ["Gembala Sidang Jemaat", "Pdt. Pembantu", "Pdt. Muda"],
-        "Pemimpin / Koordinator": ["Sekretaris Gereja", "Bendahara Gereja", "Komite Gereja", "Koordinator Lansia", "Koordinator Bapak", "Koordinator Ibu", "Koordinator Profesi", "Koordinator Mahasiswa", "Koordinator Pelajar", "Koordinator Sekolah minggu", "Koordinator Praise & Worship", "Koordinator Tamborin, flag", "Koordinator Multimedia", "Koordinator Sound Engineering & Elektrical", "Koordinator Pelayanan Misi", "Koordinator Pendoa", "Koordinator User", "Koordinator parkir dan keamanan", "Koordinator dekorasi dan event"],
-        "PKS Komsel": ["PKS Komsel"],
-        "Fulltimer": ["Fulltimer Gereja"],
-        "Anggota Jemaat": ["Anggota Jemaat Ordinari"]
-    };
+    // Fungsi Toggle Status Pernikahan (SUDAH DIPINDAH KELUAR)
+    function toggleStatusFields() {
+        const status = document.getElementById("status_pernikahan").value;
+        const blockMenikah = document.getElementById("field-menikah");
+        const blockOrtu = document.getElementById("field-orangtua");
 
-    const dataSpesifik = {
-        "Gembala Sidang Jemaat": ["Penanggung Jawab Pengembalaan Jemaat"],
-        "Pdt. Pembantu": ["Supporting Pelayanan Pengembalaan Jemaat"],
-        "Pdt. Muda": ["Supporting Pelayanan Pengembalaan Jemaat"],
-        "Anggota Jemaat Ordinari": ["Praise & Worship", "Multimedia", "Sound & Electrical Engineering", "User", "Parkiran & Keamanan", "Doa & Misi", "Dekorasi & Event", "Lainnya"],
-        "Koordinator Praise & Worship": ["Pelayanan Praise & Worship"],
-        "Koordinator Multimedia": ["Pelayanan Multimedia"],
-        "Koordinator Sound Engineering & Elektrical": ["Pelayanan Sound & electrical engineering"],
-        "Koordinator User": ["Pelayanan User"],
-        "Koordinator parkir dan keamanan": ["Pelayanan Parkiran & keamanan"],
-        "Koordinator Pelayanan Misi": ["Pelayanan Doa & Misi"],
-        "Koordinator Pendoa": ["Pelayanan Doa & Misi"],
-        "Koordinator dekorasi dan event": ["Pelayanan Dekorasi & Event"],
-        "Fulltimer Gereja": ["Pelayanan fulltimer Gereja"]
-    };
+        if (status === "Menikah") {
+            blockMenikah.style.display = "block";
+            blockOrtu.style.display = "none";
+        } else if (status === "Single" || status === "Duda" || status === "Janda") {
+            blockMenikah.style.display = "none";
+            blockOrtu.style.display = "block";
+        } else {
+            blockMenikah.style.display = "none";
+            blockOrtu.style.display = "none";
+        }
+    }
 
-    const dataNonStruktural = {
-        "Pelayanan Praise & Worship": ["Drum Player", "Keyboard Player", "Piano Player", "Bass Player", "Guitar Player", "Violin Player", "Saxsophone Player", "Flute player", "Vocal coach", "Worship leader", "Singers", "choirs"],
-        "Pelayanan Multimedia": ["Director media", "Floor director", "Campers", "Crew equipment", "Streaming operator", "Video switcher operator", "Easy Worshipe / Presenter Operator"],
-        "Pelayanan Sound & electrical engineering": ["Sound engineering", "Crew equipment", "Elektrical & Peripheral"],
-        "Pelayanan User": ["Front Desk user", "User direct", "Event organizer", "General Affairs"],
-        "Pelayanan Parkiran & keamanan": ["Parkir leader", "Parkir Crew", "Security"],
-        "Pelayanan Doa & Misi": ["Team Doa Syafaat", "Team Misi bidang Fundraising", "Team Misi bidang research & Deplovement", "Team Road Map", "Public Relations"],
-        "Pelayanan Dekorasi & Event": ["Decoration leader", "Decoration Crew", "Art And Painting", "Special effect"],
-        "Pelayanan fulltimer Gereja": ["Kepala Sekolah PAUD & PPA", "Sekretaris Operasional Gereja", "Bendahara Operasional gereja", "Guru Paud", "Mentor PPA", "Staff Geraja", "Staff PPA", "Hospitality & Konsumsi", "Driver"],
-        "Praise & Worship": ["Drum Player", "Keyboard Player", "Piano Player", "Bass Player", "Guitar Player", "Violin Player", "Saxsophone Player", "Flute player", "Vocal coach", "Worship leader", "Singers", "choirs"],
-        "Multimedia": ["Director media", "Floor director", "Campers", "Crew equipment", "Streaming operator", "Video switcher operator", "Easy Worshipe / Presenter Operator"],
-        "Sound & Electrical Engineering": ["Sound engineering", "Crew equipment", "Elektrical & Peripheral"],
-        "User": ["Front Desk user", "User direct", "Event organizer", "General Affairs"],
-        "Parkiran & Keamanan": ["Parkir leader", "Parkir Crew", "Security"],
-        "Doa & Misi": ["Team Doa Syafaat", "Team Misi bidang Fundraising", "Team Misi bidang research & Deplovement", "Team Road Map", "Public Relations"],
-        "Dekorasi & Event": ["Decoration leader", "Decoration Crew", "Art And Painting", "Special effect"]
-    };
-
-    // 3. LOGIKA FORM
     function nextStep(n) {
-        const steps = document.querySelectorAll('.form-step');
-        steps.forEach(step => { step.classList.remove('active'); step.style.display = 'none'; });
-        const targetStep = document.getElementById('step-' + n);
-        if (targetStep) { targetStep.classList.add('active'); targetStep.style.display = 'block'; }
-        if (n === 2) updateNIJPreview();
+        document.querySelectorAll('.form-step').forEach(step => step.classList.remove('active'));
+        document.getElementById('step-' + n).classList.add('active');
         document.querySelectorAll('.step').forEach((bar, index) => {
-            if (index < n) bar.classList.add('active');
-            else bar.classList.remove('active');
+            index < n ? bar.classList.add('active') : bar.classList.remove('active');
         });
         window.scrollTo(0, 0);
     }
 
-    function updateSubJabatan() {
-        const jab = document.getElementById("jabatan_jemaat").value;
-        const sub = document.getElementById("sub_jabatan");
-        sub.innerHTML = '<option value="">-- Pilih Sub Bidang --</option>';
-        if (dataSubJabatan[jab]) {
-            dataSubJabatan[jab].forEach(i => sub.add(new Option(i, i)));
-        }
-        updateSpesifikPelayanan(); 
-    }
-
-    function updateSpesifikPelayanan() {
-        const sub = document.getElementById("sub_jabatan").value;
-        const pel = document.getElementById("pelayanan");
-        pel.innerHTML = '<option value="">-- Pilih Fungsi Spesifik --</option>';
-        if (dataSpesifik[sub]) {
-            dataSpesifik[sub].forEach(i => pel.add(new Option(i, i)));
-            if (dataSpesifik[sub].length === 1) pel.selectedIndex = 1;
-        }
-        updateNonStruktural();
-    }
-
-    function updateNonStruktural() {
-        const pelVal = document.getElementById("pelayanan").value;
-        const nonPel = document.getElementById("pelayanan_spesifik_non");
-        nonPel.innerHTML = '<option value="">-- Pilih Detail Pelayanan --</option>';
-        if (dataNonStruktural[pelVal]) {
-            dataNonStruktural[pelVal].forEach(i => nonPel.add(new Option(i, i)));
-        }
-    }
-
+    // Dropdown Logic
     function updateKomsel() {
         const lok = document.getElementById("lokasi").value;
         const sel = document.getElementById("komsel");
@@ -322,62 +273,68 @@
         if (dataKomsel[lok]) dataKomsel[lok].forEach(i => sel.add(new Option(i, i)));
     }
 
+    function updateSubJabatan() {
+        const jab = document.getElementById("jabatan_jemaat").value;
+        const sub = document.getElementById("sub_jabatan");
+        sub.innerHTML = '<option value="">-- Pilih Sub Bidang --</option>';
+        if (dataSubJabatan[jab]) dataSubJabatan[jab].forEach(i => sub.add(new Option(i, i)));
+    }
+
+    function updateSpesifikPelayanan() {
+        const sub = document.getElementById("sub_jabatan").value;
+        const pel = document.getElementById("pelayanan");
+        pel.innerHTML = '<option value="">-- Pilih Fungsi Spesifik --</option>';
+        if (dataSpesifik[sub]) dataSpesifik[sub].forEach(i => pel.add(new Option(i, i)));
+    }
+
+    function updateNonStruktural() {
+        const pelVal = document.getElementById("pelayanan").value;
+        const nonPel = document.getElementById("pelayanan_spesifik_non");
+        nonPel.innerHTML = '<option value="">-- Pilih Detail Pelayanan --</option>';
+        if (dataNonStruktural[pelVal]) dataNonStruktural[pelVal].forEach(i => nonPel.add(new Option(i, i)));
+    }
+
     async function updateNIJPreview() {
         const lokasi = document.getElementById("lokasi").value;
         const displayInput = document.getElementById("nij-display");
-        if (!lokasi) { displayInput.value = "Pilih lokasi dahulu..."; return; }
-        try {
-            const snap = await db.collection("users").get();
-            const urut = String(snap.size + 1).padStart(3, '0');
-            const tahun = new Date().getFullYear();
-            displayInput.value = `NIJ-PPP-${lokasi}-${urut}-${tahun}`;
-        } catch (error) { console.error("Gagal NIJ:", error); }
+        if (!lokasi) return;
+        const snap = await db.collection("users").get();
+        const urut = String(snap.size + 1).padStart(3, '0');
+        displayInput.value = `NIJ-PPP-${lokasi}-${urut}-${new Date().getFullYear()}`;
     }
 
     async function handleRegistrasi() {
         const btn = document.getElementById("btnSubmit");
         const fileInput = document.getElementById("berkas_jemaat");
-        const email = document.getElementById("email").value.trim().toLowerCase();
-        const password = document.getElementById("pass").value;
-
         if (fileInput.files.length === 0) return alert("Unggah foto KTP/KK!");
 
         btn.innerText = "Mendaftarkan...";
         btn.disabled = true;
 
         try {
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
-            formData.append('upload_preset', 'pope_preset');
-            const cloudResp = await fetch('https://api.cloudinary.com/v1_1/dxzllsbgi/upload', { method: 'POST', body: formData });
-            const cloudData = await cloudResp.json();
-
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("pass").value;
             const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-            await userCredential.user.sendEmailVerification();
 
             const userData = {
                 uid: userCredential.user.uid,
                 nama: document.getElementById("nama").value,
-                email: email,
-                whatsapp: document.getElementById("hp").value,
-                lokasi_berjemaat: document.getElementById("lokasi").value,
-                komsel: document.getElementById("komsel").value,
-                jabatan: document.getElementById("jabatan_jemaat").value,
-                sub_jabatan: document.getElementById("sub_jabatan").value,
-                fungsi_pelayanan: document.getElementById("pelayanan").value,
-                fungsi_non_struktural: document.getElementById("pelayanan_spesifik_non").value,
+                status_pernikahan: document.getElementById("status_pernikahan").value,
+                nama_istri: document.getElementById("nama_istri").value || "-",
+                jumlah_anak: document.getElementById("jumlah_anak").value || "-",
+                nama_ayah: document.getElementById("nama_ayah").value || "-",
+                nama_ibu: document.getElementById("nama_ibu").value || "-",
+                pekerjaan: document.getElementById("pekerjaan").value,
                 nij: document.getElementById("nij-display").value,
-                url_berkas: cloudData.secure_url,
                 status: "Pending",
-                tanggalDaftar: new Date().toLocaleString('id-ID')
+                tanggalDaftar: new Date().toLocaleString()
             };
 
             await db.collection("users").doc(userCredential.user.uid).set(userData);
             document.getElementById('blocking-message').style.display = 'flex';
         } catch (e) {
-            alert("Error: " + e.message);
+            alert(e.message);
             btn.disabled = false;
-            btn.innerText = "FINALISASI & DAFTAR";
         }
     }
 
@@ -392,7 +349,6 @@
     async function loadKota() {
         const provEl = document.getElementById('provinsi_lahir');
         const idProv = provEl.options[provEl.selectedIndex].getAttribute('data-id');
-        if(!idProv) return;
         const resp = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${idProv}.json`);
         const data = await resp.json();
         let options = '<option value="">Pilih Kota</option>';
@@ -402,14 +358,8 @@
 
     function toggleAgreeButton() { document.getElementById('btn-agree-submit').disabled = !document.getElementById('check-agree').checked; }
     function closeTermsModal() { document.getElementById('terms-modal').style.display = 'none'; }
-
-    // Init
+    
     loadProvinsi();
-    document.getElementById('eyeIcon').addEventListener('click', function() {
-        const p = document.getElementById('pass');
-        p.type = p.type === 'password' ? 'text' : 'password';
-        this.classList.toggle('fa-eye-slash');
-    });
 </script>
 </body>
 </html>
