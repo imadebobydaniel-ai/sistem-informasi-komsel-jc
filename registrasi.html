@@ -312,10 +312,10 @@
         "Dekorasi & Event": ["Decoration leader", "Decoration Crew", "Art And Painting", "Special effect"]
     };
 
-    // 3. Fungsi Utility & Notifikasi
+    // 3. Fungsi Utility
     function showAlert(message, type = 'info') {
         const container = document.getElementById('notification-container');
-        if(!container) return alert(message);
+        if(!container) { console.log(message); return; }
         const alertBox = document.createElement('div');
         alertBox.className = `alert-box alert-${type}`;
         let icon = 'fa-circle-info';
@@ -329,16 +329,13 @@
         }, 4000);
     }
 
-    // 4. Logika Form Navigasi & Pernikahan
-    function handleStatusNikah() {
-        const status = document.getElementById("status_pernikahan").value;
-        const divMenikah = document.getElementById("form_menikah");
-        const divSingle = document.getElementById("form_single");
-        divMenikah.style.display = (status === "Menikah") ? "block" : "none";
-        divSingle.style.display = (status === "Single" || status === "Duda" || status === "Janda") ? "block" : "none";
-    }
-
+    // 4. Logika Navigasi (PENTING)
     function nextStep(n) {
+        // Mencegah error jika elemen tidak ada
+        const targetStep = document.getElementById('step-' + n);
+        if (!targetStep) return;
+
+        // Validasi input di Step 2 (Jabatan) sebelum ke Step 3
         if (n === 3) {
             const jab = document.getElementById("jabatan_jemaat").value;
             const sub = document.getElementById("sub_jabatan").value;
@@ -347,23 +344,38 @@
                 return;
             }
         }
-        document.querySelectorAll('.form-step').forEach(step => { step.style.display = 'none'; });
-        const targetStep = document.getElementById('step-' + n);
-        if (targetStep) targetStep.style.display = 'block';
-        
-        if (n === 2) updateNIJPreview();
 
+        // Sembunyikan semua step
+        document.querySelectorAll('.form-step').forEach(step => { 
+            step.style.display = 'none'; 
+        });
+        
+        // Tampilkan step tujuan
+        targetStep.style.display = 'block';
+        
+        // Update progress bar jika ada
         document.querySelectorAll('.step').forEach((bar, index) => {
             if (index < n) bar.classList.add('active');
             else bar.classList.remove('active');
         });
+
+        if (n === 2) updateNIJPreview();
         window.scrollTo(0, 0);
     }
 
-    // 5. Update Dropdown Bersambung
+    // 5. Dropdown Logic
+    function handleStatusNikah() {
+        const status = document.getElementById("status_pernikahan").value;
+        const divMenikah = document.getElementById("form_menikah");
+        const divSingle = document.getElementById("form_single");
+        if(divMenikah) divMenikah.style.display = (status === "Menikah") ? "block" : "none";
+        if(divSingle) divSingle.style.display = (status === "Single" || status === "Duda" || status === "Janda") ? "block" : "none";
+    }
+
     function updateSubJabatan() {
         const jab = document.getElementById("jabatan_jemaat").value;
         const sub = document.getElementById("sub_jabatan");
+        if(!sub) return;
         sub.innerHTML = '<option value="">-- Pilih Sub Bidang --</option>';
         if (dataSubJabatan[jab]) dataSubJabatan[jab].forEach(i => sub.add(new Option(i, i)));
         updateSpesifikPelayanan(); 
@@ -372,6 +384,7 @@
     function updateSpesifikPelayanan() {
         const sub = document.getElementById("sub_jabatan").value;
         const pel = document.getElementById("pelayanan");
+        if(!pel) return;
         pel.innerHTML = '<option value="">-- Pilih Fungsi Spesifik --</option>';
         if (dataSpesifik[sub]) {
             dataSpesifik[sub].forEach(i => pel.add(new Option(i, i)));
@@ -383,6 +396,7 @@
     function updateNonStruktural() {
         const pelVal = document.getElementById("pelayanan").value;
         const nonPel = document.getElementById("pelayanan_spesifik_non");
+        if(!nonPel) return;
         nonPel.innerHTML = '<option value="">-- Pilih Detail Pelayanan --</option>';
         if (dataNonStruktural[pelVal]) dataNonStruktural[pelVal].forEach(i => nonPel.add(new Option(i, i)));
     }
@@ -390,6 +404,7 @@
     function updateKomsel() {
         const lok = document.getElementById("lokasi").value;
         const sel = document.getElementById("komsel");
+        if(!sel) return;
         sel.innerHTML = '<option value="">-- Pilih Komsel --</option>';
         if (dataKomsel[lok]) dataKomsel[lok].forEach(i => sel.add(new Option(i, i)));
     }
@@ -397,6 +412,7 @@
     async function updateNIJPreview() {
         const lokasi = document.getElementById("lokasi").value;
         const displayInput = document.getElementById("nij-display");
+        if (!displayInput) return;
         if (!lokasi) { displayInput.value = "Pilih lokasi dahulu..."; return; }
         try {
             const snap = await db.collection("users").get();
@@ -406,12 +422,42 @@
         } catch (error) { console.error("Gagal NIJ:", error); }
     }
 
-    // 6. Logika Registrasi & Upload
+    // 6. Modal & UI
+    function toggleAgreeButton() { 
+        const check = document.getElementById('check-agree');
+        const btn = document.getElementById('btn-agree-submit');
+        if(check && btn) btn.disabled = !check.checked; 
+    }
+    
+    function closeTermsModal() { 
+        const modal = document.getElementById('terms-modal');
+        if(modal) modal.style.display = 'none'; 
+    }
+
+    function togglePassword() {
+        const p = document.getElementById('pass');
+        const icon = document.getElementById('eyeIcon');
+        if (!p) return;
+        if (p.type === 'password') {
+            p.type = 'text';
+            if(icon) icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            p.type = 'password';
+            if(icon) icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+    // 7. Registrasi
     async function handleRegistrasi() {
         const btn = document.getElementById("btnSubmit");
         const fileInput = document.getElementById("berkas_jemaat");
-        const email = document.getElementById("email").value.trim().toLowerCase();
-        const password = document.getElementById("pass").value;
+        const emailInput = document.getElementById("email");
+        const passInput = document.getElementById("pass");
+
+        if (!emailInput || !passInput || !fileInput) return;
+
+        const email = emailInput.value.trim().toLowerCase();
+        const password = passInput.value;
 
         if (!email || !password || !document.getElementById("nama").value) {
             showAlert("Mohon lengkapi data pribadi utama!", "error");
@@ -480,37 +526,16 @@
         }
     }
 
-    // 7. Fungsi UI (Modal & Password)
-    function toggleAgreeButton() { 
-        document.getElementById('btn-agree-submit').disabled = !document.getElementById('check-agree').checked; 
-    }
-    
-    function closeTermsModal() { 
-        document.getElementById('terms-modal').style.display = 'none'; 
-    }
-
-    function togglePassword() {
-        const p = document.getElementById('pass');
-        const icon = document.getElementById('eyeIcon');
-        if (p.type === 'password') {
-            p.type = 'text';
-            icon.classList.replace('fa-eye', 'fa-eye-slash');
-        } else {
-            p.type = 'password';
-            icon.classList.replace('fa-eye-slash', 'fa-eye');
-        }
-    }
-
-    // 8. Data Wilayah (Provinsi & Kota)
+    // 8. Data Wilayah
     async function loadProvinsi() {
         const provSelect = document.getElementById("provinsi_lahir");
+        if(!provSelect) return;
         try {
             const response = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
             const data = await response.json();
             provSelect.innerHTML = '<option value="">Pilih Provinsi...</option>';
             data.forEach(prov => { provSelect.add(new Option(prov.name, prov.id)); });
         } catch (e) {
-            // Fallback jika API bermasalah
             ["Papua", "Papua Barat", "Lainnya"].forEach(p => provSelect.add(new Option(p, p)));
         }
     }
@@ -518,7 +543,7 @@
     async function loadKota() {
         const provId = document.getElementById("provinsi_lahir").value;
         const kotaSelect = document.getElementById("kota_lahir");
-        if(!provId) return;
+        if(!provId || !kotaSelect) return;
         kotaSelect.innerHTML = '<option value="">Memuat...</option>';
         try {
             const response = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${provId}.json`);
@@ -530,12 +555,10 @@
         }
     }
 
-    // 9. Inisialisasi Saat Load
     window.onload = () => {
         loadProvinsi();
         const eye = document.getElementById('eyeIcon');
         if(eye) eye.addEventListener('click', togglePassword);
     };
-</script></script>
-</body>
+</script></body>
 </html>
