@@ -14,7 +14,7 @@
         }
 
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--light); margin: 0; padding: 10px; }
-        .admin-container { max-width: 1450px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .admin-container { max-width: 100%; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
         
         .header-section { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--emas); padding-bottom: 15px; margin-bottom: 20px; }
         .btn-logout { background: #dc3545; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 12px; }
@@ -49,15 +49,27 @@
         .search-box input { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
         .search-box i { position: absolute; right: 15px; top: 13px; color: #aaa; }
         
-        .table-responsive { overflow-x: auto; border: 1px solid #eee; border-radius: 10px; }
-        table { width: 100%; border-collapse: collapse; min-width: 1400px; }
-        table th { background: var(--primary); color: white; padding: 12px; font-size: 11px; text-align: left; text-transform: uppercase; }
+        /* Container untuk Scroll Horizontal */
+        .table-responsive { 
+            overflow-x: auto; 
+            border: 1px solid #eee; 
+            border-radius: 10px; 
+            background: white;
+        }
+
+        /* Tabel dibuat sangat lebar agar scroll muncul */
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            min-width: 1800px; 
+        }
+
+        table th { background: var(--primary); color: white; padding: 12px; font-size: 11px; text-align: left; text-transform: uppercase; white-space: nowrap; }
         table td { padding: 10px; border-bottom: 1px solid #eee; font-size: 11.5px; vertical-align: middle; }
         
-        .nij-col { color: var(--accent); font-weight: bold; font-family: monospace; font-size: 12px; }
+        .nij-col { color: var(--accent); font-weight: bold; font-family: monospace; font-size: 12px; white-space: nowrap; }
         .check-col { width: 40px; text-align: center; }
 
-        /* Gaya Dropdown Status Baru */
         .status-dropdown {
             padding: 6px 10px;
             border-radius: 4px;
@@ -65,7 +77,7 @@
             border: 2px solid #ccc;
             cursor: pointer;
             font-size: 11px;
-            width: 100%;
+            width: 110px;
         }
         .status-aktif { border-color: #28a745; color: #28a745; }
         .status-pending { border-color: #ffc107; color: #856404; }
@@ -74,7 +86,7 @@
         .file-link {
             background: #e9ecef; padding: 4px 8px; border-radius: 4px; font-size: 10px;
             border: 1px solid #ddd; transition: 0.3s; color: var(--accent) !important;
-            text-decoration: none !important; font-weight: bold; display: inline-block; margin-bottom: 5px;
+            text-decoration: none !important; font-weight: bold; display: inline-block; margin-bottom: 5px; white-space: nowrap;
         }
         .file-link:hover { background: var(--accent); color: white !important; transform: scale(1.05); }
     </style>
@@ -118,11 +130,14 @@
                     <th style="text-align:center;">Raport</th>
                     <th>NIJ</th>
                     <th>Nama Lengkap</th>
-                    <th>Kontak & Keluarga</th>
-                    <th>Lokasi & Komsel</th>
+                    <th>Gol. Darah</th>
+                    <th>WhatsApp / Kontak</th>
+                    <th>Keluarga</th>
+                    <th>Wilayah Jemaat</th>
+                    <th>Nama Komsel</th>
                     <th>Jabatan & Pelayanan</th>
                     <th>Lampiran File</th>
-                    <th style="width:150px;">Status Akun</th>
+                    <th style="width:130px;">Status Akun</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -168,11 +183,13 @@
                 const nij = d.nij || '-';
                 const whatsapp = d.whatsapp || d.WhatsApp || '-';
                 const status = d.status_akun || 'Pending';
+                const goldar = d.darah || d.golongan_darah || '-';
                 
-                // --- File Handling ---
+                // --- File Handling (TETAP DI SINI) ---
                 let fileHtml = "";
                 if (d.url_ktp) fileHtml += `<a href="${d.url_ktp}" target="_blank" class="file-link"><i class="fas fa-id-card"></i> KTP</a> `;
-                if (d.url_kk) fileHtml += `<a href="${d.url_kk}" target="_blank" class="file-link"><i class="fas fa-users"></i> KK</a>`;
+                if (d.url_kk) fileHtml += `<a href="${d.url_kk}" target="_blank" class="file-link"><i class="fas fa-users"></i> KK</a> `;
+                if (d.url_berkas) fileHtml += `<a href="${d.url_berkas}" target="_blank" class="file-link"><i class="fas fa-file-alt"></i> Berkas</a>`;
                 if (!fileHtml) fileHtml = "<small style='color:#aaa;'>No File</small>";
 
                 tableBody.innerHTML += `
@@ -187,15 +204,17 @@
                     <td class="nij-col">${nij}</td>
                     <td><strong>${namaTampil}</strong></td>
                     
-                    <td>
-                        <small><i class="fab fa-whatsapp" style="color:green;"></i> ${whatsapp}</small><br>
-                        <small><i class="fas fa-home"></i> P: ${d.nama_pasangan || '-'}</small>
-                    </td>
+                    <td style="text-align:center;"><strong>${goldar}</strong></td>
+
+                    <td><small><i class="fab fa-whatsapp" style="color:green;"></i> ${whatsapp}</small></td>
 
                     <td>
-                        <small><strong>${d.wilayah || '-'}</strong></small><br>
-                        <small>${d.komsel || '-'}</small>
+                        <small>P: ${d.nama_pasangan || '-'}</small><br>
+                        <small>A: ${d.jumlah_anak || '0'}</small>
                     </td>
+
+                    <td><small>${d.wilayah || '-'}</small></td>
+                    <td><small>${d.komsel || '-'}</small></td>
 
                     <td><small>${d.jabatan || '-'}</small></td>
                     
@@ -211,24 +230,23 @@
                     </td>
 
                     <td>
-                        <button onclick="openEditModal('${userId}')" class="btn-action" style="background:var(--accent); padding:5px 8px;"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteUser('${userId}')" class="btn-action" style="background:var(--danger); padding:5px 8px;"><i class="fas fa-trash"></i></button>
+                        <div style="display:flex; gap:5px;">
+                            <button onclick="openEditModal('${userId}')" class="btn-action" style="background:var(--accent); padding:5px 8px;"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteUser('${userId}')" class="btn-action" style="background:var(--danger); padding:5px 8px;"><i class="fas fa-trash"></i></button>
+                        </div>
                     </td>
                 </tr>`;
             });
         });
     }
 
-    // Fungsi Update Status Langsung dari Dropdown
     async function updateAccountStatus(id, newStatus) {
         try {
             await db.collection("users").doc(id).update({
-                status_akun: newStatus,
-                last_update: new Date().toISOString()
+                status_akun: newStatus
             });
-            // Snapshot otomatis akan merefresh UI
         } catch (error) {
-            alert("Gagal memperbarui status: " + error.message);
+            alert("Gagal: " + error.message);
         }
     }
 
