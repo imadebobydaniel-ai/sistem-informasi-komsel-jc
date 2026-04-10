@@ -14,7 +14,20 @@
         body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); margin: 0; padding: 15px; }
         .container { max-width: 600px; margin: auto; }
         .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: none; }
-        .card-header { display: flex; align-items: center; gap: 10px; font-weight: bold; color: var(--dark); margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; font-size: 14px; }
+        .card-header { display: flex; align-items: center; gap: 10px; font-weight: bold; color: var(--dark); margin-bottom: 10px; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; font-size: 14px; }
+        
+        /* Gaya untuk teks penjelasan grafik */
+        .chart-info { 
+            background: #fff9e6; 
+            padding: 10px; 
+            border-radius: 10px; 
+            font-size: 11px; 
+            color: #665; 
+            line-height: 1.4; 
+            margin-top: 15px;
+            border-left: 4px solid var(--warning);
+        }
+
         .filter-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
         .select-row { display: flex; gap: 8px; }
         select { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #ddd; background: #fff; font-size: 12px; font-weight: 600; color: #444; }
@@ -85,31 +98,18 @@
                 <option value="Komsel Sekolah Minggu">Komsel Sekolah Minggu</option>
                 <option value="Komsel Lansia">Komsel Lansia</option>
             </optgroup>
-             <optgroup label="Arso 1">
-                <option value="Komsel Bapak">Komsel Bapak</option>
-                <option value="Komsel Ibu">Komsel Ibu</option>
-                <option value="Komsel Profesi">Komsel Profesi</option>
-                <option value="Komsel Mahasiswa">Komsel Mahasiswa</option>
-                <option value="Komsel Pelajar">Komsel Pelajar</option>
-                <option value="Komsel Sekolah Minggu">Komsel Sekolah Minggu</option>
-                <option value="Komsel Lansia">Komsel Lansia</option>
-            </optgroup>
-             <optgroup label="Arso 2">
-                <option value="Komsel Bapak">Komsel Bapak</option>
-                <option value="Komsel Ibu">Komsel Ibu</option>
-                <option value="Komsel Profesi">Komsel Profesi</option>
-                <option value="Komsel Mahasiswa">Komsel Mahasiswa</option>
-                <option value="Komsel Pelajar">Komsel Pelajar</option>
-                <option value="Komsel Sekolah Minggu">Komsel Sekolah Minggu</option>
-                <option value="Komsel Lansia">Komsel Lansia</option>
-            </optgroup>
-        </select>
+            </select>
     </div>
 
     <div class="card">
         <div class="card-header"><i class="fas fa-users-check"></i> TOTAL KEHADIRAN HADIR</div>
         <div class="chart-box">
             <canvas id="chartKehadiran"></canvas>
+        </div>
+        <div class="chart-info">
+            <strong>Cara Membaca Grafik Kehadiran:</strong><br>
+            • Angka di bawah grafik (0, 5, 10, dst) menunjukkan <b>Jumlah Orang</b> yang hadir.<br>
+            • Semakin panjang batang warna ke kanan, semakin banyak total kehadiran pada kategori tersebut dalam periode bulan yang dipilih.
         </div>
     </div>
 
@@ -119,6 +119,11 @@
             <canvas id="chartDarah"></canvas>
         </div>
         <div id="summary-darah" class="stat-grid" style="margin-top:20px;"></div>
+        <div class="chart-info">
+            <strong>Cara Membaca Grafik Lingkaran:</strong><br>
+            • Grafik ini menunjukkan <b>Sebaran Tipe Darah</b> jemaat yang terdaftar.<br>
+            • Klik pada label (A, B, O, AB) untuk menyembunyikan atau memunculkan data tertentu. Angka menunjukkan perbandingan populasi tiap golongan darah.
+        </div>
     </div>
 
     <a href="menu.html" class="btn-back">KEMBALI KE PANEL ADMIN</a>
@@ -128,6 +133,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
+    // Konfigurasi Firebase tetap sama
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -149,13 +155,23 @@
             data: {
                 labels: ['Komsel Reguler', 'Ibadah Raya', 'Komsel Gabungan', 'Doa', 'KD/Latihan', 'Baca Alkitab'],
                 datasets: [{
-                    label: 'Jumlah',
+                    label: 'Jumlah Orang',
                     data: [0, 0, 0, 0, 0, 0],
                     backgroundColor: ['#4285f4', '#34a853', '#fbbc05', '#ea4335', '#673ab7', '#009688'],
                     borderRadius: 8
                 }]
             },
-            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
+            options: { 
+                indexAxis: 'y', 
+                responsive: true, 
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 } // Memaksa angka bulat (1, 2, 3...) agar tidak desimal
+                    }
+                }
+            }
         });
 
         chartD = new Chart(document.getElementById('chartDarah'), {
@@ -171,6 +187,7 @@
         });
     }
 
+    // Fungsi refreshData tetap sama dengan logika sebelumnya
     function refreshData() {
         if (unsub1) unsub1();
         if (unsub2) unsub2();
@@ -182,7 +199,6 @@
         const limitDate = new Date();
         limitDate.setMonth(limitDate.getMonth() - selBulan);
 
-        // 1. Ambil Data Golongan Darah (Koleksi users)
         unsub1 = db.collection("users").onSnapshot(snap => {
             let rekap = { 'A': 0, 'B': 0, 'O': 0, 'AB': 0, 'LAIN': 0 };
             let total = 0;
@@ -207,7 +223,6 @@
                 <div class="stat-card"><h3>${rekap.O}</h3><p>Tipe O</p></div>`;
         });
 
-        // 2. Ambil Data Kehadiran (Koleksi kehadiran)
         unsub2 = db.collection("kehadiran").onSnapshot(snap => {
             let rekapH = { 'Komsel Reguler': 0, 'Ibadah Raya': 0, 'Komsel Gabungan': 0, 'Doa': 0, 'KD/Latihan': 0, 'Baca Alkitab': 0 };
             snap.forEach(doc => {
