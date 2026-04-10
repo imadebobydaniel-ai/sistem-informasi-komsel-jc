@@ -6,92 +6,50 @@
     <title>index - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { 
-            --emas-lux: #D4AF37; 
-            --grey-bg: #2c2c2c; 
-            --biru-jemaat: #007bff;
-        }
+        :root { --emas-lux: #D4AF37; --grey-bg: #2c2c2c; --biru-aksen: #007bff; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #1a1a1a; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
 
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif; 
-            background-color: #1a1a1a; 
-            margin: 0; padding: 20px; 
-            display: flex; justify-content: center; align-items: center; 
-            min-height: 100vh; overflow: hidden; 
-        }
-
-        /* --- SPLASH SCREEN --- */
-        #splash-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: var(--grey-bg); display: flex; justify-content: center;
-            align-items: center; z-index: 999999; transition: opacity 0.8s ease, visibility 0.8s;
-        }
+        /* SPLASH SCREEN */
+        #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--grey-bg); display: flex; justify-content: center; align-items: center; z-index: 999999; transition: opacity 0.8s ease, visibility 0.8s; }
         .splash-hidden { opacity: 0 !important; visibility: hidden !important; }
-        .gold-loader {
-            position: absolute; width: 160px; height: 160px;
-            border: 5px solid rgba(212, 175, 55, 0.1); border-top: 5px solid var(--emas-lux);
-            border-radius: 50%; animation: spin 1.5s linear infinite;
-        }
+        .gold-loader { position: absolute; width: 160px; height: 160px; border: 5px solid rgba(212, 175, 55, 0.1); border-top: 5px solid var(--emas-lux); border-radius: 50%; animation: spin 1.5s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* --- UI LOGIN CARD --- */
-        .login-card {
-            background: #ffffff; padding: 40px; border-radius: 15px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; 
-            max-width: 400px; box-sizing: border-box; 
-            border-top: 5px solid var(--biru-jemaat);
-        }
-        .header { text-align: center; margin-bottom: 25px; }
+        /* LOGIN CARD */
+        .login-card { background: #ffffff; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 400px; box-sizing: border-box; border-top: 5px solid var(--biru-aksen); text-align: center; }
         .header img { width: 80px; }
-        .header h2 { margin: 10px 0 0; color: #333; font-size: 18px; }
-        
-        /* Notifikasi Block Display */
-        #login-msg {
-            display: none; padding: 12px; margin-bottom: 20px; 
-            border-radius: 8px; font-size: 13px; text-align: center;
-            animation: fadeIn 0.4s;
-        }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        
+        .header h2 { margin: 10px 0 0; color: #333; font-size: 18px; text-transform: uppercase; }
+
+        /* NOTIFIKASI BLOCK DISPLAY */
+        #login-msg { display: none; padding: 12px; margin-bottom: 20px; border-radius: 8px; font-size: 13px; font-weight: bold; }
         .msg-error { display: block !important; background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
         .msg-success { display: block !important; background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
-        .msg-info { display: block !important; background: #e3f2fd; color: #0d47a1; border: 1px solid #bbdefb; }
+        .msg-process { display: block !important; background: #e3f2fd; color: #0d47a1; border: 1px solid #bbdefb; }
 
-        .form-group { margin-bottom: 20px; position: relative; }
-        .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #444; text-align: left; }
-        .form-group input { 
-            width: 100%; padding: 12px; border: 1px solid #ddd; 
-            border-radius: 8px; box-sizing: border-box; outline: none; 
-        }
-
+        .form-group { margin-bottom: 20px; position: relative; text-align: left; }
+        .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #444; }
+        .form-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; outline: none; }
         .toggle-password { position: absolute; right: 15px; top: 38px; cursor: pointer; color: #888; }
-        .eye-active { color: var(--biru-jemaat) !important; text-shadow: 0 0 5px rgba(0,123,255,0.3); }
+        .eye-active { color: var(--biru-aksen) !important; }
 
-        .btn-login { 
-            width: 100%; padding: 14px; background-color: var(--biru-jemaat); 
-            color: white; border: none; border-radius: 8px; 
-            font-size: 16px; font-weight: bold; cursor: pointer;
-        }
+        .btn-login { width: 100%; padding: 14px; background-color: var(--biru-aksen); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
         .btn-login:disabled { background-color: #ccc; cursor: not-allowed; }
-        
-        .footer-links { text-align: center; margin-top: 20px; font-size: 13px; color: #666; }
-        .footer-links a { color: var(--biru-jemaat); text-decoration: none; font-weight: bold; }
+        .footer-links { margin-top: 20px; font-size: 13px; color: #666; }
+        .footer-links a { color: var(--biru-aksen); text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="splash-screen">
-        <div class="logo-wrapper">
-            <div class="gold-loader"></div>
-            <img src="logo_pondok.png" alt="Logo" style="width:120px; position:relative; z-index:2;">
-        </div>
+        <div class="gold-loader"></div>
+        <img src="logo_pondok.png" alt="Logo" style="width:120px; position:relative; z-index:2;">
     </div>
 
     <div class="login-card">
         <div class="header">
             <img src="logo_pondok.png" alt="Logo">
             <h2>PONDOK PEMULIHAN PAPUA</h2>
-            <div style="background:#2c3e50; color:#ffcc00; font-size:12px; padding:4px 10px; border-radius:20px; display:inline-block; margin-top:8px;">SISTEM INFORMASI JEMAAT</div>
+            <div style="background:#2c3e50; color:#ffcc00; font-size:12px; padding:4px 12px; border-radius:20px; display:inline-block; margin-top:8px;">SISTEM INFORMASI ANGGOTA</div>
         </div>
 
         <div id="login-msg"></div>
@@ -99,11 +57,11 @@
         <form id="userLoginForm">
             <div class="form-group">
                 <label>Email Anggota</label>
-                <input type="email" id="user_email" required placeholder="Masukkan email anda">
+                <input type="email" id="user_email" required placeholder="Email">
             </div>
             <div class="form-group">
                 <label>Password</label>
-                <input type="password" id="user_pass" required placeholder="Masukkan password">
+                <input type="password" id="user_pass" required placeholder="Password">
                 <i class="fa-solid fa-eye toggle-password" id="eyeIcon"></i>
             </div>
             <button type="submit" id="btnMasuk" class="btn-login">MASUK</button>
@@ -112,7 +70,7 @@
         <div class="footer-links">
             Belum punya akun? <a href="registrasi.html">Daftar Sekarang</a>
             <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
-            <a href="login_cyber.html" style="font-weight: normal; color: #888; font-size: 11px;">Masuk sebagai Admin</a>
+            <a href="login_cyber.html" style="color:#888; font-size:11px;">Masuk sebagai Admin</a>
         </div>
     </div>
 
@@ -120,7 +78,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
-        // 1. Inisialisasi Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
             authDomain: "boby-apps-project.firebaseapp.com",
@@ -132,21 +89,16 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
 
-        // 2. Anti-Dobel Login & Splash Logic
         document.addEventListener("DOMContentLoaded", function() {
-            // Cek jika sudah login sebelumnya
-            if (sessionStorage.getItem("isLoggedIn") === "true") {
+            if (sessionStorage.getItem("userLoggedIn") === "true") {
                 window.location.replace("menu.html");
                 return;
             }
-
             setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
-                if (splash) { splash.classList.add('splash-hidden'); }
+                document.getElementById('splash-screen').classList.add('splash-hidden');
             }, 2000);
         });
 
-        // 3. Fitur Mata Password
         const eyeIcon = document.getElementById('eyeIcon');
         const passInput = document.getElementById('user_pass');
         eyeIcon.addEventListener('click', () => {
@@ -156,20 +108,17 @@
             eyeIcon.classList.toggle('eye-active');
         });
 
-        // 4. Proses Login Utama
         const loginForm = document.getElementById('userLoginForm');
         const msgBox = document.getElementById('login-msg');
         const btn = document.getElementById('btnMasuk');
 
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const email = document.getElementById('user_email').value.trim();
+            const email = document.getElementById('user_email').value;
             const pass = document.getElementById('user_pass').value;
 
-            // Tampilkan Notifikasi Proses di Block Display
-            msgBox.innerText = "Sedang memverifikasi data...";
-            msgBox.className = "msg-info"; 
+            msgBox.innerText = "Memverifikasi...";
+            msgBox.className = "msg-process";
             btn.disabled = true;
 
             try {
@@ -179,25 +128,17 @@
                     .get();
 
                 if (!snap.empty) {
-                    // BERHASIL: Munculkan Notifikasi Hijau
-                    msgBox.innerText = "Login Berhasil! Mengalihkan...";
+                    msgBox.innerText = "Login Berhasil!";
                     msgBox.className = "msg-success";
-                    
-                    // Set Status agar tidak perlu login lagi (Anti-Dobel)
-                    sessionStorage.setItem("isLoggedIn", "true");
-                    sessionStorage.setItem("userEmail", email);
-
-                    setTimeout(() => { 
-                        window.location.replace("menu.html"); 
-                    }, 1500);
+                    sessionStorage.setItem("userLoggedIn", "true");
+                    setTimeout(() => { window.location.replace("menu.html"); }, 1200);
                 } else {
-                    // GAGAL: Munculkan Notifikasi Merah
-                    msgBox.innerText = "Maaf, Email atau Password Salah.";
+                    msgBox.innerText = "Email atau Password Salah!";
                     msgBox.className = "msg-error";
                     btn.disabled = false;
                 }
             } catch (err) {
-                msgBox.innerText = "Error Sistem: " + err.message;
+                msgBox.innerText = "Koneksi Bermasalah!";
                 msgBox.className = "msg-error";
                 btn.disabled = false;
             }
