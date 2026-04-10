@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Statistik</title>
+    <title>Statistik - PPP</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -13,19 +13,15 @@
         }
         body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); margin: 0; padding: 15px; }
         .container { max-width: 600px; margin: auto; }
-        
         .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: none; }
         .card-header { display: flex; align-items: center; gap: 10px; font-weight: bold; color: var(--dark); margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; font-size: 14px; }
-        
         .filter-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
         .select-row { display: flex; gap: 8px; }
         select { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #ddd; background: #fff; font-size: 12px; font-weight: 600; color: #444; }
-
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .stat-card { background: #f8f9fa; padding: 15px; border-radius: 12px; text-align: center; border-bottom: 3px solid var(--primary); }
         .stat-card h3 { margin: 0; font-size: 20px; color: var(--dark); }
         .stat-card p { margin: 5px 0 0; font-size: 10px; color: #666; font-weight: bold; text-transform: uppercase; }
-
         .chart-box { position: relative; height: 300px; width: 100%; }
         .btn-back { display: block; text-align: center; padding: 16px; background: var(--dark); color: white; text-decoration: none; font-weight: bold; border-radius: 14px; margin-top: 20px; }
     </style>
@@ -49,8 +45,9 @@
                 <option value="Arso 2">Arso 2</option>
             </select>
             <select id="filter-bulan" onchange="refreshData()">
-                <option value="1">1 Bulan</option>
-                <option value="3">3 Bulan</option>
+                <option value="1">1 Bulan Terakhir</option>
+                <option value="3">3 Bulan Terakhir</option>
+                <option value="12">Semua Data</option>
             </select>
         </div>
         <select id="filter-komsel" onchange="refreshData()">
@@ -101,25 +98,6 @@
 
     let chartK, chartD;
 
-    function updateDropdownKomsel() {
-        const wilayah = document.getElementById('filter-wilayah').value;
-        const komselSelect = document.getElementById('filter-komsel');
-        
-        // Reset dropdown
-        komselSelect.innerHTML = '<option value="ALL">SEMUA KOMSEL</option>';
-        
-        // Isi dropdown jika wilayah dipilih
-        if (wilayah !== "GLOBAL" && dataKomsel[wilayah]) {
-            dataKomsel[wilayah].forEach(k => {
-                const option = document.createElement('option');
-                option.value = k;
-                option.textContent = k;
-                komselSelect.appendChild(option);
-            });
-        }
-        refreshData();
-    }
-
     function initCharts() {
         if (chartK) chartK.destroy();
         if (chartD) chartD.destroy();
@@ -151,6 +129,20 @@
         });
     }
 
+    function updateDropdownKomsel() {
+        const wilayah = document.getElementById('filter-wilayah').value;
+        const komselSelect = document.getElementById('filter-komsel');
+        komselSelect.innerHTML = '<option value="ALL">SEMUA KOMSEL</option>';
+        if (wilayah !== "GLOBAL" && dataKomsel[wilayah]) {
+            dataKomsel[wilayah].forEach(k => {
+                const option = document.createElement('option');
+                option.value = k; option.textContent = k;
+                komselSelect.appendChild(option);
+            });
+        }
+        refreshData();
+    }
+
     async function refreshData() {
         const wilayah = document.getElementById('filter-wilayah').value;
         const komsel = document.getElementById('filter-komsel').value;
@@ -159,7 +151,7 @@
         const limitDate = new Date(); 
         limitDate.setMonth(limitDate.getMonth() - bulan);
 
-        // Filter Jemaat (Golongan Darah)
+        // 1. DATA GOLONGAN DARAH
         let uQuery = db.collection("users");
         if (wilayah !== "GLOBAL") uQuery = uQuery.where("wilayah", "==", wilayah);
         if (komsel !== "ALL") uQuery = uQuery.where("komsel", "==", komsel);
@@ -173,15 +165,14 @@
             });
             chartD.data.datasets[0].data = Object.values(rekap);
             chartD.update();
-            
             document.getElementById('summary-darah').innerHTML = `
                 <div class="stat-card"><h3>${snap.size}</h3><p>Total Jemaat</p></div>
                 <div class="stat-card"><h3>${rekap['O']}</h3><p>Jemaat Tipe O</p></div>
             `;
-        }, error => console.error("Error Jemaat:", error));
+        });
 
-        // Filter Kehadiran
-        let hQuery = db.collection("kehadiran").where("tanggal", ">=", limitDate);
+        // 2. DATA KEHADIRAN (Sederhana agar tidak error query)
+        let hQuery = db.collection("kehadiran");
         if (wilayah !== "GLOBAL") hQuery = hQuery.where("wilayah", "==", wilayah);
         if (komsel !== "ALL") hQuery = hQuery.where("komsel", "==", komsel);
 
@@ -189,7 +180,10 @@
             let k = { 'Reguler': 0, 'Ibadah': 0, 'Gabungan': 0, 'Doa': 0, 'KD': 0, 'Alkitab': 0 };
             snap.forEach(doc => {
                 const d = doc.data();
-                if (d.status === "HADIR") {
+                // Validasi Tanggal (Menangani format Timestamp atau String)
+                let tglDoc = d.tanggal?.toDate ? d.tanggal.toDate() : new Date(d.tanggal);
+                
+                if (tglDoc >= limitDate && d.status === "HADIR") {
                     const tipe = d.tipe || 'Reguler';
                     if (k.hasOwnProperty(tipe)) k[tipe]++;
                 }
@@ -201,7 +195,7 @@
                 (k.Doa/base)*100, (k.KD/base)*100, (k.Alkitab > 0 ? 85 : 0)
             ];
             chartK.update();
-        }, error => console.error("Error Kehadiran:", error));
+        });
     }
 
     window.onload = () => {
