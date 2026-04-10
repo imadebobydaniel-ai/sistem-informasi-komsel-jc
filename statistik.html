@@ -91,35 +91,17 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Rincian Komsel Lengkap
     const dataKomsel = {
-        "Abepura": [
-            "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5",
-            "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5",
-            "Esther 6", "Esther 7", "Esther 8", "Esther 9", "Esther 10",
-            "Esther 11", "Esther 12", "Komsel Profesi", "Komsel Mahasiswa",
-            "Komsel Pelajar", "Komsel Sekolah Minggu", "Komsel Lansia"
-        ],
-        "Sentani": [
-            "Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Siloam 5",
-            "Siloam 6", "Siloam 7", "Siloam 8", "Agaphe 1", "Agaphe 2",
-            "Agaphe 3", "Agaphe 4", "Agaphe 5", "Komsel Profesi",
-            "Komsel Mahasiswa", "Komsel Pelajar", "Komsel Sekolah Minggu", "Komsel Lansia"
-        ],
-        "Doyo": [
-            "Komsel Bapak Doyo", "Komsel Ibu Doyo", "Komsel Profesi Doyo",
-            "Komsel Mahasiswa Doyo", "Komsel Pelajar Doyo", "Komsel Sekolah Minggu Doyo"
-        ],
-        "Arso 1": [
-            "Komsel Bapak Arso 1", "Komsel Ibu Arso 2"
-        ],
-        "Arso 2": [
-            "Komsel Bapak Arso 2", "Komsel Pemuda dan Pelajar Arso 2", "Komsel Sekolah Minggu Arso 2"
-        ]
+        "Abepura": ["Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "Esther 8", "Esther 9", "Esther 10", "Esther 11", "Esther 12", "Komsel Profesi", "Komsel Mahasiswa", "Komsel Pelajar", "Komsel Sekolah Minggu", "Komsel Lansia"],
+        "Sentani": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Siloam 5", "Siloam 6", "Siloam 7", "Siloam 8", "Agaphe 1", "Agaphe 2", "Agaphe 3", "Agaphe 4", "Agaphe 5", "Komsel Profesi", "Komsel Mahasiswa", "Komsel Pelajar", "Komsel Sekolah Minggu", "Komsel Lansia"],
+        "Doyo": ["Komsel Bapak Doyo", "Komsel Ibu Doyo", "Komsel Profesi Doyo", "Komsel Mahasiswa Doyo", "Komsel Pelajar Doyo", "Komsel Sekolah Minggu Doyo"],
+        "Arso 1": ["Komsel Bapak Arso 1", "Komsel Ibu Arso 2"],
+        "Arso 2": ["Komsel Bapak Arso 2", "Komsel Pemuda dan Pelajar Arso 2", "Komsel Sekolah Minggu Arso 2"]
     };
 
     let chartK, chartD;
 
+    // FUNGSI UPDATE DROPDOWN
     function updateDropdownKomsel() {
         const wilayah = document.getElementById('filter-wilayah').value;
         const komselSelect = document.getElementById('filter-komsel');
@@ -169,18 +151,21 @@
         const wilayah = document.getElementById('filter-wilayah').value;
         const komsel = document.getElementById('filter-komsel').value;
         const bulan = parseInt(document.getElementById('filter-bulan').value);
-        const limitDate = new Date(); limitDate.setMonth(limitDate.getMonth() - bulan);
+        
+        const limitDate = new Date(); 
+        limitDate.setMonth(limitDate.getMonth() - bulan);
 
-        // Filter Firestore untuk Golongan Darah
+        // LOGIK GOLONGAN DARAH
         let uQuery = db.collection("users");
-        if(wilayah !== "GLOBAL") uQuery = uQuery.where("wilayah", "==", wilayah);
-        if(komsel !== "ALL") uQuery = uQuery.where("komsel", "==", komsel);
+        if (wilayah !== "GLOBAL") uQuery = uQuery.where("wilayah", "==", wilayah);
+        if (komsel !== "ALL") uQuery = uQuery.where("komsel", "==", komsel);
 
         uQuery.onSnapshot(snap => {
             let rekap = { 'A': 0, 'B': 0, 'O': 0, 'AB': 0, 'AB+': 0 };
             snap.forEach(doc => {
-                let g = (doc.data().goldarah || doc.data().darah || "").toUpperCase().trim();
-                if(rekap.hasOwnProperty(g)) rekap[g]++;
+                const data = doc.data();
+                let g = (data.goldarah || data.darah || "").toUpperCase().trim();
+                if (rekap.hasOwnProperty(g)) rekap[g]++;
             });
             chartD.data.datasets[0].data = Object.values(rekap);
             chartD.update();
@@ -191,22 +176,26 @@
             `;
         });
 
-        // Filter Firestore untuk Kehadiran
+        // LOGIK KEHADIRAN
         let hQuery = db.collection("kehadiran").where("tanggal", ">=", limitDate);
-        if(wilayah !== "GLOBAL") hQuery = hQuery.where("wilayah", "==", wilayah);
-        if(komsel !== "ALL") hQuery = hQuery.where("komsel", "==", komsel);
+        if (wilayah !== "GLOBAL") hQuery = hQuery.where("wilayah", "==", wilayah);
+        if (komsel !== "ALL") hQuery = hQuery.where("komsel", "==", komsel);
 
         hQuery.onSnapshot(snap => {
             let k = { 'Reguler': 0, 'Ibadah': 0, 'Gabungan': 0, 'Doa': 0, 'KD': 0, 'Alkitab': 0 };
             snap.forEach(doc => {
                 const d = doc.data();
-                if(d.status === "HADIR") k[d.tipe || 'Reguler']++;
+                if (d.status === "HADIR") {
+                    const tipe = d.tipe || 'Reguler';
+                    if (k.hasOwnProperty(tipe)) k[tipe]++;
+                }
             });
             
+            // Perhitungan persentase sederhana (target 50)
             const base = 50; 
             chartK.data.datasets[0].data = [
                 (k.Reguler/base)*100, (k.Ibadah/base)*100, (k.Gabungan/base)*100, 
-                (k.Doa/base)*100, (k.KD/base)*100, 85
+                (k.Doa/base)*100, (k.KD/base)*100, (k.Alkitab > 0 ? 85 : 0)
             ];
             chartK.update();
         });
@@ -214,7 +203,7 @@
 
     window.onload = () => {
         initCharts();
-        refreshData();
+        updateDropdownKomsel(); // Inisialisasi dropdown saat pertama buka
     };
 </script>
 </body>
