@@ -251,7 +251,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
 <script>
-    // 1. Konfigurasi Firebase (Ganti dengan config milikmu)
+    // 1. Konfigurasi Firebase (PASTIKAN INI BENAR)
     const firebaseConfig = {
         apiKey: "AIza...",
         authDomain: "pondok-pemulihan-papua.firebaseapp.com",
@@ -263,7 +263,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Inisialisasi Tahun
+    // Inisialisasi dropdown Tahun
     const selectTahun = document.getElementById('selectTahun');
     const thnSekarang = new Date().getFullYear();
     for (let i = thnSekarang - 2; i <= thnSekarang + 5; i++) {
@@ -276,7 +276,7 @@
     const clusters = ['Abepura', 'Sentani', 'Doyo', 'Arso1', 'Arso2', 'AllGereja'];
     const komselList = ["Umum Gereja", "Komsel Bapak", "Komsel Ibu", "Komsel Profesi", "Komsel Mahasiswa", "Komsel Pelajar", "Komsel Sekolah Minggu", "Agenda Tambahan (Ext)"];
 
-    // 2. Render Struktur Tab & Kategori
+    // 2. Render Struktur Tab & Kategori secara otomatis
     clusters.forEach(id => {
         const div = document.getElementById(id);
         if (div) {
@@ -327,25 +327,29 @@
 
         listArea.innerHTML = `<p style="color:#006666; text-align:center; width:100%;">Memuat data agenda...</p>`;
 
-        // LOGIKA QUERY FIREBASE
+        // Mulai LOGIKA QUERY FIREBASE
         let query = db.collection("agenda_tahunan");
 
-        // Jika bukan All Gereja, filter per wilayah
+        // Filter Wilayah: Jika bukan 'All Gereja', cari yang spesifik
         if (wilayahAktif !== "All Gereja") {
             query = query.where("wilayah", "==", wilayahAktif);
         }
 
+        // Filter kategori, bulan, dan tahun
+        // Pastikan di database Firestore, field 'bulan' bertipe String (contoh: "1", bukan 1)
         query.where("kategori", "==", kategoriAktif)
             .where("bulan", "==", bln)
             .where("tahun", "==", thn)
             .onSnapshot((snapshot) => {
+                console.log("Status: Pencarian selesai. Jumlah data:", snapshot.size);
+                
                 if (snapshot.empty) {
-                    listArea.innerHTML = `<p style="color:#888; text-align:center; width:100%;">Agenda <b>${wilayahAktif}</b> kategori <b>${kategoriAktif}</b> belum tersedia.</p>`;
+                    listArea.innerHTML = `<p style="color:#888; text-align:center; width:100%;">Agenda <b>${wilayahAktif}</b> kategori <b>${kategoriAktif}</b> belum tersedia untuk periode ini.</p>`;
                 } else {
                     let htmlResult = "";
                     snapshot.forEach((doc) => {
                         const data = doc.data();
-                        const labelWilayah = wilayahAktif === "All Gereja" ? `<small style="background:#eef2f1; color:#006666; padding:4px 8px; border-radius:6px; position:absolute; right:15px; top:15px; font-weight:bold; border:1px solid #006666;">${data.wilayah}</small>` : "";
+                        const labelWilayah = (wilayahAktif === "All Gereja") ? `<small style="background:#eef2f1; color:#006666; padding:4px 8px; border-radius:6px; position:absolute; right:15px; top:15px; font-weight:bold; border:1px solid #006666;">${data.wilayah}</small>` : "";
                         
                         htmlResult += `
                             <div class="agenda-item">
@@ -360,8 +364,8 @@
                     listArea.innerHTML = htmlResult;
                 }
             }, (error) => {
-                console.error("Error: ", error);
-                listArea.innerHTML = `<p style="color:red; text-align:center; width:100%;">Gagal memuat data.</p>`;
+                console.error("Firebase Error: ", error);
+                listArea.innerHTML = `<p style="color:red; text-align:center; width:100%;">Terjadi kesalahan koneksi database.</p>`;
             });
     }
 </script>
