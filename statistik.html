@@ -87,12 +87,10 @@
     };
 
     let db;
-    try {
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        db = firebase.firestore();
-    } catch (e) { 
-        console.error("Firebase Error:", e); 
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
     }
+    db = firebase.firestore();
 
     const dataKomsel = {
         "Abepura": ["Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "Esther 8", "Esther 9", "Esther 10", "Esther 11", "Esther 12", "Komsel Profesi", "Komsel Mahasiswa", "Komsel Pelajar", "Komsel Sekolah Minggu", "Komsel Lansia"],
@@ -103,15 +101,13 @@
     };
 
     let chartK, chartD;
+    let unsubscribeUsers, unsubscribeHadir;
 
     function initCharts() {
-        const ctxK = document.getElementById('chartKehadiran');
-        const ctxD = document.getElementById('chartDarah');
-
         if (chartK) chartK.destroy();
         if (chartD) chartD.destroy();
 
-        chartK = new Chart(ctxK, {
+        chartK = new Chart(document.getElementById('chartKehadiran'), {
             type: 'bar',
             data: {
                 labels: ['Komsel Reguler', 'Ibadah Raya', 'Komsel Gabungan', 'Doa', 'KD/Latihan', 'Baca Alkitab'],
@@ -125,7 +121,7 @@
             options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
         });
 
-        chartD = new Chart(ctxD, {
+        chartD = new Chart(document.getElementById('chartDarah'), {
             type: 'doughnut',
             data: {
                 labels: ['A', 'B', 'O', 'AB', 'Lainnya'],
@@ -142,6 +138,7 @@
         const wilayah = document.getElementById('filter-wilayah').value;
         const komselSelect = document.getElementById('filter-komsel');
         komselSelect.innerHTML = '<option value="ALL">SEMUA KOMSEL</option>';
+        
         if (wilayah !== "GLOBAL" && dataKomsel[wilayah]) {
             dataKomsel[wilayah].forEach(k => {
                 let opt = document.createElement('option');
@@ -154,47 +151,63 @@
 
     function refreshData() {
         if (!db) return;
+        if (unsubscribeUsers) unsubscribeUsers();
+        if (unsubscribeHadir) unsubscribeHadir();
+
         const selWilayah = document.getElementById('filter-wilayah').value;
         const selKomsel = document.getElementById('filter-komsel').value;
         const selBulan = parseInt(document.getElementById('filter-bulan').value);
         const limitDate = new Date();
         limitDate.setMonth(limitDate.getMonth() - selBulan);
 
-        // Reset grafik ke nol saat loading untuk mencegah data menumpuk
-        chartK.data.datasets[0].data = [0,0,0,0,0,0]; chartK.update();
-        chartD.data.datasets[0].data = [0,0,0,0,0]; chartD.update();
-
-        // 1. Ambil Data Jemaat (Golongan Darah)
-        db.collection("users").onSnapshot(snap => {
+        // 1. Logika Pengambilan Data Jemaat (Sesuai Field Database)
+        unsubscribeUsers = db.collection("users").onSnapshot(snap => {
             let rekapDarah = { 'A': 0, 'B': 0, 'O': 0, 'AB': 0, 'LAIN': 0 };
-            let total = 0;
+            let totalJemaat = 0;
+            let totalTipeO = 0;
+
             snap.forEach(doc => {
                 const d = doc.data();
-                const mWilayah = (selWilayah === "GLOBAL" || d.wilayah === selWilayah);
-                const mKomsel = (selKomsel === "ALL" || d.komsel === selKomsel);
+                
+                // Menggunakan 'Komsel' dengan K besar sesuai gambar Firebase
+                const matchesWilayah = (selWilayah === "GLOBAL" || d.wilayah === selWilayah);
+                const matchesKomsel = (selKomsel === "ALL" || d.Komsel === selKomsel);
 
-                if (mWilayah && mKomsel) {
-                    total++;
-                    let g = (d.goldarah || d.darah || "LAIN").toUpperCase().trim();
-                    if (rekapDarah.hasOwnProperty(g)) rekapDarah[g]++; else rekapDarah['LAIN']++;
+                if (matchesWilayah && matchesKomsel) {
+                    totalJemaat++;
+
+                    // Menggunakan field 'darah' sesuai temuan database
+                    let g = (d.darah || "LAIN").toUpperCase();
+                    
+                    if (g.includes("A") && !g.includes("B")) rekapDarah['A']++;
+                    else if (g.includes("B") && !g.includes("A")) rekapDarah['B']++;
+                    else if (g.includes("O")) {
+                        rekapDarah['O']++;
+                        totalTipeO++;
+                    }
+                    else if (g.includes("AB")) rekapDarah['AB']++;
+                    else rekapDarah['LAIN']++;
                 }
             });
+
             chartD.data.datasets[0].data = [rekapDarah.A, rekapDarah.B, rekapDarah.O, rekapDarah.AB, rekapDarah.LAIN];
             chartD.update();
+
             document.getElementById('summary-darah').innerHTML = `
-                <div class="stat-card"><h3>${total}</h3><p>Total Jemaat</p></div>
-                <div class="stat-card"><h3>${rekapDarah.O}</h3><p>Tipe O</p></div>`;
+                <div class="stat-card"><h3>${totalJemaat}</h3><p>Total Jemaat</p></div>
+                <div class="stat-card"><h3>${totalTipeO}</h3><p>Tipe O</p></div>`;
         });
 
         // 2. Ambil Data Kehadiran
-        db.collection("kehadiran").onSnapshot(snap => {
+        unsubscribeHadir = db.collection("kehadiran").onSnapshot(snap => {
             let rekapHadir = { 'Reguler': 0, 'Ibadah': 0, 'Gabungan': 0, 'Doa': 0, 'KD': 0, 'Alkitab': 0 };
             snap.forEach(doc => {
                 const d = doc.data();
                 const tglDoc = d.tanggal?.toDate ? d.tanggal.toDate() : new Date(d.tanggal);
                 
+                // Menyesuaikan filter wilayah & komsel untuk kehadiran
                 const mWilayah = (selWilayah === "GLOBAL" || d.wilayah === selWilayah);
-                const mKomsel = (selKomsel === "ALL" || d.komsel === selKomsel);
+                const mKomsel = (selKomsel === "ALL" || (d.komsel || d.Komsel) === selKomsel);
                 const mWaktu = (tglDoc >= limitDate);
 
                 if (mWilayah && mKomsel && mWaktu && d.status === "HADIR") {
@@ -207,11 +220,10 @@
         });
     }
 
-    // Inisialisasi saat halaman dimuat
-    window.addEventListener('load', () => {
+    window.onload = () => {
         initCharts();
         updateDropdownKomsel();
-    });
+    };
 </script>
 </body>
 </html>
