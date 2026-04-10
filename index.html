@@ -22,7 +22,7 @@
 
         /* --- SISTEM NOTIFIKASI BLOCK DISPLAY --- */
         #login-msg { 
-            display: none; /* Sembunyi secara default */
+            display: none; 
             padding: 12px; 
             margin-bottom: 20px; 
             border-radius: 8px; 
@@ -31,13 +31,11 @@
             text-align: center;
         }
         
-        /* Class pemicu untuk menampilkan block */
         .show-block { display: block !important; }
         
         .msg-error { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
         .msg-success { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
         .msg-process { background: #e3f2fd; color: #0d47a1; border: 1px solid #bbdefb; }
-        /* ---------------------------------------- */
 
         .form-group { margin-bottom: 20px; position: relative; text-align: left; }
         .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #444; }
@@ -102,7 +100,6 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
 
-        // Cek Session
         document.addEventListener("DOMContentLoaded", function() {
             if (sessionStorage.getItem("userLoggedIn") === "true") {
                 window.location.replace("menu.html");
@@ -113,7 +110,6 @@
             }, 2000);
         });
 
-        // Toggle Password
         const eyeIcon = document.getElementById('eyeIcon');
         const passInput = document.getElementById('user_pass');
         eyeIcon.addEventListener('click', () => {
@@ -123,47 +119,56 @@
             eyeIcon.classList.toggle('eye-active');
         });
 
-        // Proses Login
         const loginForm = document.getElementById('userLoginForm');
         const msgBox = document.getElementById('login-msg');
         const btn = document.getElementById('btnMasuk');
 
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('user_email').value.trim();
-            const pass = document.getElementById('user_pass').value;
+            const emailInput = document.getElementById('user_email').value.trim();
+            const passInput = document.getElementById('user_pass').value;
 
-            // 1. Tampilkan NOTIF PROSES (Block Display)
             msgBox.innerText = "Memverifikasi...";
             msgBox.className = "msg-process show-block"; 
             btn.disabled = true;
 
             try {
-                const snap = await db.collection("jemaat")
-                    .where("email", "==", email)
-                    .where("password", "==", pass)
+                // Mencari user berdasarkan email saja dulu untuk debug
+                const userQuery = await db.collection("jemaat")
+                    .where("email", "==", emailInput)
                     .get();
 
-                if (!snap.empty) {
-                    // 2. Tampilkan NOTIF BERHASIL (Block Display)
+                if (userQuery.empty) {
+                    msgBox.innerText = "Akun tidak ditemukan!";
+                    msgBox.className = "msg-error show-block";
+                    btn.disabled = false;
+                    return;
+                }
+
+                let loginBerhasil = false;
+                userQuery.forEach((doc) => {
+                    const data = doc.data();
+                    // Cek password secara manual untuk menghindari masalah tipe data
+                    if (data.password == passInput) {
+                        loginBerhasil = true;
+                        sessionStorage.setItem("userLoggedIn", "true");
+                        sessionStorage.setItem("userName", data.nama || "User");
+                    }
+                });
+
+                if (loginBerhasil) {
                     msgBox.innerText = "Login Berhasil!";
                     msgBox.className = "msg-success show-block";
-                    sessionStorage.setItem("userLoggedIn", "true");
-                    
-                    const userData = snap.docs[0].data();
-                    sessionStorage.setItem("userName", userData.nama || "User");
-
                     setTimeout(() => { window.location.replace("menu.html"); }, 1200);
                 } else {
-                    // 3. Tampilkan NOTIF ERROR (Block Display)
-                    msgBox.innerText = "Email atau Password Salah!";
+                    msgBox.innerText = "Password Salah!";
                     msgBox.className = "msg-error show-block";
                     btn.disabled = false;
                 }
+
             } catch (err) {
                 console.error("Error Detail:", err);
-                // 4. Tampilkan NOTIF KONEKSI (Block Display)
-                msgBox.innerText = "Koneksi Bermasalah!";
+                msgBox.innerText = "Gagal terhubung ke database!";
                 msgBox.className = "msg-error show-block";
                 btn.disabled = false;
             }
