@@ -7,7 +7,12 @@
     <title>Login - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background-color: #f0f2f5; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        :root { 
+            --biru-tua: #003366; 
+            --emas-lux: #D4AF37; 
+        }
+
+        body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background-color: #f0f2f5; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
         .login-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
         .logo { width: 80px; margin-bottom: 15px; }
         h2 { margin: 5px 0; font-size: 20px; color: #333; font-weight: bold; }
@@ -24,9 +29,57 @@
         .modal-overlay { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); justify-content: center; align-items: center; }
         .modal-content { background-color: white; padding: 30px; border-radius: 15px; text-align: center; width: 85%; max-width: 350px; box-shadow: 0 15px 30px rgba(0,0,0,0.4); }
         .btn-ok { background-color: #003366; color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 20px; }
+
+        /* --- CSS SPLASH SCREEN --- */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--biru-tua); 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999; 
+            transition: opacity 1s ease, visibility 1s;
+        }
+        .splash-content {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+        .splash-logo {
+            width: 140px; 
+            height: auto;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+            animation: pulse 2s infinite ease-in-out;
+        }
+        .gold-loader {
+            width: 45px;
+            height: 45px;
+            border: 4px solid rgba(212, 175, 55, 0.1);
+            border-top: 4px solid var(--emas-lux);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+        .splash-hidden { opacity: 0; visibility: hidden; }
     </style>
 </head>
 <body>
+
+    <div id="splash-screen">
+        <div class="splash-content">
+            <img src="logo_pondok.png" alt="Logo" class="splash-logo">
+            <div class="gold-loader"></div>
+            <p style="color: var(--emas-lux); font-weight: bold; font-size: 14px; margin-top: -10px; letter-spacing: 1px;">PONDOK PEMULIHAN PAPUA</p>
+        </div>
+    </div>
 
     <div class="login-card">
         <img src="logo_pondok.png" alt="Logo" class="logo">
@@ -70,6 +123,17 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
+        // FUNGSI SPLASH SCREEN
+        window.onload = () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.classList.add('splash-hidden');
+                    document.body.style.overflow = "auto"; // Kembalikan scroll setelah splash hilang
+                }
+            }, 3000); // Tampil selama 3 detik
+        };
+
         // 1. PENCEGAH BACK
         (function () {
             history.pushState(null, null, location.href);
@@ -115,33 +179,6 @@
                 passInput.type = 'password';
                 eyeIcon.classList.replace('fa-eye-slash', 'fa-eye');
             }
-        }
-
-        // --- FUNGSI SIMPAN PRESENSI (SUDAH DIPERBAIKI PENEMPATANNYA) ---
-        // Catatan: Fungsi ini tetap ditaruh di sini agar bisa digunakan secara global jika diperlukan
-        function simpanPresensi(namaUser, jcUser, modelKegiatan) {
-            let statusFinal = "";
-            const daftarTidakHadir = ["Absen Doa", "Absen KD"]; 
-            
-            if (daftarTidakHadir.includes(modelKegiatan)) {
-                statusFinal = "TIDAK HADIR";
-            } else {
-                statusFinal = "HADIR";
-            }
-
-            db.collection("kehadiran").add({
-                nama: namaUser,
-                jc: "JC " + jcUser.replace(/[^0-9]/g, ''), 
-                jenis_kegiatan: modelKegiatan, 
-                status: statusFinal, 
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            })
-            .then(() => {
-                alert("Data berhasil disimpan sebagai: " + statusFinal);
-            })
-            .catch((error) => {
-                console.error("Error simpan data: ", error);
-            });
         }
 
         // 4. LOGIKA LOGIN
