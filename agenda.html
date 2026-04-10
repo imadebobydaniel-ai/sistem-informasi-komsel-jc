@@ -4,10 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agenda Tahunan - Pondok Pemulihan Papua</title>
-    <link rel="stylesheet" href="style-agenda.css"> </head>
+    <link rel="stylesheet" href="style-agenda.css">
+    <style>
+        /* Tambahan CSS inline agar langsung terlihat hasilnya */
+        .cluster-content { display: none; }
+        .active { display: block; }
+        .sub-link.active { background: #006666 !important; color: white !important; }
+    </style>
+</head>
 <body>
 
 <div class="container">
+    <div style="margin-bottom: 20px;">
+        <a href="menu.html" style="text-decoration: none; color: #006666; font-weight: bold;">
+            ← Kembali ke Menu Utama
+        </a>
+    </div>
+
     <h2>AGENDA TAHUNAN JEMAAT</h2>
 
     <div class="filter-section">
@@ -15,13 +28,21 @@
             <option value="">Pilih Bulan</option>
             <option value="1">Januari</option>
             <option value="2">Februari</option>
+            <option value="3">Maret</option>
+            <option value="4">April</option>
+            <option value="5">Mei</option>
+            <option value="6">Juni</option>
+            <option value="7">Juli</option>
+            <option value="8">Agustus</option>
+            <option value="9">September</option>
+            <option value="10">Oktober</option>
+            <option value="11">November</option>
             <option value="12">Desember</option>
         </select>
 
-        <select id="selectTahun">
-            </select>
+        <select id="selectTahun"></select>
         
-        <button class="btn-cari">Cari Agenda</button>
+        <button class="btn-cari" onclick="cariAgenda()">Cari Agenda</button>
     </div>
 
     <div class="tabs-cluster">
@@ -34,19 +55,41 @@
 
     <div id="Abepura" class="cluster-content active">
         <div class="sub-tab-wrapper">
-            <button class="sub-link active">Umum Gereja</button>
-            <button class="sub-link">Komsel Bapak</button>
-            <button class="sub-link">Komsel Ibu</button>
-            <button class="sub-link">Profesi</button>
-            <button class="sub-link">Mahasiswa</button>
-            <button class="sub-link">Pelajar</button>
-            <button class="sub-link">Sekolah Minggu</button>
-            <button class="sub-link ext">Tambahan (Ext)</button>
+            <button class="sub-link active" onclick="openSubTab(this)">Umum Gereja</button>
+            <button class="sub-link" onclick="openSubTab(this)">Komsel Bapak</button>
+            <button class="sub-link" onclick="openSubTab(this)">Komsel Ibu</button>
+            <button class="sub-link" onclick="openSubTab(this)">Profesi</button>
+            <button class="sub-link" onclick="openSubTab(this)">Mahasiswa</button>
+            <button class="sub-link" onclick="openSubTab(this)">Pelajar</button>
+            <button class="sub-link" onclick="openSubTab(this)">Sekolah Minggu</button>
+            <button class="sub-link ext" onclick="openSubTab(this)">Tambahan (Ext)</button>
         </div>
-
         <div class="agenda-list">
-            <p style="text-align:center; color:#888;">Silahkan pilih kategori untuk melihat agenda.</p>
+            <p style="text-align:center; color:#888;">Agenda Abepura untuk kategori ini belum tersedia.</p>
         </div>
+    </div>
+
+    <div id="Sentani" class="cluster-content">
+        <div class="sub-tab-wrapper">
+            <button class="sub-link active" onclick="openSubTab(this)">Umum Gereja</button>
+            <button class="sub-link" onclick="openSubTab(this)">Komsel Bapak</button>
+            <button class="sub-link" onclick="openSubTab(this)">Komsel Ibu</button>
+            <button class="sub-link" onclick="openSubTab(this)">Sekolah Minggu</button>
+            <button class="sub-link ext" onclick="openSubTab(this)">Tambahan (Ext)</button>
+        </div>
+        <div class="agenda-list">
+            <p style="text-align:center; color:#888;">Agenda Sentani belum tersedia.</p>
+        </div>
+    </div>
+
+    <div id="Doyo" class="cluster-content">
+        <div class="agenda-list"><p style="text-align:center;">Agenda Doyo belum tersedia.</p></div>
+    </div>
+    <div id="Arso1" class="cluster-content">
+        <div class="agenda-list"><p style="text-align:center;">Agenda Arso 1 belum tersedia.</p></div>
+    </div>
+    <div id="Arso2" class="cluster-content">
+        <div class="agenda-list"><p style="text-align:center;">Agenda Arso 2 belum tersedia.</p></div>
     </div>
 
 </div>
@@ -69,14 +112,36 @@
         var i, tabcontent, tablinks;
         tabcontent = document.getElementsByClassName("cluster-content");
         for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].classList.remove("active");
             tabcontent[i].style.display = "none";
         }
         tablinks = document.getElementsByClassName("tab-link");
         for (i = 0; i < tablinks.length; i++) {
-            tablinks[i].className = tablinks[i].className.replace(" active", "");
+            tablinks[i].classList.remove("active");
         }
         document.getElementById(clusterName).style.display = "block";
-        evt.currentTarget.className += " active";
+        document.getElementById(clusterName).classList.add("active");
+        evt.currentTarget.classList.add("active");
+    }
+
+    // 3. Logika Switch Sub-Tab (Komsel)
+    function openSubTab(element) {
+        let parent = element.parentElement;
+        let buttons = parent.getElementsByClassName("sub-link");
+        for (let btn of buttons) {
+            btn.classList.remove("active");
+        }
+        element.classList.add("active");
+        
+        // Contoh feedback visual saat kategori dipilih
+        let listArea = parent.nextElementSibling;
+        listArea.innerHTML = `<p style="text-align:center; color:#006666;">Menampilkan Agenda untuk <b>${element.innerText}</b>...</p>`;
+    }
+
+    function cariAgenda() {
+        const bln = document.getElementById('selectBulan').value;
+        const thn = document.getElementById('selectTahun').value;
+        alert("Mencari agenda untuk Bulan " + bln + " Tahun " + thn);
     }
 </script>
 </body>
