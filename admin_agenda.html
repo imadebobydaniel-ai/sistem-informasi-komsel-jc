@@ -69,6 +69,14 @@
             box-sizing: border-box;
         }
 
+        /* PERUBAHAN KHUSUS KOLOM NAMA KEGIATAN */
+        #nama_kegiatan {
+            padding: 18px; /* Lebih tebal */
+            font-size: 16px; /* Font lebih besar */
+            font-weight: 600;
+            border: 2px solid #b2dfdb; /* Warna border sedikit berbeda agar stand out */
+        }
+
         select:focus, input:focus, textarea:focus {
             border-color: var(--primary);
             outline: none;
@@ -175,9 +183,10 @@
         </div>
 
         <div class="full-width">
-            <label>Nama Kegiatan</label>
-            <input type="text" id="nama_kegiatan" placeholder="Masukkan nama agenda tahunan...">
+            <label style="font-size: 15px;">Nama Kegiatan / Judul Agenda Utama</label>
+            <input type="text" id="nama_kegiatan" placeholder="Masukkan nama agenda tahunan dengan jelas...">
         </div>
+
         <div>
             <label>Tanggal Lengkap</label>
             <input type="text" id="tanggal" placeholder="Contoh: Minggu, 05 Juli 2026">
@@ -207,7 +216,7 @@
                     </tr>
                 </thead>
                 <tbody id="tabelAgenda">
-                    </tbody>
+                </tbody>
             </table>
         </div>
     </div>
