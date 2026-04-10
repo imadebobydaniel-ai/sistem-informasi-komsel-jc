@@ -98,7 +98,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
-        // Konfigurasi Firebase
+        // 1. Konfigurasi Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
             authDomain: "boby-apps-project.firebaseapp.com",
@@ -111,7 +111,7 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
 
-        // Splash Screen Logic
+        // 2. Splash Screen & Session Check
         document.addEventListener("DOMContentLoaded", function() {
             if (sessionStorage.getItem("userLoggedIn") === "true") {
                 window.location.replace("menu.html");
@@ -122,38 +122,37 @@
             }, 3000);
         });
 
-        // Toggle Password Visibility
+        // 3. UI Elements & Toggle Password
         const eyeIcon = document.getElementById('eyeIcon');
-        const passInput = document.getElementById('user_pass');
-        eyeIcon.addEventListener('click', () => {
-            const isPass = passInput.type === 'password';
-            passInput.type = isPass ? 'text' : 'password';
-            eyeIcon.classList.toggle('fa-eye-slash');
-        });
-
-        // Login Logic dengan Debugging
+        const passwordInput = document.getElementById('user_pass');
         const loginForm = document.getElementById('userLoginForm');
         const msgBox = document.getElementById('login-msg');
         const btn = document.getElementById('btnMasuk');
 
+        eyeIcon.addEventListener('click', () => {
+            const isPass = passwordInput.type === 'password';
+            passwordInput.type = isPass ? 'text' : 'password';
+            eyeIcon.classList.toggle('fa-eye-slash');
+        });
+
+        // 4. Logika Login Terintegrasi
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            // Normalisasi email ke huruf kecil
-            const email = document.getElementById('user_email').value.trim().toLowerCase();
-            const pass = document.getElementById('user_pass').value;
+            
+            // Ambil input dan bersihkan
+            const emailInput = document.getElementById('user_email').value.trim().toLowerCase();
+            const passInput = passwordInput.value;
 
+            // UI Feedback
             msgBox.innerText = "Memverifikasi...";
             msgBox.className = "msg-process show-block"; 
             btn.disabled = true;
 
             try {
-                // Debugging: Log email yang dicari
-                console.log("Sedang mencari email:", email);
-
-                const userQuery = await db.collection("jemaat").where("email", "==", email).get();
+                // Cari user berdasarkan email di koleksi "jemaat"
+                const userQuery = await db.collection("jemaat").where("email", "==", emailInput).get();
 
                 if (userQuery.empty) {
-                    console.warn("Email tidak ditemukan di koleksi 'jemaat':", email);
                     msgBox.innerText = "Akun tidak terdaftar!";
                     msgBox.className = "msg-error show-block";
                     btn.disabled = false;
@@ -161,31 +160,49 @@
                 }
 
                 let match = false;
+                let userData = null;
+
+                // Loop dokumen yang ditemukan (biasanya cuma 1)
                 userQuery.forEach((doc) => {
-                    const userData = doc.data();
-                    console.log("Data user ditemukan di DB:", userData);
-                    
-                    // Validasi password
-                    if (userData.password == pass) {
+                    const data = doc.data();
+                    // Cek password secara manual agar case-sensitive
+                    if (data.password === passInput) {
                         match = true;
-                        sessionStorage.setItem("userLoggedIn", "true");
-                        sessionStorage.setItem("userName", userData.nama || "User");
+                        userData = data;
                     }
                 });
 
                 if (match) {
+                    // Cek status jika diperlukan (opsional)
+                    if (userData.status_akun === "Nonaktif") {
+                        msgBox.innerText = "Akun dinonaktifkan oleh Admin.";
+                        msgBox.className = "msg-error show-block";
+                        btn.disabled = false;
+                        return;
+                    }
+
                     msgBox.innerText = "Berhasil Masuk!";
                     msgBox.className = "msg-success show-block";
-                    setTimeout(() => { window.location.replace("menu.html"); }, 1000);
+                    
+                    // Simpan data ke Session Storage
+                    sessionStorage.setItem("userLoggedIn", "true");
+                    sessionStorage.setItem("userName", userData.nama || userData.nama_lengkap || "User");
+                    sessionStorage.setItem("userUID", userData.uid || "");
+
+                    // Redirect ke menu utama
+                    setTimeout(() => { 
+                        window.location.replace("menu.html"); 
+                    }, 1000);
+
                 } else {
-                    console.warn("Password tidak sesuai untuk email:", email);
                     msgBox.innerText = "Password Salah!";
                     msgBox.className = "msg-error show-block";
                     btn.disabled = false;
                 }
+
             } catch (err) {
-                console.error("Firebase Detail Error:", err);
-                msgBox.innerText = "Error: " + err.message;
+                console.error("Login Error:", err);
+                msgBox.innerText = "Koneksi Bermasalah. Coba lagi.";
                 msgBox.className = "msg-error show-block";
                 btn.disabled = false;
             }
