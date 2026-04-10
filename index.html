@@ -10,9 +10,15 @@
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #1a1a1a; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
 
         /* SPLASH SCREEN */
-        #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--grey-bg); display: flex; justify-content: center; align-items: center; z-index: 999999; transition: opacity 0.8s ease, visibility 0.8s; }
+        #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--grey-bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999999; transition: opacity 0.8s ease, visibility 0.8s; }
         .splash-hidden { opacity: 0 !important; visibility: hidden !important; }
-        .gold-loader { position: absolute; width: 160px; height: 160px; border: 5px solid rgba(212, 175, 55, 0.1); border-top: 5px solid var(--emas-lux); border-radius: 50%; animation: spin 1.5s linear infinite; }
+        .gold-loader { position: absolute; width: 180px; height: 180px; border: 5px solid rgba(212, 175, 55, 0.1); border-top: 5px solid var(--emas-lux); border-radius: 50%; animation: spin 1.5s linear infinite; }
+        
+        /* TULISAN DI BAWAH LOGO STARTUP */
+        .splash-text { margin-top: 110px; color: white; text-align: center; z-index: 2; }
+        .splash-text h1 { font-size: 22px; margin: 0; letter-spacing: 2px; color: var(--emas-lux); }
+        .splash-text p { font-size: 11px; opacity: 0.8; margin: 5px 0 0; max-width: 250px; line-height: 1.4; }
+
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* LOGIN CARD */
@@ -20,19 +26,9 @@
         .header img { width: 80px; }
         .header h2 { margin: 10px 0 0; color: #333; font-size: 18px; text-transform: uppercase; }
 
-        /* --- SISTEM NOTIFIKASI BLOCK DISPLAY --- */
-        #login-msg { 
-            display: none; 
-            padding: 12px; 
-            margin-bottom: 20px; 
-            border-radius: 8px; 
-            font-size: 13px; 
-            font-weight: bold; 
-            text-align: center;
-        }
-        
+        /* NOTIFIKASI BLOCK DISPLAY */
+        #login-msg { display: none; padding: 12px; margin-bottom: 20px; border-radius: 8px; font-size: 13px; font-weight: bold; text-align: center; }
         .show-block { display: block !important; }
-        
         .msg-error { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
         .msg-success { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
         .msg-process { background: #e3f2fd; color: #0d47a1; border: 1px solid #bbdefb; }
@@ -53,7 +49,11 @@
 
     <div id="splash-screen">
         <div class="gold-loader"></div>
-        <img src="logo_pondok.png" alt="Logo" style="width:120px; position:relative; z-index:2;">
+        <img src="logo_pondok.png" alt="Logo" style="width:100px; position:absolute; z-index:2;">
+        <div class="splash-text">
+            <h1>SIPAPUA</h1>
+            <p>( Sistem Informasi dan Integrasi Pondok Pemulihan Papua )</p>
+        </div>
     </div>
 
     <div class="login-card">
@@ -107,7 +107,7 @@
             }
             setTimeout(() => {
                 document.getElementById('splash-screen').classList.add('splash-hidden');
-            }, 2000);
+            }, 3000); // 3 detik agar tulisan SIPAPUA terbaca
         });
 
         const eyeIcon = document.getElementById('eyeIcon');
@@ -133,42 +133,42 @@
             btn.disabled = true;
 
             try {
-                // Mencari user berdasarkan email saja dulu untuk debug
+                // Debugging: Kita cari berdasarkan email saja
                 const userQuery = await db.collection("jemaat")
                     .where("email", "==", emailInput)
                     .get();
 
                 if (userQuery.empty) {
-                    msgBox.innerText = "Akun tidak ditemukan!";
+                    msgBox.innerText = "Akun tidak terdaftar!";
                     msgBox.className = "msg-error show-block";
                     btn.disabled = false;
                     return;
                 }
 
-                let loginBerhasil = false;
+                let match = false;
                 userQuery.forEach((doc) => {
                     const data = doc.data();
-                    // Cek password secara manual untuk menghindari masalah tipe data
+                    // Gunakan == (dua sama dengan) untuk menghindari masalah tipe data String/Number
                     if (data.password == passInput) {
-                        loginBerhasil = true;
+                        match = true;
                         sessionStorage.setItem("userLoggedIn", "true");
                         sessionStorage.setItem("userName", data.nama || "User");
                     }
                 });
 
-                if (loginBerhasil) {
-                    msgBox.innerText = "Login Berhasil!";
+                if (match) {
+                    msgBox.innerText = "Berhasil Masuk!";
                     msgBox.className = "msg-success show-block";
-                    setTimeout(() => { window.location.replace("menu.html"); }, 1200);
+                    setTimeout(() => { window.location.replace("menu.html"); }, 1000);
                 } else {
-                    msgBox.innerText = "Password Salah!";
+                    msgBox.innerText = "Password Anda Salah!";
                     msgBox.className = "msg-error show-block";
                     btn.disabled = false;
                 }
 
             } catch (err) {
-                console.error("Error Detail:", err);
-                msgBox.innerText = "Gagal terhubung ke database!";
+                console.error(err);
+                msgBox.innerText = "Gangguan koneksi database!";
                 msgBox.className = "msg-error show-block";
                 btn.disabled = false;
             }
