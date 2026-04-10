@@ -114,7 +114,7 @@
             this.classList.toggle('fa-eye-slash');
         });
 
-        // 4. LOGIN LOGIC (ANTI-DOBEL)
+        // 4. LOGIN LOGIC (OPTIMASI REDIRECT & SESSION)
         let isProcessing = false;
 
         async function handleLogin() {
@@ -125,7 +125,12 @@
             const msgBox = document.getElementById('login-msg');
             const btn = document.getElementById('btnMasuk');
 
-            if (!email || !pass) return;
+            if (!email || !pass) {
+                msgBox.innerText = "Email dan Password wajib diisi!";
+                msgBox.className = "msg-error";
+                msgBox.style.display = "block";
+                return;
+            }
 
             isProcessing = true;
             btn.innerText = "Memverifikasi...";
@@ -139,21 +144,34 @@
                     .get();
 
                 if (!snap.empty) {
+                    // Ambil data user dari Firestore
+                    const userData = snap.docs[0].data();
+                    
+                    // SIMPAN SESI LOGIN (Agar menu.html tahu user sudah masuk)
+                    sessionStorage.setItem("isLoggedIn", "true");
+                    sessionStorage.setItem("userEmail", email);
+                    sessionStorage.setItem("userName", userData.nama || "Jemaat");
+
                     msgBox.innerText = "Login Berhasil! Mengalihkan...";
                     msgBox.className = "msg-success";
+                    msgBox.style.display = "block";
                     
-                    // Paksa berhenti semua script lain
+                    // Berhenti proses background dan alihkan halaman
                     window.stop(); 
                     
                     setTimeout(() => {
-                        window.location.replace("menu.html");
-                    }, 800);
+                        window.location.href = "menu.html";
+                    }, 1000);
+
                 } else {
                     throw new Error("Email atau Password salah!");
                 }
             } catch (err) {
                 msgBox.innerText = err.message;
                 msgBox.className = "msg-error";
+                msgBox.style.display = "block";
+                
+                // Reset status agar bisa mencoba lagi
                 isProcessing = false;
                 btn.innerText = "MASUK";
                 btn.disabled = false;
