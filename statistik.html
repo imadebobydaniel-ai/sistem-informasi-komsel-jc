@@ -213,80 +213,77 @@
         });
     }
 
-function refreshData() {
-    if (unsub1) unsub1();
-    if (unsub2) unsub2();
+    function refreshData() {
+        if (unsub1) unsub1();
+        if (unsub2) unsub2();
 
-    const selWilayah = document.getElementById('filter-wilayah').value;
-    const selKomsel = document.getElementById('filter-komsel').value;
-    const selBulan = parseInt(document.getElementById('filter-bulan').value);
-    const limitDate = new Date();
-    limitDate.setMonth(limitDate.getMonth() - selBulan);
+        const selWilayah = document.getElementById('filter-wilayah').value;
+        const selKomsel = document.getElementById('filter-komsel').value;
+        const selBulan = parseInt(document.getElementById('filter-bulan').value);
+        const limitDate = new Date();
+        limitDate.setMonth(limitDate.getMonth() - selBulan);
 
-    // DATA JEMAAT & GOLONGAN DARAH
-    unsub1 = db.collection("users").onSnapshot(snap => {
-        let rekap = { 'A': 0, 'B': 0, 'O': 0, 'AB': 0, 'LAIN': 0 };
-        let namaGroup = { 'A': [], 'B': [], 'O': [], 'AB': [], 'LAIN': [] };
-        let total = 0;
+        // --- 1. DATA JEMAAT & GOLONGAN DARAH ---
+        unsub1 = db.collection("users").onSnapshot(snap => {
+            let rekap = { 'A': 0, 'B': 0, 'O': 0, 'AB': 0, 'LAIN': 0 };
+            let namaGroup = { 'A': [], 'B': [], 'O': [], 'AB': [], 'LAIN': [] };
+            let total = 0;
 
-        snap.forEach(doc => {
-            const d = doc.data();
-            
-            // NORMALISASI KEY (PENTING: sesuaikan dengan field di Firestore Anda)
-            const userNama = d.Nama || d.nama || "Tanpa Nama"; // Cek Nama atau nama
-            const userWilayah = d.wilayah || d.Wilayah || "";
-            const userKomsel = d.komsel || d.Komsel || ""; 
-            const userDarah = (d.darah || d.Darah || "LAIN").toUpperCase().trim();
+            snap.forEach(doc => {
+                const d = doc.data();
+                const userNama = d.Nama || d.nama || "Tanpa Nama"; 
+                const userWilayah = d.wilayah || d.Wilayah || "";
+                const userKomsel = d.komsel || d.Komsel || ""; 
+                const userDarah = (d.darah || d.Darah || "LAIN").toUpperCase().trim();
 
-            // LOGIKA FILTER
-            const matchWilayah = (selWilayah === "GLOBAL" || userWilayah === selWilayah);
-            const matchKomsel = (selKomsel === "ALL" || userKomsel === selKomsel);
+                const matchWilayah = (selWilayah === "GLOBAL" || userWilayah === selWilayah);
+                const matchKomsel = (selKomsel === "ALL" || userKomsel === selKomsel);
 
-            if (matchWilayah && matchKomsel) {
-                total++;
-                let targetKey = "LAIN";
-                
-                if (userDarah.includes("AB")) targetKey = "AB";
-                else if (userDarah.includes("A")) targetKey = "A";
-                else if (userDarah.includes("B")) targetKey = "B";
-                else if (userDarah.includes("O")) targetKey = "O";
+                if (matchWilayah && matchKomsel) {
+                    total++;
+                    let targetKey = "LAIN";
+                    if (userDarah.includes("AB")) targetKey = "AB";
+                    else if (userDarah.includes("A")) targetKey = "A";
+                    else if (userDarah.includes("B")) targetKey = "B";
+                    else if (userDarah.includes("O")) targetKey = "O";
 
-                rekap[targetKey]++;
-                namaGroup[targetKey].push(userNama);
+                    rekap[targetKey]++;
+                    namaGroup[targetKey].push(userNama);
+                }
+            });
+
+            chartD.data.datasets[0].data = [rekap.A, rekap.B, rekap.O, rekap.AB, rekap.LAIN];
+            chartD.update();
+
+            document.getElementById('summary-darah').innerHTML = `
+                <div class="stat-card"><h3>${total}</h3><p>Total Jemaat</p></div>
+                <div class="stat-card"><h3>${rekap.O}</h3><p>Tipe O</p></div>`;
+
+            let listHtml = '<p style="font-size:12px; color:#1a73e8; font-weight:bold;"><i class="fas fa-list"></i> Daftar Nama Pemilik:</p>';
+            for (const [gol, names] of Object.entries(namaGroup)) {
+                if (names.length > 0) {
+                    listHtml += `
+                        <div class="blood-group-title"><i class="fas fa-caret-right"></i> Golongan ${gol} (${names.length})</div>
+                        <div class="blood-names">${names.join(", ")}</div>
+                    `;
+                }
             }
+            document.getElementById('list-pemilik-darah').innerHTML = listHtml;
         });
 
-        chartD.data.datasets[0].data = [rekap.A, rekap.B, rekap.O, rekap.AB, rekap.LAIN];
-        chartD.update();
-
-        // Render Summary
-        document.getElementById('summary-darah').innerHTML = `
-            <div class="stat-card"><h3>${total}</h3><p>Total Jemaat</p></div>
-            <div class="stat-card"><h3>${rekap.O}</h3><p>Tipe O</p></div>`;
-
-        // Render Daftar Nama
-        let listHtml = '<p style="font-size:12px; color:#1a73e8; font-weight:bold;"><i class="fas fa-list"></i> Daftar Nama Pemilik:</p>';
-        for (const [gol, names] of Object.entries(namaGroup)) {
-            if (names.length > 0) {
-                listHtml += `
-                    <div class="blood-group-title"><i class="fas fa-caret-right"></i> Golongan ${gol} (${names.length})</div>
-                    <div class="blood-names">${names.join(", ")}</div>
-                `;
-            }
-        }
-        document.getElementById('list-pemilik-darah').innerHTML = listHtml;
-    });
-
-    // ... (bagian DATA KEHADIRAN tetap sama)
-}
-
-        // DATA KEHADIRAN
+        // --- 2. DATA KEHADIRAN ---
         unsub2 = db.collection("kehadiran").onSnapshot(snap => {
             let rekapH = { 'Komsel Reguler': 0, 'Ibadah Raya': 0, 'Komsel Gabungan': 0, 'Doa': 0, 'KD': 0, 'Latihan': 0, 'Pelayanan': 0, 'Baca Alkitab': 0 };
             snap.forEach(doc => {
                 const d = doc.data();
                 const tgl = d.tanggal?.toDate ? d.tanggal.toDate() : new Date(d.tanggal);
-                if ((selWilayah === "GLOBAL" || d.wilayah === selWilayah) && (selKomsel === "ALL" || d.Komsel === selKomsel) && (tgl >= limitDate) && d.status === "HADIR") {
+                
+                const uWil = d.wilayah || d.Wilayah || "";
+                const uKom = d.komsel || d.Komsel || "";
+
+                if ((selWilayah === "GLOBAL" || uWil === selWilayah) && 
+                    (selKomsel === "ALL" || uKom === selKomsel) && 
+                    (tgl >= limitDate) && d.status === "HADIR") {
                     if (rekapH.hasOwnProperty(d.tipe)) rekapH[d.tipe]++;
                 }
             });
