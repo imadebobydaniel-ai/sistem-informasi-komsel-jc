@@ -12,7 +12,58 @@
             --emas-lux: #D4AF37; 
         }
 
+        /* RESET & BASE */
         body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background-color: #f0f2f5; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        
+        /* --- CSS SPLASH SCREEN (PERBAIKAN) --- */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: #003366; /* Warna solid agar tidak putih saat loading */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999; /* Sangat tinggi agar di atas segalanya */
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
+
+        .splash-content {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .splash-logo {
+            width: 120px; 
+            height: auto;
+            margin-bottom: 25px;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        /* LINGKARAN EMAS BERCAHAYA */
+        .gold-loader {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(212, 175, 55, 0.1);
+            border-top: 4px solid #D4AF37;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+        .splash-hidden { opacity: 0 !important; visibility: hidden !important; }
+
+        /* UI LOGIN CARD */
         .login-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
         .logo { width: 80px; margin-bottom: 15px; }
         h2 { margin: 5px 0; font-size: 20px; color: #333; font-weight: bold; }
@@ -21,54 +72,11 @@
         input { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; outline: none; transition: 0.3s; }
         .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #999; }
         .btn-login { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        .footer-links { margin-top: 25px; font-size: 14px; color: #666; }
-        .footer-links a { color: #007bff; text-decoration: none; font-weight: bold; }
-        .admin-link { display: block; margin-top: 15px; color: #888; text-decoration: none; font-size: 12px; }
-
-        /* MODAL STYLE */
+        
+        /* MODAL */
         .modal-overlay { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); justify-content: center; align-items: center; }
-        .modal-content { background-color: white; padding: 30px; border-radius: 15px; text-align: center; width: 85%; max-width: 350px; box-shadow: 0 15px 30px rgba(0,0,0,0.4); }
-        .btn-ok { background-color: #003366; color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 20px; }
-
-        /* --- CSS SPLASH SCREEN --- */
-        #splash-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--biru-tua); 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 99999; 
-            transition: opacity 1s ease, visibility 1s;
-        }
-        .splash-content {
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 30px;
-        }
-        .splash-logo {
-            width: 140px; 
-            height: auto;
-            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
-            animation: pulse 2s infinite ease-in-out;
-        }
-        .gold-loader {
-            width: 45px;
-            height: 45px;
-            border: 4px solid rgba(212, 175, 55, 0.1);
-            border-top: 4px solid var(--emas-lux);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
-        .splash-hidden { opacity: 0; visibility: hidden; }
+        .modal-content { background-color: white; padding: 30px; border-radius: 15px; text-align: center; width: 85%; max-width: 350px; }
+        .btn-ok { background-color: #003366; color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -77,7 +85,7 @@
         <div class="splash-content">
             <img src="logo_pondok.png" alt="Logo" class="splash-logo">
             <div class="gold-loader"></div>
-            <p style="color: var(--emas-lux); font-weight: bold; font-size: 14px; margin-top: -10px; letter-spacing: 1px;">PONDOK PEMULIHAN PAPUA</p>
+            <p style="color: #D4AF37; font-weight: bold; font-size: 14px; letter-spacing: 1px; margin: 0;">PONDOK PEMULIHAN PAPUA</p>
         </div>
     </div>
 
@@ -98,10 +106,10 @@
             <button type="submit" class="btn-login">MASUK</button>
         </form>
 
-        <div class="footer-links">
-            Belum punya akun? <a href="registrasi.html">Daftar Sekarang</a>
+        <div style="margin-top: 25px; font-size: 14px; color: #666;">
+            Belum punya akun? <a href="registrasi.html" style="color: #007bff; text-decoration: none; font-weight: bold;">Daftar Sekarang</a>
         </div>
-        <a href="login_cyber.html" class="admin-link">Masuk sebagai Admin</a>
+        <a href="login_cyber.html" style="display: block; margin-top: 15px; color: #888; text-decoration: none; font-size: 12px;">Masuk sebagai Admin</a>
         
         <a href="#" onclick="location.replace('index.html');" style="text-decoration:none;">
             <p style="text-align:center; color:#003366; font-size:14px; margin-top:15px;">
@@ -123,26 +131,24 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
-        // FUNGSI SPLASH SCREEN
-        window.onload = () => {
+        // --- PERBAIKAN LOGIKA SPLASH SCREEN ---
+        // Kita gunakan DOMContentLoaded agar script jalan segera setelah HTML terbaca
+        document.addEventListener("DOMContentLoaded", function() {
+            const splash = document.getElementById('splash-screen');
+            
+            // Berikan jeda 3 detik agar user bisa melihat logo dan lingkaran emas
             setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
                 if (splash) {
                     splash.classList.add('splash-hidden');
-                    document.body.style.overflow = "auto"; // Kembalikan scroll setelah splash hilang
+                    // Tunggu transisi CSS selesai baru aktifkan scroll
+                    setTimeout(() => {
+                        document.body.style.overflow = "auto";
+                    }, 800); 
                 }
-            }, 3000); // Tampil selama 3 detik
-        };
+            }, 3000); 
+        });
 
-        // 1. PENCEGAH BACK
-        (function () {
-            history.pushState(null, null, location.href);
-            window.onpopstate = function () {
-                history.pushState(null, null, location.href);
-            };
-        })();
-
-        // 2. FIREBASE CONFIG
+        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
             authDomain: "boby-apps-project.firebaseapp.com",
@@ -152,12 +158,10 @@
             appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
         };
         
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
 
-        // 3. FUNGSI UI LOGIN
+        // UI Logic
         const alertModal = document.getElementById('loginAlertModal');
         const alertText = document.getElementById('alertMessage');
         const closeBtn = document.getElementById('closeAlert');
@@ -166,7 +170,6 @@
             alertText.innerText = pesan;
             alertModal.style.display = 'flex';
         }
-
         closeBtn.onclick = () => alertModal.style.display = 'none';
 
         function togglePassLogin() {
@@ -181,7 +184,7 @@
             }
         }
 
-        // 4. LOGIKA LOGIN
+        // Login Logic
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value.trim().toLowerCase();
@@ -199,12 +202,20 @@
                     localStorage.setItem("userName", userData.nama || "Anggota");
                     window.location.replace("menu.html"); 
                 } else {
-                    tampilkanPesan("Email atau Password Salah! Pastikan penulisan sudah benar.");
+                    tampilkanPesan("Email atau Password Salah!");
                 }
             } catch (err) {
                 tampilkanPesan("Gagal terhubung ke database.");
             }
         });
+
+        // Pencegah Back
+        (function () {
+            history.pushState(null, null, location.href);
+            window.onpopstate = function () {
+                history.pushState(null, null, location.href);
+            };
+        })();
     </script>
 </body>
 </html>
