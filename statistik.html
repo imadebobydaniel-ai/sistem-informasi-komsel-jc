@@ -46,8 +46,17 @@
             </select>
             <select id="filter-bulan" onchange="refreshData()">
                 <option value="1">1 Bulan Terakhir</option>
-                <option value="3">3 Bulan Terakhir</option>
-                <option value="12">Semua Data</option>
+                <option value="2">2 Bulan Terakhir</option>
+                <option value="3">3 Bulan terakhir</option>
+                 <option value="4">4 Bulan terakhir</option>
+                 <option value="5">5 Bulan terakhir</option>
+                 <option value="6">6 Bulan terakhir</option>
+                 <option value="7">7Bulan terakhir</option>
+                 <option value="8">8 Bulan terakhir</option>
+                 <option value="9">9 Bulan terakhir</option>
+                 <option value="10">10 Bulan terakhir</option>
+                 <option value="11">11 Bulan terakhir</option>
+                 <option value="12">12 Bulan terakhir</option>
             </select>
         </div>
         <select id="filter-komsel" onchange="refreshData()">
@@ -77,6 +86,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
+    // 1. Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -92,6 +102,7 @@
     }
     db = firebase.firestore();
 
+    // 2. Hardcoded Komsel Data
     const dataKomsel = {
         "Abepura": ["Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "Esther 8", "Esther 9", "Esther 10", "Esther 11", "Esther 12", "Komsel Profesi", "Komsel Mahasiswa", "Komsel Pelajar", "Komsel Sekolah Minggu", "Komsel Lansia"],
         "Sentani": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Siloam 5", "Siloam 6", "Siloam 7", "Siloam 8", "Agaphe 1", "Agaphe 2", "Agaphe 3", "Agaphe 4", "Agaphe 5", "Komsel Profesi", "Komsel Mahasiswa", "Komsel Pelajar", "Komsel Sekolah Minggu", "Komsel Lansia"],
@@ -103,6 +114,7 @@
     let chartK, chartD;
     let unsubscribeUsers, unsubscribeHadir;
 
+    // 3. Initialize Charts
     function initCharts() {
         if (chartK) chartK.destroy();
         if (chartD) chartD.destroy();
@@ -134,6 +146,7 @@
         });
     }
 
+    // 4. Handle Filter Dependency
     function updateDropdownKomsel() {
         const wilayah = document.getElementById('filter-wilayah').value;
         const komselSelect = document.getElementById('filter-komsel');
@@ -149,6 +162,7 @@
         refreshData();
     }
 
+    // 5. Main Data Logic
     function refreshData() {
         if (!db) return;
         if (unsubscribeUsers) unsubscribeUsers();
@@ -157,10 +171,11 @@
         const selWilayah = document.getElementById('filter-wilayah').value;
         const selKomsel = document.getElementById('filter-komsel').value;
         const selBulan = parseInt(document.getElementById('filter-bulan').value);
+        
         const limitDate = new Date();
         limitDate.setMonth(limitDate.getMonth() - selBulan);
 
-        // 1. Logika Pengambilan Data Jemaat (Sesuai Field Database)
+        // A. Jemaat & Golongan Darah
         unsubscribeUsers = db.collection("users").onSnapshot(snap => {
             let rekapDarah = { 'A': 0, 'B': 0, 'O': 0, 'AB': 0, 'LAIN': 0 };
             let totalJemaat = 0;
@@ -168,24 +183,17 @@
 
             snap.forEach(doc => {
                 const d = doc.data();
-                
-                // Menggunakan 'Komsel' dengan K besar sesuai gambar Firebase
                 const matchesWilayah = (selWilayah === "GLOBAL" || d.wilayah === selWilayah);
                 const matchesKomsel = (selKomsel === "ALL" || d.Komsel === selKomsel);
 
                 if (matchesWilayah && matchesKomsel) {
                     totalJemaat++;
-
-                    // Menggunakan field 'darah' sesuai temuan database
                     let g = (d.darah || "LAIN").toUpperCase();
                     
-                    if (g.includes("A") && !g.includes("B")) rekapDarah['A']++;
-                    else if (g.includes("B") && !g.includes("A")) rekapDarah['B']++;
-                    else if (g.includes("O")) {
-                        rekapDarah['O']++;
-                        totalTipeO++;
-                    }
+                    if (g.includes("O")) { rekapDarah['O']++; totalTipeO++; }
                     else if (g.includes("AB")) rekapDarah['AB']++;
+                    else if (g.includes("A")) rekapDarah['A']++;
+                    else if (g.includes("B")) rekapDarah['B']++;
                     else rekapDarah['LAIN']++;
                 }
             });
@@ -198,20 +206,21 @@
                 <div class="stat-card"><h3>${totalTipeO}</h3><p>Tipe O</p></div>`;
         });
 
-        // 2. Ambil Data Kehadiran
+        // B. Kehadiran Data
         unsubscribeHadir = db.collection("kehadiran").onSnapshot(snap => {
-            let rekapHadir = { 'Reguler': 0, 'Ibadah': 0, 'Gabungan': 0, 'Doa': 0, 'KD': 0, 'Alkitab': 0 };
+            let rekapHadir = { 'Komsel Reguler': 0, 'Ibadah Raya': 0, 'Komsel Gabungan': 0, 'Doa': 0, 'KD/Latihan': 0, 'Baca Alkitab': 0 };
+            
             snap.forEach(doc => {
                 const d = doc.data();
+                // Konversi timestamp firebase ke Date JS
                 const tglDoc = d.tanggal?.toDate ? d.tanggal.toDate() : new Date(d.tanggal);
                 
-                // Menyesuaikan filter wilayah & komsel untuk kehadiran
                 const mWilayah = (selWilayah === "GLOBAL" || d.wilayah === selWilayah);
                 const mKomsel = (selKomsel === "ALL" || (d.komsel || d.Komsel) === selKomsel);
                 const mWaktu = (tglDoc >= limitDate);
 
                 if (mWilayah && mKomsel && mWaktu && d.status === "HADIR") {
-                    const tipe = d.tipe || 'Reguler';
+                    const tipe = d.tipe;
                     if (rekapHadir.hasOwnProperty(tipe)) rekapHadir[tipe]++;
                 }
             });
