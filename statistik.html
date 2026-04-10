@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Management Dashboard - Pondok Pemulihan Papua</title>
+    <title>Management Dashboard - PPP</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -11,25 +11,23 @@
             --primary: #1a73e8; --success: #34a853; --danger: #ea4335;
             --warning: #fbbc05; --dark: #202124; --bg: #f1f3f4;
         }
-        body { font-family: 'Google Sans', Roboto, Arial; background: var(--bg); margin: 0; padding: 15px; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); margin: 0; padding: 15px; }
         .container { max-width: 600px; margin: auto; }
         
-        /* Dashboard Styling */
         .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: none; }
         .card-header { display: flex; align-items: center; gap: 10px; font-weight: bold; color: var(--dark); margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; font-size: 14px; }
         
-        .filter-group { display: flex; gap: 8px; margin-bottom: 20px; }
-        select { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #ddd; background: #fff; font-size: 12px; font-weight: 600; }
+        .filter-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .select-row { display: flex; gap: 8px; }
+        select { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #ddd; background: #fff; font-size: 12px; font-weight: 600; color: #444; }
 
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .stat-card { background: #f8f9fa; padding: 15px; border-radius: 12px; text-align: center; }
-        .stat-card h3 { margin: 0; font-size: 20px; color: var(--primary); }
+        .stat-card { background: #f8f9fa; padding: 15px; border-radius: 12px; text-align: center; border-bottom: 3px solid var(--primary); }
+        .stat-card h3 { margin: 0; font-size: 20px; color: var(--dark); }
         .stat-card p { margin: 5px 0 0; font-size: 10px; color: #666; font-weight: bold; text-transform: uppercase; }
 
         .chart-box { position: relative; height: 300px; width: 100%; }
         .btn-back { display: block; text-align: center; padding: 16px; background: var(--dark); color: white; text-decoration: none; font-weight: bold; border-radius: 14px; margin-top: 20px; }
-        
-        .badge-red { background: #ffebee; color: #c62828; padding: 2px 8px; border-radius: 4px; font-size: 10px; }
     </style>
 </head>
 <body>
@@ -37,45 +35,42 @@
 <div class="container">
     <div class="card" style="background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white;">
         <h2 style="margin:0; font-size: 18px;">Pondok Pemulihan Papua</h2>
-        <p style="margin:5px 0 0; font-size: 12px; opacity: 0.9;">Sistem Manajemen Jemaat Terpadu</p>
+        <p style="margin:5px 0 0; font-size: 11px; opacity: 0.8;">Data Terpadu: Abepura, Sentani, Doyo, Arso</p>
     </div>
 
     <div class="filter-group">
-        <select id="filter-wilayah" onchange="refreshData()">
-            <option value="GLOBAL">SEMUA WILAYAH</option>
-            <option value="Abepura">Abepura</option>
-            <option value="Sentani">Sentani</option>
-            <option value="Doyo">Doyo</option>
-            <option value="Arso 1">Arso 1</option>
-            <option value="Arso 2">Arso 2</option>
-        </select>
-        <select id="filter-bulan" onchange="refreshData()">
-            <option value="1">1 Bulan</option>
-            <option value="3">3 Bulan</option>
+        <div class="select-row">
+            <select id="filter-wilayah" onchange="updateDropdownKomsel()">
+                <option value="GLOBAL">SEMUA WILAYAH</option>
+                <option value="Abepura">Abepura</option>
+                <option value="Sentani">Sentani</option>
+                <option value="Doyo">Doyo</option>
+                <option value="Arso 1">Arso 1</option>
+                <option value="Arso 2">Arso 2</option>
+            </select>
+            <select id="filter-bulan" onchange="refreshData()">
+                <option value="1">1 Bulan</option>
+                <option value="3">3 Bulan</option>
+            </select>
+        </div>
+        <select id="filter-komsel" onchange="refreshData()">
+            <option value="ALL">SEMUA KOMSEL</option>
         </select>
     </div>
 
     <div class="card">
-        <div class="card-header"><i class="fas fa-chart-line"></i> PROGRES KEHADIRAN POSITIF</div>
+        <div class="card-header"><i class="fas fa-users-check"></i> PERSENTASE KEHADIRAN POSITIF</div>
         <div class="chart-box">
             <canvas id="chartKehadiran"></canvas>
         </div>
     </div>
 
     <div class="card">
-        <div class="card-header"><i class="fas fa-exclamation-triangle"></i> KETIDAKHADIRAN (ALASAN & FREKUENSI)</div>
-        <div class="chart-box">
-            <canvas id="chartAbsensi"></canvas>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-header"><i class="fas fa-tint" style="color:red"></i> BANK DATA GOLONGAN DARAH</div>
+        <div class="card-header"><i class="fas fa-droplet" style="color:red"></i> SEBARAN GOLONGAN DARAH</div>
         <div class="chart-box">
             <canvas id="chartDarah"></canvas>
         </div>
-        <div id="summary-darah" class="stat-grid" style="margin-top:20px;">
-            </div>
+        <div id="summary-darah" class="stat-grid" style="margin-top:20px;"></div>
     </div>
 
     <a href="menu.html" class="btn-back">KEMBALI KE PANEL ADMIN</a>
@@ -85,7 +80,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    // Inisialisasi Firebase (Gunakan config Anda)
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -97,61 +91,69 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    let chartK, chartA, chartD;
+    const dataKomsel = {
+        "Abepura": ["Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "Esther 8", "Esther 9", "Esther 10", "Esther 11", "Esther 12", "Komsel Profesi", "Komsel Mahasiswa", "Komsel Pelajar", "Sekolah Minggu", "Lansia"],
+        "Sentani": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Siloam 5", "Siloam 6", "Siloam 7", "Siloam 8", "Agaphe 1", "Agaphe 2", "Agaphe 3", "Agaphe 4", "Agaphe 5", "Komsel Profesi", "Komsel Mahasiswa", "Komsel Pelajar", "Sekolah Minggu", "Lansia"],
+        "Doyo": ["Komsel Bapak Doyo", "Komsel Ibu Doyo", "Komsel Profesi Doyo", "Komsel Mahasiswa Doyo", "Komsel Pelajar Doyo", "Komsel Sekolah Minggu Doyo"],
+        "Arso 1": ["Komsel Bapak Arso 1", "Komsel Ibu Arso 1"],
+        "Arso 2": ["Komsel Bapak Arso 2", "Komsel Pemuda dan Pelajar Arso 2", "Komsel Sekolah Minggu Arso 2"]
+    };
+
+    let chartK, chartD;
+
+    function updateDropdownKomsel() {
+        const wilayah = document.getElementById('filter-wilayah').value;
+        const komselSelect = document.getElementById('filter-komsel');
+        komselSelect.innerHTML = '<option value="ALL">SEMUA KOMSEL</option>';
+        
+        if (dataKomsel[wilayah]) {
+            dataKomsel[wilayah].forEach(k => {
+                komselSelect.innerHTML += `<option value="${k}">${k}</option>`;
+            });
+        }
+        refreshData();
+    }
 
     function initCharts() {
-        // Chart Kehadiran (Horizontal Bar agar teks terbaca jelas)
         chartK = new Chart(document.getElementById('chartKehadiran'), {
             type: 'bar',
             data: {
                 labels: ['Komsel Reguler', 'Ibadah Raya', 'Komsel Gabungan', 'Doa', 'KD/Latihan', 'Baca Alkitab'],
                 datasets: [{
-                    label: 'Persentase (%)',
-                    data: [0,0,0,0,0,0],
-                    backgroundColor: '#1a73e8',
-                    borderRadius: 5
+                    label: 'Kehadiran (%)',
+                    data: [0, 0, 0, 0, 0, 0],
+                    backgroundColor: ['#4285f4', '#34a853', '#fbbc05', '#ea4335', '#673ab7', '#009688'],
+                    borderRadius: 8
                 }]
             },
             options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
         });
 
-        // Chart Absensi (Pie Chart)
-        chartA = new Chart(document.getElementById('chartAbsensi'), {
-            type: 'doughnut',
-            data: {
-                labels: ['Izin Kerja', 'Sakit', 'Luar Kota', 'Tanpa Keterangan'],
-                datasets: [{
-                    data: [1, 1, 1, 1],
-                    backgroundColor: ['#fbbc05', '#4285f4', '#34a853', '#ea4335']
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
-
-        // Chart Darah (Polar Area)
         chartD = new Chart(document.getElementById('chartDarah'), {
-            type: 'polarArea',
+            type: 'doughnut',
             data: {
                 labels: ['A', 'B', 'O', 'AB', 'AB+'],
                 datasets: [{
                     data: [0, 0, 0, 0, 0],
-                    backgroundColor: ['#ffcdd2', '#bbdefb', '#f8bbd0', '#e1bee7', '#c8e6c9']
+                    backgroundColor: ['#ff5252', '#448aff', '#ffc107', '#9c27b0', '#4caf50']
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
         });
     }
 
     async function refreshData() {
         const wilayah = document.getElementById('filter-wilayah').value;
+        const komsel = document.getElementById('filter-komsel').value;
         const bulan = parseInt(document.getElementById('filter-bulan').value);
         const limitDate = new Date(); limitDate.setMonth(limitDate.getMonth() - bulan);
 
-        // 1. Logic Statistik Golongan Darah (Scope Global/Wilayah)
-        let queryUsers = db.collection("users");
-        if(wilayah !== "GLOBAL") queryUsers = queryUsers.where("wilayah", "==", wilayah);
-        
-        queryUsers.onSnapshot(snap => {
+        // Logic Golongan Darah & Total Jemaat
+        let uQuery = db.collection("users");
+        if(wilayah !== "GLOBAL") uQuery = uQuery.where("wilayah", "==", wilayah);
+        if(komsel !== "ALL") uQuery = uQuery.where("komsel", "==", komsel);
+
+        uQuery.onSnapshot(snap => {
             let rekap = { 'A': 0, 'B': 0, 'O': 0, 'AB': 0, 'AB+': 0 };
             snap.forEach(doc => {
                 let g = (doc.data().goldarah || doc.data().darah || "").toUpperCase().trim();
@@ -160,28 +162,28 @@
             chartD.data.datasets[0].data = Object.values(rekap);
             chartD.update();
             
-            // Tampilkan angka total
             document.getElementById('summary-darah').innerHTML = `
                 <div class="stat-card"><h3>${snap.size}</h3><p>Total Jemaat</p></div>
-                <div class="stat-card"><h3>${rekap['O']}</h3><p>Total Stok O</p></div>
+                <div class="stat-card"><h3>${rekap['O']}</h3><p>Jemaat Tipe O</p></div>
             `;
         });
 
-        // 2. Logic Kehadiran (Multi-Kategori)
-        let queryHadir = db.collection("kehadiran").where("tanggal", ">=", limitDate);
-        if(wilayah !== "GLOBAL") queryHadir = queryHadir.where("wilayah", "==", wilayah);
+        // Logic Kehadiran
+        let hQuery = db.collection("kehadiran").where("tanggal", ">=", limitDate);
+        if(wilayah !== "GLOBAL") hQuery = hQuery.where("wilayah", "==", wilayah);
+        if(komsel !== "ALL") hQuery = hQuery.where("komsel", "==", komsel);
 
-        queryHadir.onSnapshot(snap => {
+        hQuery.onSnapshot(snap => {
             let k = { 'Reguler': 0, 'Ibadah': 0, 'Gabungan': 0, 'Doa': 0, 'KD': 0, 'Alkitab': 0 };
             snap.forEach(doc => {
                 const d = doc.data();
                 if(d.status === "HADIR") k[d.tipe || 'Reguler']++;
             });
-            // Hitung rata-rata sederhana (Asumsi target 100 jemaat per wilayah)
-            const base = wilayah === "GLOBAL" ? 500 : 100;
+            // Simulasi persentase (Target dinamis bisa disesuaikan)
+            const base = 50; 
             chartK.data.datasets[0].data = [
                 (k.Reguler/base)*100, (k.Ibadah/base)*100, (k.Gabungan/base)*100, 
-                (k.Doa/base)*100, (k.KD/base)*100, 80 
+                (k.Doa/base)*100, (k.KD/base)*100, 85
             ];
             chartK.update();
         });
