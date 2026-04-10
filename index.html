@@ -131,14 +131,14 @@
             eyeIcon.classList.toggle('fa-eye-slash');
         });
 
-        // Login Logic
+        // Login Logic dengan Debugging
         const loginForm = document.getElementById('userLoginForm');
         const msgBox = document.getElementById('login-msg');
         const btn = document.getElementById('btnMasuk');
 
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            // Normalisasi email ke huruf kecil untuk menghindari case-sensitive error
+            // Normalisasi email ke huruf kecil
             const email = document.getElementById('user_email').value.trim().toLowerCase();
             const pass = document.getElementById('user_pass').value;
 
@@ -147,10 +147,13 @@
             btn.disabled = true;
 
             try {
-                // Mencari data di koleksi "jemaat"
+                // Debugging: Log email yang dicari
+                console.log("Sedang mencari email:", email);
+
                 const userQuery = await db.collection("jemaat").where("email", "==", email).get();
 
                 if (userQuery.empty) {
+                    console.warn("Email tidak ditemukan di koleksi 'jemaat':", email);
                     msgBox.innerText = "Akun tidak terdaftar!";
                     msgBox.className = "msg-error show-block";
                     btn.disabled = false;
@@ -160,8 +163,10 @@
                 let match = false;
                 userQuery.forEach((doc) => {
                     const userData = doc.data();
-                    // Validasi password (case sensitive)
-                    if (userData.password === pass) {
+                    console.log("Data user ditemukan di DB:", userData);
+                    
+                    // Validasi password
+                    if (userData.password == pass) {
                         match = true;
                         sessionStorage.setItem("userLoggedIn", "true");
                         sessionStorage.setItem("userName", userData.nama || "User");
@@ -173,13 +178,14 @@
                     msgBox.className = "msg-success show-block";
                     setTimeout(() => { window.location.replace("menu.html"); }, 1000);
                 } else {
+                    console.warn("Password tidak sesuai untuk email:", email);
                     msgBox.innerText = "Password Salah!";
                     msgBox.className = "msg-error show-block";
                     btn.disabled = false;
                 }
             } catch (err) {
-                console.error("Firebase Error:", err);
-                msgBox.innerText = "Kesalahan Database!";
+                console.error("Firebase Detail Error:", err);
+                msgBox.innerText = "Error: " + err.message;
                 msgBox.className = "msg-error show-block";
                 btn.disabled = false;
             }
