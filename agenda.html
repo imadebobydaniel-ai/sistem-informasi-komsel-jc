@@ -251,14 +251,14 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
 <script>
-    // 1. CONFIGURASI FIREBASE (PASTIKAN PROJECT ID SAMA DENGAN ADMIN)
+    // 1. CONFIGURASI FIREBASE
     const firebaseConfig = {
-        apiKey: "AIzaSy...", // Masukkan API Key asli Anda
-        authDomain: "pondok-pemulihan-papua.firebaseapp.com",
-        projectId: "pondok-pemulihan-papua",
-        storageBucket: "pondok-pemulihan-papua.appspot.com",
-        messagingSenderId: "123456789",
-        appId: "1:123456789:web:abcdef"
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+        authDomain: "boby-apps-project.firebaseapp.com",
+        projectId: "boby-apps-project",
+        storageBucket: "boby-apps-project.appspot.com",
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
     
     // Cegah inisialisasi ganda
@@ -272,7 +272,7 @@
     const thnSekarang = new Date().getFullYear();
     for (let i = thnSekarang - 1; i <= thnSekarang + 3; i++) {
         let opt = document.createElement('option');
-        opt.value = i.toString(); // Gunakan string untuk menyamakan dengan Firestore
+        opt.value = i.toString(); 
         opt.innerHTML = i;
         if (i === thnSekarang) opt.selected = true;
         selectTahun.appendChild(opt);
@@ -320,7 +320,6 @@
         const tabAktif = document.querySelector(".tab-link.active");
         let wilayahAktif = tabAktif.innerText;
         
-        // KUNCI PERBAIKAN: Sesuaikan ID container untuk 'All Gereja' (tanpa spasi)
         const containerId = wilayahAktif.replace(/\s/g, ''); 
         const containerAktif = document.getElementById(containerId);
         
@@ -336,15 +335,13 @@
 
         listArea.innerHTML = `<p style="color:#006666; text-align:center; width:100%;">Memuat data agenda...</p>`;
 
-        // KUNCI PERBAIKAN: Nama koleksi harus sama persis dengan yang ada di Admin (agenda_tahunan)
         let query = db.collection("agenda_tahunan");
 
-        // Logika Filter Wilayah
+        // Filter Wilayah
         if (wilayahAktif !== "All Gereja") {
             query = query.where("wilayah", "==", wilayahAktif);
         }
 
-        // KUNCI PERBAIKAN: Pastikan tipe data 'bulan' dan 'tahun' di Firestore adalah STRING
         query.where("kategori", "==", kategoriAktif)
             .where("bulan", "==", bln)
             .where("tahun", "==", thn)
@@ -356,7 +353,6 @@
                     snapshot.forEach((doc) => {
                         const data = doc.data();
                         
-                        // Menampilkan label wilayah jika di tab "All Gereja"
                         const labelWilayah = (wilayahAktif === "All Gereja") ? 
                             `<small style="background:#eef2f1; color:#006666; padding:4px 8px; border-radius:6px; position:absolute; right:15px; top:15px; font-weight:bold; border:1px solid #006666;">${data.wilayah}</small>` : "";
                         
