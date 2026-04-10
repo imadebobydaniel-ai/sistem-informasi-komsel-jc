@@ -338,22 +338,45 @@
         });
     }
  
-    function syncGolonganDarah() {
-        db.collection("users").onSnapshot((snapshot) => {
-            listNamaGoldar = { 'A': [], 'B': [], 'O': [], 'AB': [] };
-            let rekapDarah = { 'A': 0, 'B': 0, 'O': 0, 'AB': 0 };
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                const gol = (data.goldarah || data.golongan_darah || "").toUpperCase().trim();
-                if (rekapDarah.hasOwnProperty(gol)) {
-                    rekapDarah[gol]++;
-                    listNamaGoldar[gol].push(data.nama || "Tanpa Nama");
-                }
-            });
-            for (let tipe in rekapDarah) {
-                const el = document.getElementById('count-darah-' + tipe.toLowerCase());
-                if (el) el.innerText = rekapDarah[tipe];
+   function syncGolonganDarah() {
+    db.collection("users").onSnapshot((snapshot) => {
+        // Reset data setiap ada perubahan di database
+        listNamaGoldar = { 'A': [], 'B': [], 'O': [], 'AB': [] };
+        let rekapDarah = { 'A': 0, 'B': 0, 'O': 0, 'AB': 0 };
+
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            
+            // Ambil data dari field yang mungkin digunakan (goldarah, golongan_darah, atau darah)
+            let gol = (data.goldarah || data.golongan_darah || data.darah || "").toUpperCase().trim();
+
+            // Validasi: Jika tipe darah mengandung '+', '-', atau spasi (contoh: "A +")
+            // Kita bersihkan agar tetap masuk kategori A, B, O, atau AB
+            if (gol.includes('A') && gol.includes('B')) gol = 'AB';
+            else if (gol.includes('A')) gol = 'A';
+            else if (gol.includes('B')) gol = 'B';
+            else if (gol.includes('O')) gol = 'O';
+
+            if (rekapDarah.hasOwnProperty(gol)) {
+                rekapDarah[gol]++;
+                // Simpan nama untuk popup detail
+                listNamaGoldar[gol].push(data.nama || "Tanpa Nama");
             }
+        });
+
+        // Update angka di UI
+        for (let tipe in rekapDarah) {
+            const el = document.getElementById('count-darah-' + tipe.toLowerCase());
+            if (el) {
+                el.innerText = rekapDarah[tipe];
+                // Efek visual: jika angka > 0, buat warnanya lebih tegas
+                el.parentElement.style.color = rekapDarah[tipe] > 0 ? "red" : "#999";
+            }
+        }
+    }, (error) => {
+        console.error("Error mengambil data golongan darah: ", error);
+    });
+}
         });
     }
  
