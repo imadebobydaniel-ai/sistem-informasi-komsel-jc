@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Management Dashboard - PPP</title>
+    <title>Statistik</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -101,14 +101,15 @@
 
     let chartK, chartD;
 
-    // FUNGSI UPDATE DROPDOWN
     function updateDropdownKomsel() {
         const wilayah = document.getElementById('filter-wilayah').value;
         const komselSelect = document.getElementById('filter-komsel');
         
+        // Reset dropdown
         komselSelect.innerHTML = '<option value="ALL">SEMUA KOMSEL</option>';
         
-        if (dataKomsel[wilayah]) {
+        // Isi dropdown jika wilayah dipilih
+        if (wilayah !== "GLOBAL" && dataKomsel[wilayah]) {
             dataKomsel[wilayah].forEach(k => {
                 const option = document.createElement('option');
                 option.value = k;
@@ -120,6 +121,9 @@
     }
 
     function initCharts() {
+        if (chartK) chartK.destroy();
+        if (chartD) chartD.destroy();
+
         chartK = new Chart(document.getElementById('chartKehadiran'), {
             type: 'bar',
             data: {
@@ -155,7 +159,7 @@
         const limitDate = new Date(); 
         limitDate.setMonth(limitDate.getMonth() - bulan);
 
-        // LOGIK GOLONGAN DARAH
+        // Filter Jemaat (Golongan Darah)
         let uQuery = db.collection("users");
         if (wilayah !== "GLOBAL") uQuery = uQuery.where("wilayah", "==", wilayah);
         if (komsel !== "ALL") uQuery = uQuery.where("komsel", "==", komsel);
@@ -174,9 +178,9 @@
                 <div class="stat-card"><h3>${snap.size}</h3><p>Total Jemaat</p></div>
                 <div class="stat-card"><h3>${rekap['O']}</h3><p>Jemaat Tipe O</p></div>
             `;
-        });
+        }, error => console.error("Error Jemaat:", error));
 
-        // LOGIK KEHADIRAN
+        // Filter Kehadiran
         let hQuery = db.collection("kehadiran").where("tanggal", ">=", limitDate);
         if (wilayah !== "GLOBAL") hQuery = hQuery.where("wilayah", "==", wilayah);
         if (komsel !== "ALL") hQuery = hQuery.where("komsel", "==", komsel);
@@ -191,19 +195,18 @@
                 }
             });
             
-            // Perhitungan persentase sederhana (target 50)
             const base = 50; 
             chartK.data.datasets[0].data = [
                 (k.Reguler/base)*100, (k.Ibadah/base)*100, (k.Gabungan/base)*100, 
                 (k.Doa/base)*100, (k.KD/base)*100, (k.Alkitab > 0 ? 85 : 0)
             ];
             chartK.update();
-        });
+        }, error => console.error("Error Kehadiran:", error));
     }
 
     window.onload = () => {
         initCharts();
-        updateDropdownKomsel(); // Inisialisasi dropdown saat pertama buka
+        updateDropdownKomsel(); 
     };
 </script>
 </body>
