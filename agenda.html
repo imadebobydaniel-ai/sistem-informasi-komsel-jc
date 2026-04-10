@@ -175,7 +175,6 @@
             text-align: left;
         }
 
-        /* Agenda Card Item Style */
         .agenda-item {
             background: #fff;
             border-left: 4px solid var(--primary-color);
@@ -183,8 +182,9 @@
             margin-bottom: 15px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             border-radius: 8px;
+            position: relative;
         }
-        .agenda-item h4 { margin: 0 0 5px 0; color: var(--primary-color); }
+        .agenda-item h4 { margin: 0 0 5px 0; color: var(--primary-color); padding-right: 70px; }
         .agenda-item p { margin: 2px 0; font-size: 13px; color: #555; }
 
         .cluster-content { display: none; }
@@ -236,6 +236,7 @@
         <button class="tab-link" onclick="openCluster(event, 'Doyo')">Doyo</button>
         <button class="tab-link" onclick="openCluster(event, 'Arso1')">Arso 1</button>
         <button class="tab-link" onclick="openCluster(event, 'Arso2')">Arso 2</button>
+        <button class="tab-link" style="border-color: #d4af37; color: #d4af37;" onclick="openCluster(event, 'AllGereja')">All Gereja</button>
     </div>
 
     <div id="Abepura" class="cluster-content active"></div>
@@ -243,6 +244,7 @@
     <div id="Doyo" class="cluster-content"></div>
     <div id="Arso1" class="cluster-content"></div>
     <div id="Arso2" class="cluster-content"></div>
+    <div id="AllGereja" class="cluster-content"></div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -271,19 +273,21 @@
         selectTahun.appendChild(opt);
     }
 
-    const clusters = ['Abepura', 'Sentani', 'Doyo', 'Arso1', 'Arso2'];
+    const clusters = ['Abepura', 'Sentani', 'Doyo', 'Arso1', 'Arso2', 'AllGereja'];
     const komselList = ["Umum Gereja", "Komsel Bapak", "Komsel Ibu", "Komsel Profesi", "Komsel Mahasiswa", "Komsel Pelajar", "Komsel Sekolah Minggu", "Agenda Tambahan (Ext)"];
 
-    // Render Struktur Tab & Kategori
+    // 2. Render Struktur Tab & Kategori
     clusters.forEach(id => {
         const div = document.getElementById(id);
-        let html = `<div class="sub-tab-wrapper">`;
-        komselList.forEach((komsel, index) => {
-            const isActive = index === 0 ? 'active' : '';
-            html += `<button class="sub-link ${isActive}" onclick="openSubTab(this, '${id}')">${komsel}</button>`;
-        });
-        html += `</div><div class="agenda-list"><p style="color:#888; text-align:center; width:100%;">Silakan pilih bulan dan klik "Cari Agenda" untuk melihat jadwal.</p></div>`;
-        div.innerHTML = html;
+        if (div) {
+            let html = `<div class="sub-tab-wrapper">`;
+            komselList.forEach((komsel, index) => {
+                const isActive = index === 0 ? 'active' : '';
+                html += `<button class="sub-link ${isActive}" onclick="openSubTab(this, '${id}')">${komsel}</button>`;
+            });
+            html += `</div><div class="agenda-list"><p style="color:#888; text-align:center; width:100%;">Silakan pilih bulan dan klik "Cari Agenda" untuk melihat jadwal.</p></div>`;
+            div.innerHTML = html;
+        }
     });
 
     function openCluster(evt, clusterName) {
@@ -293,14 +297,14 @@
         target.style.display = "block";
         setTimeout(() => target.classList.add("active"), 10);
         evt.currentTarget.classList.add("active");
-        cariAgenda(); // Jalankan pencarian otomatis saat pindah wilayah
+        cariAgenda();
     }
 
     function openSubTab(element, clusterId) {
         const parent = element.parentElement;
         parent.querySelectorAll(".sub-link").forEach(b => b.classList.remove("active"));
         element.classList.add("active");
-        cariAgenda(); // Jalankan pencarian otomatis saat pindah kategori
+        cariAgenda();
     }
 
     // FUNGSI UTAMA PENGAMBILAN DATA FIREBASE
@@ -308,11 +312,11 @@
         const bln = document.getElementById('selectBulan').value;
         const thn = document.getElementById('selectTahun').value;
         
-        // Ambil Wilayah Aktif
-        const wilayahAktif = document.querySelector(".tab-link.active").innerText;
+        const tabAktif = document.querySelector(".tab-link.active");
+        const wilayahAktif = tabAktif.innerText;
         
-        // Ambil Kategori Aktif di Wilayah tersebut
-        const containerAktif = document.getElementById(wilayahAktif.replace(/\s/g, ''));
+        const containerId = wilayahAktif.replace(/\s/g, '');
+        const containerAktif = document.getElementById(containerId);
         const kategoriAktif = containerAktif.querySelector(".sub-link.active").innerText;
         const listArea = containerAktif.querySelector(".agenda-list");
 
@@ -323,21 +327,29 @@
 
         listArea.innerHTML = `<p style="color:#006666; text-align:center; width:100%;">Memuat data agenda...</p>`;
 
-        // Firestore Query
-        db.collection("agenda_tahunan")
-            .where("wilayah", "==", wilayahAktif)
-            .where("kategori", "==", kategoriAktif)
+        // LOGIKA QUERY FIREBASE
+        let query = db.collection("agenda_tahunan");
+
+        // Jika bukan All Gereja, filter per wilayah
+        if (wilayahAktif !== "All Gereja") {
+            query = query.where("wilayah", "==", wilayahAktif);
+        }
+
+        query.where("kategori", "==", kategoriAktif)
             .where("bulan", "==", bln)
             .where("tahun", "==", thn)
             .onSnapshot((snapshot) => {
                 if (snapshot.empty) {
-                    listArea.innerHTML = `<p style="color:#888; text-align:center; width:100%;">Agenda <b>${wilayahAktif}</b> kategori <b>${kategoriAktif}</b> belum tersedia untuk periode ini.</p>`;
+                    listArea.innerHTML = `<p style="color:#888; text-align:center; width:100%;">Agenda <b>${wilayahAktif}</b> kategori <b>${kategoriAktif}</b> belum tersedia.</p>`;
                 } else {
                     let htmlResult = "";
                     snapshot.forEach((doc) => {
                         const data = doc.data();
+                        const labelWilayah = wilayahAktif === "All Gereja" ? `<small style="background:#eef2f1; color:#006666; padding:4px 8px; border-radius:6px; position:absolute; right:15px; top:15px; font-weight:bold; border:1px solid #006666;">${data.wilayah}</small>` : "";
+                        
                         htmlResult += `
                             <div class="agenda-item">
+                                ${labelWilayah}
                                 <h4>${data.nama_kegiatan}</h4>
                                 <p>📅 <b>Hari/Tgl:</b> ${data.tanggal}</p>
                                 <p>⏰ <b>Jam:</b> ${data.jam}</p>
@@ -348,8 +360,8 @@
                     listArea.innerHTML = htmlResult;
                 }
             }, (error) => {
-                console.error("Error fetching agenda: ", error);
-                listArea.innerHTML = `<p style="color:red; text-align:center; width:100%;">Gagal memuat data. Periksa koneksi atau rules Firebase.</p>`;
+                console.error("Error: ", error);
+                listArea.innerHTML = `<p style="color:red; text-align:center; width:100%;">Gagal memuat data.</p>`;
             });
     }
 </script>
