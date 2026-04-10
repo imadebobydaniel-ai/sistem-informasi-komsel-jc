@@ -236,7 +236,7 @@
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
     
-    // 2. Inisialisasi Firebase
+    // 2. Inisialisasi Firebase (WAJIB sebelum mendefinisikan variabel 'db')
     if (!firebase.apps.length) { 
         firebase.initializeApp(firebaseConfig); 
     }
@@ -278,6 +278,9 @@
 
     // 4. Fungsi Memuat Data Monitoring
     function loadMonitoring() {
+        // Pastikan variabel 'db' sudah ada sebelum memanggil collection
+        if (typeof db === 'undefined') return;
+
         db.collection("agenda_tahunan").orderBy("timestamp", "desc").limit(8).onSnapshot(snap => {
             const tbody = document.getElementById('tabelAgenda');
             tbody.innerHTML = "";
@@ -322,7 +325,9 @@
     }
 
     // Jalankan loadMonitoring saat halaman selesai dimuat sepenuhnya
-    document.addEventListener('DOMContentLoaded', loadMonitoring);
+    window.onload = function() {
+        loadMonitoring();
+    };
 </script>
 
 </body>
