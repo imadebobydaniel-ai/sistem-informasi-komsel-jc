@@ -361,6 +361,11 @@
                             document.getElementById('user-photo').src = d.fotoUrl; 
                             document.getElementById('user-photo').style.display = "block";
                             document.getElementById('default-icon').style.display = "none"; 
+                            if (d.foto_profil) { // <--- Benar (sesuai field di Firestore)
+    document.getElementById('user-photo').src = d.foto_profil; 
+    document.getElementById('user-photo').style.display = "block";
+    document.getElementById('default-icon').style.display = "none"; 
+}
                         }
                         const today = new Date();
                         const formatHariH = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}`;
