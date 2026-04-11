@@ -151,7 +151,7 @@
             </div>
 
             <div class="btn-group">
-                <a href="index.html" class="btn-prev" style="text-decoration: none; text-align: center; line-height: 1.5;">Kembali</a>
+                <a href="login.html" class="btn-prev" style="text-decoration: none; text-align: center; line-height: 1.5;">Kembali</a>
                 <button type="button" class="btn-next" onclick="nextStep(2)">Lanjut <i class="fa-solid fa-arrow-right"></i></button>
             </div>
         </div>
@@ -218,7 +218,7 @@
             </div>
         </div>
     </form>
-    <a href="index.html" class="btn-back-login"><i class="fa-solid fa-arrow-left"></i> Kembali ke Login</a>
+    <a href="login.html" class="btn-back-login"><i class="fa-solid fa-arrow-left"></i> Kembali ke Login</a>
 </div>
 
 <div id="blocking-message">
@@ -226,7 +226,7 @@
         <i class="fa-solid fa-circle-check" style="font-size: 50px; color: #28a745;"></i>
         <p><b>Pendaftaran Berhasil!</b></p>
         <p style="font-size: 12px;">Link verifikasi telah dikirim ke email Anda. Silakan cek Inbox/Spam sebelum login.</p>
-        <button onclick="window.location.href='index.html'" class="btn-next" style="background:#007bff;">SAYA MENGERTI</button>
+        <button onclick="window.location.href='login.html'" class="btn-next" style="background:#007bff;">SAYA MENGERTI</button>
     </div>
 </div>
 
@@ -250,9 +250,9 @@
 
     // DATA DINAMIS (Tetap Sama)
     const dataKomsel = {
-        "ABE": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "esther 8", "esther 9", "Esther 10", "esther 11", "Esther 12", "Komsel Mahasiswa Abe", "Komsel Profesi Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu", "Komsel Lansia"],
-        "STN": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Siloam 5", "Siloam 6", "Siloam 8", "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", "Komsel Remaja Sentani", "Komsel Sekolah Minggu Sentani", "Komsel Lansia"],
-        "DYO": ["Komsel Bapak doyo", "Komsel Ibu doyo", "komsel Profesi Doyo", "Komsel Mahasiswa Doyo", "Komsel Pelajar Doyo", "Komsel Sekolah Minggu Doyo"],
+        "ABE": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "esther 8", "esther 9", "Esther 10", "esther 11", "Esther 12", "Komsel Mahasiswa Abe", "Komsel Profesi Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu"],
+        "STN": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Komsel 5", "Siloam 6", "Siloam 8", "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", "Komsel Remaja Sentani", "Komsel Sekolah Minggu Sentani"],
+        "DYO": ["Komsel Bapak doyo", "Komsel Ibu doyo"],
         "ARS1": ["Komsel Keluarga Arso 1"],
         "ARS2": ["Komsel Keluarga Arso 2"]
     };
@@ -299,38 +299,13 @@
         "Dekorasi & Event": ["Decoration leader", "Decoration Crew", "Art And Painting", "Special effect"]
     };
 
-    // --- FUNGSI LOGIN (BARU) ---
-    async function handleLogin() {
-        const email = document.getElementById("email").value.trim();
-        const password = document.getElementById("password").value;
-
-        try {
-            // Proses autentikasi resmi Firebase
-            const userCredential = await auth.signInWithEmailAndPassword(email, password);
-            console.log("Auth Berhasil:", userCredential.user.uid);
-            
-            // Setelah Auth berhasil, baru arahkan ke dashboard
-            window.location.href = "dashboard.html";
-        } catch (error) {
-            console.error("Kode Error:", error.code);
-            console.error("Pesan Error:", error.message);
-            
-            if (error.code === 'auth/wrong-password') {
-                alert("Password yang Anda masukkan salah.");
-            } else if (error.code === 'auth/user-not-found') {
-                alert("Email tidak ditemukan di sistem autentikasi.");
-            } else {
-                alert("Terjadi kesalahan: " + error.message);
-            }
-        }
-    }
-
-    // --- LOGIKA FORM & REGISTRASI ---
+    // LOGIKA BARU: Handle Input Berdasarkan Status Pernikahan
     function handleStatusNikah() {
         const status = document.getElementById("status_pernikahan").value;
         const divMenikah = document.getElementById("form_menikah");
         const divSingle = document.getElementById("form_single");
 
+        // Sembunyikan semua dulu
         divMenikah.style.display = "none";
         divSingle.style.display = "none";
 
@@ -341,6 +316,7 @@
         }
     }
 
+    // FUNGSI LOGIKA FORM (Tetap Sama)
     function nextStep(n) {
         const steps = document.querySelectorAll('.form-step');
         steps.forEach(step => { step.classList.remove('active'); step.style.display = 'none'; });
@@ -430,10 +406,12 @@
                 email: email,
                 whatsapp: document.getElementById("hp").value,
                 status_pernikahan: document.getElementById("status_pernikahan").value,
+                // Data Dinamis
                 jumlah_anak: document.getElementById("jumlah_anak").value || 0,
                 nama_pasangan: document.getElementById("nama_pasangan").value || "",
                 nama_ayah: document.getElementById("nama_ayah").value || "",
                 nama_ibu: document.getElementById("nama_ibu").value || "",
+                
                 lokasi_berjemaat: document.getElementById("lokasi").value,
                 komsel: document.getElementById("komsel").value,
                 jabatan: document.getElementById("jabatan_jemaat").value,
@@ -479,17 +457,11 @@
 
     // Init
     loadProvinsi();
-    
-    // Pastikan ID ini sesuai di HTML Anda untuk toggle mata password
-    const eyeIcon = document.getElementById('eyeIcon');
-    if(eyeIcon) {
-        eyeIcon.addEventListener('click', function() {
-            const p = document.getElementById('pass'); // Untuk form daftar
-            const loginP = document.getElementById('password'); // Untuk form login
-            if(p) p.type = p.type === 'password' ? 'text' : 'password';
-            if(loginP) loginP.type = loginP.type === 'password' ? 'text' : 'password';
-            this.classList.toggle('fa-eye-slash');
-        });
-    }
-</script></body>
+    document.getElementById('eyeIcon').addEventListener('click', function() {
+        const p = document.getElementById('pass');
+        p.type = p.type === 'password' ? 'text' : 'password';
+        this.classList.toggle('fa-eye-slash');
+    });
+</script>
+</body>
 </html>
