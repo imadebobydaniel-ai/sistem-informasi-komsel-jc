@@ -22,7 +22,6 @@
             display: flex; flex-direction: column;
         }
 
-        /* --- UI Elements & Stars --- */
         #confetti-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
         .stars-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
         
@@ -49,7 +48,6 @@
             -webkit-appearance: none;
         }
 
-        /* --- Podium --- */
         .podium-section { 
             display: flex; justify-content: center; align-items: flex-end; 
             gap: 10px; margin: 20px 0 40px 0; position: relative; z-index: 5; 
@@ -75,7 +73,6 @@
         }
         .gold .clickable-pts { background: var(--gold-gradient); color: #4d3a00; border: 1px solid #e6ac00; }
 
-        /* --- Ranking List --- */
         .ranking-list { position: relative; z-index: 5; }
         .rank-item { 
             display: flex; justify-content: space-between; align-items: center; 
@@ -85,9 +82,8 @@
         .rank-name { font-weight: bold; color: #333; flex: 1; font-size: 14px; }
         .list-pts { background: var(--primary-blue); color: white; padding: 6px 12px; border-radius: 20px; font-weight: 800; font-size: 11px; cursor: pointer; }
 
-        .btn-back { width: 100%; padding: 18px; background: var(--dark-blue); color: white; border: none; font-weight: bold; border-radius: 0 0 30px 30px; margin-top: auto; position: relative; z-index: 5; }
+        .btn-back { width: 100%; padding: 18px; background: var(--dark-blue); color: white; border: none; font-weight: bold; border-radius: 0 0 30px 30px; margin-top: auto; position: relative; z-index: 5; cursor: pointer; }
 
-        /* --- Custom Modal --- */
         #customModal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--overlay);
@@ -135,7 +131,7 @@
     <div class="ranking-list" id="list-ui">
         </div>
 
-    <button class="btn-back"><i class="fa-solid fa-house"></i> KEMBALI KE MENU</button>
+    <button class="btn-back" onclick="window.location.href='index.html'"><i class="fa-solid fa-house"></i> KEMBALI KE MENU</button>
 </div>
 
 <div id="customModal">
@@ -148,10 +144,10 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
 <script>
-    // --- SETINGAN JSS DATABASE (FIREBASE) ---
+    // --- KONFIGURASI FIREBASE ---
     const firebaseConfig = {
         apiKey: "MASUKKAN_API_KEY",
         authDomain: "PROJECT_ID.firebaseapp.com",
@@ -165,13 +161,20 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Fungsi Ambil Data Realtime
+    // Data Dummy untuk berjaga-jaga jika database kosong
+    const placeholderData = [
+        { name: "JC 5", points: 243, history: "Detail JC 5:\n- Kehadiran: 10x\n- Pelayanan: 5x" },
+        { name: "UMUM", points: 110, history: "Detail UMUM:\n- Kehadiran: 8x" },
+        { name: "JC 1", points: 50, history: "Detail JC 1:\n- Kehadiran: 4x" },
+        { name: "Boby Daniel", points: 30, history: "Detail Boby:\n- Alkitab: 6x" },
+        { name: "Yohanes", points: 25, history: "Detail Yohanes:\n- Pelayanan: 1x" }
+    ];
+
     function syncLeaderboard() {
         db.ref('leaderboard').on('value', (snapshot) => {
             const data = snapshot.val();
-            if (!data) return;
-
-            const users = Object.values(data).sort((a, b) => b.points - a.points);
+            // Jika database kosong, pakai data dummy agar board tidak kosong
+            const users = data ? Object.values(data).sort((a, b) => b.points - a.points) : placeholderData;
             renderUI(users);
         });
     }
@@ -180,7 +183,6 @@
         const podiumContainer = document.getElementById('podium-ui');
         const listContainer = document.getElementById('list-ui');
         
-        // Render Podium (1, 2, 3)
         const p1 = users[0] || {name: '-', points: 0, history: ''};
         const p2 = users[1] || {name: '-', points: 0, history: ''};
         const p3 = users[2] || {name: '-', points: 0, history: ''};
@@ -206,7 +208,6 @@
             </div>
         `;
 
-        // Render List (4+)
         listContainer.innerHTML = '';
         users.slice(3).forEach((user, index) => {
             listContainer.innerHTML += `
@@ -219,7 +220,6 @@
         });
     }
 
-    // --- LOGIC MODAL & EFEK (DIPERTAHANKAN) ---
     const modal = document.getElementById('customModal');
     const mTitle = document.getElementById('modalTitle');
     const mBody = document.getElementById('modalBody');
@@ -260,7 +260,6 @@
         if (Date.now() < end) requestAnimationFrame(frame);
     }());
 
-    // Jalankan Sinkronisasi saat aplikasi dibuka
     syncLeaderboard();
 </script>
 </body>
