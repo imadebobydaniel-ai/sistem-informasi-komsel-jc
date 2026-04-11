@@ -2,372 +2,74 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Peringkat Komsel - Pondok Pemulihan</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
     <style>
-        :root {
-            --biru-tua: #003366;
-            --biru-safir: #0056b3;
-            --emas-lux: #D4AF37;
-            --putih-bg: #f4f7fa;
-        }
-
-        body { 
-            font-family: 'Segoe UI', Roboto, sans-serif; 
-            background-color: var(--putih-bg); 
-            margin: 0; 
-            padding: 15px;
-            padding-bottom: 100px;
-        }
-
-        .container { max-width: 500px; margin: auto; }
-        
-        .card { 
-            background: white; 
-            padding: 25px; 
-            border-radius: 25px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
-            margin-bottom: 20px; 
-            text-align: center;
-            border-top: 5px solid var(--biru-safir);
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* --- STYLE MODAL --- */
-        .modal {
-            display: none; 
-            position: fixed; 
-            z-index: 3000; 
-            left: 0; top: 0; 
-            width: 100%; height: 100%; 
-            background-color: rgba(0,0,0,0.5);
-            backdrop-filter: blur(5px);
-        }
-
-        .modal-content {
-            background-color: white;
-            margin: 15% auto;
-            padding: 20px;
-            border-radius: 20px;
-            width: 85%;
-            max-width: 400px;
-            position: relative;
-            text-align: left;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
-            animation: slideDown 0.3s ease-out;
-        }
-
-        @keyframes slideDown {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .close-modal {
-            position: absolute;
-            top: 10px; right: 15px;
-            font-size: 24px;
-            cursor: pointer;
-            color: #888;
-        }
-
-        .modal-content h3 { color: var(--biru-tua); margin-top: 0; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
-        
-        /* Style Detail Riwayat */
-        .detail-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-            font-size: 13px;
-        }
-        .detail-item:last-child { border-bottom: none; }
-        .detail-category { font-weight: 600; color: var(--biru-tua); text-transform: capitalize; }
-        .detail-date { font-size: 11px; color: #888; }
-        .detail-pts { font-weight: 800; color: var(--biru-safir); }
-
-        #detailContent { max-height: 300px; overflow-y: auto; }
-
-        .point-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f9f9f9; font-size: 14px; }
-        .point-val { font-weight: bold; color: var(--biru-safir); }
-
-        /* --- ANIMASI JUARA --- */
-        .rank-1 { animation: celebrate 2s infinite ease-in-out; }
-        @keyframes celebrate {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .info-icon {
-            position: absolute; top: 15px; left: 20px;
-            font-size: 20px; color: var(--biru-safir);
-            cursor: pointer; opacity: 0.7; z-index: 10;
-        }
-
-        h2 { color: var(--biru-tua); font-size: 20px; font-weight: 900; margin-bottom: 5px; text-transform: uppercase; }
-        .info-sub { color: #888; font-size: 13px; font-weight: 600; margin-bottom: 25px; }
-
-        .podium-container { display: flex; justify-content: center; align-items: flex-end; margin-bottom: 30px; gap: 10px; }
-        .podium-item { flex: 1; display: flex; flex-direction: column; align-items: center; }
-        
-        .trophy-box {
-            width: 50px; height: 50px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 24px; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        .rank-1 .trophy-box { background: linear-gradient(135deg, #FFD700, #FDB931); color: white; width: 65px; height: 65px; font-size: 32px; border: 3px solid white; }
-        .rank-2 .trophy-box { background: linear-gradient(135deg, #E0E0E0, #BDBDBD); color: white; }
-        .rank-3 .trophy-box { background: linear-gradient(135deg, #f0a26d, #CD7F32); color: white; }
-
-        .podium-name { font-weight: 900; font-size: 14px; color: var(--biru-tua); margin-top: 5px;}
-        .podium-score { font-size: 11px; background: var(--biru-tua); color: white; padding: 2px 8px; border-radius: 10px; font-weight: 700; margin-top: 4px;}
-        
-        .chart-box { height: 180px; width: 100%; margin-top: 15px; background: #fdfdfd; border-radius: 15px; padding: 10px; box-sizing: border-box;}
-
-        .rank-list { text-align: left; }
-        .rank-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 20px; background: white; border-radius: 18px;
-            margin-bottom: 10px; border: 1.5px solid #f0f0f0;
-        }
-        .rank-item.top-three { border-left: 5px solid var(--emas-lux); background: linear-gradient(to right, #fffdf5, #ffffff); }
-        .rank-jc { font-weight: 800; color: var(--biru-tua); font-size: 15px; }
-        .rank-val { background: var(--biru-safir); color: white; padding: 5px 12px; border-radius: 50px; font-size: 12px; font-weight: 900; cursor: pointer; transition: 0.2s; }
-        .rank-val:active { transform: scale(0.9); }
-
-        .btn-back-container { position: fixed; bottom: 0; left: 0; width: 100%; padding: 20px; background: white; border-top: 1px solid #eee; z-index: 1000; box-sizing: border-box; }
-        .btn-back { display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--biru-tua); color: white; padding: 18px; border-radius: 50px; text-decoration: none; font-weight: 800; box-shadow: 0 8px 25px rgba(0,51,102,0.3); }
-
-        #loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.95); display: flex; flex-direction:column; justify-content: center; align-items: center; z-index: 2000; }
+        /* CSS diletakkan di bawah untuk kerapihan */
     </style>
 </head>
 <body>
 
-<div id="pointModal" class="modal">
-    <div class="modal-content">
-        <span class="close-modal" id="closeModal">&times;</span>
-        <h3><i class="fas fa-info-circle"></i> Sistem Poin</h3>
-        <div class="point-item"><span>Ibadah Raya / Arso 1</span> <span class="point-val">+10 Pts</span></div>
-        <div class="point-item"><span>Kingdom Disiphleship (KD)</span> <span class="point-val">+10 Pts</span></div>
-        <div class="point-item"><span>Laporan Komsel / Gabungan</span> <span class="point-val">+8 Pts</span></div>
-        <div class="point-item"><span>Laporan Doa</span> <span class="point-val">+8 Pts</span></div>
-        <div class="point-item"><span>Laporan Baca Alkitab</span> <span class="point-val">+5 Pts</span></div>
-        <p style="font-size: 11px; color: #888; margin-top: 15px;">*Poin otomatis terupdate saat laporan disetujui.</p>
+<div class="leaderboard-container">
+    <div class="leaderboard-header">
+        <div class="rules-icon" onclick="showRules()"><i class="fa-solid fa-circle-question"></i></div>
+        <h2 class="title"><i class="fa-solid fa-crown"></i> LEADERBOARD</h2>
+        <p class="periode">Periode: April 2026</p>
     </div>
-</div>
 
-<div id="detailModal" class="modal">
-    <div class="modal-content">
-        <span class="close-modal" id="closeDetail">&times;</span>
-        <h3 id="detailTitle">Riwayat Poin</h3>
-        <div id="detailContent"></div>
+    <div class="filter-section">
+        <select id="filter-segmen" onchange="updateLeaderboard()">
+            <option value="gereja">Per Gereja (Wilayah)</option>
+            <option value="komsel">Per Komsel</option>
+            <option value="orangan" selected>Per Orangan (Jemaat)</option>
+        </select>
+
+        <select id="filter-kategori" onchange="updateLeaderboard()">
+            <option value="semua">Semua Kategori</option>
+            <option value="pw">Praise & Worship (PW)</option>
+            <option value="multimedia">Multimedia</option>
+            <option value="wl-singer">WL & Singer</option>
+            <option value="sound">Sound Engineering</option>
+            <option value="tamborin">Tamborin & Flag</option>
+            <option value="choirs">Choirs</option>
+        </select>
     </div>
-</div>
 
-<div id="loading-overlay">
-    <i class="fas fa-sync fa-spin fa-3x" style="color: var(--biru-safir);"></i>
-    <p style="margin-top: 15px; font-weight: bold;">Menghitung Skor Terupdate...</p>
-</div>
-
-<div class="container">
-    <div class="card">
-        <div class="info-icon" id="openModal"><i class="fas fa-award"></i></div>
-        <h2><i class="fas fa-crown" style="color: var(--emas-lux);"></i> Leaderboard</h2>
-        <p class="info-sub" id="current-month">Periode: Memuat...</p>
-
-        <div class="podium-container">
-            <div class="podium-item rank-2" style="order: 1;">
-                <div class="trophy-box"><i class="fas fa-medal"></i></div>
-                <div class="podium-name" id="top2-name">JC -</div>
-                <div class="podium-score" id="top2-val">0</div>
-            </div>
-            <div class="podium-item rank-1" style="order: 2;">
-                <div class="trophy-box"><i class="fas fa-trophy"></i></div>
-                <div class="podium-name" id="top1-name">JC -</div>
-                <div class="podium-score" id="top1-val">0</div>
-            </div>
-            <div class="podium-item rank-3" style="order: 3;">
-                <div class="trophy-box"><i class="fas fa-award"></i></div>
-                <div class="podium-name" id="top3-name">JC -</div>
-                <div class="podium-score" id="top3-val">0</div>
-            </div>
+    <div class="podium-section">
+        <div class="podium-card silver">
+            <div class="medal-icon"><i class="fa-solid fa-medal"></i></div>
+            <div class="podium-name" id="rank-2-name">UMUM</div>
+            <div class="podium-points" onclick="showHistory('USER_ID_2')">110 Pts</div>
         </div>
 
-        <div class="chart-box">
-            <canvas id="chartJC"></canvas>
+        <div class="podium-card gold">
+            <div class="medal-icon"><i class="fa-solid fa-trophy"></i></div>
+            <div class="podium-name" id="rank-1-name">JC 5</div>
+            <div class="podium-points" onclick="showHistory('USER_ID_1')">243 Pts</div>
+        </div>
+
+        <div class="podium-card bronze">
+            <div class="medal-icon"><i class="fa-solid fa-award"></i></div>
+            <div class="podium-name" id="rank-3-name">JC 1</div>
+            <div class="podium-points" onclick="showHistory('USER_ID_3')">50 Pts</div>
         </div>
     </div>
 
-    <div id="rank-list" class="rank-list"></div>
+    <div class="ranking-list" id="ranking-container">
+        <div class="rank-item">
+            <div class="rank-info">
+                <span class="rank-number">4.</span>
+                <span class="rank-name">JC</span>
+            </div>
+            <div class="rank-points-capsule" onclick="showHistory('USER_ID_4')">
+                30 POIN
+            </div>
+        </div>
+        </div>
 
-    <div class="btn-back-container">
-        <a href="menu.html" class="btn-back"><i class="fas fa-home"></i> KEMBALI KE MENU</a>
-    </div>
+    <button class="btn-back-menu"><i class="fa-solid fa-house"></i> KEMBALI KE MENU</button>
 </div>
 
-<script>
-    // Konfigurasi Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
-        authDomain: "boby-apps-project.firebaseapp.com",
-        projectId: "boby-apps-project",
-        storageBucket: "boby-apps-project.appspot.com",
-        messagingSenderId: "125984859692",
-        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
-    };
-
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    let myChart;
-    let riwayatPoin = {}; // Variabel global untuk simpan detail
-
-    // --- LOGIC MODAL ---
-    const pModal = document.getElementById("pointModal");
-    const openBtn = document.getElementById("openModal");
-    const closeBtn = document.getElementById("closeModal");
-
-    openBtn.onclick = () => pModal.style.display = "block";
-    closeBtn.onclick = () => pModal.style.display = "none";
-
-    document.getElementById("closeDetail").onclick = () => {
-        document.getElementById("detailModal").style.display = "none";
-    };
-
-    window.onclick = (event) => {
-        if (event.target == pModal) pModal.style.display = "none";
-        if (event.target == document.getElementById("detailModal")) {
-            document.getElementById("detailModal").style.display = "none";
-        }
-    };
-
-    function selebrasiMeriah() {
-        confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 }, colors: ['#0056b3', '#FFD700', '#ffffff'] });
-    }
-
-    async function syncLeaderboard() {
-        document.getElementById('loading-overlay').style.display = 'flex';
-        riwayatPoin = {}; 
-        try {
-            let skorJC = {};
-            let periode = new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' });
-            
-            const koleksiPoin = [
-                { nama: "kehadiran", poin: 10 },
-                { nama: "kehadiran_arso1", poin: 10 },
-                { nama: "kehadiran_kd", poin: 10 },
-                { nama: "laporan_komsel", poin: 8 },
-                { nama: "laporan_gabungan", poin: 8 },
-                { nama: "laporan_doa", poin: 8 },
-                { nama: "laporan_bacaan", poin: 5 }
-            ];
-
-            await Promise.all(koleksiPoin.map(async (item) => {
-                const snap = await db.collection(item.nama).get();
-                snap.forEach(doc => {
-                    let d = doc.data();
-                    let nama = (d.jc || d.komsel || d.nama_jc || "Umum").trim().toUpperCase();
-                    if (!nama.startsWith("JC") && nama !== "UMUM") nama = "JC " + nama;
-                    
-                    const status = (d.status || d.status_doa || "HADIR").toUpperCase();
-                    if (status === "HADIR" || status === "SELESAI" || item.nama === "laporan_bacaan") {
-                        if (!skorJC[nama]) skorJC[nama] = 0;
-                        skorJC[nama] += item.poin;
-
-                        // SIMPAN KE RIWAYAT DETAIL
-                        if (!riwayatPoin[nama]) riwayatPoin[nama] = [];
-                        riwayatPoin[nama].push({
-                            kategori: item.nama.replace(/_/g, ' '),
-                            poin: item.poin,
-                            tanggal: d.tanggal || d.tgl_laporan || "Terbaru"
-                        });
-                    }
-                });
-            }));
-
-            let urutan = Object.keys(skorJC).map(n => ({ nama: n, poin: skorJC[n] })).sort((a, b) => b.poin - a.poin);
-            
-            document.getElementById('current-month').innerText = `Periode: ${periode}`;
-            
-            // Update Podium
-            if(urutan[0]) { document.getElementById('top1-name').innerText = urutan[0].nama; document.getElementById('top1-val').innerText = urutan[0].poin + " Pts"; }
-            if(urutan[1]) { document.getElementById('top2-name').innerText = urutan[1].nama; document.getElementById('top2-val').innerText = urutan[1].poin + " Pts"; }
-            if(urutan[2]) { document.getElementById('top3-name').innerText = urutan[2].nama; document.getElementById('top3-val').innerText = urutan[2].poin + " Pts"; }
-
-            // Update List dengan Onclick Detail
-            let html = "";
-            urutan.forEach((item, i) => {
-                html += `<div class="rank-item ${i < 3 ? 'top-three' : ''}">
-                    <span class="rank-jc">${i + 1}. ${item.nama}</span>
-                    <span class="rank-val" onclick="bukaDetail('${item.nama}')">${item.poin} POIN</span>
-                </div>`;
-            });
-            document.getElementById('rank-list').innerHTML = html;
-
-            tampilkanGrafik(urutan.map(i => i.nama), urutan.map(i => i.poin));
-            setTimeout(selebrasiMeriah, 500);
-
-        } catch (e) { 
-            console.error("Gagal Sinkronisasi:", e); 
-        } finally { 
-            document.getElementById('loading-overlay').style.display = 'none'; 
-        }
-    }
-
-    // FUNGSI UNTUK MENAMPILKAN DETAIL
-    window.bukaDetail = function(namaJC) {
-        const modalDetail = document.getElementById("detailModal");
-        const title = document.getElementById("detailTitle");
-        const content = document.getElementById("detailContent");
-
-        title.innerText = `Riwayat: ${namaJC}`;
-        let listHtml = "";
-
-        if (riwayatPoin[namaJC]) {
-            // Urutkan riwayat (opsional: dari yang terbaru)
-            riwayatPoin[namaJC].forEach(r => {
-                listHtml += `
-                    <div class="detail-item">
-                        <div>
-                            <div class="detail-category">${r.kategori}</div>
-                            <div class="detail-date">${r.tanggal}</div>
-                        </div>
-                        <div class="detail-pts">+${r.poin}</div>
-                    </div>`;
-            });
-        } else {
-            listHtml = "<p style='text-align:center; padding:20px;'>Belum ada riwayat poin.</p>";
-        }
-
-        content.innerHTML = listHtml;
-        modalDetail.style.display = "block";
-    }
-
-    function tampilkanGrafik(labels, values) {
-        const ctx = document.getElementById('chartJC').getContext('2d');
-        if (myChart) myChart.destroy();
-        myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{ data: values, backgroundColor: '#0056b3', borderRadius: 5 }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { y: { display: false, beginAtZero: true }, x: { grid: { display: false } } }
-            }
-        });
-    }
-
-    window.onload = syncLeaderboard;
-</script>
 </body>
 </html>
