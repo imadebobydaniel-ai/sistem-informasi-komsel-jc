@@ -47,17 +47,22 @@
     <div class="terms-box">
         <img src="logo_pondok.png" alt="Logo" style="width: 70px; margin-bottom: 10px;">
         <h2>Syarat & Ketentuan Jemaat</h2>
-        <p style="font-size: 13px; color: #444; text-align: justify;">Selamat Datang di Sistem Informasi Jemaat Pondok Pemulihan Papua. Layanan ini bertujuan membangun integrasi pelayanan dan pertumbuhan rohani jemaat.</p>
+        <p style="font-size: 13px; color: #444; text-align: justify;">
+            Selamat Datang di Sistem Informasi Jemaat Pondok Pemulihan Papua. 
+            Layanan ini bertujuan membangun integrasi pelayanan dan pertumbuhan rohani jemaat.
+        </p>
+        
         <label class="check-container">
-           <input type="checkbox" id="setuju_syarat" onchange="toggleAgreeButton()"> 
-<label for="setuju_syarat">Saya siap menggunakan aplikasi ini...</label>
+            <input type="checkbox" id="setuju_syarat" onchange="toggleAgreeButton()"> 
+            <span style="margin-left: 10px; font-size: 13px;">Saya siap menggunakan aplikasi ini...</span>
+        </label>
 
-<button type="button" id="btnSetujuLanjut" onclick="tutupModalSyarat()" disabled>
-    SETUJU & LANJUTKAN
-</button>
+        <button type="button" id="btnSetujuLanjut" onclick="tutupModalSyarat()" disabled 
+            style="width: 100%; padding: 15px; background: #28a745; color: white; border: none; border-radius: 10px; font-weight: bold; opacity: 0.5; cursor: not-allowed;">
+            SETUJU & LANJUTKAN
+        </button>
     </div>
 </div>
-
 <div class="reg-container">
     <div class="header-logo"><img src="logo_pondok.png" alt="Logo"></div>
     <div class="header-text">
@@ -474,22 +479,10 @@ async function handleRegistrasi() {
 
 // --- PINDAHKAN KODE INI KE LUAR ---
 
-function toggleAgreeButton() {
-    const checkbox = document.getElementById("setuju_syarat");
-    const btn = document.getElementById("btnSetujuLanjut");
-    if(!checkbox || !btn) return;
 
-    btn.disabled = !checkbox.checked;
-    btn.style.opacity = checkbox.checked ? "1" : "0.5";
-    btn.style.cursor = checkbox.checked ? "pointer" : "not-allowed";
 }
 
-function tutupModalSyarat() {
-    // Samakan ID dengan yang ada di HTML (terms-modal)
-    const modal = document.getElementById("terms-modal"); 
-    if (modal) {
-        modal.style.display = "none";
-    }
+
 }
     }
 
@@ -522,5 +515,35 @@ function tutupModalSyarat() {
             this.classList.toggle('fa-eye-slash');
         });
     };
+   
+    }
+}
+
+
+    }
+    // Fungsi untuk mengaktifkan tombol setelah checkbox dicentang
+function toggleAgreeButton() {
+    const checkbox = document.getElementById("setuju_syarat");
+    const btn = document.getElementById("btnSetujuLanjut");
+    
+    if (checkbox.checked) {
+        btn.disabled = false;
+        btn.style.opacity = "1";
+        btn.style.cursor = "pointer";
+    } else {
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+        btn.style.cursor = "not-allowed";
+    }
+}
+
+// Fungsi untuk menutup modal
+function tutupModalSyarat() {
+    const modal = document.getElementById("terms-modal"); // ID disamakan dengan HTML
+    if (modal) {
+        modal.style.display = "none";
+    }
+}
+}
 </script></body>
 </html>
