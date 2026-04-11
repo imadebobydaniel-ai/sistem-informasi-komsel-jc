@@ -48,6 +48,7 @@
             -webkit-appearance: none;
         }
 
+        /* --- Podium Styling --- */
         .podium-section { 
             display: flex; justify-content: center; align-items: flex-end; 
             gap: 10px; margin: 20px 0 40px 0; position: relative; z-index: 5; 
@@ -73,6 +74,7 @@
         }
         .gold .clickable-pts { background: var(--gold-gradient); color: #4d3a00; border: 1px solid #e6ac00; }
 
+        /* --- List Styling --- */
         .ranking-list { position: relative; z-index: 5; }
         .rank-item { 
             display: flex; justify-content: space-between; align-items: center; 
@@ -82,13 +84,13 @@
         .rank-name { font-weight: bold; color: #333; flex: 1; font-size: 14px; }
         .list-pts { background: var(--primary-blue); color: white; padding: 6px 12px; border-radius: 20px; font-weight: 800; font-size: 11px; cursor: pointer; }
 
-        /* Memperbaiki kursor tombol kembali */
         .btn-back { 
             width: 100%; padding: 18px; background: var(--dark-blue); color: white; 
             border: none; font-weight: bold; border-radius: 0 0 30px 30px; 
             margin-top: auto; position: relative; z-index: 5; cursor: pointer;
         }
 
+        /* --- Modal Styling --- */
         #customModal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--overlay);
@@ -130,8 +132,10 @@
         <select><option>Semua Kategori</option><option>PW</option><option>Multimedia</option><option>Sound engineer</option><option>Tamborin</option><option>Choirs</option><option>Flag</option></select>
     </div>
 
-    <div class="podium-section" id="podium-ui"></div>
-    <div class="ranking-list" id="list-ui"></div>
+    <div id="dynamic-content">
+        <div class="podium-section" id="podium-ui"></div>
+        <div class="ranking-list" id="list-ui"></div>
+    </div>
 
     <button class="btn-back" onclick="window.location.href='menu.html'"><i class="fa-solid fa-house"></i> KEMBALI KE MENU</button>
 </div>
@@ -149,9 +153,9 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
 <script>
-    // --- 1. KONFIGURASI DATABASE ---
+    // --- 1. KONFIGURASI ---
     const firebaseConfig = {
-        apiKey: "MASUKKAN_API_KEY",
+        apiKey: "AIzaSy...", // Masukkan API Key asli Anda
         authDomain: "PROJECT_ID.firebaseapp.com",
         databaseURL: "https://PROJECT_ID-default-rtdb.firebaseio.com",
         projectId: "PROJECT_ID",
@@ -160,10 +164,13 @@
         appId: "APP_ID"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    // Inisialisasi Firebase (Bungkus dalam try-catch agar tidak crash jika config salah)
+    try {
+        firebase.initializeApp(firebaseConfig);
+    } catch (e) {
+        console.log("Firebase tidak terhubung, menggunakan data dummy.");
+    }
 
-    // Data cadangan jika database masih kosong agar tidak "Blank"
     const dummyData = [
         { name: "JC 5", points: 243, history: "Detail JC 5:\n- Kehadiran: 10x\n- Pelayanan: 5x" },
         { name: "UMUM", points: 110, history: "Detail UMUM:\n- Kehadiran: 8x" },
@@ -172,24 +179,15 @@
         { name: "Yohanes", points: 25, history: "Detail Yohanes:\n- Pelayanan: 1x" }
     ];
 
-    // --- 2. LOGIC SYNC DATABASE ---
-    function syncLeaderboard() {
-        db.ref('leaderboard').on('value', (snapshot) => {
-            const data = snapshot.val();
-            // Jika data ada di firebase, gunakan itu. Jika tidak, gunakan dummy.
-            const users = data ? Object.values(data).sort((a, b) => b.points - a.points) : dummyData;
-            renderUI(users);
-        });
-    }
-
+    // --- 2. RENDER ENGINE ---
     function renderUI(users) {
         const podiumContainer = document.getElementById('podium-ui');
         const listContainer = document.getElementById('list-ui');
         
-        // Data Top 3
-        const p1 = users[0] || {name: '-', points: 0, history: ''};
-        const p2 = users[1] || {name: '-', points: 0, history: ''};
-        const p3 = users[2] || {name: '-', points: 0, history: ''};
+        // Pastikan ada minimal 3 data objek (meskipun kosong) untuk podium
+        const p1 = users[0] || {name: "-", points: 0, history: ""};
+        const p2 = users[1] || {name: "-", points: 0, history: ""};
+        const p3 = users[2] || {name: "-", points: 0, history: ""};
 
         podiumContainer.innerHTML = `
             <div class="podium-card silver">
@@ -212,9 +210,9 @@
             </div>
         `;
 
-        // Data Ranking 4 ke bawah
         listContainer.innerHTML = '';
-        users.slice(3).forEach((user, index) => {
+        const remainingUsers = users.slice(3);
+        remainingUsers.forEach((user, index) => {
             listContainer.innerHTML += `
                 <div class="rank-item">
                     <span style="width:25px; font-weight:900;">${index + 4}.</span>
@@ -225,47 +223,76 @@
         });
     }
 
-    // --- 3. UI EFFECTS & MODAL ---
-    const modal = document.getElementById('customModal');
-    const mTitle = document.getElementById('modalTitle');
-    const mBody = document.getElementById('modalBody');
+    // --- 3. SYNC DATA ---
+    function syncData() {
+        try {
+            const db = firebase.database();
+            db.ref('leaderboard').on('value', (snapshot) => {
+                const data = snapshot.val();
+                const users = data ? Object.values(data).sort((a, b) => b.points - a.points) : dummyData;
+                renderUI(users);
+            }, (error) => {
+                console.log("Database Error:", error);
+                renderUI(dummyData);
+            });
+        } catch (e) {
+            renderUI(dummyData);
+        }
+    }
 
+    // --- 4. MODAL & EFFECTS ---
     function openModal(type, name = '', history = '') {
+        const modal = document.getElementById('customModal');
+        const mTitle = document.getElementById('modalTitle');
+        const mBody = document.getElementById('modalBody');
+
         if (type === 'rules') {
             mTitle.innerHTML = '<i class="fa-solid fa-scroll"></i> Aturan Poin';
             mBody.innerText = "• Alkitab: 5 Pts\n• Kehadiran: 10 Pts\n• Latihan Bidang: 15 Pts\n• Pelayanan: 25 Pts\n\nSyarat: Poin Pelayanan hanya masuk jika Anda mengikuti latihan.";
         } else {
             mTitle.innerHTML = `<i class="fa-solid fa-user"></i> Riwayat ${name}`;
-            mBody.innerText = history || `Detail Poin ${name}:\nBelum ada riwayat tervalidasi.`;
+            mBody.innerText = history || `Detail Poin ${name}:\nBelum ada riwayat data.`;
         }
         modal.style.display = 'flex';
     }
 
-    function closeModal() { modal.style.display = 'none'; }
-    window.onclick = function(event) { if (event.target == modal) closeModal(); }
+    function closeModal() { document.getElementById('customModal').style.display = 'none'; }
+    window.onclick = function(e) { if(e.target.id === 'customModal') closeModal(); }
 
-    const starLayer = document.getElementById('stars-layer');
-    for (let i = 0; i < 20; i++) {
-        const star = document.createElement('i');
-        star.className = 'fa-solid fa-star';
-        star.style.position = 'absolute'; star.style.color = '#FFD700';
-        star.style.fontSize = Math.random() * 6 + 4 + 'px';
-        star.style.left = Math.random() * 100 + '%'; star.style.top = Math.random() * 100 + '%';
-        star.style.opacity = Math.random();
-        star.style.animation = `twinkle ${Math.random() * 2 + 1}s infinite ease-in-out`;
-        starLayer.appendChild(star);
+    // Efek Bintang
+    function initStars() {
+        const starLayer = document.getElementById('stars-layer');
+        for (let i = 0; i < 20; i++) {
+            const star = document.createElement('i');
+            star.className = 'fa-solid fa-star';
+            star.style.position = 'absolute';
+            star.style.color = '#FFD700';
+            star.style.fontSize = (Math.random() * 6 + 4) + 'px';
+            star.style.left = (Math.random() * 100) + '%';
+            star.style.top = (Math.random() * 100) + '%';
+            star.style.opacity = Math.random();
+            star.style.animation = `twinkle ${Math.random() * 2 + 1}s infinite ease-in-out`;
+            starLayer.appendChild(star);
+        }
     }
 
-    const duration = 5 * 1000;
-    const end = Date.now() + duration;
-    (function frame() {
-        confetti({ particleCount: 2, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#FFD700', '#0056b3'] });
-        confetti({ particleCount: 2, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#FFD700', '#0056b3'] });
-        if (Date.now() < end) requestAnimationFrame(frame);
-    }());
+    // Efek Confetti
+    function initConfetti() {
+        const duration = 5 * 1000;
+        const end = Date.now() + duration;
+        (function frame() {
+            confetti({ particleCount: 2, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#FFD700', '#0056b3'] });
+            confetti({ particleCount: 2, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#FFD700', '#0056b3'] });
+            if (Date.now() < end) requestAnimationFrame(frame);
+        }());
+    }
 
-    // Jalankan sinkronisasi
-    syncLeaderboard();
+    // Jalankan semua fungsi saat halaman siap
+    window.onload = () => {
+        initStars();
+        initConfetti();
+        syncData();
+    };
 </script>
 </body>
 </html>
