@@ -243,7 +243,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
-    <script>
+   <script>
     // 1. FIREBASE CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
@@ -334,7 +334,7 @@
         }
     });
 
-    // 5. LOGIKA RESET PASSWORD
+    // 5. LOGIKA RESET PASSWORD (DENGAN LIMITASI 1 MENIT)
     const btnForgot = document.getElementById('btnForgot');
     const forgotModal = document.getElementById('forgotModal');
     const closeModal = document.getElementById('closeModal');
@@ -348,7 +348,7 @@
     // Tutup Modal
     closeModal.onclick = () => { forgotModal.style.display = 'none'; };
 
-    // Fungsi Kirim Link ke Email
+    // Fungsi Kirim Link ke Email + Simpan Timestamp
     sendReset.onclick = async () => {
         const email = forgotEmailInput.value.trim();
         
@@ -361,10 +361,23 @@
         sendReset.disabled = true;
 
         try {
+            // A. Kirim email reset password melalui Firebase Auth
             await auth.sendPasswordResetEmail(email);
             
+            // B. Simpan Timestamp permintaan ke Firestore untuk validasi 1 menit
+            // Kita mencari dokumen user berdasarkan email
+            const userQuery = await db.collection("users").where("email", "==", email).get();
+            
+            if (!userQuery.empty) {
+                const docId = userQuery.docs[0].id;
+                await db.collection("users").doc(docId).update({
+                    reset_request_at: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+
+            // C. Feedback ke User
             forgotModal.style.display = 'none';
-            mainMsgBox.innerText = "Link perbaikan password sudah dikirim ke email Anda. Silahkan cek inbox!";
+            mainMsgBox.innerText = "Link perbaikan dikirim! Harap segera cek email (Link berlaku 1 menit).";
             mainMsgBox.className = "msg-success";
             
             forgotEmailInput.value = "";
@@ -388,6 +401,5 @@
             forgotModal.style.display = "none";
         }
     };
-</script>
-</body>
+</script></body>
 </html>
