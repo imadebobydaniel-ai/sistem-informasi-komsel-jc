@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Jemaat - Pondok Pemulihan Papua</title>
+    <title>Index Jemaat - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { 
@@ -84,7 +84,7 @@
             background: #ffffff; padding: 40px; border-radius: 15px; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; 
             max-width: 400px; box-sizing: border-box; 
-            border-top: 5px solid #007bff; /* Biru untuk Jemaat */
+            border-top: 5px solid #007bff; 
             position: relative; z-index: 1;
         }
         .header { text-align: center; margin-bottom: 30px; }
@@ -95,7 +95,6 @@
             padding: 4px 12px; border-radius: 20px; display: inline-block; margin-top: 10px;
         }
 
-        /* Notifikasi Block Display */
         #login-msg {
             display: none;
             padding: 12px; margin-bottom: 15px; border-radius: 8px;
@@ -112,7 +111,6 @@
         }
         .form-group input:focus { border-color: #007bff; }
 
-        /* Fitur Mata */
         .toggle-password { 
             position: absolute; right: 15px; top: 38px; 
             cursor: pointer; color: #888; transition: 0.3s; 
@@ -200,7 +198,7 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
 
-        // 3. Fitur Mata (Efek Cahaya)
+        // 3. Fitur Mata
         const eyeIcon = document.getElementById('eyeIcon');
         const passInput = document.getElementById('user_pass');
 
@@ -208,13 +206,13 @@
             const isPassword = passInput.type === 'password';
             passInput.type = isPassword ? 'text' : 'password';
             this.classList.toggle('fa-eye-slash');
-            this.classList.toggle('eye-active'); // Efek cahaya
+            this.classList.toggle('eye-active'); 
         });
 
-        // 4. Logic Login & Notif Block
+        // 4. Logic Login - SUDAH DIPERBAIKI KE KOLEKSI "users"
         document.getElementById('userLoginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const email = document.getElementById('user_email').value;
+            const email = document.getElementById('user_email').value.trim();
             const pass = document.getElementById('user_pass').value;
             const msgBox = document.getElementById('login-msg');
             const btn = document.getElementById('btnMasuk');
@@ -223,19 +221,19 @@
             btn.disabled = true;
 
             try {
-                // Sesuaikan nama collection dengan database jemaatmu, misal "users" atau "jemaat"
-                const snap = await db.collection("jemaat")
+                // Perubahan di sini: Menggunakan koleksi "users"
+                const snap = await db.collection("users")
                     .where("email", "==", email)
                     .where("password", "==", pass)
                     .get();
 
                 if (!snap.empty) {
                     msgBox.innerText = "Login Berhasil! Selamat Datang.";
-                    msgBox.className = "msg-success"; // Munculkan Block Hijau
+                    msgBox.className = "msg-success";
                     setTimeout(() => { window.location.href = "menu.html"; }, 1500);
                 } else {
                     msgBox.innerText = "Email atau Password Salah!";
-                    msgBox.className = "msg-error"; // Munculkan Block Merah
+                    msgBox.className = "msg-error";
                     btn.innerText = "MASUK";
                     btn.disabled = false;
                 }
