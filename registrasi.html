@@ -299,13 +299,38 @@
         "Dekorasi & Event": ["Decoration leader", "Decoration Crew", "Art And Painting", "Special effect"]
     };
 
-    // LOGIKA BARU: Handle Input Berdasarkan Status Pernikahan
+    // --- FUNGSI LOGIN (BARU) ---
+    async function handleLogin() {
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+
+        try {
+            // Proses autentikasi resmi Firebase
+            const userCredential = await auth.signInWithEmailAndPassword(email, password);
+            console.log("Auth Berhasil:", userCredential.user.uid);
+            
+            // Setelah Auth berhasil, baru arahkan ke dashboard
+            window.location.href = "dashboard.html";
+        } catch (error) {
+            console.error("Kode Error:", error.code);
+            console.error("Pesan Error:", error.message);
+            
+            if (error.code === 'auth/wrong-password') {
+                alert("Password yang Anda masukkan salah.");
+            } else if (error.code === 'auth/user-not-found') {
+                alert("Email tidak ditemukan di sistem autentikasi.");
+            } else {
+                alert("Terjadi kesalahan: " + error.message);
+            }
+        }
+    }
+
+    // --- LOGIKA FORM & REGISTRASI ---
     function handleStatusNikah() {
         const status = document.getElementById("status_pernikahan").value;
         const divMenikah = document.getElementById("form_menikah");
         const divSingle = document.getElementById("form_single");
 
-        // Sembunyikan semua dulu
         divMenikah.style.display = "none";
         divSingle.style.display = "none";
 
@@ -316,7 +341,6 @@
         }
     }
 
-    // FUNGSI LOGIKA FORM (Tetap Sama)
     function nextStep(n) {
         const steps = document.querySelectorAll('.form-step');
         steps.forEach(step => { step.classList.remove('active'); step.style.display = 'none'; });
@@ -406,12 +430,10 @@
                 email: email,
                 whatsapp: document.getElementById("hp").value,
                 status_pernikahan: document.getElementById("status_pernikahan").value,
-                // Data Dinamis
                 jumlah_anak: document.getElementById("jumlah_anak").value || 0,
                 nama_pasangan: document.getElementById("nama_pasangan").value || "",
                 nama_ayah: document.getElementById("nama_ayah").value || "",
                 nama_ibu: document.getElementById("nama_ibu").value || "",
-                
                 lokasi_berjemaat: document.getElementById("lokasi").value,
                 komsel: document.getElementById("komsel").value,
                 jabatan: document.getElementById("jabatan_jemaat").value,
@@ -457,11 +479,17 @@
 
     // Init
     loadProvinsi();
-    document.getElementById('eyeIcon').addEventListener('click', function() {
-        const p = document.getElementById('pass');
-        p.type = p.type === 'password' ? 'text' : 'password';
-        this.classList.toggle('fa-eye-slash');
-    });
-</script>
-</body>
+    
+    // Pastikan ID ini sesuai di HTML Anda untuk toggle mata password
+    const eyeIcon = document.getElementById('eyeIcon');
+    if(eyeIcon) {
+        eyeIcon.addEventListener('click', function() {
+            const p = document.getElementById('pass'); // Untuk form daftar
+            const loginP = document.getElementById('password'); // Untuk form login
+            if(p) p.type = p.type === 'password' ? 'text' : 'password';
+            if(loginP) loginP.type = loginP.type === 'password' ? 'text' : 'password';
+            this.classList.toggle('fa-eye-slash');
+        });
+    }
+</script></body>
 </html>
