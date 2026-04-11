@@ -248,7 +248,7 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // --- DATA DINAMIS (Tetap Sama Seperti Milik Anda) ---
+    // --- DATA DINAMIS ---
     const dataKomsel = {
         "ABE": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "esther 8", "esther 9", "Esther 10", "esther 11", "Esther 12", "Komsel Mahasiswa Abe", "Komsel Profesi Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu"],
         "STN": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Komsel 5", "Siloam 6", "Siloam 8", "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", "Komsel Remaja Sentani", "Komsel Sekolah Minggu Sentani"],
@@ -354,7 +354,7 @@
         window.scrollTo(0, 0);
     }
 
-    // --- CORE LOGIC: INTEGRASI TOTAL KE FIREBASE ---
+    // --- CORE LOGIC: INTEGRASI TOTAL KE FIREBASE + VERIFIKASI EMAIL ---
     async function handleRegistrasi() {
         const btn = document.getElementById("btnSubmit");
         const fileInput = document.getElementById("berkas_jemaat");
@@ -377,26 +377,25 @@
 
             // 2. Create User di Authentication
             const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-            const uid = userCredential.user.uid;
+            const user = userCredential.user;
+            const uid = user.uid;
 
-            // 3. Gabungkan Semua Data Agar Tidak Ada yang Kosong di Admin
+            // 3. Gabungkan Semua Data Jemaat
             const userData = {
                 uid: uid,
                 nama: document.getElementById("nama").value,
                 email: email,
-                password: password, // Disimpan agar admin/sistem bisa verifikasi manual jika perlu
+                password: password,
                 whatsapp: document.getElementById("hp").value,
                 provinsi_lahir: document.getElementById("provinsi_lahir").value,
                 kota_lahir: document.getElementById("kota_lahir").value,
                 status_pernikahan: document.getElementById("status_pernikahan").value,
                 
-                // Data Keluarga (Menangani Nilai Kosong)
                 jumlah_anak: document.getElementById("jumlah_anak").value || "0",
                 nama_pasangan: document.getElementById("nama_pasangan").value || "-",
                 nama_ayah: document.getElementById("nama_ayah").value || "-",
                 nama_ibu: document.getElementById("nama_ibu").value || "-",
                 
-                // Data Gerejawi
                 lokasi_berjemaat: document.getElementById("lokasi").value,
                 komsel: document.getElementById("komsel").value || "Umum",
                 jabatan: document.getElementById("jabatan_jemaat").value,
@@ -404,20 +403,30 @@
                 fungsi_pelayanan: document.getElementById("pelayanan").value,
                 fungsi_non_struktural: document.getElementById("pelayanan_spesifik_non").value || "-",
                 
-                // Metadata
                 nij: document.getElementById("nij-display").value,
                 url_berkas: cloudData.secure_url,
+                
+                // --- BAGIAN OTOMATISASI STATUS ---
                 status_akun: "Aktif",
-                status_verifikasi: "Pending",
+                status_verifikasi: "Pending", // Default awal sebelum klik email
                 tanggal_daftar: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            // 4. Simpan ke Firestore dengan ID Dokumen = UID
+            // 4. Simpan ke Firestore
             await db.collection("users").doc(uid).set(userData);
             
-            // 5. Kirim Email Verifikasi & Tampilkan Pesan Sukses
-            await userCredential.user.sendEmailVerification();
-            document.getElementById('blocking-message').style.display = 'flex';
+            // 5. KIRIM EMAIL VERIFIKASI OTOMATIS
+            await user.sendEmailVerification();
+            
+            // Tampilkan pesan sukses dan instruksi cek email
+            alert("Pendaftaran Berhasil! Link verifikasi telah dikirim ke email: " + email + ". Silakan klik link tersebut agar akun Anda aktif.");
+            
+            // Munculkan pesan blocking jika ada di HTML Anda
+            if(document.getElementById('blocking-message')) {
+                document.getElementById('blocking-message').style.display = 'flex';
+            } else {
+                window.location.href = "index.html"; // Kembali ke login
+            }
 
         } catch (e) {
             console.error(e);
