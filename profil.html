@@ -86,16 +86,14 @@
                 // Sinkronisasi Foto
                 document.getElementById('view-foto').src = d.foto_profil || d.fotoUrl || "https://via.placeholder.com/150";
 
-                // Mapping Data Sesuai Field Database Anda
+                // Mapping Data Sesuai Field Database (BERDASARKAN LOG DATABASE ANDA)
                 document.getElementById("nama_lengkap").innerText = d.nama || "Tanpa Nama";
                 document.getElementById("no_komsel").innerText = d.nij || "-";
                 document.getElementById("jabatan").innerText = d.jabatan || "-";
                 document.getElementById("email_aktif").innerText = d.email || "-";
-                document.getElementById("no_hp").innerText = d.no_hp || "-";
+                document.getElementById("no_hp").innerText = d.whatsapp || "-"; // Menggunakan 'whatsapp'
                 document.getElementById("lokasi_berjemaat").innerText = d.lokasi_berjemaat || "-";
                 document.getElementById("alamat").innerText = d.alamat || "-";
-
-                // PERBAIKAN: Menggunakan field 'darah' sesuai database
                 document.getElementById("gol_darah").innerText = d.darah || "-";
 
                 // Sinkronisasi Lokasi Komsel
@@ -107,7 +105,7 @@
                 
                 debug.innerText = ""; 
             } else {
-                debug.innerHTML = `<span style='color:orange'>ℹ️ Email '${userEmail}' tidak ditemukan.</span>`;
+                debug.innerHTML = `<span style='color:orange'>ℹ️ Email '${userEmail}' tidak ditemukan di koleksi 'users'.</span>`;
             }
         }, (error) => {
             console.error("Error Firestore:", error);
