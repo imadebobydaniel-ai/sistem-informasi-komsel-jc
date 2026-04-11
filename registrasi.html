@@ -293,13 +293,37 @@
         "Pelayanan fulltimer Gereja": ["Kepala Sekolah PAUD & PPA", "Sekretaris Operasional Gereja", "Bendahara Operasional gereja", "Guru Paud", "Mentor PPA", "Staff Geraja", "Staff PPA", "Hospitality & Konsumsi", "Driver"]
     };
 
-    // --- FUNGSI TOMBOL (WAJIB DI LUAR ONLOAD) ---
+    // --- FUNGSI NAVIGASI (NEXT/PREVIOUS) ---
+    function nextStep(n) {
+        // Sembunyikan semua step
+        const steps = document.querySelectorAll('.form-step');
+        steps.forEach(step => { step.style.display = 'none'; });
+        
+        // Tampilkan step yang dituju
+        const targetStep = document.getElementById('step-' + n);
+        if (targetStep) {
+            targetStep.style.display = 'block';
+            
+            // Update Progress Bar
+            const progressSteps = document.querySelectorAll('.step');
+            progressSteps.forEach((s, index) => {
+                if (index < n) s.classList.add('active');
+                else s.classList.remove('active');
+            });
+
+            if (n === 2) updateNIJPreview();
+            window.scrollTo(0, 0);
+        }
+    }
+
+    // --- FUNGSI MODAL & SYARAT ---
     function toggleAgreeButton() {
         const checkbox = document.getElementById("check-agree") || document.getElementById("setuju_syarat");
         const btn = document.getElementById("btn-agree-submit") || document.getElementById("btnSetujuLanjut");
         if(checkbox && btn) {
             btn.disabled = !checkbox.checked;
             btn.style.opacity = checkbox.checked ? "1" : "0.5";
+            btn.style.cursor = checkbox.checked ? "pointer" : "not-allowed";
         }
     }
 
@@ -308,7 +332,7 @@
         if (modal) modal.style.display = "none";
     }
 
-    // --- LOGIKA UI ---
+    // --- LOGIKA FORM DINAMIS ---
     function handleStatusNikah() {
         const status = document.getElementById("status_pernikahan").value;
         const divMenikah = document.getElementById("form_menikah");
@@ -348,24 +372,16 @@
     async function updateNIJPreview() {
         const lokasi = document.getElementById("lokasi").value;
         const displayInput = document.getElementById("nij-display");
-        if (!lokasi) return;
+        if (!lokasi || !displayInput) return;
         try {
             const snap = await db.collection("users").get();
             const urut = String(snap.size + 1).padStart(3, '0');
             const tahun = new Date().getFullYear();
             displayInput.value = `NIJ-PPP-${lokasi}-${urut}-${tahun}`;
-        } catch (error) { console.error(error); }
+        } catch (error) { console.error("Gagal NIJ:", error); }
     }
 
-    function nextStep(n) {
-        const steps = document.querySelectorAll('.form-step');
-        steps.forEach(step => { step.style.display = 'none'; });
-        document.getElementById('step-' + n).style.display = 'block';
-        if (n === 2) updateNIJPreview();
-        window.scrollTo(0, 0);
-    }
-
-    // --- REGISTRASI ---
+    // --- REGISTRASI FINAL ---
     async function handleRegistrasi() {
         const btn = document.getElementById("btnSubmit");
         const email = document.getElementById("email").value.trim().toLowerCase();
@@ -378,14 +394,12 @@
         btn.disabled = true;
 
         try {
-            // Cloudinary
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
             formData.append('upload_preset', 'pope_preset');
             const cResp = await fetch('https://api.cloudinary.com/v1_1/dxzllsbgi/upload', {method:'POST', body:formData});
             const cData = await cResp.json();
 
-            // Auth
             const userCred = await auth.createUserWithEmailAndPassword(email, pass);
             await db.collection("users").doc(userCred.user.uid).set({
                 nama: document.getElementById("nama").value,
@@ -400,21 +414,25 @@
         } catch (e) {
             alert(e.message);
             btn.disabled = false;
+            btn.innerText = "FINALISASI & DAFTAR";
         }
     }
 
     // --- API WILAYAH ---
     async function loadProvinsi() {
-        const resp = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
-        const data = await resp.json();
-        let opt = '<option value="">Pilih Provinsi</option>';
-        data.forEach(p => opt += `<option value="${p.name}" data-id="${p.id}">${p.name}</option>`);
-        document.getElementById('provinsi_lahir').innerHTML = opt;
+        try {
+            const resp = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
+            const data = await resp.json();
+            let opt = '<option value="">Pilih Provinsi</option>';
+            data.forEach(p => opt += `<option value="${p.name}" data-id="${p.id}">${p.name}</option>`);
+            document.getElementById('provinsi_lahir').innerHTML = opt;
+        } catch(e) { console.log("Gagal load wilayah"); }
     }
 
     async function loadKota() {
         const provEl = document.getElementById('provinsi_lahir');
         const idProv = provEl.options[provEl.selectedIndex].getAttribute('data-id');
+        if(!idProv) return;
         const resp = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${idProv}.json`);
         const data = await resp.json();
         let opt = '<option value="">Pilih Kota</option>';
