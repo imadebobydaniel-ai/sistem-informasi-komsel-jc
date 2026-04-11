@@ -196,7 +196,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 <script>
     // 1. KONFIGURASI FIREBASE
     const firebaseConfig = {
@@ -213,16 +213,17 @@
     const db = firebase.database();
 
     // 2. SELECTOR
-    const filterTipe = document.querySelector('.filter-section select.full-width'); // Per Orangan / Wilayah
-    const filterLokasi = document.querySelectorAll('.filter-section select')[1];  // Lokasi
-    const filterKategori = document.querySelectorAll('.filter-section select')[2]; // Kategori
+    const filterTipe = document.querySelector('.filter-section select.full-width');
+    const filterLokasi = document.querySelectorAll('.filter-section select')[1];
+    const filterKategori = document.querySelectorAll('.filter-section select')[2];
     const podiumContainer = document.querySelector('.podium-section');
     const listContainer = document.querySelector('.ranking-list');
     const btnBack = document.querySelector('.btn-back');
+    const starLayer = document.getElementById('stars-layer'); // Pastikan ID ini ada di HTML Anda
 
-    let allData = []; // Tempat menyimpan data asli dari database
+    let allData = [];
 
-    // 3. FUNGSI TOMBOL BACK (Diperbaiki)
+    // 3. FUNGSI TOMBOL BACK
     btnBack.onclick = () => { window.location.href = 'menu.html'; };
 
     // 4. AMBIL DATA REALTIME
@@ -236,11 +237,10 @@
 
     // 5. LOGIKA FILTER DROPDOWN
     function prosesDanTampilkan() {
-        const tipe = filterTipe.value;      // Misal: "Per Orangan (Jemaat)" atau "Per Wilayah"
-        const lokasi = filterLokasi.value;  // Misal: "Semua Lokasi" atau "Abepura"
-        const kategori = filterKategori.value; // Misal: "Multimedia"
+        const tipe = filterTipe.value;
+        const lokasi = filterLokasi.value;
+        const kategori = filterKategori.value;
 
-        // Filter data berdasarkan pilihan user
         let filtered = allData.filter(item => {
             const matchTipe = item.tipe === tipe;
             const matchLokasi = lokasi === "Semua Lokasi" || item.lokasi === lokasi;
@@ -248,19 +248,16 @@
             return matchTipe && matchLokasi && matchKategori;
         });
 
-        // Urutkan poin tertinggi
         filtered.sort((a, b) => b.points - a.points);
         renderVisual(filtered);
     }
 
-    // Jalankan filter setiap kali dropdown berubah
     filterTipe.onchange = prosesDanTampilkan;
     filterLokasi.onchange = prosesDanTampilkan;
     filterKategori.onchange = prosesDanTampilkan;
 
     // 6. RENDER VISUAL KE LAYAR
     function renderVisual(data) {
-        // Render Top 3 (Podium)
         const t1 = data[0] || { name: "-", points: 0 };
         const t2 = data[1] || { name: "-", points: 0 };
         const t3 = data[2] || { name: "-", points: 0 };
@@ -286,7 +283,6 @@
             </div>
         `;
 
-        // Render Sisa List (Rank 4+)
         listContainer.innerHTML = '';
         data.slice(3).forEach((item, index) => {
             listContainer.innerHTML += `
@@ -299,13 +295,60 @@
         });
     }
 
-    // 7. EFEK KONFETI 10 DETIK (Diperbaiki)
-    const end = Date.now() + (10 * 1000); // 10 Detik
+    // --- TAMBAHAN EFEK BARU ---
+
+    // 7. EFEK BINTANG KEDAP-KEDIP (Background)
+    if (starLayer) {
+        for (let i = 0; i < 25; i++) {
+            const star = document.createElement('i');
+            star.className = 'fa-solid fa-star';
+            star.style.position = 'absolute';
+            star.style.color = '#FFD700';
+            star.style.fontSize = Math.random() * 6 + 4 + 'px';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.opacity = Math.random();
+            star.style.animation = `twinkle ${Math.random() * 2 + 1}s infinite ease-in-out`;
+            starLayer.appendChild(star);
+        }
+    }
+
+    // 8. EFEK KONFETI & BUNGA (10 Detik)
+    const end = Date.now() + (10 * 1000); 
+    const colors = ['#FFD700', '#0056b3', '#ff69b4', '#ffffff']; // Menambah warna pink untuk bunga
+
     (function frame() {
-        confetti({ particleCount: 2, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#FFD700', '#0056b3'] });
-        confetti({ particleCount: 2, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#FFD700', '#0056b3'] });
+        // Konfeti standar
+        confetti({
+            particleCount: 2,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+            colors: colors
+        });
+        confetti({
+            particleCount: 2,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+            colors: colors
+        });
+
+        // Efek Bunga khusus menggunakan karakter Unicode
+        if (Math.random() > 0.8) {
+            confetti({
+                particleCount: 1,
+                scalar: 2, // Ukuran bunga lebih besar
+                shapes: ['text'],
+                shapeOptions: {
+                    text: { value: ['🌸', '🌼', '🌻'] }
+                },
+                origin: { x: Math.random(), y: Math.random() - 0.2 },
+                gravity: 0.5
+            });
+        }
+
         if (Date.now() < end) requestAnimationFrame(frame);
     }());
-</script>
-</body>
+</script></body>
 </html>
