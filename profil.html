@@ -11,24 +11,19 @@
         .profile-container { background: white; width: 100%; max-width: 400px; border-radius: 25px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); padding-bottom: 25px; border-top: 6px solid var(--biru-safir); position: relative; }
         .profile-header { background: var(--biru-tua); color: white; padding: 25px; text-align: center; font-weight: 900; text-transform: uppercase; border-bottom: 3px solid var(--emas-lux); }
         
-        /* Photo Section dengan posisi relative untuk ikon setting */
         .photo-section { text-align: center; padding: 35px 0 20px; position: relative; background: linear-gradient(180deg, var(--biru-tua) 0%, white 100%); }
-        
-        /* Gaya Ikon Setting di Pojok Kanan Atas Profil */
         .btn-setting { position: absolute; top: 15px; right: 15px; z-index: 100; color: white; text-decoration: none; transition: 0.3s; }
-        .btn-setting:hover { opacity: 0.8; transform: scale(1.1); }
 
-        .photo-circle { width: 150px; height: 150px; border-radius: 50%; border: 4px solid var(--emas-lux); margin: 0 auto; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #eee; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+        .photo-circle { width: 140px; height: 140px; border-radius: 50%; border: 4px solid var(--emas-lux); margin: 0 auto; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #eee; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
         .photo-circle img { width: 100%; height: 100%; object-fit: cover; }
-        .edit-badge { position: absolute; bottom: 25px; right: calc(50% - 70px); background: var(--hijau-zamrud); color: white; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; cursor: pointer; z-index: 10; }
+        
         .info-section { padding: 10px 25px 20px; }
-        .data-box { margin-bottom: 15px; padding: 12px 15px; background: #f8f9fa; border-radius: 12px; border-left: 4px solid var(--biru-safir); }
+        .data-box { margin-bottom: 12px; padding: 12px 15px; background: #f8f9fa; border-radius: 12px; border-left: 4px solid var(--biru-safir); transition: 0.3s; }
         .data-label { font-size: 10px; font-weight: 800; color: var(--biru-safir); text-transform: uppercase; margin-bottom: 4px; }
         .data-value { font-size: 15px; color: var(--biru-tua); font-weight: 700; }
-        .btn-back { background: var(--biru-tua); color: white; border: 2px solid var(--emas-lux); padding: 15px; border-radius: 50px; font-weight: 800; cursor: pointer; text-align: center; text-decoration: none; display: block; width: 85%; margin: 20px auto 0; }
         
-        #inputFoto { display: none; }
-        #debug-msg { color: red; font-size: 12px; text-align: center; padding: 10px; font-weight: bold; }
+        .btn-back { background: var(--biru-tua); color: white; border: 2px solid var(--emas-lux); padding: 15px; border-radius: 50px; font-weight: 800; cursor: pointer; text-align: center; text-decoration: none; display: block; width: 85%; margin: 10px auto 0; }
+        #debug-msg { font-size: 12px; text-align: center; padding: 5px; font-weight: bold; min-height: 20px; }
     </style>
 </head>
 <body>
@@ -36,26 +31,19 @@
 <div class="profile-container">
     <div class="profile-header">Biodata Anggota Komsel</div>
     
-    <div id="debug-msg"></div>
-
     <div class="photo-section">
-        <a href="setting.html" class="btn-setting">
-            <i class="fas fa-cog" style="font-size: 24px;"></i>
-        </a>
-
+        <a href="setting.html" class="btn-setting"><i class="fas fa-cog" style="font-size: 22px;"></i></a>
         <div class="photo-circle" onclick="document.getElementById('inputFoto').click()">
             <img id="view-foto" src="https://via.placeholder.com/150" alt="Foto Profil">
         </div>
-        <div class="edit-badge" onclick="document.getElementById('inputFoto').click()">
-            <i class="fa-solid fa-camera icon-kamera"></i>
-        </div>
-        
-        <input type="file" id="inputFoto" accept="image/*" onchange="uploadFoto(this)">
+        <input type="file" id="inputFoto" hidden accept="image/*" onchange="uploadFoto(this)">
     </div>
+
+    <div id="debug-msg"></div>
 
     <div class="info-section">
         <div class="data-box"><div class="data-label">Nomor Komsel (NK)</div><div id="no_komsel" class="data-value">...</div></div>
-        <div class="data-box"><div class="data-label">Nama Lengkap</div><div id="nama_lengkap" class="data-value">Memuat data...</div></div>
+        <div class="data-box"><div class="data-label">Nama Lengkap</div><div id="nama_lengkap" class="data-value">Memuat...</div></div>
         <div class="data-box"><div class="data-label">Jabatan / Peran</div><div id="jabatan" class="data-value">...</div></div>
         <div class="data-box"><div class="data-label">Email Aktif</div><div id="email_aktif" class="data-value">...</div></div>
         <div class="data-box"><div class="data-label">Nomor HP (WhatsApp)</div><div id="no_hp" class="data-value">...</div></div>
@@ -82,55 +70,66 @@
 
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
-    
     const userEmail = localStorage.getItem("userEmail");
     const debug = document.getElementById("debug-msg");
 
     if (!userEmail) {
-        debug.innerText = "⚠️ ERROR: Silakan login ulang.";
+        debug.innerHTML = "<span style='color:red'>⚠️ Sesi Habis. Silakan Login Kembali.</span>";
     } else {
-        db.collection("users").where("email", "==", userEmail).onSnapshot((querySnapshot) => {
+        // FUNGSI UTAMA: Realtime Listener
+        db.collection("users").where("email", "==", userEmail)
+        .onSnapshot((querySnapshot) => {
             if (!querySnapshot.empty) {
                 const d = querySnapshot.docs[0].data();
-                if (d.foto_profil || d.fotoUrl) { 
-                    document.getElementById('view-foto').src = d.foto_profil || d.fotoUrl; 
-                }
+                
+                // Update Foto (Mendukung dua nama field agar aman)
+                const imgSource = d.foto_profil || d.fotoUrl || "https://via.placeholder.com/150";
+                document.getElementById('view-foto').src = imgSource;
+
+                // Update Field Text dengan fallback "-"
                 document.getElementById("no_komsel").innerText = d.nomor_komsel || d.nk || "-";
-                document.getElementById("nama_lengkap").innerText = d.nama || "Nama Kosong";
+                document.getElementById("nama_lengkap").innerText = d.nama || "Tanpa Nama";
                 document.getElementById("jabatan").innerText = d.jabatan || d.peran || "-";
                 document.getElementById("email_aktif").innerText = d.email || "-";
                 document.getElementById("no_hp").innerText = d.whatsapp || d.nomor_hp || "-";
-                document.getElementById("lokasi_komsel").innerText = d.komsel ? "JC " + d.komsel : "-";
-                const gd = d.golDarah || d.golongan_darah || d.goldarah || "-";
-                document.getElementById("gol_darah").innerText = gd;
+                
+                // Format khusus Lokasi Komsel
+                const lokasi = d.komsel || d.lokasi_komsel || "";
+                document.getElementById("lokasi_komsel").innerText = lokasi.includes("JC") ? lokasi : "JC " + lokasi;
+                
+                document.getElementById("gol_darah").innerText = d.golDarah || d.golongan_darah || "-";
                 document.getElementById("alamat").innerText = d.alamat || "-";
-                debug.innerText = "";
+                
+                debug.innerText = ""; // Bersihkan error jika data masuk
             } else {
-                debug.innerText = "❌ Data profil tidak ditemukan.";
+                debug.innerHTML = "<span style='color:orange'>ℹ️ Profil belum lengkap.</span>";
             }
+        }, (error) => {
+            debug.innerText = "Koneksi Error: " + error.message;
         });
     }
 
+    // Fungsi Upload & Kompresi Realtime
     async function uploadFoto(input) {
         const file = input.files[0];
         if (!file || !userEmail) return;
         
-        debug.style.color = "blue";
-        debug.innerText = "Sedang memproses foto...";
+        debug.style.color = "var(--biru-safir)";
+        debug.innerText = "⌛ Memproses foto...";
 
         const reader = new FileReader();
         reader.onload = function(e) {
             const img = new Image();
             img.onload = async function() {
                 const canvas = document.createElement('canvas');
-                let width = img.width, height = img.height, max_size = 500;
+                let width = img.width, height = img.height, max_size = 400;
                 
                 if (width > height) { if (width > max_size) { height *= max_size / width; width = max_size; } }
                 else { if (height > max_size) { width *= max_size / height; height = max_size; } }
                 
                 canvas.width = width; canvas.height = height;
                 canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-                const base64 = canvas.toDataURL('image/jpeg', 0.6);
+                const base64 = canvas.toDataURL('image/jpeg', 0.7);
 
                 try {
                     const snap = await db.collection("users").where("email", "==", userEmail).get();
@@ -139,13 +138,13 @@
                             foto_profil: base64,
                             fotoUrl: base64 
                         });
-                        debug.style.color = "green";
-                        debug.innerText = "✅ Foto berhasil diperbarui!";
-                        setTimeout(() => { debug.innerText = ""; }, 3000);
+                        debug.style.color = "var(--hijau-zamrud)";
+                        debug.innerText = "✅ Foto diperbarui!";
+                        setTimeout(() => { debug.innerText = ""; }, 2000);
                     }
-                } catch (e) { 
+                } catch (err) {
                     debug.style.color = "red";
-                    debug.innerText = "Gagal upload: " + e.message; 
+                    debug.innerText = "Gagal: " + err.message;
                 }
             };
             img.src = e.target.result;
