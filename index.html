@@ -201,99 +201,89 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
-    <script>
-        // 1. Logic Startup
-        document.addEventListener("DOMContentLoaded", function() {
-            setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
-                if (splash) {
-                    splash.classList.add('splash-hidden');
-                    document.body.style.overflow = "auto";
-                }
-            }, 3000);
-        });
+   <script>
+    // 1. FIREBASE CONFIG
+    const firebaseConfig = {
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+        authDomain: "boby-apps-project.firebaseapp.com",
+        projectId: "boby-apps-project",
+        storageBucket: "boby-apps-project.appspot.com",
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+    };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
+    const auth = firebase.auth();
 
-        // 2. Firebase Config
-        const firebaseConfig = {
-            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
-            authDomain: "boby-apps-project.firebaseapp.com",
-            projectId: "boby-apps-project",
-            storageBucket: "boby-apps-project.appspot.com",
-            messagingSenderId: "125984859692",
-            appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
-        };
-        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-        const db = firebase.firestore();
-        const auth = firebase.auth();
+    // 2. LOGIC STARTUP SPLASH SCREEN
+    document.addEventListener("DOMContentLoaded", function() {
+        setTimeout(() => {
+            const splash = document.getElementById('splash-screen');
+            if (splash) {
+                splash.classList.add('splash-hidden');
+                document.body.style.overflow = "auto";
+            }
+        }, 3000);
+    });
 
-        // 3. Fitur Mata
-        const eyeIcon = document.getElementById('eyeIcon');
-        const passInput = document.getElementById('user_pass');
-
+    // 3. FITUR LIHAT PASSWORD
+    const eyeIcon = document.getElementById('eyeIcon');
+    const passInput = document.getElementById('user_pass');
+    if(eyeIcon) {
         eyeIcon.addEventListener('click', function() {
             const isPassword = passInput.type === 'password';
             passInput.type = isPassword ? 'text' : 'password';
             this.classList.toggle('fa-eye-slash');
             this.classList.toggle('eye-active'); 
         });
+    }
 
-        // 4. Logic Registrasi (Fungsi yang kamu minta dimasukkan)
-        async function handleRegistrasi(email, password) {
-            try {
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                
-                // 1. Simpan data awal ke koleksi jemaat dengan status 'pending'
-                await db.collection("jemaat").doc(userCredential.user.uid).set({
-                    email: email,
-                    status: "pending", 
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    // 4. LOGIC LOGIN & VERIFIKASI OTOMATIS
+    document.getElementById('userLoginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const email = document.getElementById('user_email').value.trim();
+        const pass = document.getElementById('user_pass').value;
+        const msgBox = document.getElementById('login-msg');
+        const btn = document.getElementById('btnMasuk');
+
+        btn.innerText = "Memverifikasi...";
+        btn.disabled = true;
+
+        try {
+            // LOGIN MENGGUNAKAN FIREBASE AUTH
+            const userCredential = await auth.signInWithEmailAndPassword(email, pass);
+            const user = userCredential.user;
+
+            // CEK APAKAH EMAIL SUDAH DIKLIK VERIFIKASINYA
+            if (user.emailVerified) {
+                // UPDATE STATUS DI FIRESTORE JADI ACTIVE SECARA OTOMATIS
+                await db.collection("users").doc(user.uid).update({
+                    status_verifikasi: "Active"
                 });
 
-                // 2. Kirim email verifikasi
-                await userCredential.user.sendEmailVerification();
-                alert("Pendaftaran berhasil! Silakan cek email kamu untuk verifikasi akun SIPAPUA.");
+                msgBox.innerText = "Login Berhasil! Status Akun: Aktif.";
+                msgBox.className = "msg-success";
                 
-            } catch (error) {
-                console.error("Error Registrasi:", error);
-                alert("Gagal daftar: " + error.message);
-            }
-        }
-
-        // 5. Logic Login
-        document.getElementById('userLoginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const email = document.getElementById('user_email').value.trim();
-            const pass = document.getElementById('user_pass').value;
-            const msgBox = document.getElementById('login-msg');
-            const btn = document.getElementById('btnMasuk');
-
-            btn.innerText = "Memverifikasi...";
-            btn.disabled = true;
-
-            try {
-                // Login menggunakan database users (koleksi kustom kamu)
-                const snap = await db.collection("users")
-                    .where("email", "==", email)
-                    .where("password", "==", pass)
-                    .get();
-
-                if (!snap.empty) {
-                    msgBox.innerText = "Login Berhasil! Selamat Datang.";
-                    msgBox.className = "msg-success";
-                    setTimeout(() => { window.location.href = "menu.html"; }, 1500);
-                } else {
-                    msgBox.innerText = "Email atau Password Salah!";
-                    msgBox.className = "msg-error";
-                    btn.innerText = "MASUK";
-                    btn.disabled = false;
-                }
-            } catch (err) {
-                msgBox.innerText = "Terjadi Kesalahan: " + err.message;
+                // ARAHKAN KE MENU UTAMA
+                setTimeout(() => { window.location.href = "menu.html"; }, 1500);
+            } else {
+                // JIKA BELUM VERIFIKASI
+                msgBox.innerText = "Akun belum aktif! Silakan klik link verifikasi di email kamu.";
                 msgBox.className = "msg-error";
                 btn.innerText = "MASUK";
                 btn.disabled = false;
+                
+                // Opsional: Kirim ulang email verifikasi jika mereka lupa
+                // await user.sendEmailVerification();
             }
-        });
-    </script>
+
+        } catch (err) {
+            msgBox.innerText = "Gagal: " + err.message;
+            msgBox.className = "msg-error";
+            btn.innerText = "MASUK";
+            btn.disabled = false;
+        }
+    });
+</script>
 </body>
 </html>
