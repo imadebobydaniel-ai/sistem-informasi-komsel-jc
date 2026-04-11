@@ -52,7 +52,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 10px; /* Dikurangi agar teks di bawahnya naik */
+            margin-bottom: 10px;
         }
 
         .splash-logo {
@@ -75,25 +75,23 @@
             z-index: 1;
         }
 
-        /* --- STYLE BARU UNTUK TEKS STARTUP --- */
         .sipapua-text {
             color: var(--emas-lux);
             font-weight: bold;
-            font-size: 42px; /* Diperbesar */
+            font-size: 42px;
             letter-spacing: 5px;
             text-transform: uppercase;
             margin: 0;
-            /* Efek Cahaya di Belakang */
             text-shadow: 0 0 20px rgba(212, 175, 55, 0.8), 
                          0 0 40px rgba(212, 175, 55, 0.4);
             animation: glow 2s infinite alternate;
         }
 
         .subtitle-text {
-            color: #ffffff; /* Warna Putih */
-            font-size: 13px; /* Diperkecil */
+            color: #ffffff;
+            font-size: 13px;
             font-weight: 300;
-            margin-top: -5px; /* Posisi naik ke atas */
+            margin-top: -5px;
             letter-spacing: 1px;
             opacity: 0.9;
         }
@@ -226,6 +224,7 @@
         };
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
+        const auth = firebase.auth();
 
         // 3. Fitur Mata
         const eyeIcon = document.getElementById('eyeIcon');
@@ -238,7 +237,29 @@
             this.classList.toggle('eye-active'); 
         });
 
-        // 4. Logic Login
+        // 4. Logic Registrasi (Fungsi yang kamu minta dimasukkan)
+        async function handleRegistrasi(email, password) {
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                
+                // 1. Simpan data awal ke koleksi jemaat dengan status 'pending'
+                await db.collection("jemaat").doc(userCredential.user.uid).set({
+                    email: email,
+                    status: "pending", 
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // 2. Kirim email verifikasi
+                await userCredential.user.sendEmailVerification();
+                alert("Pendaftaran berhasil! Silakan cek email kamu untuk verifikasi akun SIPAPUA.");
+                
+            } catch (error) {
+                console.error("Error Registrasi:", error);
+                alert("Gagal daftar: " + error.message);
+            }
+        }
+
+        // 5. Logic Login
         document.getElementById('userLoginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const email = document.getElementById('user_email').value.trim();
@@ -250,6 +271,7 @@
             btn.disabled = true;
 
             try {
+                // Login menggunakan database users (koleksi kustom kamu)
                 const snap = await db.collection("users")
                     .where("email", "==", email)
                     .where("password", "==", pass)
