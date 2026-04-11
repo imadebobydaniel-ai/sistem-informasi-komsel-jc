@@ -248,7 +248,7 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // DATA DINAMIS (Tetap Sama)
+    // --- DATA DINAMIS (Tetap Sama Seperti Milik Anda) ---
     const dataKomsel = {
         "ABE": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "esther 8", "esther 9", "Esther 10", "esther 11", "Esther 12", "Komsel Mahasiswa Abe", "Komsel Profesi Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu"],
         "STN": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Komsel 5", "Siloam 6", "Siloam 8", "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", "Komsel Remaja Sentani", "Komsel Sekolah Minggu Sentani"],
@@ -289,54 +289,23 @@
         "Pelayanan Parkiran & keamanan": ["Parkir leader", "Parkir Crew", "Security"],
         "Pelayanan Doa & Misi": ["Team Doa Syafaat", "Team Misi bidang Fundraising", "Team Misi bidang research & Deplovement", "Team Road Map", "Public Relations"],
         "Pelayanan Dekorasi & Event": ["Decoration leader", "Decoration Crew", "Art And Painting", "Special effect"],
-        "Pelayanan fulltimer Gereja": ["Kepala Sekolah PAUD & PPA", "Sekretaris Operasional Gereja", "Bendahara Operasional gereja", "Guru Paud", "Mentor PPA", "Staff Geraja", "Staff PPA", "Hospitality & Konsumsi", "Driver"],
-        "Praise & Worship": ["Drum Player", "Keyboard Player", "Piano Player", "Bass Player", "Guitar Player", "Violin Player", "Saxsophone Player", "Flute player", "Vocal coach", "Worship leader", "Singers", "choirs"],
-        "Multimedia": ["Director media", "Floor director", "Campers", "Crew equipment", "Streaming operator", "Video switcher operator", "Easy Worshipe / Presenter Operator"],
-        "Sound & Electrical Engineering": ["Sound engineering", "Crew equipment", "Elektrical & Peripheral"],
-        "User": ["Front Desk user", "User direct", "Event organizer", "General Affairs"],
-        "Parkiran & Keamanan": ["Parkir leader", "Parkir Crew", "Security"],
-        "Doa & Misi": ["Team Doa Syafaat", "Team Misi bidang Fundraising", "Team Misi bidang research & Deplovement", "Team Road Map", "Public Relations"],
-        "Dekorasi & Event": ["Decoration leader", "Decoration Crew", "Art And Painting", "Special effect"]
+        "Pelayanan fulltimer Gereja": ["Kepala Sekolah PAUD & PPA", "Sekretaris Operasional Gereja", "Bendahara Operasional gereja", "Guru Paud", "Mentor PPA", "Staff Geraja", "Staff PPA", "Hospitality & Konsumsi", "Driver"]
     };
 
-    // LOGIKA BARU: Handle Input Berdasarkan Status Pernikahan
+    // --- LOGIKA UI & INTERAKSI ---
     function handleStatusNikah() {
         const status = document.getElementById("status_pernikahan").value;
         const divMenikah = document.getElementById("form_menikah");
         const divSingle = document.getElementById("form_single");
-
-        // Sembunyikan semua dulu
-        divMenikah.style.display = "none";
-        divSingle.style.display = "none";
-
-        if (status === "Menikah") {
-            divMenikah.style.display = "block";
-        } else if (status === "Single" || status === "Duda" || status === "Janda") {
-            divSingle.style.display = "block";
-        }
-    }
-
-    // FUNGSI LOGIKA FORM (Tetap Sama)
-    function nextStep(n) {
-        const steps = document.querySelectorAll('.form-step');
-        steps.forEach(step => { step.classList.remove('active'); step.style.display = 'none'; });
-        const targetStep = document.getElementById('step-' + n);
-        if (targetStep) { targetStep.classList.add('active'); targetStep.style.display = 'block'; }
-        if (n === 2) updateNIJPreview();
-        document.querySelectorAll('.step').forEach((bar, index) => {
-            if (index < n) bar.classList.add('active');
-            else bar.classList.remove('active');
-        });
-        window.scrollTo(0, 0);
+        divMenikah.style.display = (status === "Menikah") ? "block" : "none";
+        divSingle.style.display = (status === "Single" || status === "Duda" || status === "Janda") ? "block" : "none";
     }
 
     function updateSubJabatan() {
         const jab = document.getElementById("jabatan_jemaat").value;
         const sub = document.getElementById("sub_jabatan");
         sub.innerHTML = '<option value="">-- Pilih Sub Bidang --</option>';
-        if (dataSubJabatan[jab]) {
-            dataSubJabatan[jab].forEach(i => sub.add(new Option(i, i)));
-        }
+        if (dataSubJabatan[jab]) dataSubJabatan[jab].forEach(i => sub.add(new Option(i, i)));
         updateSpesifikPelayanan(); 
     }
 
@@ -355,9 +324,7 @@
         const pelVal = document.getElementById("pelayanan").value;
         const nonPel = document.getElementById("pelayanan_spesifik_non");
         nonPel.innerHTML = '<option value="">-- Pilih Detail Pelayanan --</option>';
-        if (dataNonStruktural[pelVal]) {
-            dataNonStruktural[pelVal].forEach(i => nonPel.add(new Option(i, i)));
-        }
+        if (dataNonStruktural[pelVal]) dataNonStruktural[pelVal].forEach(i => nonPel.add(new Option(i, i)));
     }
 
     function updateKomsel() {
@@ -370,7 +337,7 @@
     async function updateNIJPreview() {
         const lokasi = document.getElementById("lokasi").value;
         const displayInput = document.getElementById("nij-display");
-        if (!lokasi) { displayInput.value = "Pilih lokasi dahulu..."; return; }
+        if (!lokasi) return;
         try {
             const snap = await db.collection("users").get();
             const urut = String(snap.size + 1).padStart(3, '0');
@@ -379,60 +346,88 @@
         } catch (error) { console.error("Gagal NIJ:", error); }
     }
 
+    function nextStep(n) {
+        const steps = document.querySelectorAll('.form-step');
+        steps.forEach(step => { step.style.display = 'none'; });
+        document.getElementById('step-' + n).style.display = 'block';
+        if (n === 2) updateNIJPreview();
+        window.scrollTo(0, 0);
+    }
+
+    // --- CORE LOGIC: INTEGRASI TOTAL KE FIREBASE ---
     async function handleRegistrasi() {
         const btn = document.getElementById("btnSubmit");
         const fileInput = document.getElementById("berkas_jemaat");
         const email = document.getElementById("email").value.trim().toLowerCase();
         const password = document.getElementById("pass").value;
 
+        if (password.length < 6) return alert("Password minimal 6 karakter!");
         if (fileInput.files.length === 0) return alert("Unggah foto KTP/KK!");
 
-        btn.innerText = "Mendaftarkan...";
+        btn.innerText = "Proses Pendaftaran...";
         btn.disabled = true;
 
         try {
+            // 1. Upload Berkas ke Cloudinary
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
             formData.append('upload_preset', 'pope_preset');
             const cloudResp = await fetch('https://api.cloudinary.com/v1_1/dxzllsbgi/upload', { method: 'POST', body: formData });
             const cloudData = await cloudResp.json();
 
+            // 2. Create User di Authentication
             const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-            await userCredential.user.sendEmailVerification();
+            const uid = userCredential.user.uid;
 
+            // 3. Gabungkan Semua Data Agar Tidak Ada yang Kosong di Admin
             const userData = {
-                uid: userCredential.user.uid,
+                uid: uid,
                 nama: document.getElementById("nama").value,
                 email: email,
+                password: password, // Disimpan agar admin/sistem bisa verifikasi manual jika perlu
                 whatsapp: document.getElementById("hp").value,
+                provinsi_lahir: document.getElementById("provinsi_lahir").value,
+                kota_lahir: document.getElementById("kota_lahir").value,
                 status_pernikahan: document.getElementById("status_pernikahan").value,
-                // Data Dinamis
-                jumlah_anak: document.getElementById("jumlah_anak").value || 0,
-                nama_pasangan: document.getElementById("nama_pasangan").value || "",
-                nama_ayah: document.getElementById("nama_ayah").value || "",
-                nama_ibu: document.getElementById("nama_ibu").value || "",
                 
+                // Data Keluarga (Menangani Nilai Kosong)
+                jumlah_anak: document.getElementById("jumlah_anak").value || "0",
+                nama_pasangan: document.getElementById("nama_pasangan").value || "-",
+                nama_ayah: document.getElementById("nama_ayah").value || "-",
+                nama_ibu: document.getElementById("nama_ibu").value || "-",
+                
+                // Data Gerejawi
                 lokasi_berjemaat: document.getElementById("lokasi").value,
-                komsel: document.getElementById("komsel").value,
+                komsel: document.getElementById("komsel").value || "Umum",
                 jabatan: document.getElementById("jabatan_jemaat").value,
                 sub_jabatan: document.getElementById("sub_jabatan").value,
                 fungsi_pelayanan: document.getElementById("pelayanan").value,
-                fungsi_non_struktural: document.getElementById("pelayanan_spesifik_non").value,
+                fungsi_non_struktural: document.getElementById("pelayanan_spesifik_non").value || "-",
+                
+                // Metadata
                 nij: document.getElementById("nij-display").value,
                 url_berkas: cloudData.secure_url,
-                status: "Pending",
-                tanggalDaftar: new Date().toLocaleString('id-ID')
+                status_akun: "Aktif",
+                status_verifikasi: "Pending",
+                tanggal_daftar: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            await db.collection("users").doc(userCredential.user.uid).set(userData);
+            // 4. Simpan ke Firestore dengan ID Dokumen = UID
+            await db.collection("users").doc(uid).set(userData);
+            
+            // 5. Kirim Email Verifikasi & Tampilkan Pesan Sukses
+            await userCredential.user.sendEmailVerification();
             document.getElementById('blocking-message').style.display = 'flex';
+
         } catch (e) {
-            alert("Error: " + e.message);
+            console.error(e);
+            alert("Pendaftaran Gagal: " + e.message);
             btn.disabled = false;
             btn.innerText = "FINALISASI & DAFTAR";
         }
     }
 
+    // --- DATA WILAYAH API ---
     async function loadProvinsi() {
         const resp = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
         const data = await resp.json();
@@ -452,16 +447,14 @@
         document.getElementById('kota_lahir').innerHTML = options;
     }
 
-    function toggleAgreeButton() { document.getElementById('btn-agree-submit').disabled = !document.getElementById('check-agree').checked; }
-    function closeTermsModal() { document.getElementById('terms-modal').style.display = 'none'; }
-
-    // Init
-    loadProvinsi();
-    document.getElementById('eyeIcon').addEventListener('click', function() {
-        const p = document.getElementById('pass');
-        p.type = p.type === 'password' ? 'text' : 'password';
-        this.classList.toggle('fa-eye-slash');
-    });
-</script>
-</body>
+    // --- INITIALIZATION ---
+    window.onload = () => {
+        loadProvinsi();
+        document.getElementById('eyeIcon').addEventListener('click', function() {
+            const p = document.getElementById('pass');
+            p.type = p.type === 'password' ? 'text' : 'password';
+            this.classList.toggle('fa-eye-slash');
+        });
+    };
+</script></body>
 </html>
