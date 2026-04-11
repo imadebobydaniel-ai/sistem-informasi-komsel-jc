@@ -3,139 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leaderboard Meriah - Pondok Pemulihan Papua</title>
+    <title>Leaderboard Final - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
             --gold-gradient: linear-gradient(45deg, #FFD700, #FFCC00, #FFB900, #FDB931);
-            --silver-gradient: linear-gradient(45deg, #C0C0C0, #E8E8E8, #DCDCDC);
-            --bronze-gradient: linear-gradient(45deg, #CD7F32, #E3964D, #B87333);
+            --primary-blue: #0056b3;
+            --dark-blue: #003366;
         }
 
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            background-color: #f0f4f8; 
-            margin: 0; 
-            padding: 20px; 
-            display: flex; 
-            justify-content: center; 
-        }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f4f8; margin: 0; padding: 20px; display: flex; justify-content: center; }
 
         .leaderboard-container { 
-            background: white; 
-            width: 100%; 
-            max-width: 450px; 
-            border-radius: 30px; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
-            padding: 20px; 
-            position: relative; 
-            overflow: hidden; 
-            border-top: 8px solid #0056b3; 
+            background: white; width: 100%; max-width: 450px; border-radius: 30px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); padding: 20px; position: relative; 
+            overflow: hidden; border-top: 8px solid var(--primary-blue); min-height: 700px;
         }
 
-        /* Efek Bintang Animasi */
-        .stars-container {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 300px;
-            pointer-events: none;
-            overflow: hidden;
-            z-index: 0;
-        }
+        /* Confetti & Stars Layer */
+        #confetti-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+        .stars-container { position: absolute; top: 0; left: 0; width: 100%; height: 300px; pointer-events: none; z-index: 0; }
 
-        /* Header */
-        .leaderboard-header { text-align: center; margin-bottom: 20px; position: relative; z-index: 1; }
-        .title { color: #003366; margin: 0; font-size: 20px; font-weight: 800; }
+        /* Header & Info */
+        .leaderboard-header { text-align: center; margin-bottom: 20px; position: relative; z-index: 2; }
+        .rules-icon { position: absolute; left: 10px; top: 5px; color: var(--primary-blue); font-size: 24px; cursor: pointer; transition: 0.3s; }
+        .rules-icon:hover { transform: scale(1.2); }
+        .title { color: var(--dark-blue); margin: 0; font-size: 22px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* Filter */
-        .filter-section { display: flex; gap: 8px; margin-bottom: 25px; position: relative; z-index: 1; }
-        select { flex: 1; padding: 10px; border-radius: 12px; border: 1px solid #ddd; font-size: 13px; }
+        /* Multi-Filter Section */
+        .filter-section { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; position: relative; z-index: 5; }
+        .full-width { grid-column: span 2; }
+        select { padding: 12px; border-radius: 12px; border: 1px solid #ddd; background: #f9f9f9; font-size: 13px; outline: none; cursor: pointer; }
 
-        /* Podium Tanpa Container */
+        /* Podium Area - Clean Look */
         .podium-section { 
-            display: flex; 
-            justify-content: center; 
-            align-items: flex-end; 
-            gap: 20px; 
-            margin-bottom: 40px; 
-            min-height: 180px;
-            position: relative;
-            z-index: 1;
+            display: flex; justify-content: center; align-items: flex-end; 
+            gap: 15px; margin: 30px 0 50px 0; min-height: 200px; position: relative; z-index: 2;
         }
-
         .podium-card { text-align: center; flex: 1; position: relative; }
         
-        /* Angka Juara di Atas */
-        .rank-badge {
-            font-size: 24px;
-            font-weight: 900;
-            display: block;
-            margin-bottom: -5px;
-            font-style: italic;
-        }
-
+        .rank-badge { font-size: 28px; font-weight: 900; display: block; margin-bottom: -5px; font-style: italic; }
         .gold .rank-badge { color: #FFB900; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .silver .rank-badge { color: #A9A9A9; }
         .bronze .rank-badge { color: #CD7F32; }
 
-        /* Ikon & Animasi Meriah */
         .medal-icon { 
-            font-size: 45px; 
-            margin-bottom: 10px; 
-            display: block;
-            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1));
+            font-size: 55px; margin-bottom: 10px; display: block;
+            filter: drop-shadow(0 8px 15px rgba(0,0,0,0.15));
             animation: float 3s ease-in-out infinite;
         }
+        .gold .medal-icon { color: #FFD700; }
+        .silver .medal-icon { color: #C0C0C0; animation-delay: 0.5s; font-size: 45px; }
+        .bronze .medal-icon { color: #CD7F32; animation-delay: 1s; font-size: 45px; }
 
-        .gold .medal-icon { color: #FFD700; animation-delay: 0s; }
-        .silver .medal-icon { color: #C0C0C0; animation-delay: 0.5s; font-size: 35px; }
-        .bronze .medal-icon { color: #CD7F32; animation-delay: 1s; font-size: 35px; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+        .podium-name { font-size: 14px; font-weight: bold; color: var(--dark-blue); margin-bottom: 10px; }
+        .clickable-pts { 
+            background: var(--primary-blue); color: white; border-radius: 20px; 
+            padding: 6px 15px; font-size: 12px; font-weight: 800; cursor: pointer;
+            transition: 0.3s; box-shadow: 0 4px 10px rgba(0,86,179,0.3);
         }
+        .gold .clickable-pts { background: var(--gold-gradient); color: #4d3a00; border: 1px solid #e6ac00; }
+        .clickable-pts:active { transform: scale(0.9); }
 
-        .podium-name { font-size: 13px; font-weight: bold; color: #003366; margin-bottom: 8px; }
-        
-        /* Kapsul Poin Goldish */
-        .podium-points { 
-            background: #0056b3; 
-            color: white; 
-            border-radius: 20px; 
-            padding: 5px 15px; 
-            font-size: 11px; 
-            font-weight: 800; 
-            box-shadow: 0 4px 10px rgba(0,86,179,0.3);
-        }
-
-        .gold .podium-points { background: var(--gold-gradient); color: #4d3a00; border: 1px solid #e6ac00; }
-
-        /* List Styling */
+        /* Ranking List */
         .rank-item { 
             display: flex; justify-content: space-between; align-items: center; 
-            background: #fff; border: 1px solid #e0e0e0; border-left: 6px solid #0056b3;
-            margin-bottom: 12px; padding: 15px; border-radius: 15px; 
+            background: #fff; border: 1px solid #eee; border-left: 6px solid var(--primary-blue);
+            margin-bottom: 12px; padding: 15px; border-radius: 15px; transition: 0.3s;
         }
-        .rank-number { font-weight: 900; color: #003366; width: 25px; }
+        .rank-item:hover { transform: translateX(5px); background: #fafafa; }
+        .rank-number { font-weight: 900; color: var(--dark-blue); width: 30px; font-size: 16px; }
         .rank-name { font-weight: bold; color: #333; flex: 1; }
-        .rank-points-capsule { background: #0056b3; color: white; padding: 6px 15px; border-radius: 25px; font-weight: 800; font-size: 12px; }
+        .list-pts { 
+            background: var(--primary-blue); color: white; padding: 8px 18px; 
+            border-radius: 25px; font-weight: 800; font-size: 12px; cursor: pointer;
+        }
 
-        .btn-back { width: 100%; padding: 18px; background: #003366; color: white; border: none; font-weight: bold; border-radius: 0 0 30px 30px; margin-top: 20px; cursor: pointer; }
+        .btn-back { 
+            width: 100%; padding: 20px; background: var(--dark-blue); color: white; 
+            border: none; font-weight: bold; border-radius: 0 0 30px 30px; 
+            margin-top: 30px; cursor: pointer; font-size: 14px;
+        }
     </style>
 </head>
 <body>
 
 <div class="leaderboard-container">
-    <div class="stars-container" id="confetti"></div>
+    <canvas id="confetti-canvas"></canvas>
+    <div class="stars-container" id="stars-layer"></div>
 
     <div class="leaderboard-header">
+        <div class="rules-icon" onclick="showRules()"><i class="fa-solid fa-circle-question"></i></div>
         <h2 class="title"><i class="fa-solid fa-crown" style="color: #FFD700;"></i> LEADERBOARD</h2>
-        <p style="font-size: 12px; color: #888;">Periode: April 2026</p>
+        <p style="font-size: 12px; color: #888; margin-top: 5px;">Periode: April 2026</p>
     </div>
 
     <div class="filter-section">
-        <select><option>Per Orangan (Jemaat)</option></select>
-        <select><option>Semua Kategori</option></select>
+        <select class="full-width" id="segmen">
+            <option>Per Orangan (Jemaat)</option>
+            <option>Per Komsel</option>
+            <option>Per Gereja (Wilayah)</option>
+        </select>
+        <select id="wilayah">
+            <option>Semua Lokasi</option>
+            <option>Abepura</option>
+            <option>Sentani</option>
+            <option>Doyo</option>
+        </select>
+        <select id="kategori">
+            <option>Semua Kategori</option>
+            <option>PW</option>
+            <option>Multimedia</option>
+            <option>Sound</option>
+            <option>WL & Singer</option>
+        </select>
     </div>
 
     <div class="podium-section">
@@ -143,59 +126,96 @@
             <span class="rank-badge">2</span>
             <i class="fa-solid fa-medal medal-icon"></i>
             <div class="podium-name">UMUM</div>
-            <div class="podium-points">110 Pts</div>
+            <div class="clickable-pts" onclick="showHistory('UMUM')">110 Pts</div>
         </div>
 
         <div class="podium-card gold">
             <span class="rank-badge">1</span>
             <i class="fa-solid fa-trophy medal-icon"></i>
             <div class="podium-name">JC 5</div>
-            <div class="podium-points">243 Pts</div>
+            <div class="clickable-pts" onclick="showHistory('JC 5')">243 Pts</div>
         </div>
 
         <div class="podium-card bronze">
             <span class="rank-badge">3</span>
             <i class="fa-solid fa-award medal-icon"></i>
             <div class="podium-name">JC 1</div>
-            <div class="podium-points">50 Pts</div>
+            <div class="clickable-pts" onclick="showHistory('JC 1')">50 Pts</div>
         </div>
     </div>
 
     <div class="ranking-list">
         <div class="rank-item">
             <span class="rank-number">4.</span>
-            <span class="rank-name">JC</span>
-            <div class="rank-points-capsule">30 POIN</div>
+            <span class="rank-name">Boby Daniel</span>
+            <div class="list-pts" onclick="showHistory('Boby Daniel')">30 POIN</div>
         </div>
         <div class="rank-item">
             <span class="rank-number">5.</span>
-            <span class="rank-name">JC 05</span>
-            <div class="rank-points-capsule">25 POIN</div>
+            <span class="rank-name">Yohanes</span>
+            <div class="list-pts" onclick="showHistory('Yohanes')">25 POIN</div>
         </div>
     </div>
 
     <button class="btn-back"><i class="fa-solid fa-house"></i> KEMBALI KE MENU</button>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 <script>
-    // Simple Sparkle Effect
-    const container = document.getElementById('confetti');
-    for (let i = 0; i < 20; i++) {
+    // 1. Efek Konfeti Menyembur (10 Detik)
+    const duration = 10 * 1000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
+
+    function randomInRange(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    const interval = setInterval(function() {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+            return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+        confetti(Object.assign({}, defaults, { 
+            particleCount, 
+            origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } 
+        }));
+        confetti(Object.assign({}, defaults, { 
+            particleCount, 
+            origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } 
+        }));
+    }, 250);
+
+    // 2. Efek Bintang Kedap-kedip di Background
+    const starContainer = document.getElementById('stars-layer');
+    for (let i = 0; i < 15; i++) {
         const star = document.createElement('i');
         star.className = 'fa-solid fa-star';
         star.style.position = 'absolute';
         star.style.color = '#FFD700';
-        star.style.fontSize = Math.random() * 10 + 5 + 'px';
+        star.style.fontSize = Math.random() * 8 + 4 + 'px';
         star.style.left = Math.random() * 100 + '%';
         star.style.top = Math.random() * 100 + '%';
         star.style.opacity = Math.random();
-        star.style.animation = `blink ${Math.random() * 2 + 1}s infinite`;
-        container.appendChild(star);
+        star.style.animation = `twinkle ${Math.random() * 2 + 1}s infinite`;
+        starContainer.appendChild(star);
     }
 
     const style = document.createElement('style');
-    style.innerHTML = `@keyframes blink { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }`;
+    style.innerHTML = `@keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }`;
     document.head.appendChild(style);
+
+    // 3. Fungsi Klik & Alert
+    function showRules() {
+        alert("📜 ATURAN POIN:\n- Alkitab: 5 Pts\n- Kehadiran: 10 Pts\n- Latihan Bidang: 15 Pts\n- Pelayanan Hari H: 25 Pts\n\nSyarat: Poin Pelayanan HANYA masuk jika Anda mengikuti Latihan di minggu yang sama.");
+    }
+
+    function showHistory(name) {
+        alert("📊 RIWAYAT POIN [" + name + "]:\n\n- Baca Alkitab: 10x (50 Pts)\n- Ibadah Raya: 4x (40 Pts)\n- Latihan Multimedia: 2x (30 Pts)\n- Pelayanan Multimedia: 2x (50 Pts)\n\nTotal poin tervalidasi.");
+    }
 </script>
 
 </body>
