@@ -17,7 +17,6 @@
         .step { flex: 1; height: 6px; background: #eee; border-radius: 10px; transition: 0.4s; }
         .step.active { background: #28a745; box-shadow: 0 0 8px rgba(40, 167, 69, 0.4); }
 
-        /* Solusi Space Kosong di bawah Form */
         .form-step { 
             display: none; 
             opacity: 0; 
@@ -26,7 +25,6 @@
             transition: opacity 0.4s ease; 
         }
 
-        /* Memunculkan kembali elemen aktif dengan benar */
         .form-step.active { 
             display: block !important; 
             opacity: 1; 
@@ -49,7 +47,6 @@
         .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666; }
         #nij-display { background: #fff3cd !important; border: 2px solid #ffc107 !important; color: #856404; font-weight: bold; }
 
-        /* Modal Syarat & Ketentuan Styling */
         #terms-modal { 
             display: flex; 
             position: fixed; 
@@ -60,7 +57,7 @@
             background: rgba(0,0,0,0.85); 
             z-index: 10000; 
             justify-content: center; 
-            align-items: center; /* Ini yang membuat simetris tengah */
+            align-items: center; 
             padding: 20px; 
             backdrop-filter: blur(5px); 
             box-sizing: border-box;
@@ -71,7 +68,7 @@
             padding: 25px; 
             border-radius: 20px; 
             max-width: 400px; 
-            width: 90%; /* Mengikuti lebar layar HP agar tidak miring */
+            width: 90%; 
             text-align: center; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
@@ -80,7 +77,6 @@
         #blocking-message { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
         .modal-box { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; width: 100%; }
         
-        /* CSS Tambahan untuk input dinamis */
         .dynamic-field { display: none; }
     </style>
 </head>
@@ -292,6 +288,64 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
+    // --- FUNGSI REGISTRASI ---
+    async function handleRegistrasi() {
+        const btnSubmit = document.getElementById("btnSubmit");
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("pass").value;
+        const nama = document.getElementById("nama").value;
+
+        // 1. Validasi Sederhana
+        if (!email || !password || !nama) {
+            alert("Mohon lengkapi Nama, Email, dan Password!");
+            return;
+        }
+
+        // Ubah tombol jadi loading
+        btnSubmit.disabled = true;
+        btnSubmit.innerText = "Memproses...";
+
+        try {
+            // 2. Buat Akun di Firebase Auth
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            const user = userCredential.user;
+
+            // 3. Kirim Email Verifikasi
+            await user.sendEmailVerification();
+
+            // 4. Simpan Data Tambahan ke Firestore
+            await db.collection("users").doc(user.uid).set({
+                nama: nama,
+                email: email,
+                nij: document.getElementById("nij-display").value,
+                whatsapp: document.getElementById("hp").value,
+                status: "pending_verification",
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // 5. Tampilkan Modal Berhasil
+            document.getElementById("blocking-message").style.display = "flex";
+
+        } catch (error) {
+            // 6. Tangani Pesan Error Firebase
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = "FINALISASI & DAFTAR";
+            
+            console.error("Error Registrasi:", error);
+            
+            let errorMessage = "Terjadi kesalahan saat mendaftar.";
+            if (error.code === 'auth/email-already-in-use') {
+                errorMessage = "Email ini sudah terdaftar. Silakan gunakan email lain.";
+            } else if (error.code === 'auth/weak-password') {
+                errorMessage = "Password terlalu lemah. Gunakan minimal 6 karakter.";
+            } else if (error.code === 'auth/invalid-email') {
+                errorMessage = "Format email tidak valid.";
+            }
+            
+            alert(errorMessage);
+        }
+    }
+
     // --- DATA DINAMIS ---
     const dataKomsel = {
         "ABE": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "esther 8", "esther 9", "Esther 10", "esther 11", "Esther 12", "Komsel Mahasiswa Abe", "Komsel Profesi Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu"],
@@ -473,10 +527,6 @@
             });
         }
     };
-
-    window.addEventListener('DOMContentLoaded', (event) => {
-        console.log('DOM fully loaded and parsed');
-    });
 </script>
 </body>
 </html>
