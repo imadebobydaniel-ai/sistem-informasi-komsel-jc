@@ -1,212 +1,258 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIPAPUA - Login</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root { --emas-lux: #D4AF37; --grey-bg: #2c2c2c; --biru-aksen: #007bff; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #1a1a1a; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+<script>
+    // 1. FIREBASE CONFIG
+    const firebaseConfig = {
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+        authDomain: "boby-apps-project.firebaseapp.com",
+        projectId: "boby-apps-project",
+        storageBucket: "boby-apps-project.appspot.com",
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
 
-        /* SPLASH SCREEN */
-        #splash-screen { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background-color: var(--grey-bg); 
-            display: flex; flex-direction: column; justify-content: center; align-items: center; 
-            z-index: 999999; transition: opacity 0.8s ease, visibility 0.8s; 
-        }
-        .splash-hidden { opacity: 0 !important; visibility: hidden !important; }
-        
-        .logo-container { position: relative; display: flex; justify-content: center; align-items: center; width: 115px; height: 115px; }
-        .gold-loader { position: absolute; width: 100%; height: 100%; border: 3px solid rgba(212, 175, 55, 0.1); border-top: 3px solid var(--emas-lux); border-radius: 50%; animation: spin 1.2s linear infinite; }
-        .splash-logo { width: 90px; z-index: 2; }
+    // DATA DINAMIS (Tetap Sama)
+    const dataKomsel = {
+        "ABE": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "esther 8", "esther 9", "Esther 10", "esther 11", "Esther 12", "Komsel Mahasiswa Abe", "Komsel Profesi Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu", "Komsel Lansia"],
+        "STN": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Siloam 5", "Siloam 6", "Siloam 8", "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", "Komsel Remaja Sentani", "Komsel Sekolah Minggu Sentani", "Komsel Lansia"],
+        "DYO": ["Komsel Bapak doyo", "Komsel Ibu doyo", "komsel Profesi Doyo", "Komsel Mahasiswa Doyo", "Komsel Pelajar Doyo", "Komsel Sekolah Minggu Doyo"],
+        "ARS1": ["Komsel Keluarga Arso 1"],
+        "ARS2": ["Komsel Keluarga Arso 2"]
+    };
 
-        .splash-text { margin-top: 25px; color: white; text-align: center; z-index: 2; }
-        .splash-text h1 { font-size: 24px; margin: 0; letter-spacing: 3px; color: var(--emas-lux); font-weight: 800; }
-        .splash-text h5 { font-size: 11px; opacity: 0.8; margin: 8px 0 0; font-weight: normal; font-style: italic; }
+    const dataSubJabatan = {
+        "Kependetaan": ["Gembala Sidang Jemaat", "Pdt. Pembantu", "Pdt. Muda"],
+        "Pemimpin / Koordinator": ["Sekretaris Gereja", "Bendahara Gereja", "Komite Gereja", "Koordinator Lansia", "Koordinator Bapak", "Koordinator Ibu", "Koordinator Profesi", "Koordinator Mahasiswa", "Koordinator Pelajar", "Koordinator Sekolah minggu", "Koordinator Praise & Worship", "Koordinator Tamborin, flag", "Koordinator Multimedia", "Koordinator Sound Engineering & Elektrical", "Koordinator Pelayanan Misi", "Koordinator Pendoa", "Koordinator User", "Koordinator parkir dan keamanan", "Koordinator dekorasi dan event"],
+        "PKS Komsel": ["PKS Komsel"],
+        "Fulltimer": ["Fulltimer Gereja"],
+        "Anggota Jemaat": ["Anggota Jemaat Ordinari"]
+    };
 
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    const dataSpesifik = {
+        "Gembala Sidang Jemaat": ["Penanggung Jawab Pengembalaan Jemaat"],
+        "Pdt. Pembantu": ["Supporting Pelayanan Pengembalaan Jemaat"],
+        "Pdt. Muda": ["Supporting Pelayanan Pengembalaan Jemaat"],
+        "Anggota Jemaat Ordinari": ["Praise & Worship", "Multimedia", "Sound & Electrical Engineering", "User", "Parkiran & Keamanan", "Doa & Misi", "Dekorasi & Event", "Lainnya"],
+        "Koordinator Praise & Worship": ["Pelayanan Praise & Worship"],
+        "Koordinator Multimedia": ["Pelayanan Multimedia"],
+        "Koordinator Sound Engineering & Elektrical": ["Pelayanan Sound & electrical engineering"],
+        "Koordinator User": ["Pelayanan User"],
+        "Koordinator parkir dan keamanan": ["Pelayanan Parkiran & keamanan"],
+        "Koordinator Pelayanan Misi": ["Pelayanan Doa & Misi"],
+        "Koordinator Pendoa": ["Pelayanan Doa & Misi"],
+        "Koordinator dekorasi dan event": ["Pelayanan Dekorasi & Event"],
+        "Fulltimer Gereja": ["Pelayanan fulltimer Gereja"]
+    };
 
-        /* LOGIN CARD */
-        .login-card { background: #ffffff; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 90%; max-width: 400px; box-sizing: border-box; border-top: 5px solid var(--biru-aksen); text-align: center; }
-        .header img { width: 70px; }
-        .header h2 { margin: 10px 0 0; color: #333; font-size: 18px; text-transform: uppercase; }
+    const dataNonStruktural = {
+        "Pelayanan Praise & Worship": ["Drum Player", "Keyboard Player", "Piano Player", "Bass Player", "Guitar Player", "Violin Player", "Saxsophone Player", "Flute player", "Vocal coach", "Worship leader", "Singers", "choirs"],
+        "Pelayanan Multimedia": ["Director media", "Floor director", "Campers", "Crew equipment", "Streaming operator", "Video switcher operator", "Easy Worshipe / Presenter Operator"],
+        "Pelayanan Sound & electrical engineering": ["Sound engineering", "Crew equipment", "Elektrical & Peripheral"],
+        "Pelayanan User": ["Front Desk user", "User direct", "Event organizer", "General Affairs"],
+        "Pelayanan Parkiran & keamanan": ["Parkir leader", "Parkir Crew", "Security"],
+        "Pelayanan Doa & Misi": ["Team Doa Syafaat", "Team Misi bidang Fundraising", "Team Misi bidang research & Deplovement", "Team Road Map", "Public Relations"],
+        "Pelayanan Dekorasi & Event": ["Decoration leader", "Decoration Crew", "Art And Painting", "Special effect"],
+        "Pelayanan fulltimer Gereja": ["Kepala Sekolah PAUD & PPA", "Sekretaris Operasional Gereja", "Bendahara Operasional gereja", "Guru Paud", "Mentor PPA", "Staff Geraja", "Staff PPA", "Hospitality & Konsumsi", "Driver"],
+        "Praise & Worship": ["Drum Player", "Keyboard Player", "Piano Player", "Bass Player", "Guitar Player", "Violin Player", "Saxsophone Player", "Flute player", "Vocal coach", "Worship leader", "Singers", "choirs"],
+        "Multimedia": ["Director media", "Floor director", "Campers", "Crew equipment", "Streaming operator", "Video switcher operator", "Easy Worshipe / Presenter Operator"],
+        "Sound & Electrical Engineering": ["Sound engineering", "Crew equipment", "Elektrical & Peripheral"],
+        "User": ["Front Desk user", "User direct", "Event organizer", "General Affairs"],
+        "Parkiran & Keamanan": ["Parkir leader", "Parkir Crew", "Security"],
+        "Doa & Misi": ["Team Doa Syafaat", "Team Misi bidang Fundraising", "Team Misi bidang research & Deplovement", "Team Road Map", "Public Relations"],
+        "Dekorasi & Event": ["Decoration leader", "Decoration Crew", "Art And Painting", "Special effect"]
+    };
 
-        #login-msg { display: none; padding: 12px; margin-bottom: 20px; border-radius: 8px; font-size: 13px; font-weight: bold; }
-        .show-block { display: block !important; }
-        .msg-error { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
-        .msg-success { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
-        .msg-process { background: #e3f2fd; color: #0d47a1; border: 1px solid #bbdefb; }
+    // --- FUNGSI LOGIN (BARU) ---
+    async function handleLogin() {
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
 
-        .form-group { margin-bottom: 20px; position: relative; text-align: left; }
-        .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #444; }
-        .form-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; outline: none; }
-        .toggle-password { position: absolute; right: 15px; top: 38px; cursor: pointer; color: #888; }
-
-        .btn-login { width: 100%; padding: 14px; background-color: var(--biru-aksen); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-login:hover { background-color: #0056b3; }
-        .btn-login:disabled { background-color: #ccc; cursor: not-allowed; }
-
-        .footer-links { margin-top: 20px; font-size: 13px; color: #666; }
-        .footer-links a { color: var(--biru-aksen); text-decoration: none; font-weight: bold; }
-    </style>
-</head>
-<body>
-
-    <div id="splash-screen">
-        <div class="logo-container">
-            <div class="gold-loader"></div>
-            <img src="logo_pondok.png" alt="Logo" class="splash-logo">
-        </div>
-        <div class="splash-text">
-            <h1>SIPAPUA</h1>
-            <h5>( Sistem Informasi Pondok Pemulihan Papua )</h5>
-        </div>
-    </div>
-
-    <div class="login-card">
-        <div class="header">
-            <img src="logo_pondok.png" alt="Logo">
-            <h2>PONDOK PEMULIHAN PAPUA</h2>
-            <div style="background:#2c3e50; color:#ffcc00; font-size:11px; padding:4px 12px; border-radius:20px; display:inline-block; margin-top:8px;">SISTEM INFORMASI JEMAAT</div>
-        </div>
-
-        <div id="login-msg"></div>
-
-        <form id="userLoginForm">
-            <div class="form-group">
-                <label>Email Anggota</label>
-                <input type="email" id="user_email" required placeholder="Masukkan Email">
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="user_pass" required placeholder="Masukkan Password">
-                <i class="fa-solid fa-eye toggle-password" id="eyeIcon"></i>
-            </div>
-            <button type="submit" id="btnMasuk" class="btn-login">MASUK</button>
-        </form>
-
-        <div class="footer-links">
-            Belum punya akun? <a href="registrasi.html">Daftar Sekarang</a>
-            <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
-            <a href="login_cyber.html" style="color:#888; font-size:11px;">Masuk sebagai Admin</a>
-        </div>
-    </div>
-
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
-    <script>
-        // 1. Konfigurasi Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
-            authDomain: "boby-apps-project.firebaseapp.com",
-            projectId: "boby-apps-project",
-            storageBucket: "boby-apps-project.appspot.com",
-            messagingSenderId: "125984859692",
-            appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
-        };
-        
-        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-        const db = firebase.firestore();
-
-        // 2. Splash Screen & Session Check
-        document.addEventListener("DOMContentLoaded", function() {
-            if (sessionStorage.getItem("userLoggedIn") === "true") {
-                window.location.replace("menu.html");
-                return;
-            }
-            setTimeout(() => {
-                document.getElementById('splash-screen').classList.add('splash-hidden');
-            }, 3000);
-        });
-
-        // 3. UI Elements & Toggle Password
-        const eyeIcon = document.getElementById('eyeIcon');
-        const passwordInput = document.getElementById('user_pass');
-        const loginForm = document.getElementById('userLoginForm');
-        const msgBox = document.getElementById('login-msg');
-        const btn = document.getElementById('btnMasuk');
-
-        eyeIcon.addEventListener('click', () => {
-            const isPass = passwordInput.type === 'password';
-            passwordInput.type = isPass ? 'text' : 'password';
-            eyeIcon.classList.toggle('fa-eye-slash');
-        });
-
-        // 4. Logika Login Terintegrasi
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        try {
+            // Proses autentikasi resmi Firebase
+            const userCredential = await auth.signInWithEmailAndPassword(email, password);
+            console.log("Auth Berhasil:", userCredential.user.uid);
             
-            // Ambil input dan bersihkan
-            const emailInput = document.getElementById('user_email').value.trim().toLowerCase();
-            const passInput = passwordInput.value;
-
-            // UI Feedback
-            msgBox.innerText = "Memverifikasi...";
-            msgBox.className = "msg-process show-block"; 
-            btn.disabled = true;
-
-            try {
-                // Cari user berdasarkan email di koleksi "jemaat"
-                const userQuery = await db.collection("jemaat").where("email", "==", emailInput).get();
-
-                if (userQuery.empty) {
-                    msgBox.innerText = "Akun tidak terdaftar!";
-                    msgBox.className = "msg-error show-block";
-                    btn.disabled = false;
-                    return;
-                }
-
-                let match = false;
-                let userData = null;
-
-                // Loop dokumen yang ditemukan (biasanya cuma 1)
-                userQuery.forEach((doc) => {
-                    const data = doc.data();
-                    // Cek password secara manual agar case-sensitive
-                    if (data.password === passInput) {
-                        match = true;
-                        userData = data;
-                    }
-                });
-
-                if (match) {
-                    // Cek status jika diperlukan (opsional)
-                    if (userData.status_akun === "Nonaktif") {
-                        msgBox.innerText = "Akun dinonaktifkan oleh Admin.";
-                        msgBox.className = "msg-error show-block";
-                        btn.disabled = false;
-                        return;
-                    }
-
-                    msgBox.innerText = "Berhasil Masuk!";
-                    msgBox.className = "msg-success show-block";
-                    
-                    // Simpan data ke Session Storage
-                    sessionStorage.setItem("userLoggedIn", "true");
-                    sessionStorage.setItem("userName", userData.nama || userData.nama_lengkap || "User");
-                    sessionStorage.setItem("userUID", userData.uid || "");
-
-                    // Redirect ke menu utama
-                    setTimeout(() => { 
-                        window.location.replace("menu.html"); 
-                    }, 1000);
-
-                } else {
-                    msgBox.innerText = "Password Salah!";
-                    msgBox.className = "msg-error show-block";
-                    btn.disabled = false;
-                }
-
-            } catch (err) {
-                console.error("Login Error:", err);
-                msgBox.innerText = "Koneksi Bermasalah. Coba lagi.";
-                msgBox.className = "msg-error show-block";
-                btn.disabled = false;
+            // Setelah Auth berhasil, baru arahkan ke dashboard
+            window.location.href = "dashboard.html";
+        } catch (error) {
+            console.error("Kode Error:", error.code);
+            console.error("Pesan Error:", error.message);
+            
+            if (error.code === 'auth/wrong-password') {
+                alert("Password yang Anda masukkan salah.");
+            } else if (error.code === 'auth/user-not-found') {
+                alert("Email tidak ditemukan di sistem autentikasi.");
+            } else {
+                alert("Terjadi kesalahan: " + error.message);
             }
+        }
+    }
+
+    // --- LOGIKA FORM & REGISTRASI ---
+    function handleStatusNikah() {
+        const status = document.getElementById("status_pernikahan").value;
+        const divMenikah = document.getElementById("form_menikah");
+        const divSingle = document.getElementById("form_single");
+
+        divMenikah.style.display = "none";
+        divSingle.style.display = "none";
+
+        if (status === "Menikah") {
+            divMenikah.style.display = "block";
+        } else if (status === "Single" || status === "Duda" || status === "Janda") {
+            divSingle.style.display = "block";
+        }
+    }
+
+    function nextStep(n) {
+        const steps = document.querySelectorAll('.form-step');
+        steps.forEach(step => { step.classList.remove('active'); step.style.display = 'none'; });
+        const targetStep = document.getElementById('step-' + n);
+        if (targetStep) { targetStep.classList.add('active'); targetStep.style.display = 'block'; }
+        if (n === 2) updateNIJPreview();
+        document.querySelectorAll('.step').forEach((bar, index) => {
+            if (index < n) bar.classList.add('active');
+            else bar.classList.remove('active');
         });
-    </script>
-</body>
-</html>
+        window.scrollTo(0, 0);
+    }
+
+    function updateSubJabatan() {
+        const jab = document.getElementById("jabatan_jemaat").value;
+        const sub = document.getElementById("sub_jabatan");
+        sub.innerHTML = '<option value="">-- Pilih Sub Bidang --</option>';
+        if (dataSubJabatan[jab]) {
+            dataSubJabatan[jab].forEach(i => sub.add(new Option(i, i)));
+        }
+        updateSpesifikPelayanan(); 
+    }
+
+    function updateSpesifikPelayanan() {
+        const sub = document.getElementById("sub_jabatan").value;
+        const pel = document.getElementById("pelayanan");
+        pel.innerHTML = '<option value="">-- Pilih Fungsi Spesifik --</option>';
+        if (dataSpesifik[sub]) {
+            dataSpesifik[sub].forEach(i => pel.add(new Option(i, i)));
+            if (dataSpesifik[sub].length === 1) pel.selectedIndex = 1;
+        }
+        updateNonStruktural();
+    }
+
+    function updateNonStruktural() {
+        const pelVal = document.getElementById("pelayanan").value;
+        const nonPel = document.getElementById("pelayanan_spesifik_non");
+        nonPel.innerHTML = '<option value="">-- Pilih Detail Pelayanan --</option>';
+        if (dataNonStruktural[pelVal]) {
+            dataNonStruktural[pelVal].forEach(i => nonPel.add(new Option(i, i)));
+        }
+    }
+
+    function updateKomsel() {
+        const lok = document.getElementById("lokasi").value;
+        const sel = document.getElementById("komsel");
+        sel.innerHTML = '<option value="">-- Pilih Komsel --</option>';
+        if (dataKomsel[lok]) dataKomsel[lok].forEach(i => sel.add(new Option(i, i)));
+    }
+
+    async function updateNIJPreview() {
+        const lokasi = document.getElementById("lokasi").value;
+        const displayInput = document.getElementById("nij-display");
+        if (!lokasi) { displayInput.value = "Pilih lokasi dahulu..."; return; }
+        try {
+            const snap = await db.collection("users").get();
+            const urut = String(snap.size + 1).padStart(3, '0');
+            const tahun = new Date().getFullYear();
+            displayInput.value = `NIJ-PPP-${lokasi}-${urut}-${tahun}`;
+        } catch (error) { console.error("Gagal NIJ:", error); }
+    }
+
+    async function handleRegistrasi() {
+        const btn = document.getElementById("btnSubmit");
+        const fileInput = document.getElementById("berkas_jemaat");
+        const email = document.getElementById("email").value.trim().toLowerCase();
+        const password = document.getElementById("pass").value;
+
+        if (fileInput.files.length === 0) return alert("Unggah foto KTP/KK!");
+
+        btn.innerText = "Mendaftarkan...";
+        btn.disabled = true;
+
+        try {
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('upload_preset', 'pope_preset');
+            const cloudResp = await fetch('https://api.cloudinary.com/v1_1/dxzllsbgi/upload', { method: 'POST', body: formData });
+            const cloudData = await cloudResp.json();
+
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            await userCredential.user.sendEmailVerification();
+
+            const userData = {
+                uid: userCredential.user.uid,
+                nama: document.getElementById("nama").value,
+                email: email,
+                whatsapp: document.getElementById("hp").value,
+                status_pernikahan: document.getElementById("status_pernikahan").value,
+                jumlah_anak: document.getElementById("jumlah_anak").value || 0,
+                nama_pasangan: document.getElementById("nama_pasangan").value || "",
+                nama_ayah: document.getElementById("nama_ayah").value || "",
+                nama_ibu: document.getElementById("nama_ibu").value || "",
+                lokasi_berjemaat: document.getElementById("lokasi").value,
+                komsel: document.getElementById("komsel").value,
+                jabatan: document.getElementById("jabatan_jemaat").value,
+                sub_jabatan: document.getElementById("sub_jabatan").value,
+                fungsi_pelayanan: document.getElementById("pelayanan").value,
+                fungsi_non_struktural: document.getElementById("pelayanan_spesifik_non").value,
+                nij: document.getElementById("nij-display").value,
+                url_berkas: cloudData.secure_url,
+                status: "Pending",
+                tanggalDaftar: new Date().toLocaleString('id-ID')
+            };
+
+            await db.collection("users").doc(userCredential.user.uid).set(userData);
+            document.getElementById('blocking-message').style.display = 'flex';
+        } catch (e) {
+            alert("Error: " + e.message);
+            btn.disabled = false;
+            btn.innerText = "FINALISASI & DAFTAR";
+        }
+    }
+
+    async function loadProvinsi() {
+        const resp = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
+        const data = await resp.json();
+        let options = '<option value="">Pilih Provinsi</option>';
+        data.forEach(p => options += `<option value="${p.name}" data-id="${p.id}">${p.name}</option>`);
+        document.getElementById('provinsi_lahir').innerHTML = options;
+    }
+
+    async function loadKota() {
+        const provEl = document.getElementById('provinsi_lahir');
+        const idProv = provEl.options[provEl.selectedIndex].getAttribute('data-id');
+        if(!idProv) return;
+        const resp = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${idProv}.json`);
+        const data = await resp.json();
+        let options = '<option value="">Pilih Kota</option>';
+        data.forEach(k => options += `<option value="${k.name}">${k.name}</option>`);
+        document.getElementById('kota_lahir').innerHTML = options;
+    }
+
+    function toggleAgreeButton() { document.getElementById('btn-agree-submit').disabled = !document.getElementById('check-agree').checked; }
+    function closeTermsModal() { document.getElementById('terms-modal').style.display = 'none'; }
+
+    // Init
+    loadProvinsi();
+    
+    // Pastikan ID ini sesuai di HTML Anda untuk toggle mata password
+    const eyeIcon = document.getElementById('eyeIcon');
+    if(eyeIcon) {
+        eyeIcon.addEventListener('click', function() {
+            const p = document.getElementById('pass'); // Untuk form daftar
+            const loginP = document.getElementById('password'); // Untuk form login
+            if(p) p.type = p.type === 'password' ? 'text' : 'password';
+            if(loginP) loginP.type = loginP.type === 'password' ? 'text' : 'password';
+            this.classList.toggle('fa-eye-slash');
+        });
+    }
+</script>
