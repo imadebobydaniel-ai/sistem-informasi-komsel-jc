@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kehadiran JC - Pondok Pemulihan Papua</title>
+    <title>Laporan Kehadiran - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f4f8; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
@@ -42,7 +42,7 @@
 
 <div class="card">
     <div class="icon-header"><i class="fa-solid fa-location-dot"></i></div>
-    <h2>KEHADIRAN JC</h2>
+    <h2>LAPORAN KEGIATAN KEHADIRAN </h2>
     <p class="subtitle">Shalom! Silakan pilih jenis kegiatan.</p>
 
     <div class="menu-selector">
@@ -53,8 +53,9 @@
             <option value="Absen KD">Absen KD</option>
             <option value="Absen Komsel Reguler">Komsel Reguler</option>
             <option value="Absen Komsel Gabungan">Komsel Gabungan</option>
-            
-            <option value="Absen Extention">Extention (Bantu Anggota)</option>
+            <option value="Absen Latihan">Latihan (Musik/WL/Singer/Thamborin/Choirs/Multimedia/Sound/Dll)</option>
+            <option value="Absen Pelayanan">Pelayanan (Musik/WL/Singer/Thamborin/Choirs/Multimedia/Sound/Dll)</option>
+            <option value="Absen Extention">KEGIATAN Extention (Bantu Anggota)</option>
         </select>
     </div>
 
@@ -64,7 +65,7 @@
     </div>
 
     <div id="extention-container" class="extra-form">
-        <label>NAMA ANGGOTA:</label>
+        <label>NAMA KEGIATAN:</label>
         <input type="text" id="ext-nama" placeholder="Nama anggota...">
         <label>UNIT JC:</label>
         <select id="ext-jc">
@@ -103,6 +104,8 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // Pastikan data user ada di localStorage
+    const leaderEmail = localStorage.getItem("userEmail") || "NoEmail";
     const leaderName = localStorage.getItem("userName") || "User";
     const leaderJC = localStorage.getItem("userJC") || "JC";
 
@@ -153,15 +156,16 @@
         const today = new Date().toISOString().split('T')[0];
         const subjekLaporan = (menu === "Absen Extention") ? document.getElementById("ext-nama").value : leaderName;
 
-        // Tentukan Target Koleksi untuk Cek Data Ganda
+        // Config Collection & Stats
         let targetCollection = "kehadiran";
         if (menu === "Absen Doa") targetCollection = "laporan_doa";
         else if (menu === "Absen KD") targetCollection = "kehadiran_kd";
         else if (menu === "Absen Komsel Reguler") targetCollection = "laporan_komsel";
         else if (menu === "Absen Komsel Gabungan") targetCollection = "laporan_gabungan";
-        else if (menu === "Absen Pelayanan") targetCollection = "kehadiran_arso1";
+        else if (menu === "Absen Pelayanan") targetCollection = "laporan_pelayanan";
+        else if (menu === "Absen Latihan") targetCollection = "laporan_latihan";
 
-        // 1. CEK DATA GANDA AGAR DATABASE TIDAK SAMPAH
+        // 1. CEK DATA GANDA
         const check = await db.collection(targetCollection)
             .where("nama", "==", subjekLaporan)
             .where("tanggal", "==", today)
@@ -169,7 +173,7 @@
             .get();
 
         if (!check.empty) {
-            showLockDisplay('error', 'Laporan Ditolak', 'Anda sudah kirim laporan untuk kegiatan ini hari ini.');
+            showLockDisplay('error', 'Laporan Ditolak', 'Anda sudah kirim laporan hari ini.');
             return;
         }
 
@@ -182,31 +186,26 @@
                 try {
                     const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
                     const addr = await res.json();
-                    saveData(tipe, `${lat}, ${lon}`, addr.display_name || "Alamat ditemukan", subjekLaporan);
+                    saveData(tipe, `${lat}, ${lon}`, addr.display_name || "Alamat ditemukan", subjekLaporan, targetCollection);
                 } catch (e) {
-                    saveData(tipe, `${lat}, ${lon}`, "Gagal deteksi alamat", subjekLaporan);
+                    saveData(tipe, `${lat}, ${lon}`, "Gagal deteksi alamat", subjekLaporan, targetCollection);
                 }
-            }, () => saveData(tipe, "GPS Off", "Lokasi tidak diizinkan", subjekLaporan), { timeout: 10000 });
+            }, () => saveData(tipe, "GPS Off", "Lokasi tidak diizinkan", subjekLaporan, targetCollection), { timeout: 10000 });
         } else {
-            saveData(tipe, "No GPS", "Perangkat tidak dukung GPS", subjekLaporan);
+            saveData(tipe, "No GPS", "Perangkat tidak dukung GPS", subjekLaporan, targetCollection);
         }
     }
 
-    async function saveData(tipe, koordinat, alamat, subjek) {
+    async function saveData(tipe, koordinat, alamat, subjek, collection) {
         const menu = document.getElementById("jenis-kegiatan").value;
         const now = new Date();
         
-        let targetCollection = "kehadiran"; 
-        if (menu === "Absen Doa") targetCollection = "laporan_doa";
-        else if (menu === "Absen KD") targetCollection = "kehadiran_kd";
-        else if (menu === "Absen Komsel Reguler") targetCollection = "laporan_komsel";
-        else if (menu === "Absen Komsel Gabungan") targetCollection = "laporan_gabungan";
-        else if (menu === "Absen Pelayanan") targetCollection = "kehadiran_arso1";
-
         let payload = {
             status: tipe,
+            email: leaderEmail,
             tanggal: now.toISOString().split('T')[0],
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(), // PENTING: Untuk pengurutan di Big Data
+            waktu: now.toLocaleTimeString('id-ID'),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(), // Untuk Big Data & Statistik
             kegiatan: menu,
             nama: subjek,
             jc: (menu === "Absen Extention" ? document.getElementById("ext-jc").value : leaderJC),
@@ -215,20 +214,20 @@
         };
 
         if (menu === "Absen Extention") payload.absensi_helper = leaderName;
-        if (menu === "Absen Komsel Gabungan") payload.lokasi = document.getElementById("gabungan-info").value;
-        if (menu === "Absen KD") payload.kelas = leaderJC; 
+        if (menu === "Absen Komsel Gabungan") payload.lokasi_gabungan = document.getElementById("gabungan-info").value;
         payload.keterangan = (tipe === 'TIDAK HADIR') ? document.getElementById("alasan").value : "Hadir di Lokasi";
 
         try {
-            // SIMPAN KE DATABASE (Koleksi Spesifik)
-            await db.collection(targetCollection).add(payload);
+            // 1. Simpan ke koleksi spesifik
+            await db.collection(collection).add(payload);
             
-            // Simpan ke Pusat Kehadiran jika folder berbeda
-            if (targetCollection !== "kehadiran") {
-                await db.collection("kehadiran").add(payload);
-            }
+            // 2. Simpan ke Statistik Pusat (Big Data)
+            await db.collection("statistik_pusat").add({
+                ...payload,
+                category_pusat: "monitoring_kehadiran"
+            });
 
-            showLockDisplay('success', 'Terimakasih Atas Laporan Anda', alamat);
+            showLockDisplay('success', 'Terimakasih Atas Laporan Anda', "Data berhasil terkirim ke sistem statistik.");
         } catch (err) {
             showLockDisplay('error', 'Gagal Simpan', err.message);
         }
