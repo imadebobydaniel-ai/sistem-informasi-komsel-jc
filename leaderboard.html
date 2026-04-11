@@ -82,7 +82,12 @@
         .rank-name { font-weight: bold; color: #333; flex: 1; font-size: 14px; }
         .list-pts { background: var(--primary-blue); color: white; padding: 6px 12px; border-radius: 20px; font-weight: 800; font-size: 11px; cursor: pointer; }
 
-        .btn-back { width: 100%; padding: 18px; background: var(--dark-blue); color: white; border: none; font-weight: bold; border-radius: 0 0 30px 30px; margin-top: auto; position: relative; z-index: 5; cursor: pointer; }
+        /* Memperbaiki kursor tombol kembali */
+        .btn-back { 
+            width: 100%; padding: 18px; background: var(--dark-blue); color: white; 
+            border: none; font-weight: bold; border-radius: 0 0 30px 30px; 
+            margin-top: auto; position: relative; z-index: 5; cursor: pointer;
+        }
 
         #customModal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -125,13 +130,10 @@
         <select><option>Semua Kategori</option><option>PW</option><option>Multimedia</option><option>Sound engineer</option><option>Tamborin</option><option>Choirs</option><option>Flag</option></select>
     </div>
 
-    <div class="podium-section" id="podium-ui">
-        </div>
+    <div class="podium-section" id="podium-ui"></div>
+    <div class="ranking-list" id="list-ui"></div>
 
-    <div class="ranking-list" id="list-ui">
-        </div>
-
-    <button class="btn-back" onclick="window.location.href='index.html'"><i class="fa-solid fa-house"></i> KEMBALI KE MENU</button>
+    <button class="btn-back" onclick="window.location.href='menu.html'"><i class="fa-solid fa-house"></i> KEMBALI KE MENU</button>
 </div>
 
 <div id="customModal">
@@ -147,7 +149,7 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
 <script>
-    // --- KONFIGURASI FIREBASE ---
+    // --- 1. KONFIGURASI DATABASE ---
     const firebaseConfig = {
         apiKey: "MASUKKAN_API_KEY",
         authDomain: "PROJECT_ID.firebaseapp.com",
@@ -161,8 +163,8 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Data Dummy untuk berjaga-jaga jika database kosong
-    const placeholderData = [
+    // Data cadangan jika database masih kosong agar tidak "Blank"
+    const dummyData = [
         { name: "JC 5", points: 243, history: "Detail JC 5:\n- Kehadiran: 10x\n- Pelayanan: 5x" },
         { name: "UMUM", points: 110, history: "Detail UMUM:\n- Kehadiran: 8x" },
         { name: "JC 1", points: 50, history: "Detail JC 1:\n- Kehadiran: 4x" },
@@ -170,11 +172,12 @@
         { name: "Yohanes", points: 25, history: "Detail Yohanes:\n- Pelayanan: 1x" }
     ];
 
+    // --- 2. LOGIC SYNC DATABASE ---
     function syncLeaderboard() {
         db.ref('leaderboard').on('value', (snapshot) => {
             const data = snapshot.val();
-            // Jika database kosong, pakai data dummy agar board tidak kosong
-            const users = data ? Object.values(data).sort((a, b) => b.points - a.points) : placeholderData;
+            // Jika data ada di firebase, gunakan itu. Jika tidak, gunakan dummy.
+            const users = data ? Object.values(data).sort((a, b) => b.points - a.points) : dummyData;
             renderUI(users);
         });
     }
@@ -183,6 +186,7 @@
         const podiumContainer = document.getElementById('podium-ui');
         const listContainer = document.getElementById('list-ui');
         
+        // Data Top 3
         const p1 = users[0] || {name: '-', points: 0, history: ''};
         const p2 = users[1] || {name: '-', points: 0, history: ''};
         const p3 = users[2] || {name: '-', points: 0, history: ''};
@@ -208,6 +212,7 @@
             </div>
         `;
 
+        // Data Ranking 4 ke bawah
         listContainer.innerHTML = '';
         users.slice(3).forEach((user, index) => {
             listContainer.innerHTML += `
@@ -220,6 +225,7 @@
         });
     }
 
+    // --- 3. UI EFFECTS & MODAL ---
     const modal = document.getElementById('customModal');
     const mTitle = document.getElementById('modalTitle');
     const mBody = document.getElementById('modalBody');
@@ -230,7 +236,7 @@
             mBody.innerText = "• Alkitab: 5 Pts\n• Kehadiran: 10 Pts\n• Latihan Bidang: 15 Pts\n• Pelayanan: 25 Pts\n\nSyarat: Poin Pelayanan hanya masuk jika Anda mengikuti latihan.";
         } else {
             mTitle.innerHTML = `<i class="fa-solid fa-user"></i> Riwayat ${name}`;
-            mBody.innerText = history || `Belum ada riwayat tervalidasi.`;
+            mBody.innerText = history || `Detail Poin ${name}:\nBelum ada riwayat tervalidasi.`;
         }
         modal.style.display = 'flex';
     }
@@ -242,11 +248,9 @@
     for (let i = 0; i < 20; i++) {
         const star = document.createElement('i');
         star.className = 'fa-solid fa-star';
-        star.style.position = 'absolute';
-        star.style.color = '#FFD700';
+        star.style.position = 'absolute'; star.style.color = '#FFD700';
         star.style.fontSize = Math.random() * 6 + 4 + 'px';
-        star.style.left = Math.random() * 100 + '%';
-        star.style.top = Math.random() * 100 + '%';
+        star.style.left = Math.random() * 100 + '%'; star.style.top = Math.random() * 100 + '%';
         star.style.opacity = Math.random();
         star.style.animation = `twinkle ${Math.random() * 2 + 1}s infinite ease-in-out`;
         starLayer.appendChild(star);
@@ -260,6 +264,7 @@
         if (Date.now() < end) requestAnimationFrame(frame);
     }());
 
+    // Jalankan sinkronisasi
     syncLeaderboard();
 </script>
 </body>
