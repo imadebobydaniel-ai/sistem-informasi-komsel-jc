@@ -13,14 +13,14 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <style>
+        /* Awalnya disembunyikan untuk verifikasi login */
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f9; padding: 20px; display: none; }
         .dashboard-container { max-width: 1200px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         
-        /* Grid Kartu Statistik */
         .header-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-bottom: 30px; }
         .stat-card { padding: 12px; border-radius: 10px; color: white; text-align: center; }
         
-        /* Kategori Warna Sesuai Gambar Keterangan */
+        /* Warna Status */
         .bg-sangat-kurang { background: #ff0000 !important; }
         .bg-kurang { background: #ed7d31 !important; }
         .bg-cukup { background: #548235 !important; }
@@ -28,7 +28,6 @@
 
         .chart-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
         
-        /* Tabel Style Excel */
         .excel-table-container { overflow-x: auto; margin-top: 20px; border-top: 3px solid #000; }
         .excel-table { width: 100%; border-collapse: collapse; font-size: 10px; color: #000; margin-top: 10px; }
         .excel-table th, .excel-table td { border: 1px solid #000; padding: 5px; text-align: center; }
@@ -36,16 +35,21 @@
         .col-komsel { background-color: #f4cccc; font-weight: bold; }
         
         .btn-logout { background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight: bold; }
+        
+        #error-msg { display: none; color: red; text-align: center; margin-top: 50px; font-weight: bold; }
+
         @media (max-width: 768px) { .chart-section { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
-<div class="dashboard-container">
+<div id="error-msg">Gagal memuat data. Pastikan Konfigurasi Firebase sudah benar.</div>
+
+<div class="dashboard-container" id="main-content">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
         <div>
             <h2 style="margin:0; color: #2c3e50;">REKAPITULASI CAPAIAN PRIBADI</h2>
-            <p id="user-info" style="color:#666; font-size: 13px; margin: 5px 0 0 0;">Memuat data...</p>
+            <p id="user-info" style="color:#666; font-size: 13px; margin: 5px 0 0 0;">Memeriksa Sesi...</p>
         </div>
         <button onclick="logout()" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
     </div>
@@ -64,7 +68,7 @@
     </div>
 
     <div class="excel-table-container">
-        <h3 style="font-size:14px; margin: 15px 0 10px 0;">TABEL RINCI (FORMAT REKAPITULASI DATABASE)</h3>
+        <h3 style="font-size:14px; margin: 15px 0 10px 0;">TABEL RINCI (FORMAT DATABASE)</h3>
         <table class="excel-table">
             <thead>
                 <tr>
@@ -75,38 +79,45 @@
                     <th rowspan="2">KETERANGAN</th>
                 </tr>
                 <tr>
-                    <th>ALKITAB</th>
-                    <th>RAYA</th>
-                    <th>KOMSEL</th>
-                    <th>GABUNGAN</th>
-                    <th>PEMIMPIN</th>
-                    <th>KD</th>
-                    <th>LATIHAN</th>
-                    <th>PELAYANAN</th>
-                    <th>DOA</th>
+                    <th>ALKITAB</th><th>RAYA</th><th>KOMSEL</th><th>GABUNGAN</th>
+                    <th>PEMIMPIN</th><th>KD</th><th>LATIHAN</th><th>PELAYANAN</th><th>DOA</th>
                 </tr>
             </thead>
-            <tbody id="excel-table-body">
-                </tbody>
+            <tbody id="excel-table-body"></tbody>
         </table>
     </div>
 </div>
 
 <script>
-    // --- KONFIGURASI FIREBASE ---
+    // --- PENTING: ISI CONFIG DI BAWAH INI DARI DASHBOARD FIREBASE ANDA ---
     const firebaseConfig = {
-        // Tempelkan Config Anda di sini (apiKey, authDomain, dll)
+        apiKey: "AIzaSy...", 
+        authDomain: "project-anda.firebaseapp.com",
+        databaseURL: "https://project-anda-default-rtdb.firebaseio.com",
+        projectId: "project-anda",
+        storageBucket: "project-anda.appspot.com",
+        messagingSenderId: "123456789",
+        appId: "1:123456789:web:abcdef"
     };
-    firebase.initializeApp(firebaseConfig);
+
+    // Inisialisasi Firebase
+    try {
+        firebase.initializeApp(firebaseConfig);
+    } catch (e) {
+        document.getElementById('error-msg').style.display = "block";
+        document.getElementById('error-msg').innerText = "Konfigurasi Firebase Salah!";
+    }
+
     const auth = firebase.auth();
     const db = firebase.database();
 
-    // Verifikasi Login
+    // Verifikasi Login & Tampilkan Halaman
     auth.onAuthStateChanged(user => {
         if (user) {
             document.body.style.display = "block";
             loadUserReportData(user.uid, user.email);
         } else {
+            // Jika belum login, lempar ke halaman login
             window.location.href = "login.html";
         }
     });
@@ -124,9 +135,11 @@
             if (data) {
                 renderHalaman(data, email);
             } else {
-                document.getElementById('user-info').innerText = "Data rapor belum tersedia. Hubungi Admin.";
-                document.body.style.display = "block";
+                document.getElementById('user-info').innerText = "Data rapor tidak ditemukan di database.";
             }
+        }, error => {
+            console.error(error);
+            document.getElementById('user-info').innerText = "Error: Tidak ada izin akses database.";
         });
     }
 
@@ -136,7 +149,6 @@
         const cardsCont = document.getElementById('cards-container');
         const excelTable = document.getElementById('excel-table-body');
         
-        // Pemetaan data dari Firebase (9 Laporan)
         const d = {
             alkitab: data["LAPORAN ALKITAB"] || 0,
             raya: data["LAPORAN IBADAH RAYA"] || 0,
@@ -149,20 +161,21 @@
             doa: data["LAPORAN DOA"] || 0
         };
 
-        // 1. Update Kartu Highlight (Semua 9 Masuk)
+        // 1. Render Kartu Skor
         cardsCont.innerHTML = "";
         Object.keys(d).forEach(key => {
-            let label = key.toUpperCase();
+            let label = key.replace(/_/g, " ").toUpperCase();
             let val = d[key];
+            let kat = getKategori(val);
             cardsCont.innerHTML += `
-                <div class="stat-card ${getKategori(val).class}">
+                <div class="stat-card ${kat.class}">
                     <div style="font-size:9px; font-weight:bold;">${label}</div>
                     <div style="font-size:18px; font-weight:bold;">${val}%</div>
-                    <div style="font-size:8px;">${getKategori(val).label}</div>
+                    <div style="font-size:8px;">${kat.label}</div>
                 </div>`;
         });
 
-        // 2. Update Tabel Rinci
+        // 2. Render Tabel Rinci
         excelTable.innerHTML = `
             <tr>
                 <td>1</td>
@@ -185,7 +198,7 @@
     }
 
     function updateCharts(d) {
-        // Pie Chart: 4 Pilar Utama
+        // Pie Chart
         const ctxPie = document.getElementById('pieChart').getContext('2d');
         if (window.myPie) window.myPie.destroy();
         window.myPie = new Chart(ctxPie, {
@@ -199,7 +212,7 @@
             }
         });
 
-        // Bar Chart: Semua Capaian
+        // Bar Chart
         const ctxBar = document.getElementById('barChart').getContext('2d');
         if (window.myBar) window.myBar.destroy();
         window.myBar = new Chart(ctxBar, {
