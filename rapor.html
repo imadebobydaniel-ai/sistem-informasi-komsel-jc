@@ -4,15 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rapor Anda - Lengkap</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f9; padding: 20px; display: none; } /* Sembunyikan body sampai auth dicek */
+        /* Awalnya disembunyikan untuk keamanan */
+        body { 
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            background: #f4f7f9; 
+            padding: 20px; 
+            display: none; 
+        } 
+        
         .dashboard-container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         .excel-table-container { overflow-x: auto; margin-bottom: 40px; border-top: 3px solid #000; padding-top: 20px; }
         .excel-table { width: 100%; border-collapse: collapse; font-size: 11px; color: #000; }
@@ -23,49 +31,42 @@
         .separator { background-color: #000; color: #000; height: 12px !important; }
         .header-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
         .stat-card { padding: 15px; border-radius: 12px; color: white; text-align: center; }
-        .chart-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
+        .chart-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+        
+        /* Warna Status */
         .bg-sangat-kurang { background: #ff0000 !important; color: white; }
         .bg-kurang { background: #ed7d31 !important; color: white; }
         .bg-cukup { background: #548235 !important; color: white; }
         .bg-sangat-baik { background: #00FF00 !important; color: black !important; }
+
         @media (max-width: 768px) { .chart-section { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
 <div class="dashboard-container">
-    <h2 style="text-align:center; margin-bottom:0;">RAPOR ANDA</h2>
-    <p id="user-info" style="text-align:center; color:#666; margin-top:5px; margin-bottom: 30px;">Memuat Data...</p>
+    <h2 style="text-align:center; margin-bottom:0;">RAPOR PRIBADI</h2>
+    <p id="user-info" style="text-align:center; color:#666; margin-top:5px; margin-bottom: 30px;">Memverifikasi Akun...</p>
 
     <div class="excel-table-container">
-        <h3 style="text-align:left; font-size:16px; margin-bottom:10px;">TABEL RINCIAN</h3>
         <table class="excel-table">
             <thead>
                 <tr>
                     <th rowspan="2">NO</th>
                     <th rowspan="2">KOMSEL</th>
                     <th rowspan="2">NAMA</th>
-                    <th colspan="4">CAPAIAN (%)</th>
-                    <th rowspan="2">KETERANGAN</th>
+                    <th colspan="9">REKAPITULASI LAPORAN (%)</th>
                 </tr>
                 <tr>
-                     <th>LAPORAN ALKITAB</th>
-
-                    <th>LAPORAN IBADAH RAYA</th>
-
-                    <th>LAPORAN KOMSEL</th>
-
-                    <th>LAPORAN KOMSEL GABUNGAN</th>
-
-                    <th>LAPORAN PERTEMUAN PEMIMPIN</th>
-
-                    <th>LAPORAN KEGIATAN KD</th>
-
-                    <th>LAPORAN LATIHAN</th>
-
-                    <th>LAPORAN PELAYANAN</th>
-
-                    <th>LAPORAN DOA</th>
+                    <th>ALKITAB</th>
+                    <th>IBADAH RAYA</th>
+                    <th>KOMSEL</th>
+                    <th>GABUNGAN</th>
+                    <th>PEMIMPIN</th>
+                    <th>KD</th>
+                    <th>LATIHAN</th>
+                    <th>PELAYANAN</th>
+                    <th>DOA</th>
                 </tr>
             </thead>
             <tbody id="excel-table-body"></tbody>
@@ -75,104 +76,141 @@
     <div class="header-stats" id="cards-container"></div>
 
     <div class="chart-section">
-        <canvas id="pieChart"></canvas>
-        <canvas id="barChart"></canvas>
+        <div style="max-height: 300px;"><canvas id="pieChart"></canvas></div>
+        <div style="max-height: 300px;"><canvas id="barChart"></canvas></div>
     </div>
 </div>
 
 <script>
-    // 1. KONFIGURASI FIREBASE (Ganti dengan config Anda)
+    // 1. Masukkan Config Firebase Anda di sini
     const firebaseConfig = {
-        apiKey: "AIza...",
-        authDomain: "project-id.firebaseapp.com",
-        databaseURL: "https://project-id.firebaseio.com",
-        projectId: "project-id",
-        storageBucket: "project-id.appspot.com",
-        messagingSenderId: "...",
-        appId: "..."
+        apiKey: "ISI_API_KEY_ANDA",
+        authDomain: "PROJECT_ID.firebaseapp.com",
+        databaseURL: "https://PROJECT_ID.firebaseio.com",
+        projectId: "PROJECT_ID",
+        storageBucket: "PROJECT_ID.appspot.com",
+        messagingSenderId: "SENDER_ID",
+        appId: "APP_ID"
     };
+
+    // Inisialisasi
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
 
-    // 2. PROTEKSI HALAMAN & PENGAMBILAN DATA
+    // 2. Cek Status Login
     auth.onAuthStateChanged(user => {
         if (user) {
-            // User login, tampilkan halaman dan ambil data miliknya
+            // Jika login berhasil, munculkan body
             document.body.style.display = "block";
-            document.getElementById('user-info').innerText = `Pemilik Rapor: ${user.email} | Periode: Maret 2026`;
-            
-            // PENTING: Ambil data spesifik berdasarkan UID user agar tidak crossing
-            loadUserReportData(user.uid);
+            loadUserReportData(user.uid, user.email);
         } else {
-            // Jika tidak login, tendang ke halaman login
-            window.location.href = "login.html";
+            // Jika tidak login, lempar ke index atau login
+            window.location.href = "login.html"; 
         }
     });
 
     function getKategori(val) {
-        if (val === "" || val === null || isNaN(val)) return { label: '-', class: '' };
-        if (val < 50) return { label: 'SANGAT KURANG', class: 'bg-sangat-kurang' };
-        if (val < 80) return { label: 'KURANG', class: 'bg-kurang' };
-        if (val < 95) return { label: 'CUKUP', class: 'bg-cukup' };
+        let v = parseInt(val) || 0;
+        if (v < 50) return { label: 'SANGAT KURANG', class: 'bg-sangat-kurang' };
+        if (v < 80) return { label: 'KURANG', class: 'bg-kurang' };
+        if (v < 95) return { label: 'CUKUP', class: 'bg-cukup' };
         return { label: 'SANGAT BAIK', class: 'bg-sangat-baik' };
     }
 
-    function loadUserReportData(uid) {
-        // Path database disesuaikan agar hanya membaca node milik UID login
+    function loadUserReportData(uid, email) {
+        // Mengambil data spesifik UID login saja
         db.ref('statistik_rapor/' + uid).on('value', snapshot => {
             const data = snapshot.val();
             if(data) {
-                renderUI(data);
+                renderUI(data, email);
             } else {
-                alert("Data rapor Anda belum tersedia.");
+                document.getElementById('user-info').innerText = "Data Anda belum diinput oleh Admin.";
+                document.body.style.display = "block";
             }
         });
     }
 
-    function renderUI(data) {
-        const cardsCont = document.getElementById('cards-container');
-        const excelTable = document.getElementById('excel-table-body');
+    function renderUI(data, email) {
+        document.getElementById('user-info').innerText = `Pemilik: ${data.nama || email} | Periode: Maret 2026`;
         
-        // Bersihkan kontainer sebelum render
-        cardsCont.innerHTML = "";
-        excelTable.innerHTML = "";
+        const excelTable = document.getElementById('excel-table-body');
+        const cardsCont = document.getElementById('cards-container');
+        
+        // Data Mapping (Pastikan key di Firebase Anda sama dengan ini)
+        const d = {
+            alkitab: data.alkitab || 0,
+            ibadah: data.ibadah || 0,
+            komsel: data.komsel || 0,
+            gabungan: data.gabungan || 0,
+            pemimpin: data.pemimpin || 0,
+            kd: data.kd || 0,
+            latihan: data.latihan || 0,
+            pelayanan: data.pelayanan || 0,
+            doa: data.doa || 0
+        };
 
-        // Contoh mapping data dari Firebase ke Tabel (Sesuaikan key database Anda)
-        // Misal data dari Firebase: { nama: "User", komsel: "Agape", ft: 90, doa: 80 ... }
-        const cFT = getKategori(data.ft);
-        const cDoa = getKategori(data.doa);
-        const cKS = getKategori(data.ks);
-        const cIR = getKategori(data.ir);
-
+        // Update Tabel
         excelTable.innerHTML = `
             <tr>
                 <td>1</td>
-                <td class="col-komsel">${data.komsel || '-'}</td>
+                <td class="col-komsel">${data.grup_komsel || '-'}</td>
                 <td class="col-nama">${data.nama || 'User'}</td>
-                <td class="${cFT.class}">${data.ft || 0}%</td>
-                <td class="${cDoa.class}">${data.doa || 0}%</td>
-                <td class="${cKS.class}">${data.ks || 0}%</td>
-                <td class="${cIR.class}">${data.ir || 0}%</td>
-                <td>Pribadi</td>
+                <td class="${getKategori(d.alkitab).class}">${d.alkitab}%</td>
+                <td class="${getKategori(d.ibadah).class}">${d.ibadah}%</td>
+                <td class="${getKategori(d.komsel).class}">${d.komsel}%</td>
+                <td class="${getKategori(d.gabungan).class}">${d.gabungan}%</td>
+                <td class="${getKategori(d.pemimpin).class}">${d.pemimpin}%</td>
+                <td class="${getKategori(d.kd).class}">${d.kd}%</td>
+                <td class="${getKategori(d.latihan).class}">${d.latihan}%</td>
+                <td class="${getKategori(d.pelayanan).class}">${d.pelayanan}%</td>
+                <td class="${getKategori(d.doa).class}">${d.doa}%</td>
             </tr>
-            <tr class="separator"><td colspan="8"></td></tr>
         `;
 
-        // Render Kartu Statistik
-        const stats = { "Alkitab": data.ft, "Doa": data.doa, "Komsel": data.ks, "Ibadah": data.ir };
-        Object.keys(stats).forEach(key => {
-            const val = stats[key] || 0;
-            const kat = getKategori(val);
+        // Update Kartu (Hanya ambil 4 utama saja agar tidak penuh)
+        const mainStats = {"Alkitab": d.alkitab, "Doa": d.doa, "Ibadah": d.ibadah, "Komsel": d.komsel};
+        cardsCont.innerHTML = "";
+        Object.keys(mainStats).forEach(key => {
+            let val = mainStats[key];
             cardsCont.innerHTML += `
-                <div class="stat-card ${kat.class}">
-                    <div style="font-size:11px; opacity:0.9;">${key}</div>
-                    <div style="font-size:22px; font-weight:bold;">${val}%</div>
+                <div class="stat-card ${getKategori(val).class}">
+                    <div style="font-size:11px;">${key}</div>
+                    <div style="font-size:20px; font-weight:bold;">${val}%</div>
                 </div>`;
         });
 
-        // --- RENDER CHARTS --- (Script Chart.js Anda tetap sama)
-        // ... (Logika Chart.js menggunakan data dari Firebase)
+        // Update Charts
+        renderCharts(d);
+    }
+
+    function renderCharts(d) {
+        const ctxPie = document.getElementById('pieChart').getContext('2d');
+        const ctxBar = document.getElementById('barChart').getContext('2d');
+
+        new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: ['Alkitab', 'Doa', 'Ibadah', 'Komsel'],
+                datasets: [{
+                    data: [d.alkitab, d.doa, d.ibadah, d.komsel],
+                    backgroundColor: ['#2ecc71','#e74c3c','#f1c40f','#3498db']
+                }]
+            }
+        });
+
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: ['KD', 'Latihan', 'Pelayanan', 'Gabungan'],
+                datasets: [{
+                    label: '% Capaian',
+                    data: [d.kd, d.latihan, d.pelayanan, d.gabungan],
+                    backgroundColor: '#548235'
+                }]
+            },
+            options: { scales: { y: { beginAtZero: true, max: 100 } } }
+        });
     }
 </script>
 </body>
