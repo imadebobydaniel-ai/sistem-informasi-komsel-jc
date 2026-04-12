@@ -3,153 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan & Rapor - Pondok Pemulihan Papua</title>
+    <title>Rapor-Anda</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f4f8; margin: 0; padding: 20px; box-sizing: border-box; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 1000px; margin: auto; text-align: center; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f9; padding: 20px; }
+        .dashboard-container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         
-        /* Gaya Tabel Rapor Anda */
-        .rapor-section { margin-top: 40px; border-top: 3px solid #003366; padding-top: 20px; overflow-x: auto; }
-        .rapor-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 11px; min-width: 900px; }
-        .rapor-table th, .rapor-table td { border: 1px solid #000; padding: 8px; text-align: center; }
-        .rapor-table th { background-color: #f2f2f2; text-transform: uppercase; font-weight: bold; }
+        .header-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .stat-card { padding: 20px; border-radius: 15px; color: white; text-align: center; }
         
-        /* Indikator Warna Excel */
-        .excel-green { background-color: #00FF00; color: #000; font-weight: bold; }
-        .excel-darkgreen { background-color: #548235; color: #fff; font-weight: bold; }
-        .excel-orange { background-color: #ed7d31; color: #000; font-weight: bold; }
-        .excel-red { background-color: #ff0000; color: #fff; font-weight: bold; }
+        /* Pewarnaan Berdasarkan Bobot */
+        .bg-sangat-kurang { background: #ff0000; } /* < 50% */
+        .bg-kurang { background: #ed7d31; }        /* 50-79% */
+        .bg-cukup { background: #548235; }         /* 80-94% */
+        .bg-sangat-baik { background: #00FF00; color: black !important; } /* 95-100% */
 
-        /* Form Style */
-        .icon-header { font-size: 40px; color: #00a884; }
-        .menu-selector { text-align: left; max-width: 400px; margin: 0 auto 20px auto; }
-        label { font-size: 11px; font-weight: bold; display: block; margin-top: 10px; text-transform: uppercase; }
-        select, input, textarea { width: 100%; padding: 10px; border-radius: 10px; border: 2px solid #e0e0e0; background: #f9f9f9; box-sizing: border-box; }
-        .btn { padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; color: white; margin: 5px; width: 45%; }
-        .btn-hadir { background: #00c853; }
-        .btn-absen { background: #d81b60; }
-        
-        #lock-display { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .chart-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
+        @media (max-width: 768px) { .chart-section { grid-template-columns: 1fr; } }
+
+        .table-container { overflow-x: auto; margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+        th { background: #f8f9fa; }
     </style>
 </head>
 <body>
 
-<div id="lock-display">
-    <i id="lock-icon" style="font-size: 60px;"></i>
-    <h1 id="lock-title"></h1>
-    <p id="lock-msg"></p>
-    <button onclick="closeLockDisplay()">OKE</button>
-</div>
+<div class="dashboard-container">
+    <h2 style="text-align:center;">REKAPITULASI CAPAIAN PRIBADI</h2>
+    <p style="text-align:center; color:#666;">Periode: Maret 2026</p>
 
-<div class="card">
-    <div class="icon-header"><i class="fa-solid fa-location-dot"></i></div>
-    <h2>LAPORAN KEHADIRAN</h2>
-    <p style="color: #777; font-size: 13px;">Silakan isi absen kegiatan Anda hari ini.</p>
+    <div class="header-stats" id="cards-container">
+        </div>
 
-    <div class="menu-selector">
-        <label>Pilih Jenis Kegiatan:</label>
-        <select id="jenis-kegiatan">
-            <option value="Raya">Ibadah Raya</option>
-            <option value="Komsel">Komsel Reguler</option>
-            <option value="KomGab">Komsel Gabungan</option>
-            <option value="Doa">Absen Doa</option>
-            <option value="KD">Absen KD</option>
-            <option value="Pemimpin">Pertemuan Pemimpin</option>
-            <option value="Latihan">Semua Jenis Latihan</option>
-            <option value="Pelayanan">Semua Jenis Pelayanan</option>
-            <option value="Extension">Kegiatan Extension</option>
-        </select>
-        <button class="btn btn-hadir" onclick="handleProses('HADIR')" style="width:100%; margin-top:15px;">KIRIM KEHADIRAN</button>
+    <div class="chart-section">
+        <div>
+            <h3 style="font-size:16px; text-align:center;">Proporsi Keaktifan (Pie Chart)</h3>
+            <canvas id="pieChart"></canvas>
+        </div>
+        <div>
+            <h3 style="font-size:16px; text-align:center;">Perbandingan Capaian (Bar Chart)</h3>
+            <canvas id="barChart"></canvas>
+        </div>
     </div>
 
-    <div class="rapor-section">
-        <h2 style="font-size: 18px;">RAPOR ANDA</h2>
-        <p id="current-month" style="font-weight:bold; margin-bottom:10px;">MARET 2026</p>
-        
-        <table class="rapor-table">
+    <div class="table-container">
+        <h3 style="font-size:16px;">Tabel Rapor Rinci</h3>
+        <table id="data-table">
             <thead>
                 <tr>
-                    <th rowspan="2">KOMSEL</th>
-                    <th rowspan="2">NAMA</th>
-                    <th colspan="10">JENIS KEGIATAN (%)</th>
-                    <th rowspan="2">KETERANGAN</th>
-                </tr>
-                <tr>
-                    <th>FT</th>
-                    <th>DOA</th>
-                    <th>KOMSEL</th>
-                    <th>RAYA</th>
-                    <th>KOM. GAB</th>
-                    <th>KD</th>
-                    <th>LATIHAN</th>
-                    <th>PELAYANAN</th>
-                    <th>PEMIMPIN</th>
-                    <th>EXTENSION</th>
+                    <th>KEGIATAN</th>
+                    <th>CAPAIAN (%)</th>
+                    <th>STATUS</th>
                 </tr>
             </thead>
-            <tbody id="rapor-content">
-                <tr><td colspan="13">Menghubungkan ke database statistik...</td></tr>
-            </tbody>
+            <tbody id="table-body">
+                </tbody>
         </table>
     </div>
-
-    <a href="menu.html" style="display:block; margin-top:25px; color:#003366; text-decoration:none; font-weight:bold;">KEMBALI KE MENU</a>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
 <script>
-    // Konfigurasi Firebase Anda
-    const firebaseConfig = { 
-        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
-        authDomain: "boby-apps-project.firebaseapp.com", 
-        projectId: "boby-apps-project",
-        databaseURL: "https://boby-apps-project-default-rtdb.firebaseio.com"
+    // Data Simulasi (Nantinya ditarik dari Firebase statistik_rapor)
+    const dataRapor = {
+        "Pembacaan FT": 97,
+        "Kehadiran Doa": 40,
+        "Kehadiran Komsel": 75,
+        "Ibadah Raya": 100,
+        "Komsel Gabungan": 85,
+        "Kegiatan KD": 60,
+        "Latihan": 30,
+        "Pelayanan": 95
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
 
-    // Logika Mendapatkan Data Rapor User
-    firebase.auth().onAuthStateChanged(user => {
-        if (user) {
-            loadRapor(user.uid);
-        }
-    });
-
-    function getWarna(val) {
-        if (val >= 95) return 'excel-green';
-        if (val >= 80) return 'excel-darkgreen';
-        if (val >= 50) return 'excel-orange';
-        return 'excel-red';
+    function getKategori(val) {
+        if (val < 50) return { label: 'SANGAT KURANG', class: 'bg-sangat-kurang' };
+        if (val < 80) return { label: 'KURANG', class: 'bg-kurang' };
+        if (val < 95) return { label: 'CUKUP', class: 'bg-cukup' };
+        return { label: 'SANGAT BAIK', class: 'bg-sangat-baik' };
     }
 
-    function loadRapor(uid) {
-        db.ref('rapor/' + uid).on('value', snapshot => {
-            const r = snapshot.val() || {};
-            const html = `
+    function renderUI() {
+        const cardsCont = document.getElementById('cards-container');
+        const tableBody = document.getElementById('table-body');
+        const labels = Object.keys(dataRapor);
+        const values = Object.values(dataRapor);
+
+        labels.forEach(key => {
+            const val = dataRapor[key];
+            const kat = getKategori(val);
+
+            // Render Kartu
+            cardsCont.innerHTML += `
+                <div class="stat-card ${kat.class}">
+                    <div style="font-size:12px; opacity:0.8;">${key}</div>
+                    <div style="font-size:24px; font-weight:bold;">${val}%</div>
+                    <div style="font-size:10px; margin-top:5px; font-weight:bold;">${kat.label}</div>
+                </div>
+            `;
+
+            // Render Tabel
+            tableBody.innerHTML += `
                 <tr>
-                    <td>AGAPE 1</td> <td style="text-align:left;">User Name</td>
-                    <td class="${getWarna(r.ft)}">${r.ft || 0}%</td>
-                    <td class="${getWarna(r.doa)}">${r.doa || 0}%</td>
-                    <td class="${getWarna(r.komsel)}">${r.komsel || 0}%</td>
-                    <td class="${getWarna(r.raya)}">${r.raya || 0}%</td>
-                    <td class="${getWarna(r.komgab)}">${r.komgab || 0}%</td>
-                    <td class="${getWarna(r.kd)}">${r.kd || 0}%</td>
-                    <td class="${getWarna(r.latihan)}">${r.latihan || 0}%</td>
-                    <td class="${getWarna(r.pelayanan)}">${r.pelayanan || 0}%</td>
-                    <td class="${getWarna(r.pemimpin)}">${r.pemimpin || 0}%</td>
-                    <td class="${getWarna(r.extension)}">${r.extension || 0}%</td>
-                    <td class="${getWarna(90)}">BAIK</td>
+                    <td>${key}</td>
+                    <td style="font-weight:bold;">${val}%</td>
+                    <td class="${kat.class}" style="color:${val >= 95 ? 'black' : 'white'}">${kat.label}</td>
                 </tr>
             `;
-            document.getElementById('rapor-content').innerHTML = html;
+        });
+
+        // Diagram Lingkaran (Pie Chart)
+        new Chart(document.getElementById('pieChart'), {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: ['#2ecc71', '#e74c3c', '#f1c40f', '#3498db', '#9b59b6', '#e67e22', '#1abc9c', '#34495e']
+                }]
+            }
+        });
+
+        // Diagram Batang (Bar Chart)
+        new Chart(document.getElementById('barChart'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Persentase Capaian (%)',
+                    data: values,
+                    backgroundColor: values.map(v => v < 50 ? '#ff0000' : '#548235')
+                }]
+            },
+            options: { scales: { y: { beginAtZero: true, max: 100 } } }
         });
     }
-    
-    // Fungsi HandleProses (Sesuai kode asli Anda) tetap bekerja di sini
+
+    window.onload = renderUI;
 </script>
 </body>
 </html>
