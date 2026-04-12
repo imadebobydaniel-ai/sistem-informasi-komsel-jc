@@ -13,7 +13,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <style>
-        /* Awalnya disembunyikan untuk keamanan */
+        /* Awalnya disembunyikan untuk keamanan proses verifikasi login */
         body { 
             font-family: 'Segoe UI', Tahoma, sans-serif; 
             background: #f4f7f9; 
@@ -28,12 +28,11 @@
         .excel-table th { background: #f2f2f2; text-transform: uppercase; }
         .col-nama { text-align: left; padding-left: 10px; font-weight: bold; }
         .col-komsel { background-color: #f4cccc; font-weight: bold; width: 80px; }
-        .separator { background-color: #000; color: #000; height: 12px !important; }
         .header-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
         .stat-card { padding: 15px; border-radius: 12px; color: white; text-align: center; }
         .chart-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
         
-        /* Warna Status */
+        /* Warna Kategori */
         .bg-sangat-kurang { background: #ff0000 !important; color: white; }
         .bg-kurang { background: #ed7d31 !important; color: white; }
         .bg-cukup { background: #548235 !important; color: white; }
@@ -45,7 +44,10 @@
 <body>
 
 <div class="dashboard-container">
-    <h2 style="text-align:center; margin-bottom:0;">RAPOR PRIBADI</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin:0;">RAPOR PRIBADI</h2>
+        <button onclick="logout()" style="cursor:pointer; background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:5px;">Logout</button>
+    </div>
     <p id="user-info" style="text-align:center; color:#666; margin-top:5px; margin-bottom: 30px;">Memverifikasi Akun...</p>
 
     <div class="excel-table-container">
@@ -58,16 +60,15 @@
                     <th colspan="9">REKAPITULASI LAPORAN (%)</th>
                 </tr>
                 <tr>
-                    <th>LAPORAN ALKITAB</th>
-                    <th>LAPORAN IBADAH RAYA</th>
-                    <th>LAPORAN KOMSEL</th>
-                    <th>LAPORAN KOMSEL GABUNGAN</th>
-                    <th>LAPORAN PERTEMUAN PEMIMPIN</th>
-                    <th>LAPORAN KEGIATAN KD</th>
-                    <th>LAPORAN LATIHAN</th>
-                    <th>LAPORAN PELAYANAN</th>
-                    <th>LAPORAN DOA</th>
-
+                    <th>ALKITAB</th>
+                    <th>IBADAH RAYA</th>
+                    <th>KOMSEL</th>
+                    <th>GABUNGAN</th>
+                    <th>PEMIMPIN</th>
+                    <th>KD</th>
+                    <th>LATIHAN</th>
+                    <th>PELAYANAN</th>
+                    <th>DOA</th>
                 </tr>
             </thead>
             <tbody id="excel-table-body"></tbody>
@@ -83,7 +84,7 @@
 </div>
 
 <script>
-    // 1. Masukkan Config Firebase Anda di sini
+    // 1. Masukkan Config Firebase Anda
     const firebaseConfig = {
         apiKey: "ISI_API_KEY_ANDA",
         authDomain: "PROJECT_ID.firebaseapp.com",
@@ -94,22 +95,26 @@
         appId: "APP_ID"
     };
 
-    // Inisialisasi
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
 
-    // 2. Cek Status Login
+    // 2. Cek Status Login (Security Gate)
     auth.onAuthStateChanged(user => {
         if (user) {
-            // Jika login berhasil, munculkan body
+            // User ada, buka halaman dan ambil data miliknya saja
             document.body.style.display = "block";
             loadUserReportData(user.uid, user.email);
         } else {
-            // Jika tidak login, lempar ke index atau login
-            window.location.href = "rapor.html"; 
+            // User tidak login. Jika login.html dihapus, arahkan ke index.html
+            // Ganti "index.html" dengan halaman utama Anda.
+            window.location.href = "index.html"; 
         }
     });
+
+    function logout() {
+        auth.signOut().then(() => { window.location.href = "index.html"; });
+    }
 
     function getKategori(val) {
         let v = parseInt(val) || 0;
@@ -120,14 +125,13 @@
     }
 
     function loadUserReportData(uid, email) {
-        // Mengambil data spesifik UID login saja
+        // HANYA mengambil data yang berada di bawah node UID user tersebut
         db.ref('statistik_rapor/' + uid).on('value', snapshot => {
             const data = snapshot.val();
             if(data) {
                 renderUI(data, email);
             } else {
-                document.getElementById('user-info').innerText = "Data Anda belum diinput oleh Admin.";
-                document.body.style.display = "block";
+                document.getElementById('user-info').innerText = "Data rapor belum tersedia untuk akun ini.";
             }
         });
     }
@@ -138,7 +142,6 @@
         const excelTable = document.getElementById('excel-table-body');
         const cardsCont = document.getElementById('cards-container');
         
-        // Data Mapping (Pastikan key di Firebase Anda sama dengan ini)
         const d = {
             alkitab: data.alkitab || 0,
             ibadah: data.ibadah || 0,
@@ -151,7 +154,6 @@
             doa: data.doa || 0
         };
 
-        // Update Tabel
         excelTable.innerHTML = `
             <tr>
                 <td>1</td>
@@ -169,7 +171,6 @@
             </tr>
         `;
 
-        // Update Kartu (Hanya ambil 4 utama saja agar tidak penuh)
         const mainStats = {"Alkitab": d.alkitab, "Doa": d.doa, "Ibadah": d.ibadah, "Komsel": d.komsel};
         cardsCont.innerHTML = "";
         Object.keys(mainStats).forEach(key => {
@@ -181,15 +182,11 @@
                 </div>`;
         });
 
-        // Update Charts
         renderCharts(d);
     }
 
     function renderCharts(d) {
-        const ctxPie = document.getElementById('pieChart').getContext('2d');
-        const ctxBar = document.getElementById('barChart').getContext('2d');
-
-        new Chart(ctxPie, {
+        new Chart(document.getElementById('pieChart'), {
             type: 'doughnut',
             data: {
                 labels: ['Alkitab', 'Doa', 'Ibadah', 'Komsel'],
@@ -197,10 +194,11 @@
                     data: [d.alkitab, d.doa, d.ibadah, d.komsel],
                     backgroundColor: ['#2ecc71','#e74c3c','#f1c40f','#3498db']
                 }]
-            }
+            },
+            options: { maintainAspectRatio: false }
         });
 
-        new Chart(ctxBar, {
+        new Chart(document.getElementById('barChart'), {
             type: 'bar',
             data: {
                 labels: ['KD', 'Latihan', 'Pelayanan', 'Gabungan'],
@@ -210,7 +208,10 @@
                     backgroundColor: '#548235'
                 }]
             },
-            options: { scales: { y: { beginAtZero: true, max: 100 } } }
+            options: { 
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, max: 100 } } 
+            }
         });
     }
 </script>
