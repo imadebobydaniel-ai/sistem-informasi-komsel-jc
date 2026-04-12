@@ -3,15 +3,41 @@
 <head>
     <title>Verifikasi Berhasil</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 50px; }
-        .card { border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 20px; display: inline-block; }
+        body { font-family: sans-serif; text-align: center; padding: 50px; background: #f4f7f6; }
+        .card { background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 20px; display: inline-block; max-width: 400px; }
+        .btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #6f42c1; color: white; text-decoration: none; border-radius: 5px; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>✅ Verifikasi Berhasil!</h1>
-        <p>Email Anda telah berhasil diverifikasi. Sekarang Anda bisa masuk ke aplikasi.</p>
-        <a href="index.html">Kembali ke Login</a>
+        <h1 id="status-title">Memproses Verifikasi...</h1>
+        <p id="status-desc">Mohon tunggu sebentar sementara kami memverifikasi akun Anda.</p>
+        <a href="login.html" class="btn">Kembali ke Login</a>
     </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+            authDomain: "boby-apps-project.firebaseapp.com",
+            projectId: "boby-apps-project"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const actionCode = urlParams.get('oobCode');
+
+        if (actionCode) {
+            firebase.auth().applyActionCode(actionCode).then(() => {
+                document.getElementById('status-title').innerText = "✅ Verifikasi Berhasil!";
+                document.getElementById('status-desc').innerText = "Email Anda telah diverifikasi. Sekarang Anda bisa masuk ke aplikasi.";
+            }).catch(error => {
+                document.getElementById('status-title').innerText = "❌ Verifikasi Gagal";
+                document.getElementById('status-desc').innerText = "Link sudah kadaluwarsa atau tidak valid: " + error.message;
+            });
+        }
+    </script>
 </body>
 </html>
