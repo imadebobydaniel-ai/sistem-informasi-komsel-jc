@@ -22,7 +22,7 @@
         .bg-sangat-baik { background: #00FF00 !important; color: black !important; }
 
         /* Gaya Tabel Excel (Mengadopsi Gambar 2) */
-        .excel-table-container { overflow-x: auto; margin-top: 20px; border-top: 3px solid #000; padding-top: 20px; }
+        .excel-table-container { overflow-x: auto; margin-top: 20px; border-top: 3px solid #000; padding-top: 20px; margin-bottom: 30px; }
         .excel-table { width: 100%; border-collapse: collapse; font-size: 11px; color: #000; }
         .excel-table th, .excel-table td { border: 1px solid #000; padding: 6px; text-align: center; }
         .excel-table th { background: #f2f2f2; text-transform: uppercase; }
@@ -42,19 +42,6 @@
     <h2 style="text-align:center; margin-bottom:0;">REKAPITULASI CAPAIAN PRIBADI</h2>
     <p style="text-align:center; color:#666; margin-top:5px;">Periode: Maret 2026</p>
 
-    <div class="header-stats" id="cards-container"></div>
-
-    <div class="chart-section">
-        <div>
-            <h3 style="font-size:14px; text-align:center;">Proporsi Keaktifan</h3>
-            <canvas id="pieChart"></canvas>
-        </div>
-        <div>
-            <h3 style="font-size:14px; text-align:center;">Perbandingan Capaian (%)</h3>
-            <canvas id="barChart"></canvas>
-        </div>
-    </div>
-
     <div class="excel-table-container">
         <h3 style="text-align:left; font-size:16px; margin-bottom:10px;">TABEL RINCI (FORMAT REKAPITULASI)</h3>
         <table class="excel-table">
@@ -69,7 +56,6 @@
                     <th>LAPORAN LATIHAN</th>
                     <th>LAPORAN PELAYANAN</th>
                     <th>LAPORAN DOA</th>
-
                 </tr>
                 <tr>
                     <th>PEMBACAAN FT</th>
@@ -79,8 +65,21 @@
                 </tr>
             </thead>
             <tbody id="excel-table-body">
-                </tbody>
+            </tbody>
         </table>
+    </div>
+
+    <div class="header-stats" id="cards-container"></div>
+
+    <div class="chart-section">
+        <div>
+            <h3 style="font-size:14px; text-align:center;">Proporsi Keaktifan</h3>
+            <canvas id="pieChart"></canvas>
+        </div>
+        <div>
+            <h3 style="font-size:14px; text-align:center;">Perbandingan Capaian (%)</h3>
+            <canvas id="barChart"></canvas>
+        </div>
     </div>
 </div>
 
@@ -120,8 +119,7 @@
                 </div>`;
         });
 
-        // --- RENDER TABEL GAYA EXCEL (ADOPSI GAMBAR 2) ---
-        // Contoh baris untuk Agape 2 seperti di gambar Anda
+        // --- RENDER TABEL GAYA EXCEL ---
         const listAnggota = [
             { no: 1, komsel: "AGAPE 2", nama: "Ucik Turnaningsih", ft: 97, doa: 100, ks: 100, ir: 100 },
             { no: 2, komsel: "AGAPE 2", nama: "Merry Ambasalu", ft: 100, doa: 80, ks: 100, ir: 100 },
@@ -149,7 +147,6 @@
                 </tr>`;
         });
         
-        // Tambahkan baris pemisah hitam seperti di Excel
         tableHTML += `<tr class="separator"><td colspan="8"></td></tr>`;
         excelTable.innerHTML = tableHTML;
 
