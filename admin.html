@@ -185,10 +185,25 @@
                 const pasangan = d.nama_pasangan || '-';
                 const anak = d.jumlah_anak || '0';
 
-                // Logika File / Berkas
+                // --- LOGIKA FILE / BERKAS TERBARU ---
                 let fileHtml = "";
-                if (d.url_berkas) fileHtml += `<a href="${d.url_berkas}" target="_blank" class="file-link"><i class="fas fa-file-alt"></i></a>`;
-                if (d.url_ktp || d.urlKtp) fileHtml += `<a href="${d.url_ktp || d.urlKtp}" target="_blank" class="file-link"><i class="fas fa-id-card"></i></a>`;
+                // Cek semua kemungkinan field untuk berkas/lampiran
+                const linkBerkas = d.url_berkas || d.berkas || d.file_lampiran;
+                const linkKtp = d.url_ktp || d.urlKtp || d.ktp || d.foto_ktp;
+
+                if (linkBerkas && linkBerkas !== '-') {
+                    fileHtml += `<a href="${linkBerkas}" target="_blank" class="file-link" title="Lihat Berkas" style="margin-right:8px; color:var(--primary);"><i class="fas fa-file-alt"></i></a>`;
+                }
+
+                if (linkKtp && linkKtp !== '-') {
+                    fileHtml += `<a href="${linkKtp}" target="_blank" class="file-link" title="Lihat KTP" style="color:var(--accent);"><i class="fas fa-id-card"></i></a>`;
+                }
+
+                // Jika keduanya kosong, tampilkan teks strip
+                if (fileHtml === "") {
+                    fileHtml = '<span style="color:#ccc;">-</span>';
+                }
+                // ------------------------------------
                 
                 const statusBadge = status === 'Aktif' ? 'badge-aktif' : 'badge-pending';
                 const statusIcon = status === 'Aktif' ? 'fa-check-square' : 'fa-stop-circle';
@@ -205,7 +220,7 @@
                     <td><small>${alamat}</small></td>
                     <td><small>${lokasi}<br>K: ${komsel}</small></td>
                     <td><small>${jabatan}<br>F: ${fungsi}</small></td>
-                    <td>${fileHtml}</td>
+                    <td style="text-align:center; font-size:18px;">${fileHtml}</td>
                     <td>
                         <span class="${statusBadge}">${status}</span>
                         <button class="btn-status-toggle" style="background:${statusBtnColor}" onclick="toggleUserStatus('${doc.id}', '${status}')">
@@ -308,7 +323,8 @@
         const menu = document.getElementById('actionMenu');
         if(menu) {
             menu.style.display = count > 0 ? 'flex' : 'none';
-            document.getElementById('selectedCount').innerText = `${count} Terpilih`;
+            const selectedCountElem = document.getElementById('selectedCount');
+            if(selectedCountElem) selectedCountElem.innerText = `${count} Terpilih`;
         }
     }
 </script>
