@@ -122,7 +122,6 @@
         return { label: 'SANGAT BAIK', class: 'bg-sangat-baik' };
     }
 
-    // --- LOGIKA PENARIKAN DATA FIREBASE ---
     function fetchDataJemaat() {
         const userId = "boby_daniel"; 
         const userRef = firebase.database().ref('users/' + userId);
@@ -144,7 +143,6 @@
         const cardsCont = document.getElementById('cards-container');
         const excelTable = document.getElementById('excel-table-body');
         
-        // Render Kartu (Data Tetap Sesuai Sistem Anda)
         Object.keys(dataPribadi).forEach(key => {
             const val = dataPribadi[key];
             const kat = getKategori(val);
@@ -155,7 +153,6 @@
                 </div>`;
         });
 
-        // Render Tabel (Data Tetap Sesuai Sistem Anda)
         const listAnggota = [
             { no: 1, komsel: "AGAPE 2", nama: "Ucik Turnaningsih", ft: 97, doa: 100, ks: 100, ir: 100 },
             { no: 2, komsel: "AGAPE 2", nama: "Merry Ambasalu", ft: 100, doa: 80, ks: 100, ir: 100 },
@@ -183,10 +180,9 @@
                 </tr>`;
         });
         
-        tableHTML += `<tr class="separator"><td colspan="8"></td></tr>`;
+        tableHTML += `<tr class="separator"><td colspan="9"></td></tr>`;
         excelTable.innerHTML = tableHTML;
 
-        // Render Charts (Data Tetap Sesuai Sistem Anda)
         new Chart(document.getElementById('pieChart'), {
             type: 'pie',
             data: {
@@ -205,7 +201,6 @@
         });
     }
 
-    // Eksekusi semua fungsi saat jendela dimuat
     window.onload = function() {
         renderHalaman();
         fetchDataJemaat();
