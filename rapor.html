@@ -155,32 +155,25 @@
         });
 
         const listAnggota = [
-            { no: 1, periode: "Minggu I", komsel: "AGAPE 2", nama: "Ucik Turnaningsih", ft: 97, doa: 100, ks: 100, ir: 100 },
-            { no: 2, periode: "Minggu II", komsel: "AGAPE 2", nama: "Merry Ambasalu", ft: 100, doa: 80, ks: 100, ir: 100 },
-            { no: 3, periode: "Minggu III", komsel: "AGAPE 2", nama: "Lena Toding", ft: 94, doa: 20, ks: 75, ir: 80 },
-            { no: 8, periode: "Minggu IV", komsel: "AGAPE 2", nama: "Syane", ft: 0, doa: 0, ks: 0, ir: 20 }
+            { periode: "Minggu I" },
+            { periode: "Minggu II" },
+            { periode: "Minggu III" },
+            { periode: "Minggu IV" }
         ];
 
         let tableHTML = "";
-        listAnggota.forEach((user, index) => {
-            const cFT = getKategori(user.ft);
-            const cDoa = getKategori(user.doa);
-            const cKS = getKategori(user.ks);
-            const cIR = getKategori(user.ir);
-
+        listAnggota.forEach((user) => {
             tableHTML += `
                 <tr>
                     <td>${user.periode}</td>
-                    <td class="${cFT.class}">${user.ft}%</td>
+                    <td></td> <td></td> 
                     <td></td> 
                     <td></td> 
                     <td></td> 
                     <td></td> 
                     <td></td> 
                     <td></td> 
-                    <td></td> 
-                    <td class="${cDoa.class}">${user.doa}%</td>
-                </tr>`;
+                    <td></td> </tr>`;
         });
         
         tableHTML += `<tr class="separator"><td colspan="10"></td></tr>`;
