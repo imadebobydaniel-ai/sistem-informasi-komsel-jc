@@ -48,9 +48,18 @@
             color: var(--primary); text-decoration: none; font-weight: bold; font-size: 14px;
         }
 
+        /* Notif Block Display */
         #status-msg {
-            display: none; padding: 15px; border-radius: 10px; 
-            margin-bottom: 15px; text-align: center; font-weight: bold;
+            display: none; padding: 20px; border-radius: 12px; 
+            margin-bottom: 20px; text-align: center; 
+            font-weight: bold; line-height: 1.6;
+            border: 1px solid transparent;
+        }
+        .success-box {
+            background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7 !important;
+        }
+        .error-box {
+            background: #ffebee; color: #c62828; border-color: #ef9a9a !important;
         }
     </style>
 </head>
@@ -65,7 +74,7 @@
     <div class="container">
         <div id="status-msg"></div>
 
-        <div class="report-card">
+        <div class="report-card" id="formContainer">
             <form id="pelayananForm">
                 <div class="form-group">
                     <label><i class="fa-solid fa-hands-praying"></i> Bidang Pelayanan</label>
@@ -76,7 +85,6 @@
                             <option value="WL">Worship Leader (WL)</option>
                             <option value="Singer">Singer</option>
                             <option value="Choirs">Choirs</option>
-                           
                         </optgroup>
                         <optgroup label="Tamborin & Flag">
                             <option value="Tamborin">Tamborin</option>
@@ -88,15 +96,15 @@
                         </optgroup>
                         <optgroup label="Pelayanan Mimbar|Doa Syafaat">
                             <option value="Kotbah">Kotbah</option>
-                            <option value="MC">MC</option>
+                            <option value="MC">MC (Master Of Ceremony)</option>
                             <option value="Pelayanan Altar">Pelayanan Altar</option>
                             <option value="Doa Syafaat">Doa Syafaat</option>
-                              </optgroup>
-                        <optgroup label="Pelayanan KD ( Kingdom Disiphileship">
-                            <option value="Kotbah">Koordinator KD</option>
-                            <option value="Kotbah">Sypervisor KD</option>
-                            <option value="Kotbah">Pendamping KD</option>
-                            <option value="Kotbah">Mentor KD</option>
+                        </optgroup>
+                        <optgroup label="Pelayanan KD (Kingdom Discipleship)">
+                            <option value="Koordinator KD">Koordinator KD</option>
+                            <option value="Supervisor KD">Supervisor KD</option>
+                            <option value="Pendamping KD">Pendamping KD</option>
+                            <option value="Mentor KD">Mentor KD</option>
                         </optgroup>
                         <optgroup label="Operasional">
                             <option value="User">User / Usher</option>
@@ -151,10 +159,11 @@
             e.preventDefault();
             const btn = document.getElementById('btnKirim');
             const msg = document.getElementById('status-msg');
+            const formContainer = document.getElementById('formContainer');
             const userEmail = localStorage.getItem("userEmail");
 
             btn.disabled = true;
-            btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Mengirim...";
+            btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Memproses...";
 
             const dataLaporan = {
                 email: userEmail,
@@ -163,14 +172,14 @@
                 lokasi: document.getElementById('lokasi_kegiatan').value,
                 tanggal: document.getElementById('tanggal_kegiatan').value,
                 created_at: firebase.firestore.FieldValue.serverTimestamp(),
-                poin: 10 // Poin standar untuk Big Data/Leaderboard
+                poin: 10
             };
 
             try {
-                // 1. Simpan ke Big Data (Koleksi Laporan Pelayanan)
+                // 1. Simpan ke Firestore
                 await db.collection("laporan_pelayanan").add(dataLaporan);
 
-                // 2. Update Total Poin User di Firestore (Untuk Leaderboard)
+                // 2. Update Poin Leaderboard
                 const userRef = db.collection("users").where("email", "==", userEmail);
                 const snapshot = await userRef.get();
                 
@@ -182,19 +191,22 @@
                     });
                 }
 
+                // 3. Tampilan Sukses (Block Display)
+                formContainer.style.display = "none"; // Sembunyikan form agar notif terlihat jelas
                 msg.style.display = "block";
-                msg.style.background = "#d4edda";
-                msg.style.color = "#155724";
-                msg.innerText = "Berhasil! Laporan telah terarsip di Big Data.";
-                document.getElementById('pelayananForm').reset();
+                msg.className = "success-box";
+                msg.innerHTML = `
+                    <i class="fa-solid fa-circle-check" style="font-size: 40px; margin-bottom: 10px;"></i><br>
+                    Selamat! Laporan Anda telah dikirim.<br>
+                    Terimakasih Atas Pelayanan Anda Hari ini.<br>
+                    Tuhan Yesus Memberkati!
+                `;
 
             } catch (error) {
                 console.error(error);
                 msg.style.display = "block";
-                msg.style.background = "#f8d7da";
-                msg.style.color = "#721c24";
-                msg.innerText = "Gagal mengirim laporan. Coba lagi.";
-            } finally {
+                msg.className = "error-box";
+                msg.innerText = "Gagal mengirim laporan. Periksa koneksi internet Anda.";
                 btn.disabled = false;
                 btn.innerHTML = "<i class='fa-solid fa-paper-plane'></i> KIRIM LAPORAN";
             }
