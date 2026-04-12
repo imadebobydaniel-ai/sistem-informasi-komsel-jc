@@ -3,247 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rapor Anda - Pondok Pemulihan</title>
-    
+    <title>Rapor-Anda</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f9; padding: 20px; }
+        .dashboard-container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         
-        /* Header & Info */
-        .header { text-align: center; border-bottom: 2px solid #eee; margin-bottom: 20px; padding-bottom: 10px; }
-        .user-info { display: flex; justify-content: space-between; margin-bottom: 20px; background: #f9f9f9; padding: 15px; border-radius: 12px; font-size: 14px; border-left: 5px solid #007bff; }
+        .header-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .stat-card { padding: 20px; border-radius: 15px; color: white; text-align: center; }
         
-        /* Filter Periode */
-        .filter-section { text-align: center; margin-bottom: 25px; }
-        select { padding: 10px; border-radius: 8px; border: 1px solid #ddd; width: 200px; font-weight: bold; }
+        /* Pewarnaan Berdasarkan Bobot */
+        .bg-sangat-kurang { background: #ff0000; } /* < 50% */
+        .bg-kurang { background: #ed7d31; }        /* 50-79% */
+        .bg-cukup { background: #548235; }         /* 80-94% */
+        .bg-sangat-baik { background: #00FF00; color: black !important; } /* 95-100% */
 
-        /* Kartu Indikator */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
-        .stat-card { padding: 15px; border-radius: 15px; color: white; text-align: center; transition: 0.3s; }
-        
-        /* Pewarnaan Standar */
-        .bg-sangat-kurang { background: #ff0000; } /* Merah */
-        .bg-kurang { background: #ed7d31; }        /* Oranye */
-        .bg-cukup { background: #548235; }         /* Hijau Tua */
-        .bg-sangat-baik { background: #00FF00; color: black !important; } /* Hijau Terang */
-
-        /* Layout Diagram */
-        .chart-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0; }
+        .chart-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
         @media (max-width: 768px) { .chart-section { grid-template-columns: 1fr; } }
 
-        /* Tabel Rincian */
-        .table-container { overflow-x: auto; margin-top: 20px; }
-        table { width: 100%; border-collapse: collapse; background: white; }
-        th, td { border: 1px solid #eee; padding: 12px; text-align: center; }
-        th { background: #f8f9fa; font-size: 13px; }
-
-        .btn-back { display: block; width: 100%; padding: 12px; margin-top: 30px; background: #007bff; color: white; text-align: center; text-decoration: none; border-radius: 8px; font-weight: bold; }
-        .loading { text-align: center; padding: 20px; color: #666; font-style: italic; }
+        .table-container { overflow-x: auto; margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+        th { background: #f8f9fa; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <h2>REKAPITULASI CAPAIAN PRIBADI</h2>
-        <div class="filter-section">
-            <select id="select-periode" onchange="changePeriode()">
-                </select>
-        </div>
-    </div>
+<div class="dashboard-container">
+    <h2 style="text-align:center;">REKAPITULASI CAPAIAN PRIBADI</h2>
+    <p style="text-align:center; color:#666;">Periode: Maret 2026</p>
 
-    <div class="user-info">
+    <div class="header-stats" id="cards-container">
+        </div>
+
+    <div class="chart-section">
         <div>
-            <strong>Nama:</strong> <span id="u-nama">Memuat...</span><br>
-            <strong>Komsel:</strong> <span id="u-komsel">-</span>
+            <h3 style="font-size:16px; text-align:center;">Proporsi Keaktifan (Pie Chart)</h3>
+            <canvas id="pieChart"></canvas>
         </div>
-        <div style="text-align: right;">
-            <strong>Wilayah:</strong> <span id="u-wilayah">-</span><br>
-            <strong>Gereja:</strong> <span id="u-gereja">-</span>
-        </div>
-    </div>
-
-    <div id="loading-msg" class="loading">Sinkronisasi data database...</div>
-
-    <div id="dashboard-content" style="display:none;">
-        <div class="stats-grid" id="cards-container"></div>
-
-        <div class="chart-section">
-            <div><canvas id="pieChart"></canvas></div>
-            <div><canvas id="barChart"></canvas></div>
-        </div>
-
-        <div class="table-container">
-            <h3 style="font-size:16px;">Tabel Rincian Nilai Indikator</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>JENIS LAPORAN</th>
-                        <th>CAPAIAN (%)</th>
-                        <th>KETERANGAN</th>
-                    </tr>
-                </thead>
-                <tbody id="rapor-body"></tbody>
-            </table>
+        <div>
+            <h3 style="font-size:16px; text-align:center;">Perbandingan Capaian (Bar Chart)</h3>
+            <canvas id="barChart"></canvas>
         </div>
     </div>
 
-    <a href="menu.html" class="btn-back">KEMBALI KE MENU UTAMA</a>
+    <div class="table-container">
+        <h3 style="font-size:16px;">Tabel Rapor Rinci</h3>
+        <table id="data-table">
+            <thead>
+                <tr>
+                    <th>KEGIATAN</th>
+                    <th>CAPAIAN (%)</th>
+                    <th>STATUS</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-    // 1. Firebase Configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
-        authDomain: "boby-apps-project.firebaseapp.com",
-        projectId: "boby-apps-project",
-        databaseURL: "https://boby-apps-project-default-rtdb.firebaseio.com"
+    // Data Simulasi (Nantinya ditarik dari Firebase statistik_rapor)
+    const dataRapor = {
+        "Pembacaan FT": 97,
+        "Kehadiran Doa": 40,
+        "Kehadiran Komsel": 75,
+        "Ibadah Raya": 100,
+        "Komsel Gabungan": 85,
+        "Kegiatan KD": 60,
+        "Latihan": 30,
+        "Pelayanan": 95
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const auth = firebase.auth();
 
-    let chartPie, chartBar;
-
-    // 2. Inisialisasi Periode 6 Bulan
-    function initPeriode() {
-        const select = document.getElementById('select-periode');
-        const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-        const d = new Date();
-        for (let i = 0; i < 6; i++) {
-            let m = d.getMonth() - i;
-            let y = d.getFullYear();
-            if (m < 0) { m += 12; y -= 1; }
-            let opt = document.createElement('option');
-            opt.value = `${y}-${String(m+1).padStart(2, '0')}`;
-            opt.innerHTML = `${months[m]} ${y}`;
-            select.appendChild(opt);
-        }
-    }
-
-    // 3. Logika Warna & Kategori
-    function getStatus(val) {
+    function getKategori(val) {
         if (val < 50) return { label: 'SANGAT KURANG', class: 'bg-sangat-kurang' };
         if (val < 80) return { label: 'KURANG', class: 'bg-kurang' };
         if (val < 95) return { label: 'CUKUP', class: 'bg-cukup' };
         return { label: 'SANGAT BAIK', class: 'bg-sangat-baik' };
     }
 
-    // 4. Load Data Utama
-    auth.onAuthStateChanged(user => {
-        if (user) { 
-            initPeriode();
-            loadData(user.uid); 
-        } else { 
-            window.location.href = "login.html"; 
-        }
-    });
+    function renderUI() {
+        const cardsCont = document.getElementById('cards-container');
+        const tableBody = document.getElementById('table-body');
+        const labels = Object.keys(dataRapor);
+        const values = Object.values(dataRapor);
 
-    async function loadData(uid) {
-        const periode = document.getElementById('select-periode').value;
-        
-        // Ambil Profil
-        db.ref('users/' + uid).once('value', snap => {
-            const u = snap.val();
-            if(u) {
-                document.getElementById('u-nama').innerText = u.namaLengkap;
-                document.getElementById('u-komsel').innerText = u.komsel;
-                document.getElementById('u-wilayah').innerText = u.wilayah;
-                document.getElementById('u-gereja').innerText = u.gereja;
-            }
-        });
+        labels.forEach(key => {
+            const val = dataRapor[key];
+            const kat = getKategori(val);
 
-        // Ambil Rapor (Data disesuaikan dengan struktur Firebase Anda)
-        db.ref('rapor/' + uid + '/' + periode).once('value', snap => {
-            const data = snap.val() || {
-                pembacaan_ft: 0, hadir_doa: 0, hadir_komsel: 0, 
-                hadir_ibadah_raya: 0, ibadah_gabungan: 0
-            };
-            renderDashboard(data);
-        });
-    }
+            // Render Kartu
+            cardsCont.innerHTML += `
+                <div class="stat-card ${kat.class}">
+                    <div style="font-size:12px; opacity:0.8;">${key}</div>
+                    <div style="font-size:24px; font-weight:bold;">${val}%</div>
+                    <div style="font-size:10px; margin-top:5px; font-weight:bold;">${kat.label}</div>
+                </div>
+            `;
 
-    function renderDashboard(data) {
-        const categories = [
-            { id: 'pembacaan_ft', label: 'Pembacaan FT' },
-            { id: 'hadir_doa', label: 'Kehadiran Doa' },
-            { id: 'hadir_komsel', label: 'Kehadiran Komsel' },
-            { id: 'hadir_ibadah_raya', label: 'Ibadah Raya' },
-            { id: 'ibadah_gabungan', label: 'Ibadah Gabungan' }
-        ];
-
-        let cardsHtml = '';
-        let tableHtml = '';
-        let chartLabels = [];
-        let chartValues = [];
-
-        categories.forEach(cat => {
-            const val = data[cat.id] || 0;
-            const res = getStatus(val);
-            
-            chartLabels.push(cat.label);
-            chartValues.push(val);
-
-            // Buat Kartu
-            cardsHtml += `
-                <div class="stat-card ${res.class}">
-                    <div style="font-size:11px; opacity:0.9;">${cat.label}</div>
-                    <div style="font-size:22px; font-weight:bold;">${val}%</div>
-                    <div style="font-size:9px; font-weight:bold;">${res.label}</div>
-                </div>`;
-
-            // Buat Tabel
-            tableHtml += `
+            // Render Tabel
+            tableBody.innerHTML += `
                 <tr>
-                    <td style="text-align:left;">${cat.label}</td>
-                    <td class="${res.class}" style="color:${val >= 95 ? 'black':'white'}"><strong>${val}%</strong></td>
-                    <td>${res.label}</td>
-                </tr>`;
+                    <td>${key}</td>
+                    <td style="font-weight:bold;">${val}%</td>
+                    <td class="${kat.class}" style="color:${val >= 95 ? 'black' : 'white'}">${kat.label}</td>
+                </tr>
+            `;
         });
 
-        document.getElementById('cards-container').innerHTML = cardsHtml;
-        document.getElementById('rapor-body').innerHTML = tableHtml;
-        document.getElementById('loading-msg').style.display = 'none';
-        document.getElementById('dashboard-content').style.display = 'block';
-
-        updateCharts(chartLabels, chartValues);
-    }
-
-    function updateCharts(labels, values) {
-        if(chartPie) chartPie.destroy();
-        if(chartBar) chartBar.destroy();
-
-        const ctxPie = document.getElementById('pieChart').getContext('2d');
-        chartPie = new Chart(ctxPie, {
+        // Diagram Lingkaran (Pie Chart)
+        new Chart(document.getElementById('pieChart'), {
             type: 'pie',
             data: {
                 labels: labels,
-                datasets: [{ data: values, backgroundColor: ['#2ecc71', '#e74c3c', '#f1c40f', '#3498db', '#9b59b6'] }]
+                datasets: [{
+                    data: values,
+                    backgroundColor: ['#2ecc71', '#e74c3c', '#f1c40f', '#3498db', '#9b59b6', '#e67e22', '#1abc9c', '#34495e']
+                }]
             }
         });
 
-        const ctxBar = document.getElementById('barChart').getContext('2d');
-        chartBar = new Chart(ctxBar, {
+        // Diagram Batang (Bar Chart)
+        new Chart(document.getElementById('barChart'), {
             type: 'bar',
             data: {
                 labels: labels,
-                datasets: [{ label: 'Persentase (%)', data: values, backgroundColor: values.map(v => v < 50 ? '#ff0000':'#548235') }]
+                datasets: [{
+                    label: 'Persentase Capaian (%)',
+                    data: values,
+                    backgroundColor: values.map(v => v < 50 ? '#ff0000' : '#548235')
+                }]
             },
             options: { scales: { y: { beginAtZero: true, max: 100 } } }
         });
     }
 
-    function changePeriode() {
-        const uid = auth.currentUser.uid;
-        document.getElementById('dashboard-content').style.display = 'none';
-        document.getElementById('loading-msg').style.display = 'block';
-        loadData(uid);
-    }
+    window.onload = renderUI;
 </script>
 </body>
 </html>
+
