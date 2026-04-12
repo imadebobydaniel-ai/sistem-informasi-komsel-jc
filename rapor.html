@@ -51,8 +51,8 @@
     <p style="text-align:center; color:#666; margin-top:5px;">Periode: Maret 2026</p>
 
     <div class="excel-table-container">
-        <div class="info-jemaat-box">
-            <div class="info-row"><span class="info-label">NAMA</span> : <span id="display-nama" style="margin-left: 10px;">Memuat...</span></div>
+        <div id="info-jemaat" class="info-jemaat-box">
+            <div class="info-row"><span class="info-label">NAMA</span> : <span id="display-nama" style="margin-left: 10px; font-weight: bold;">Memuat...</span></div>
             <div class="info-row"><span class="info-label">NIJ</span> : <span id="display-nij" style="margin-left: 10px;">Memuat...</span></div>
             <div class="info-row"><span class="info-label">JEMAAT</span> : <span id="display-jemaat" style="margin-left: 10px;">Memuat...</span></div>
             <div class="info-row"><span class="info-label">KOMSEL</span> : <span id="display-komsel-info" style="margin-left: 10px;">Memuat...</span></div>
@@ -94,7 +94,6 @@
 
 <script>
     // --- KONFIGURASI FIREBASE ---
-    // Masukkan config project Firebase Anda di sini
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
         authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -105,7 +104,6 @@
         appId: "YOUR_APP_ID"
     };
     
-    // Inisialisasi Firebase jika belum diinisialisasi
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
@@ -124,12 +122,9 @@
         return { label: 'SANGAT BAIK', class: 'bg-sangat-baik' };
     }
 
-    // FUNGSI LOAD DATA DARI FIREBASE
-    function loadDataFirebase() {
-        // Ambil UID dari session/login (Contoh menggunakan UID statis untuk testing)
-        // const userId = firebase.auth().currentUser.uid;
-        const userId = "boby_daniel"; // Sesuai dengan database Anda
-
+    // --- LOGIKA PENARIKAN DATA FIREBASE ---
+    function fetchDataJemaat() {
+        const userId = "boby_daniel"; 
         const userRef = firebase.database().ref('users/' + userId);
 
         userRef.on('value', (snapshot) => {
@@ -140,6 +135,8 @@
                 document.getElementById('display-jemaat').innerText = data.wilayah_jemaat || '-';
                 document.getElementById('display-komsel-info').innerText = data.nama_komsel || '-';
             }
+        }, (error) => {
+            console.error("Gagal mengambil data Firebase:", error);
         });
     }
 
@@ -147,7 +144,7 @@
         const cardsCont = document.getElementById('cards-container');
         const excelTable = document.getElementById('excel-table-body');
         
-        // Render Kartu
+        // Render Kartu (Data Tetap Sesuai Sistem Anda)
         Object.keys(dataPribadi).forEach(key => {
             const val = dataPribadi[key];
             const kat = getKategori(val);
@@ -158,9 +155,61 @@
                 </div>`;
         });
 
-        // Render Tabel Dummy
+        // Render Tabel (Data Tetap Sesuai Sistem Anda)
         const listAnggota = [
             { no: 1, komsel: "AGAPE 2", nama: "Ucik Turnaningsih", ft: 97, doa: 100, ks: 100, ir: 100 },
             { no: 2, komsel: "AGAPE 2", nama: "Merry Ambasalu", ft: 100, doa: 80, ks: 100, ir: 100 },
             { no: 3, komsel: "AGAPE 2", nama: "Lena Toding", ft: 94, doa: 20, ks: 75, ir: 80 },
-            { no: 8, komsel: "AGAPE 2", nama
+            { no: 8, komsel: "AGAPE 2", nama: "Syane", ft: 0, doa: 0, ks: 0, ir: 20 }
+        ];
+
+        let tableHTML = "";
+        listAnggota.forEach((user, index) => {
+            const cFT = getKategori(user.ft);
+            const cDoa = getKategori(user.doa);
+            const cKS = getKategori(user.ks);
+            const cIR = getKategori(user.ir);
+
+            tableHTML += `
+                <tr>
+                    <td>${user.no}</td>
+                    ${index === 0 ? `<td rowspan="${listAnggota.length}" class="col-komsel">${user.komsel}</td>` : ''}
+                    <td class="col-nama">${user.nama}</td>
+                    <td class="${cFT.class}">${user.ft}%</td>
+                    <td class="${cDoa.class}">${user.doa}%</td>
+                    <td class="${cKS.class}">${user.ks}%</td>
+                    <td class="${cIR.class}">${user.ir}%</td>
+                    <td></td>
+                </tr>`;
+        });
+        
+        tableHTML += `<tr class="separator"><td colspan="8"></td></tr>`;
+        excelTable.innerHTML = tableHTML;
+
+        // Render Charts (Data Tetap Sesuai Sistem Anda)
+        new Chart(document.getElementById('pieChart'), {
+            type: 'pie',
+            data: {
+                labels: Object.keys(dataPribadi),
+                datasets: [{ data: Object.values(dataPribadi), backgroundColor: ['#2ecc71','#e74c3c','#f1c40f','#3498db','#9b59b6','#e67e22','#1abc9c','#34495e'] }]
+            }
+        });
+
+        new Chart(document.getElementById('barChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(dataPribadi),
+                datasets: [{ label: 'Capaian', data: Object.values(dataPribadi), backgroundColor: '#548235' }]
+            },
+            options: { scales: { y: { beginAtZero: true, max: 100 } } }
+        });
+    }
+
+    // Eksekusi semua fungsi saat jendela dimuat
+    window.onload = function() {
+        renderHalaman();
+        fetchDataJemaat();
+    };
+</script>
+</body>
+</html>
