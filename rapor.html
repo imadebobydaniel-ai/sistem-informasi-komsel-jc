@@ -33,13 +33,13 @@
     </style>
 </head>
 <body>
- 
+
 <div class="dashboard-container">
     <h2 style="text-align:center; margin-bottom:0;">REKAPITULASI CAPAIAN PRIBADI</h2>
-    <p id="label-periode" style="text-align:center; color:#666; margin-top:5px;">Memuat data...</p>
- 
+    <p id="label-user" style="text-align:center; color:#666; margin-top:5px;">Memuat data personal...</p>
+
     <div class="header-stats" id="cards-container"></div>
- 
+
     <div class="chart-section">
         <div>
             <h3 style="font-size:14px; text-align:center;">Proporsi Keaktifan</h3>
@@ -50,7 +50,7 @@
             <canvas id="barChart"></canvas>
         </div>
     </div>
- 
+
     <div class="excel-table-container">
         <h3 style="text-align:left; font-size:16px; margin-bottom:10px;">TABEL RINCI (FORMAT REKAPITULASI)</h3>
         <table class="excel-table">
@@ -73,13 +73,13 @@
         </table>
     </div>
 </div>
- 
+
 <script>
-    // --- CONFIG FIREBASE ---
+    // --- ISI DENGAN CONFIG FIREBASE ANDA ---
     const firebaseConfig = {
         apiKey: "AIzaSy...",
-        databaseURL: "https://your-db.firebaseio.com",
-        projectId: "your-project",
+        databaseURL: "https://your-db-name.firebaseio.com",
+        projectId: "your-project-id",
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -93,37 +93,39 @@
         return { label: 'SANGAT BAIK', class: 'bg-sangat-baik' };
     }
 
-    // LOGIKA FILTER: Ambil UID dari sesi yang sudah ada
+    // FOKUS: Otomatis ambil UID dari sesi login yang sudah ada
     auth.onAuthStateChanged(user => {
         if (user) {
-            // Ambil data hanya untuk user ini (uid)
+            // Ambil data dari folder 'statistik_rapor' yang nama foldernya = UID user tersebut
             db.ref('statistik_rapor/' + user.uid).on('value', snapshot => {
                 const data = snapshot.val();
                 if (data) {
-                    renderHalaman(data);
+                    renderData(data);
                 } else {
-                    document.getElementById('label-periode').innerText = "Data Anda belum tersedia.";
+                    document.getElementById('label-user').innerText = "Data rapor belum diinput oleh Admin.";
                 }
             });
+        } else {
+            // Jika tidak ada sesi, lempar balik ke index
+            window.location.href = "index.html";
         }
     });
- 
-    function renderHalaman(data) {
-        document.getElementById('label-periode').innerText = "Periode: Maret 2026 | User: " + data.nama;
+
+    function renderData(data) {
+        document.getElementById('label-user').innerText = "Pemilik Rapor: " + data.nama + " | Periode: Maret 2026";
         
-        // Pemetaan data dari database
         const dataPribadi = {
-            "Pembacaan FT": data["PEMBACAAN FT"] || 0,
-            "Kehadiran Doa": data["KEHADIRAN DOA"] || 0,
-            "Kehadiran Komsel": data["KEHADIRAN KOMSEL"] || 0,
-            "Ibadah Raya": data["IBADAH RAYA"] || 0,
-            "Komsel Gabungan": data["KOMSEL GABUNGAN"] || 0,
-            "Kegiatan KD": data["KEGIATAN KD"] || 0,
-            "Latihan": data["LATIHAN"] || 0,
-            "Pelayanan": data["PELAYANAN"] || 0
+            "Pembacaan FT": data.ft || 0,
+            "Kehadiran Doa": data.doa || 0,
+            "Kehadiran Komsel": data.ks || 0,
+            "Ibadah Raya": data.ir || 0,
+            "Komsel Gabungan": data.gabungan || 0,
+            "Kegiatan KD": data.kd || 0,
+            "Latihan": data.latihan || 0,
+            "Pelayanan": data.pelayanan || 0
         };
 
-        // --- RENDER KARTU ---
+        // Render Kartu
         const cardsCont = document.getElementById('cards-container');
         cardsCont.innerHTML = "";
         Object.keys(dataPribadi).forEach(key => {
@@ -135,29 +137,24 @@
                     <div style="font-size:22px; font-weight:bold;">${val}%</div>
                 </div>`;
         });
- 
-        // --- RENDER TABEL (Tampil hanya baris user tersebut) ---
+
+        // Render Tabel (Hanya menampilkan baris user ini sendiri)
         const excelTable = document.getElementById('excel-table-body');
-        const cFT = getKategori(dataPribadi["Pembacaan FT"]);
-        const cDoa = getKategori(dataPribadi["Kehadiran Doa"]);
-        const cKS = getKategori(dataPribadi["Kehadiran Komsel"]);
-        const cIR = getKategori(dataPribadi["Ibadah Raya"]);
- 
         excelTable.innerHTML = `
             <tr>
                 <td>1</td>
-                <td class="col-komsel">${data.grup_komsel || 'AGAPE'}</td>
+                <td class="col-komsel">${data.komsel || '-'}</td>
                 <td class="col-nama">${data.nama}</td>
-                <td class="${cFT.class}">${dataPribadi["Pembacaan FT"]}%</td>
-                <td class="${cDoa.class}">${dataPribadi["Kehadiran Doa"]}%</td>
-                <td class="${cKS.class}">${dataPribadi["Kehadiran Komsel"]}%</td>
-                <td class="${cIR.class}">${dataPribadi["Ibadah Raya"]}%</td>
-                <td>Data Terverifikasi</td>
+                <td class="${getKategori(data.ft).class}">${data.ft || 0}%</td>
+                <td class="${getKategori(data.doa).class}">${data.doa || 0}%</td>
+                <td class="${getKategori(data.ks).class}">${data.ks || 0}%</td>
+                <td class="${getKategori(data.ir).class}">${data.ir || 0}%</td>
+                <td>Verified</td>
             </tr>
             <tr class="separator"><td colspan="8"></td></tr>
         `;
- 
-        // --- RENDER CHARTS ---
+
+        // Update Charts
         new Chart(document.getElementById('pieChart'), {
             type: 'pie',
             data: {
@@ -165,7 +162,7 @@
                 datasets: [{ data: Object.values(dataPribadi), backgroundColor: ['#2ecc71','#e74c3c','#f1c40f','#3498db','#9b59b6','#e67e22','#1abc9c','#34495e'] }]
             }
         });
- 
+
         new Chart(document.getElementById('barChart'), {
             type: 'bar',
             data: {
