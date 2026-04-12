@@ -181,8 +181,8 @@
                 const whatsapp = d.whatsapp || d.WhatsApp || '-';
                 const email = d.email || '-';
 
-                // --- SINKRONISASI KELUARGA (LOGIKA TERBARU) ---
-                const pasangan = d.nama_pasangan || d.suami || d.istri || d.nama_suami_istri || '-';
+                // --- SINKRONISASI KELUARGA (LOGIKA DIPERKUAT) ---
+                const pasangan = d.nama_suami_istri || d.nama_pasangan || d.suami || d.istri || d.pasangan || '-';
                 const anak = d.jumlah_anak || d.anak || '0';
 
                 // --- Sinkronisasi Alamat & Lokasi ---
@@ -194,9 +194,9 @@
                 const jabatan = d.jabatan || '-';
                 const fungsi = d.sub_bidang || d.fungsi_pelayanan || d.fungsi_spesifik || '-';
 
-                // --- LOGIKA LAMPIRAN / FILE (LOGIKA TERBARU & LEBIH KUAT) ---
-                const linkKtp = d.url_ktp || d.urlKtp || d.ktp || d.foto_ktp || d.lampiran_ktp;
-                const linkBerkas = d.url_berkas || d.berkas || d.lampiran || d.file;
+                // --- LOGIKA LAMPIRAN (CEK SEMUA KEMUNGKINAN FIELD) ---
+                const linkKtp = d.url_ktp || d.urlKtp || d.ktp || d.foto_ktp || d.lampiran_ktp || d.urlKTP;
+                const linkBerkas = d.url_berkas || d.berkas || d.lampiran || d.file || d.urlBerkas;
 
                 let fileHtml = "";
                 if (linkKtp && linkKtp !== "" && linkKtp !== "-") {
