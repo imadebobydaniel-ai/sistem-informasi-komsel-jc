@@ -22,17 +22,17 @@
         .chart-section { 
             display: grid; 
             grid-template-columns: 1fr 1fr; 
-            gap: 20px; 
+            gap: 20px;
             margin-bottom: 40px; 
             margin-top: 50px; /* Menurunkan posisi untuk ruang judul */
         }
-
+ 
         /* Pewarnaan Status */
         .bg-sangat-kurang { background: #ff0000 !important; color: white; }
         .bg-kurang { background: #ed7d31 !important; color: white; }
         .bg-cukup { background: #548235 !important; color: white; }
         .bg-sangat-baik { background: #00FF00 !important; color: black !important; }
-
+ 
         /* Gaya Tabel Excel */
         .excel-table-container { overflow-x: auto; margin-top: 20px; border-top: 3px solid #000; padding-top: 20px; margin-bottom: 30px; position: relative; -webkit-overflow-scrolling: touch; }
         .excel-table { width: 100%; border-collapse: collapse; font-size: 11px; color: #000; min-width: 800px; } /* min-width agar tabel bisa di-scroll di HP */
@@ -44,12 +44,12 @@
         /* Baris Pemisah Hitam Tebal */
         .separator { background-color: #000; color: #000; height: 12px !important; }
         .separator td { border: none; }
-
+ 
         /* Gaya Info Jemaat */
         .info-jemaat-box { margin-bottom: 20px; font-family: 'Courier New', Courier, monospace; font-size: 13px; line-height: 1.6; color: #000; }
         .info-row { display: flex; align-items: flex-start; margin-bottom: 2px; }
         .info-label { width: 120px; display: inline-block; font-weight: bold; }
-
+ 
         /* Tombol Export PDF (Posisi Kanan Tabel) */
         .pdf-export-btn {
             position: absolute;
@@ -67,7 +67,7 @@
             z-index: 10;
         }
         .pdf-export-btn:hover { background: #b71c1c; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-
+ 
         /* MOBILE OPTIMIZATION */
         @media (max-width: 768px) { 
             body { padding: 10px; }
@@ -83,23 +83,23 @@
     </style>
 </head>
 <body>
-
+ 
 <div class="dashboard-container" id="report-content">
     <h2 style="text-align:center; margin-bottom:0;">REKAPITULASI RAPOR ANDA</h2>
     <p style="text-align:center; color:#666; margin-top:5px;">Periode: Maret 2026</p>
-
+ 
     <div class="excel-table-container">
         <button class="pdf-export-btn" onclick="exportToPDF()">
             <i class="fas fa-file-pdf"></i> EXTRACT PDF
-        </button>
-
+       </button>
+ 
         <div id="info-jemaat" class="info-jemaat-box">
             <div class="info-row"><span class="info-label">NAMA</span> : <span id="display-nama" style="margin-left: 10px; font-weight: bold;">Memuat...</span></div>
             <div class="info-row"><span class="info-label">NIJ</span> : <span id="display-nij" style="margin-left: 10px;">Memuat...</span></div>
             <div class="info-row"><span class="info-label">JEMAAT</span> : <span id="display-jemaat" style="margin-left: 10px;">Memuat...</span></div>
             <div class="info-row"><span class="info-label">KOMSEL</span> : <span id="display-komsel-info" style="margin-left: 10px;">Memuat...</span></div>
         </div>
-
+ 
         <h3 style="text-align:left; font-size:16px; margin-bottom:10px;">TABEL PERSENTASE</h3>
         <table class="excel-table">
             <thead>
@@ -119,7 +119,7 @@
             <tbody id="excel-table-body">
             </tbody>
         </table>
-
+ 
         <h3 style="text-align:left; font-size:16px; margin-top:30px; margin-bottom:10px;">TABEL POIN</h3>
         <table class="excel-table">
             <thead>
@@ -140,9 +140,9 @@
             </tbody>
         </table>
     </div>
-
+ 
     <div class="header-stats" id="cards-container"></div>
-
+ 
     <div class="chart-section">
         <div>
             <h3 style="font-size:14px; text-align:center;">Proporsi Keaktifan</h3>
@@ -154,29 +154,30 @@
         </div>
     </div>
 </div>
-
+ 
 <script>
     // --- KONFIGURASI FIREBASE ---
+    // PENTING: Ganti dengan data asli dari Firebase Console Anda agar koneksi tidak 'failed'
     const firebaseConfig = {
-        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
-        authDomain: "boby-apps-project.firebaseapp.com",
-        databaseURL: "https://boby-apps-project-default-rtdb.firebaseio.com",
-        projectId: "boby-apps-project",
-        storageBucket: "boby-apps-project.firebasestorage.app",
-        messagingSenderId: "125984859692",
-        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT.firebaseapp.com",
+        databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT.appspot.com",
+        messagingSenderId: "YOUR_ID",
+        appId: "YOUR_APP_ID"
     };
     
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
-
+ 
     const dataPribadi = {
-        "Pembacaan FT": 0, "Kehadiran Doa": 0, "Kehadiran Komsel": 0,
-        "Ibadah Raya": 0, "Komsel Gabungan": 0, "Kegiatan KD": 0,
-        "Latihan": 0, "Pelayanan": 0
+        "Pembacaan FT": 97, "Kehadiran Doa": 40, "Kehadiran Komsel": 75,
+        "Ibadah Raya": 100, "Komsel Gabungan": 85, "Kegiatan KD": 60,
+        "Latihan": 30, "Pelayanan": 95
     };
-
+ 
     function getKategori(val) {
         if (val === "" || val === null) return { label: '', class: '' };
         if (val < 50) return { label: 'SANGAT KURANG', class: 'bg-sangat-kurang' };
@@ -184,13 +185,13 @@
         if (val < 95) return { label: 'CUKUP', class: 'bg-cukup' };
         return { label: 'SANGAT BAIK', class: 'bg-sangat-baik' };
     }
-
+ 
     function exportToPDF() {
         const element = document.getElementById('report-content');
         const btn = document.querySelector('.pdf-export-btn');
         
         btn.style.display = 'none';
-
+ 
         const opt = {
             margin:       [10, 10, 10, 10],
             filename:     'Rapor_Pondok_Pemulihan_Papua.pdf',
@@ -203,72 +204,36 @@
             },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
         };
-
+ 
         html2pdf().set(opt).from(element).save().then(() => {
             btn.style.display = 'block';
         });
     }
-
+ 
+    // FUNGSI DETEKSI DATA FIREBASE
     function fetchDataJemaat() {
-        // Langsung ambil data tanpa proteksi UID yang rumit
-        const userRef = firebase.database().ref('users/boby_daniel');
-
+        // userId disesuaikan dengan struktur di image_284244.png
+        const userId = "boby_daniel"; 
+        const userRef = firebase.database().ref('users/' + userId);
+ 
         userRef.on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                // Mengisi info profil
+                // Mencocokkan ID elemen dengan key di database
                 document.getElementById('display-nama').innerText = data.nama_lengkap || '-';
                 document.getElementById('display-nij').innerText = data.nij || '-';
                 document.getElementById('display-jemaat').innerText = data.wilayah_jemaat || '-';
                 document.getElementById('display-komsel-info').innerText = data.nama_komsel || '-';
-                
-                // Mengisi progress card & chart
-                if(data.performa) {
-                    Object.keys(data.performa).forEach(key => {
-                        if(dataPribadi.hasOwnProperty(key)) {
-                            dataPribadi[key] = data.performa[key];
-                        }
-                    });
-                    renderHalaman(); 
-                }
-
-                // Mengisi tabel mingguan
-                if(data.laporan_mingguan) {
-                    renderTabelOtomatis(data.laporan_mingguan);
-                }
             }
         }, (error) => {
-            console.error("Koneksi gagal:", error);
+            console.error("Gagal mengambil data Firebase:", error);
         });
     }
-
-    function renderTabelOtomatis(laporan) {
-        const excelTable = document.getElementById('excel-table-body');
-        const excelTablePoin = document.getElementById('excel-table-body-poin');
-        let tableHTML = "";
-        
-        laporan.forEach((minggu) => {
-            tableHTML += `
-                <tr>
-                    <td>${minggu.periode}</td>
-                    <td>${minggu.alkitab || ''}</td>
-                    <td>${minggu.ibadah_raya || ''}</td>
-                    <td>${minggu.komsel || ''}</td>
-                    <td>${minggu.komsel_gab || ''}</td>
-                    <td>${minggu.pemimpin || ''}</td>
-                    <td>${minggu.kd || ''}</td>
-                    <td>${minggu.latihan || ''}</td>
-                    <td>${minggu.pelayanan || ''}</td>
-                    <td>${minggu.doa || ''}</td>
-                </tr>`;
-        });
-        
-        excelTable.innerHTML = tableHTML + `<tr class="separator"><td colspan="10"></td></tr>`;
-        excelTablePoin.innerHTML = tableHTML + `<tr class="separator"><td colspan="10"></td></tr>`;
-    }
-
+ 
     function renderHalaman() {
         const cardsCont = document.getElementById('cards-container');
+        const excelTable = document.getElementById('excel-table-body');
+        const excelTablePoin = document.getElementById('excel-table-body-poin');
         
         cardsCont.innerHTML = "";
         Object.keys(dataPribadi).forEach(key => {
@@ -280,14 +245,33 @@
                     <div style="font-size:22px; font-weight:bold;">${val}%</div>
                 </div>`;
         });
-
-        const pieCtx = document.getElementById('pieChart').getContext('2d');
-        const barCtx = document.getElementById('barChart').getContext('2d');
+ 
+        const listAnggota = [
+            { periode: "Minggu I" },
+            { periode: "Minggu II" },
+            { periode: "Minggu III" },
+            { periode: "Minggu IV" }
+        ];
+ 
+        let tableHTML = "";
+        listAnggota.forEach((user) => {
+            tableHTML += `
+                <tr>
+                    <td>${user.periode}</td>
+                    <td></td> <td></td> 
+                    <td></td> 
+                    <td></td> 
+                    <td></td> 
+                    <td></td> 
+                    <td></td> 
+                    <td></td> 
+                    <td></td> </tr>`;
+        });
         
-        if (window.myPieChart) window.myPieChart.destroy();
-        if (window.myBarChart) window.myBarChart.destroy();
-
-        window.myPieChart = new Chart(pieCtx, {
+        excelTable.innerHTML = tableHTML + `<tr class="separator"><td colspan="10"></td></tr>`;
+        excelTablePoin.innerHTML = tableHTML + `<tr class="separator"><td colspan="10"></td></tr>`;
+ 
+        new Chart(document.getElementById('pieChart'), {
             type: 'pie',
             data: {
                 labels: Object.keys(dataPribadi),
@@ -295,8 +279,8 @@
             },
             options: { responsive: true, maintainAspectRatio: true }
         });
-
-        window.myBarChart = new Chart(barCtx, {
+ 
+        new Chart(document.getElementById('barChart'), {
             type: 'bar',
             data: {
                 labels: Object.keys(dataPribadi),
@@ -305,9 +289,10 @@
             options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true, max: 100 } } }
         });
     }
-
+ 
     window.onload = function() {
-        fetchDataJemaat();
+        renderHalaman();
+        fetchDataJemaat(); // Menjalankan fungsi deteksi saat halaman dimuat
     };
 </script>
 </body>
