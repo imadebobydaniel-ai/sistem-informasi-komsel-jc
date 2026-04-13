@@ -11,11 +11,11 @@
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f9; padding: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f9; padding: 20px; margin: 0; }
         .dashboard-container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         
         /* Gaya Visualisasi */
-        .header-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .header-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 30px; }
         .stat-card { padding: 15px; border-radius: 12px; color: white; text-align: center; }
         
         /* Penyesuaian Posisi Chart Section agar tidak terpotong di PDF */
@@ -34,8 +34,8 @@
         .bg-sangat-baik { background: #00FF00 !important; color: black !important; }
 
         /* Gaya Tabel Excel */
-        .excel-table-container { overflow-x: auto; margin-top: 20px; border-top: 3px solid #000; padding-top: 20px; margin-bottom: 30px; position: relative; }
-        .excel-table { width: 100%; border-collapse: collapse; font-size: 11px; color: #000; }
+        .excel-table-container { overflow-x: auto; margin-top: 20px; border-top: 3px solid #000; padding-top: 20px; margin-bottom: 30px; position: relative; -webkit-overflow-scrolling: touch; }
+        .excel-table { width: 100%; border-collapse: collapse; font-size: 11px; color: #000; min-width: 800px; } /* min-width agar tabel bisa di-scroll di HP */
         .excel-table th, .excel-table td { border: 1px solid #000; padding: 6px; text-align: center; }
         .excel-table th { background: #f2f2f2; text-transform: uppercase; }
         .col-nama { text-align: left; padding-left: 10px; font-weight: bold; }
@@ -64,10 +64,22 @@
             font-size: 12px;
             font-weight: bold;
             transition: 0.3s;
+            z-index: 10;
         }
         .pdf-export-btn:hover { background: #b71c1c; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
 
-        @media (max-width: 768px) { .chart-section { grid-template-columns: 1fr; } }
+        /* MOBILE OPTIMIZATION */
+        @media (max-width: 768px) { 
+            body { padding: 10px; }
+            .dashboard-container { padding: 15px; border-radius: 10px; }
+            .chart-section { grid-template-columns: 1fr; margin-top: 20px; } 
+            .header-stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .stat-card { padding: 10px; }
+            .stat-card div:last-child { font-size: 18px !important; }
+            .pdf-export-btn { position: relative; width: 100%; top: 0; margin-bottom: 15px; }
+            .info-label { width: 80px; }
+            h2 { font-size: 18px; }
+        }
     </style>
 </head>
 <body>
@@ -219,6 +231,7 @@
         const excelTable = document.getElementById('excel-table-body');
         const excelTablePoin = document.getElementById('excel-table-body-poin');
         
+        cardsCont.innerHTML = "";
         Object.keys(dataPribadi).forEach(key => {
             const val = dataPribadi[key];
             const kat = getKategori(val);
@@ -251,10 +264,7 @@
                     <td></td> </tr>`;
         });
         
-        // Render ke tabel pertama (persentase)
         excelTable.innerHTML = tableHTML + `<tr class="separator"><td colspan="10"></td></tr>`;
-        
-        // Render ke tabel kedua (poin) - Sama persis strukturnya
         excelTablePoin.innerHTML = tableHTML + `<tr class="separator"><td colspan="10"></td></tr>`;
 
         new Chart(document.getElementById('pieChart'), {
@@ -262,7 +272,8 @@
             data: {
                 labels: Object.keys(dataPribadi),
                 datasets: [{ data: Object.values(dataPribadi), backgroundColor: ['#2ecc71','#e74c3c','#f1c40f','#3498db','#9b59b6','#e67e22','#1abc9c','#34495e'] }]
-            }
+            },
+            options: { responsive: true, maintainAspectRatio: true }
         });
 
         new Chart(document.getElementById('barChart'), {
@@ -271,7 +282,7 @@
                 labels: Object.keys(dataPribadi),
                 datasets: [{ label: 'Capaian', data: Object.values(dataPribadi), backgroundColor: '#548235' }]
             },
-            options: { scales: { y: { beginAtZero: true, max: 100 } } }
+            options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true, max: 100 } } }
         });
     }
 
