@@ -7,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script> 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -156,19 +157,31 @@
 </div>
 
 <script>
-    // --- INTEGRASI FIRESTORE (PENGGANTI REALTIME DB) ---
+    // --- KONFIGURASI FIREBASE ---
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT.firebaseapp.com",
+        projectId: "boby-apps-project", 
+        storageBucket: "YOUR_PROJECT.appspot.com",
+        messagingSenderId: "YOUR_ID",
+        appId: "YOUR_APP_ID"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+
+    // --- INTEGRASI FIRESTORE ---
     function fetchDataJemaat() {
         const db = firebase.firestore();
-        
-        // Mengambil data dari koleksi 'users'
-        // Karena ID dokumen Anda acak, kita cari berdasarkan filter atau ID spesifik
-        // Di sini saya arahkan ke koleksi 'users'. Ganti 'ID_DOKUMEN_ANDA' dengan ID yang ada di Firestore
-        const userRef = db.collection('users').doc('MASUKKAN_ID_USER_DI_SINI');
+        // Menggunakan ID dokumen spesifik Anda dari koleksi 'users'
+        const userDocId = "1P18YJxbYiT42vjHBjma"; 
+        const userRef = db.collection('users').doc(userDocId);
 
         userRef.onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
-                // Sinkronisasi ke elemen UI yang sudah Anda buat
+                // Memasukkan data ke elemen ID yang sudah ada tanpa mengubah struktur
                 document.getElementById('display-nama').innerText = data.nama_lengkap || data.nama || '-';
                 document.getElementById('display-nij').innerText = data.nij || '-';
                 document.getElementById('display-jemaat').innerText = data.wilayah_jemaat || data.jemaat || '-';
@@ -179,20 +192,6 @@
         }, (error) => {
             console.error("Gagal sinkronisasi Firestore:", error);
         });
-    }
-    // --- KONFIGURASI FIREBASE ---
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT.firebaseapp.com",
-        databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT.appspot.com",
-        messagingSenderId: "YOUR_ID",
-        appId: "YOUR_APP_ID"
-    };
-    
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
     }
 
     const dataPribadi = {
@@ -217,8 +216,8 @@
 
         const opt = {
             margin:       [10, 10, 10, 10],
-            filename:     'Rapor_Pondok_Pemulihan_Papua.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
+            filename:      'Rapor_Pondok_Pemulihan_Papua.pdf',
+            image:         { type: 'jpeg', quality: 0.98 },
             html2canvas:  { 
                 scale: 2, 
                 useCORS: true,
@@ -230,23 +229,6 @@
 
         html2pdf().set(opt).from(element).save().then(() => {
             btn.style.display = 'block';
-        });
-    }
-
-    function fetchDataJemaat() {
-        const userId = "boby_daniel"; 
-        const userRef = firebase.database().ref('users/' + userId);
-
-        userRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                document.getElementById('display-nama').innerText = data.nama_lengkap || '-';
-                document.getElementById('display-nij').innerText = data.nij || '-';
-                document.getElementById('display-jemaat').innerText = data.wilayah_jemaat || '-';
-                document.getElementById('display-komsel-info').innerText = data.nama_komsel || '-';
-            }
-        }, (error) => {
-            console.error("Gagal mengambil data Firebase:", error);
         });
     }
 
