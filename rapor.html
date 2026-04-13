@@ -114,7 +114,6 @@
 </div>
 
 <script>
-    // 1. Konfigurasi (Gunakan data asli Anda di sini)
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -124,28 +123,31 @@
         appId: "YOUR_APP_ID"
     };
 
-    // 2. Inisialisasi
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.firestore();
 
-    // 3. Fungsi Ambil Data (DISESUAIKAN DENGAN GAMBAR DATABASE ANDA)
     function fetchDataJemaat() {
-        // ID Dokumen yang terlihat di screenshot database Anda
         const userDocId = "XyDbpciDX4UKVxkFNddNiXuMTqj2"; 
         
         db.collection('users').doc(userDocId).onSnapshot((doc) => {
             if (doc.exists) {
-                const data = doc.data();
-                console.log("Koneksi Berhasil! Data ditemukan:", data);
+                const userData = doc.data();
+                console.log("Koneksi Berhasil! Data ditemukan:", userData);
 
-                // Mapping field sesuai screenshot Firebase Console Anda
-                document.getElementById('display-nama').innerText = data.nama_lengkap || data.nama || '-';
-                document.getElementById('display-nij').innerText = data.nij || '-';
-                // Karena di database tidak terlihat field 'jemaat', kita gunakan '-' atau field lain jika ada
-                document.getElementById('display-jemaat').innerText = data.wilayah_jemaat || '-';
-                document.getElementById('display-komsel-info').innerText = data.komsel || '-';
+                // MAPPING DATA KE FIELD
+                document.getElementById('display-nama').innerText = userData.nama_lengkap || '-'; 
+                document.getElementById('display-nij').innerText = userData.nij || '-';           
+                document.getElementById('display-komsel-info').innerText = userData.komsel || '-';     
+                document.getElementById('display-jemaat').innerText = userData.lokasi_berjemaat || '-'; 
+
+                // VALIDASI KEPEMILIKAN AKUN (UID)
+                if (userData.uid === "x5pM88lbPCSwhDcqb1Sb2bqbtew1") {
+                    console.log("Memuat data pemilik akun: " + (userData.nama_lengkap || "Boby Daniel"));
+                    renderHalaman(); // Jalankan pengisian tabel rapor jika valid
+                }
+
             } else {
                 console.warn("Dokumen tidak ditemukan di koleksi 'users'.");
                 document.getElementById('display-nama').innerText = "DATA TIDAK DITEMUKAN";
@@ -156,7 +158,6 @@
         });
     }
 
-    // --- BAGIAN VISUAL (TIDAK DIUBAH SESUAI PERINTAH ANDA) ---
     const dataPribadi = {
         "Pembacaan FT": 97, "Kehadiran Doa": 40, "Kehadiran Komsel": 75,
         "Ibadah Raya": 100, "Komsel Gabungan": 85, "Kegiatan KD": 60,
@@ -228,7 +229,6 @@
     }
 
     window.onload = function() {
-        renderHalaman();
         fetchDataJemaat();
     };
 </script>
