@@ -25,6 +25,8 @@
         .excel-table { width: 100%; border-collapse: collapse; font-size: 11px; color: #000; min-width: 800px; }
         .excel-table th, .excel-table td { border: 1px solid #000; padding: 6px; text-align: center; }
         .excel-table th { background: #f2f2f2; text-transform: uppercase; }
+        .col-nama { text-align: left; padding-left: 10px; font-weight: bold; }
+        .col-komsel { background-color: #f4cccc; font-weight: bold; width: 80px; }
         .separator { background-color: #000; color: #000; height: 12px !important; }
         .separator td { border: none; }
         .info-jemaat-box { margin-bottom: 20px; font-family: 'Courier New', Courier, monospace; font-size: 13px; line-height: 1.6; color: #000; }
@@ -129,32 +131,25 @@
     const db = firebase.firestore();
 
     function fetchDataJemaat() {
+        // ID Dokumen dari koleksi 'users'
         const userDocId = "XyDbpciDX4UKVxkFNddNiXuMTqj2"; 
         
         db.collection('users').doc(userDocId).onSnapshot((doc) => {
             if (doc.exists) {
                 const userData = doc.data();
-                console.log("Koneksi Berhasil! Data ditemukan:", userData);
-
-                // MAPPING DATA KE FIELD
+                
+                // MAPPING DATA KE ELEMENT (SESUAI LOGIKA ANDA)
                 document.getElementById('display-nama').innerText = userData.nama_lengkap || '-'; 
                 document.getElementById('display-nij').innerText = userData.nij || '-';           
                 document.getElementById('display-komsel-info').innerText = userData.komsel || '-';     
                 document.getElementById('display-jemaat').innerText = userData.lokasi_berjemaat || '-'; 
 
-                // VALIDASI KEPEMILIKAN AKUN (UID)
+                // VALIDASI PEMEGANG AKUN
                 if (userData.uid === "x5pM88lbPCSwhDcqb1Sb2bqbtew1") {
-                    console.log("Memuat data pemilik akun: " + (userData.nama_lengkap || "Boby Daniel"));
-                    renderHalaman(); // Jalankan pengisian tabel rapor jika valid
+                    console.log("Memuat data pemilik akun: Boby Daniel");
+                    renderHalaman(); 
                 }
-
-            } else {
-                console.warn("Dokumen tidak ditemukan di koleksi 'users'.");
-                document.getElementById('display-nama').innerText = "DATA TIDAK DITEMUKAN";
             }
-        }, (error) => {
-            console.error("Gagal sinkronisasi:", error);
-            document.getElementById('display-nama').innerText = "Error Koneksi";
         });
     }
 
