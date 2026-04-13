@@ -107,6 +107,26 @@
             <tbody id="excel-table-body">
             </tbody>
         </table>
+
+        <h3 style="text-align:left; font-size:16px; margin-top:30px; margin-bottom:10px;">TABEL POIN (FORMAT INPUT)</h3>
+        <table class="excel-table">
+            <thead>
+                <tr>
+                    <th>PERIODE MINGGU</th>
+                    <th>LAPORAN ALKITAB</th>
+                    <th>LAPORAN IBADAH RAYA</th>
+                    <th>LAPORAN KOMSEL</th>
+                    <th>LAPORAN KOMSEL GABUNGAN</th>
+                    <th>LAPORAN PERTEMUAN PEMIMPIN</th>
+                    <th>LAPORAN KEGIATAN KD</th>
+                    <th>LAPORAN LATIHAN</th>
+                    <th>LAPORAN PELAYANAN</th>
+                    <th>LAPORAN DOA</th>
+                </tr>
+            </thead>
+            <tbody id="excel-table-body-poin">
+            </tbody>
+        </table>
     </div>
 
     <div class="header-stats" id="cards-container"></div>
@@ -153,7 +173,6 @@
         return { label: 'SANGAT BAIK', class: 'bg-sangat-baik' };
     }
 
-    // Fungsi Extract ke PDF dengan penyesuaian rendering
     function exportToPDF() {
         const element = document.getElementById('report-content');
         const btn = document.querySelector('.pdf-export-btn');
@@ -168,7 +187,7 @@
                 scale: 2, 
                 useCORS: true,
                 logging: false,
-                y: 0 // Memulai capture tepat di koordinat y 0
+                y: 0 
             },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
         };
@@ -198,6 +217,7 @@
     function renderHalaman() {
         const cardsCont = document.getElementById('cards-container');
         const excelTable = document.getElementById('excel-table-body');
+        const excelTablePoin = document.getElementById('excel-table-body-poin');
         
         Object.keys(dataPribadi).forEach(key => {
             const val = dataPribadi[key];
@@ -231,8 +251,11 @@
                     <td></td> </tr>`;
         });
         
-        tableHTML += `<tr class="separator"><td colspan="10"></td></tr>`;
-        excelTable.innerHTML = tableHTML;
+        // Render ke tabel pertama (persentase)
+        excelTable.innerHTML = tableHTML + `<tr class="separator"><td colspan="10"></td></tr>`;
+        
+        // Render ke tabel kedua (poin) - Sama persis strukturnya
+        excelTablePoin.innerHTML = tableHTML + `<tr class="separator"><td colspan="10"></td></tr>`;
 
         new Chart(document.getElementById('pieChart'), {
             type: 'pie',
