@@ -17,7 +17,15 @@
         /* Gaya Visualisasi */
         .header-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
         .stat-card { padding: 15px; border-radius: 12px; color: white; text-align: center; }
-        .chart-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
+        
+        /* Penyesuaian Posisi Chart Section agar tidak terpotong di PDF */
+        .chart-section { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 20px; 
+            margin-bottom: 40px; 
+            margin-top: 50px; /* Menurunkan posisi untuk ruang judul */
+        }
 
         /* Pewarnaan Status */
         .bg-sangat-kurang { background: #ff0000 !important; color: white; }
@@ -80,7 +88,7 @@
             <div class="info-row"><span class="info-label">KOMSEL</span> : <span id="display-komsel-info" style="margin-left: 10px;">Memuat...</span></div>
         </div>
 
-        <h3 style="text-align:left; font-size:16px; margin-bottom:10px;">TABEL RINCI PERSENTASE</h3>
+        <h3 style="text-align:left; font-size:16px; margin-bottom:10px;">TABEL RINCI (FORMAT REKAPITULASI)</h3>
         <table class="excel-table">
             <thead>
                 <tr>
@@ -145,24 +153,28 @@
         return { label: 'SANGAT BAIK', class: 'bg-sangat-baik' };
     }
 
-    // Fungsi Extract ke PDF
+    // Fungsi Extract ke PDF dengan penyesuaian rendering
     function exportToPDF() {
         const element = document.getElementById('report-content');
         const btn = document.querySelector('.pdf-export-btn');
         
-        // Sembunyikan tombol saat proses cetak agar tidak ikut masuk ke PDF
         btn.style.display = 'none';
 
         const opt = {
             margin:       [10, 10, 10, 10],
             filename:     'Rapor_Pondok_Pemulihan_Papua.pdf',
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
+            html2canvas:  { 
+                scale: 2, 
+                useCORS: true,
+                logging: false,
+                y: 0 // Memulai capture tepat di koordinat y 0
+            },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
         };
 
         html2pdf().set(opt).from(element).save().then(() => {
-            btn.style.display = 'block'; // Tampilkan kembali tombol
+            btn.style.display = 'block';
         });
     }
 
