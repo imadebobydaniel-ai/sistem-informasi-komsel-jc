@@ -156,6 +156,30 @@
 </div>
 
 <script>
+    // --- INTEGRASI FIRESTORE (PENGGANTI REALTIME DB) ---
+    function fetchDataJemaat() {
+        const db = firebase.firestore();
+        
+        // Mengambil data dari koleksi 'users'
+        // Karena ID dokumen Anda acak, kita cari berdasarkan filter atau ID spesifik
+        // Di sini saya arahkan ke koleksi 'users'. Ganti 'ID_DOKUMEN_ANDA' dengan ID yang ada di Firestore
+        const userRef = db.collection('users').doc('MASUKKAN_ID_USER_DI_SINI');
+
+        userRef.onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                // Sinkronisasi ke elemen UI yang sudah Anda buat
+                document.getElementById('display-nama').innerText = data.nama_lengkap || data.nama || '-';
+                document.getElementById('display-nij').innerText = data.nij || '-';
+                document.getElementById('display-jemaat').innerText = data.wilayah_jemaat || data.jemaat || '-';
+                document.getElementById('display-komsel-info').innerText = data.nama_komsel || data.komsel || '-';
+            } else {
+                console.log("Data tidak ditemukan di Firestore");
+            }
+        }, (error) => {
+            console.error("Gagal sinkronisasi Firestore:", error);
+        });
+    }
     // --- KONFIGURASI FIREBASE ---
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
