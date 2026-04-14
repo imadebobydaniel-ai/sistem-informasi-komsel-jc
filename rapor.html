@@ -158,120 +158,177 @@
 </div>
  
 <script>
-    // --- KONFIGURASI FIREBASE ---
+    // 1. FIREBASE CONFIG
     const firebaseConfig = {
-        apiKey: "AIzaSy...", 
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
-        databaseURL: "https://boby-apps-project-default-rtdb.firebaseio.com",
         projectId: "boby-apps-project",
         storageBucket: "boby-apps-project.appspot.com",
-        appId: "1:..."
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
-    
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
- 
-    const dataPribadi = {
-        "Pembacaan FT": 97, "Kehadiran Doa": 40, "Kehadiran Komsel": 75,
-        "Ibadah Raya": 100, "Komsel Gabungan": 85, "Kegiatan KD": 60,
-        "Latihan": 30, "Pelayanan": 95
-    };
- 
-    function getKategori(val) {
-        if (val === "" || val === null) return { label: '', class: '' };
-        if (val < 50) return { label: 'SANGAT KURANG', class: 'bg-sangat-kurang' };
-        if (val < 80) return { label: 'KURANG', class: 'bg-kurang' };
-        if (val < 95) return { label: 'CUKUP', class: 'bg-cukup' };
-        return { label: 'SANGAT BAIK', class: 'bg-sangat-baik' };
-    }
- 
-    function exportToPDF() {
-        const element = document.getElementById('report-content');
-        const btn = document.querySelector('.pdf-export-btn');
-        btn.style.display = 'none';
-        const opt = {
-            margin: [10, 10, 10, 10],
-            filename: 'Rapor_Pondok_Pemulihan_Papua.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, logging: false, y: 0 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-        };
-        html2pdf().set(opt).from(element).save().then(() => {
-            btn.style.display = 'block';
+
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    const dbRT = firebase.database(); 
+
+    // 2. LOGIC STARTUP SPLASH SCREEN
+    document.addEventListener("DOMContentLoaded", function() {
+        setTimeout(() => {
+            const splash = document.getElementById('splash-screen');
+            if (splash) {
+                splash.classList.add('splash-hidden');
+                document.body.style.overflow = "auto";
+            }
+        }, 3000);
+    });
+
+    // 3. FITUR LIHAT PASSWORD
+    const eyeIcon = document.getElementById('eyeIcon');
+    const passInput = document.getElementById('user_pass');
+    if(eyeIcon) {
+        eyeIcon.addEventListener('click', function() {
+            const isPassword = passInput.type === 'password';
+            passInput.type = isPassword ? 'text' : 'password';
+            this.classList.toggle('fa-eye-slash');
+            this.classList.toggle('eye-active'); 
         });
     }
- 
-    function fetchDataJemaat() {
-        const userId = "boby_daniel"; 
-        const userRef = firebase.database().ref('users/' + userId);
- 
+
+    // 4. LOGIC LOGIN & VERIFIKASI
+    document.getElementById('userLoginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const email = document.getElementById('user_email').value.trim();
+        const pass = document.getElementById('user_pass').value;
+        const msgBox = document.getElementById('login-msg');
+        const btn = document.getElementById('btnMasuk');
+
+        btn.innerText = "Memverifikasi...";
+        btn.disabled = true;
+
+        try {
+            const userCredential = await auth.signInWithEmailAndPassword(email, pass);
+            const user = userCredential.user;
+            await user.reload();
+
+            if (auth.currentUser.emailVerified) {
+                localStorage.setItem("userEmail", email);
+                localStorage.setItem("userUID", user.uid);
+                localStorage.setItem("adminLoggedIn", "false");
+
+                await db.collection("users").doc(user.uid).update({
+                    status_verifikasi: "Active"
+                }).catch(e => console.log("Update status skipped"));
+
+                msgBox.innerText = "Login Berhasil! Mengalihkan...";
+                msgBox.className = "msg-success";
+                
+                setTimeout(() => { 
+                    window.location.replace("menu.html"); 
+                }, 1000);
+
+            } else {
+                msgBox.innerText = "Akun belum aktif! Cek inbox/spam email kamu untuk link verifikasi.";
+                msgBox.className = "msg-error";
+                btn.innerText = "MASUK";
+                btn.disabled = false;
+                await auth.signOut();
+            }
+
+        } catch (err) {
+            console.error(err);
+            let errorMessage = "Gagal login. Periksa kembali email dan password.";
+            if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
+                errorMessage = "Email atau Password salah!";
+            }
+            msgBox.innerText = errorMessage;
+            msgBox.className = "msg-error";
+            btn.innerText = "MASUK";
+            btn.disabled = false;
+        }
+    });
+
+    // 5. LOGIKA RESET PASSWORD
+    const btnForgot = document.getElementById('btnForgot');
+    const forgotModal = document.getElementById('forgotModal');
+    const closeModal = document.getElementById('closeModal');
+    const sendReset = document.getElementById('sendReset');
+    const forgotEmailInput = document.getElementById('forgotEmail');
+    const mainMsgBox = document.getElementById('login-msg');
+
+    btnForgot.onclick = () => { forgotModal.style.display = 'flex'; };
+    closeModal.onclick = () => { forgotModal.style.display = 'none'; };
+
+    sendReset.onclick = async () => {
+        const email = forgotEmailInput.value.trim();
+        if (!email) { alert("Mohon masukkan email Anda!"); return; }
+        sendReset.innerText = "Mengirim...";
+        sendReset.disabled = true;
+        try {
+            await auth.sendPasswordResetEmail(email);
+            forgotModal.style.display = 'none';
+            mainMsgBox.innerText = "Link pemulihan terkirim! Silakan cek email Anda.";
+            mainMsgBox.className = "msg-success";
+            forgotEmailInput.value = "";
+        } catch (error) {
+            alert("Gagal: " + error.message);
+        } finally {
+            sendReset.innerText = "KIRIM LINK";
+            sendReset.disabled = false;
+        }
+    };
+
+    window.onclick = (event) => {
+        if (event.target == forgotModal) { forgotModal.style.display = "none"; }
+    };
+
+    // --- FUNGSI DETEKSI & FETCH REPORT DATA ---
+    function fetchUserReportData(uid) {
+        const userRef = dbRT.ref('users/' + uid);
+
         userRef.on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                document.getElementById('display-nama').innerText = data.nama_lengkap || '-';
-                document.getElementById('display-nij').innerText = data.nij || '-';
-                document.getElementById('display-jemaat').innerText = data.wilayah_jemaat || '-';
-                document.getElementById('display-komsel-info').innerText = data.nama_komsel || '-';
+                // 1. ISI PROFIL JEMAAT
+                if(document.getElementById('display-nama')) document.getElementById('display-nama').innerText = data.nama_lengkap || 'Anggota';
+                if(document.getElementById('display-nij')) document.getElementById('display-nij').innerText = data.nij || '-';
+                if(document.getElementById('display-jemaat')) document.getElementById('display-jemaat').innerText = data.wilayah_jemaat || '-';
+                if(document.getElementById('display-komsel-info')) document.getElementById('display-komsel-info').innerText = data.nama_komsel || '-';
 
-                // --- LOGIKA MENGISI TABEL MINGGUAN (Sesuai ID di HTML Anda) ---
-                const bulanan = data.statistik_bulanan;
-                if (bulanan && bulanan["Minggu I"]) {
-                    const m1 = bulanan["Minggu I"];
-                    document.getElementById('alkitab-0').innerText = (m1.alkitab || 0) + "%";
-                    document.getElementById('ibadah-0').innerText = (m1.ibadah_raya || 0) + "%";
-                    document.getElementById('komsel-0').innerText = (m1.komsel || 0) + "%";
-                    document.getElementById('gabungan-0').innerText = (m1.komsel_gabungan || 0) + "%";
-                    document.getElementById('pemimpin-0').innerText = (m1.pertemuan_pemimpin || 0) + "%";
-                    document.getElementById('kd-0').innerText = (m1.kegiatan_kd || 0) + "%";
-                    document.getElementById('latihan-0').innerText = (m1.latihan || 0) + "%";
-                    document.getElementById('pelayanan-0').innerText = (m1.pelayanan || 0) + "%";
-                    document.getElementById('doa-0').innerText = (m1.kehadiran_doa || 0) + "%";
+                // 2. DETEKSI & ISI TABEL PERSENTASE (Mendeteksi ID secara Pasif)
+                // Jika elemen id 'alkitab-0' ditemukan di halaman, maka data akan diisi
+                const m1 = data.statistik_bulanan ? data.statistik_bulanan["Minggu I"] : null;
+                if (m1) {
+                    const fields = {
+                        'alkitab-0': m1.alkitab,
+                        'ibadah-0': m1.ibadah_raya,
+                        'komsel-0': m1.komsel,
+                        'gabungan-0': m1.komsel_gabungan,
+                        'pemimpin-0': m1.pertemuan_pemimpin,
+                        'kd-0': m1.kegiatan_kd,
+                        'latihan-0': m1.latihan,
+                        'pelayanan-0': m1.pelayanan,
+                        'doa-0': m1.kehadiran_doa
+                    };
+
+                    // Melakukan deteksi satu per satu tanpa merusak tabel
+                    for (let id in fields) {
+                        let el = document.getElementById(id);
+                        if (el) {
+                            el.innerText = (fields[id] || 0) + "%";
+                        }
+                    }
+                }
+                
+                // 3. AMBIL DATA STATISTIK UNTUK CHART
+                const stats = data.statistik || null;
+                if (stats && typeof renderVisualisasi === "function") {
+                    renderVisualisasi(stats);
                 }
             }
-        }, (error) => {
-            console.error("Gagal mengambil data Firebase:", error);
         });
     }
- 
-    function renderHalaman() {
-        const cardsCont = document.getElementById('cards-container');
-        // Bagian pembuatan tabel otomatis dihapus agar tidak merusak desain asli Anda
-        
-        cardsCont.innerHTML = "";
-        Object.keys(dataPribadi).forEach(key => {
-            const val = dataPribadi[key];
-            const kat = getKategori(val);
-            cardsCont.innerHTML += `
-                <div class="stat-card ${kat.class}">
-                    <div style="font-size:11px; opacity:0.9;">${key}</div>
-                    <div style="font-size:22px; font-weight:bold;">${val}%</div>
-                </div>`;
-        });
- 
-        new Chart(document.getElementById('pieChart'), {
-            type: 'pie',
-            data: {
-                labels: Object.keys(dataPribadi),
-                datasets: [{ data: Object.values(dataPribadi), backgroundColor: ['#2ecc71','#e74c3c','#f1c40f','#3498db','#9b59b6','#e67e22','#1abc9c','#34495e'] }]
-            },
-            options: { responsive: true, maintainAspectRatio: true }
-        });
- 
-        new Chart(document.getElementById('barChart'), {
-            type: 'bar',
-            data: {
-                labels: Object.keys(dataPribadi),
-                datasets: [{ label: 'Capaian', data: Object.values(dataPribadi), backgroundColor: '#548235' }]
-            },
-            options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true, max: 100 } } }
-        });
-    }
- 
-    window.onload = function() {
-        renderHalaman();
-        fetchDataJemaat();
-    };
 </script>
 </body>
 </html>
