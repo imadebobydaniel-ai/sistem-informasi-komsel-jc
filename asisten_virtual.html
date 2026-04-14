@@ -64,6 +64,8 @@
     const assistant = document.getElementById('assistant-screen');
     const loginPage = document.getElementById('login-page');
     const typingEl = document.getElementById('typing');
+    
+    // 1. Ambil elemen audio dari DOM
     const bgSound = document.getElementById('asistenAudio');
 
     const messages = [
@@ -78,10 +80,31 @@
     function startExperience() {
         if (isStarted) return;
         isStarted = true;
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        bgSound.play().catch(e => console.log("Audio play blocked"));
 
+        // 2. UNLOCK AUDIO (Penting untuk Chrome & Safari)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+
+        // 3. FORCE PLAY (Mengatasi masalah file belum ter-load)
+        bgSound.muted = false; // Memastikan tidak terbungkam
+        bgSound.volume = 1.0;  // Set volume maksimal
+        
+        const playPromise = bgSound.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                console.log("Audio berjalan lancar.");
+            }).catch(error => {
+                console.log("Gagal memutar audio: ", error);
+                // Cara darurat jika gagal: coba putar ulang lewat event
+                bgSound.load();
+                bgSound.play();
+            });
+        }
+
+        // Transisi Visual
         splash.style.opacity = '0';
         setTimeout(() => {
             splash.style.display = 'none';
@@ -106,6 +129,7 @@
                 }, 2500);
             }
         } else {
+            // Musik berhenti saat masuk login
             bgSound.pause();
             assistant.style.display = 'none';
             loginPage.style.display = 'flex';
@@ -115,9 +139,8 @@
     function handleLogin() {
         const email = document.getElementById('userEmail').value;
         if(email) {
-            // Simpan email agar game.html bisa menarik data leaderboard
             localStorage.setItem("userData", JSON.stringify({ email: email, nama: email.split('@')[0] }));
-            window.location.href = 'game.html'; // Arahkan langsung ke game atau menu
+            window.location.href = 'game.html';
         } else {
             alert("Silakan masukkan email");
         }
