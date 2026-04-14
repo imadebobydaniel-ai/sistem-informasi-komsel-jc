@@ -235,40 +235,34 @@
     let ytPlayer; 
     const userEmail = localStorage.getItem("userEmail");
 
-    // 2. SATPAM KEAMANAN (Mencegah Akses Tanpa Login)
+    // 2. SATPAM KEAMANAN (DIPERKETAT)
     auth.onAuthStateChanged((user) => {
         const isAdmin = localStorage.getItem("adminLoggedIn");
         
         if (!user && isAdmin !== "true") {
             console.log("Akses ditolak, mengalihkan ke index...");
-            // Mengarahkan ke index.html (karena login.html sudah dihapus)
+            // Hentikan rendering halaman dengan menyembunyikan body (opsional tapi aman)
+            document.body.style.display = 'none';
+            // Pastikan diarahkan ke index.html, bukan login.html
             window.location.replace("index.html"); 
         } else {
-            console.log("Akses diterima. Selamat datang di Pondok Pemulihan Papua.");
+            console.log("Akses diterima.");
+            document.body.style.display = 'block'; // Tampilkan kembali jika akses oke
         }
     });
 
-    // --- FUNGSI LOGOUT ---
-    function confirmLogout() { 
-        document.getElementById('modal-logout').style.display = 'flex'; 
-    }
-
-    function closeLogoutModal() { 
-        document.getElementById('modal-logout').style.display = 'none'; 
-    }
-
+    // --- FUNGSI LOGOUT (Pindahkan ke index.html) ---
     function executeLogout() { 
         auth.signOut().then(() => {
             localStorage.clear(); 
             window.location.replace("index.html"); 
         }).catch((error) => {
-            console.error("Logout Gagal:", error);
             localStorage.clear();
             window.location.replace("index.html");
         });
     }
 
-    // --- Fungsi-fungsi lainnya (Running Text, Media, Inbox, dll) ---
+    // --- Sisanya tetap sama ---
     function syncRunningText() {
         db.collection("config").doc("running_text").onSnapshot((doc) => {
             if (doc.exists) {
@@ -293,20 +287,17 @@
                 const data = snapshot.docs[0].data();
                 const type = data.tipe || "video_youtube";
                 const content = data.url || "";
-                otherMedia.style.display = 'none';
-                ytContainer.style.display = 'none';
+                if(otherMedia) otherMedia.style.display = 'none';
+                if(ytContainer) ytContainer.style.display = 'none';
                 if (type === "video_youtube" || type === "youtube") {
-                    ytContainer.style.display = 'block';
-                    playYouTube(content);
-                } else if (type === "video_player" || type === "video") {
-                    otherMedia.style.display = 'flex';
-                    otherMedia.innerHTML = `<video src="${content}" autoplay controls style="width:100%; height:100%; object-fit:contain;"></video>`;
-                } else if (type === "gambar") {
-                    otherMedia.style.display = 'flex';
-                    otherMedia.innerHTML = `<img src="${content}" style="width:100%; height:100%; object-fit:contain;">`;
-                } else if (type === "teks") {
-                    otherMedia.style.display = 'flex';
-                    otherMedia.innerHTML = `<div style="color:white; padding:20px; font-weight:bold; font-size:16px;">${data.isi_artikel || content}</div>`;
+                    if(ytContainer) { ytContainer.style.display = 'block'; playYouTube(content); }
+                } else if (type === "video_player" || type === "video" || type === "gambar" || type === "teks") {
+                    if(otherMedia) {
+                        otherMedia.style.display = 'flex';
+                        if (type === "video_player" || type === "video") otherMedia.innerHTML = `<video src="${content}" autoplay controls style="width:100%; height:100%; object-fit:contain;"></video>`;
+                        else if (type === "gambar") otherMedia.innerHTML = `<img src="${content}" style="width:100%; height:100%; object-fit:contain;">`;
+                        else otherMedia.innerHTML = `<div style="color:white; padding:20px; font-weight:bold; font-size:16px;">${data.isi_artikel || content}</div>`;
+                    }
                 }
             }
         });
@@ -384,26 +375,23 @@
                     document.getElementById('disp_nama').innerText = d.nama || "User";
                     document.getElementById('disp_komsel').innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
                     monitorEmailInbox(String(d.komsel), userEmail);
-                    
                     const profilePhoto = d.foto_profil || d.fotoUrl;
                     if (profilePhoto) { 
                         document.getElementById('user-photo').src = profilePhoto; 
                         document.getElementById('user-photo').style.display = "block";
                         document.getElementById('default-icon').style.display = "none"; 
                     }
-                    
                     const today = new Date();
                     const formatHariH = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-                    if (d.tgl_lahir && d.tgl_lahir.startsWith(formatHariH)) {
-                        applyBirthdayEffect(d.nama);
-                    }
+                    if (d.tgl_lahir && d.tgl_lahir.startsWith(formatHariH)) applyBirthdayEffect(d.nama);
                 }
             });
         }
     }
 
     function applyBirthdayEffect(nama) {
-        document.getElementById('photo-frame').classList.add('ultah-active');
+        const frame = document.getElementById('photo-frame');
+        if(frame) frame.classList.add('ultah-active');
         const rt = document.getElementById('running-text');
         if(rt) rt.innerText = `🎉 SELAMAT ULANG TAHUN ${nama.toUpperCase()}! TUHAN YESUS MEMBERKATI 🎉`;
         initFireworks();
@@ -416,16 +404,10 @@
         canvas.width = canvas.parentElement.offsetWidth;
         canvas.height = canvas.parentElement.offsetHeight;
         let particles = [];
-        for(let i=0; i<40; i++) {
-            particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 3 + 1, speed: Math.random() * 1 + 0.5, opacity: Math.random(), color: i % 2 === 0 ? "#D4AF37" : "#FFD700" });
-        }
+        for(let i=0; i<40; i++) particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 3 + 1, speed: Math.random() * 1 + 0.5, opacity: Math.random(), color: i % 2 === 0 ? "#D4AF37" : "#FFD700" });
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => {
-                p.y -= p.speed;
-                if(p.y < 0) p.y = canvas.height;
-                ctx.globalAlpha = p.opacity; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
-            });
+            particles.forEach(p => { p.y -= p.speed; if(p.y < 0) p.y = canvas.height; ctx.globalAlpha = p.opacity; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); });
             requestAnimationFrame(animate);
         }
         animate();
@@ -442,13 +424,12 @@
     function bukaInbox() { document.getElementById('popup-inbox').style.display = 'flex'; }
     function tutupInbox() { document.getElementById('popup-inbox').style.display = 'none'; }
     function tutupDetail() { document.getElementById('modal-pesan').style.display = 'none'; }
+    function confirmLogout() { document.getElementById('modal-logout').style.display = 'flex'; }
+    function closeLogoutModal() { document.getElementById('modal-logout').style.display = 'none'; }
 
     window.onload = () => { 
-        updateTime(); 
-        setInterval(updateTime, 1000); 
-        syncUser(); 
-        syncRunningText();
-        
+        updateTime(); setInterval(updateTime, 1000); 
+        syncUser(); syncRunningText();
         const btnToggle = document.getElementById('toggleProfile');
         const profileCard = document.getElementById('profileCard');
         if(btnToggle && profileCard) {
