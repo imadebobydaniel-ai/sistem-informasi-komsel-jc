@@ -23,7 +23,8 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: var(--grey-bg); display: flex;
             justify-content: center; align-items: center; z-index: 999999;
-            opacity: 1; visibility: visible; transition: opacity 0.8s ease, visibility 0.8s;
+            opacity: 1; visibility: visible; 
+            transition: opacity 1.2s ease, visibility 1.2s; /* Transisi diperhalus */
         }
         .splash-content { text-align: center; display: flex; flex-direction: column; align-items: center; }
         .logo-wrapper { position: relative; width: 180px; height: 180px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; }
@@ -104,9 +105,10 @@
     <div id="forgotModal" class="modal-overlay">
         <div class="modal-content">
             <h3>Pulihkan Akun</h3>
-            <input type="email" id="forgotEmail" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ddd;" placeholder="contoh@email.com">
+            <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Masukkan email anda untuk menerima link reset.</p>
+            <input type="email" id="forgotEmail" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box;" placeholder="contoh@email.com">
             <div style="display: flex; gap: 10px;">
-                <button id="sendReset" style="flex: 1; padding: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">KIRIM</button>
+                <button id="sendReset" style="flex: 1; padding: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">KIRIM</button>
                 <button id="closeModal" style="flex: 1; padding: 10px; background: #eee; border: none; border-radius: 5px; cursor: pointer;">BATAL</button>
             </div>
         </div>
@@ -117,6 +119,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
     <script>
+        // 1. Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
             authDomain: "boby-apps-project.firebaseapp.com",
@@ -129,52 +132,80 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // Splash Screen Timer
+        // 2. Splash Screen Timer (Set ke 5 Detik)
         document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => {
-                document.getElementById('splash-screen').classList.add('splash-hidden');
-                document.body.style.overflow = "auto";
-            }, 3000);
+                const splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.classList.add('splash-hidden');
+                    document.body.style.overflow = "auto";
+                }
+            }, 5000); // 5000ms = 5 detik
         });
 
-        // Toggle Password
+        // 3. Toggle Password
         document.getElementById('eyeIcon').onclick = function() {
             const pass = document.getElementById('user_pass');
             const isPass = pass.type === 'password';
             pass.type = isPass ? 'text' : 'password';
             this.classList.toggle('fa-eye-slash');
+            this.style.color = isPass ? '#007bff' : '#888';
         };
 
-        // Login Logic
+        // 4. Login Logic
         document.getElementById('userLoginForm').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnMasuk');
             const msg = document.getElementById('login-msg');
+            const email = document.getElementById('user_email').value.trim();
+            const pass = document.getElementById('user_pass').value;
+
             btn.innerText = "Memverifikasi...";
+            btn.disabled = true;
             
             try {
-                const email = document.getElementById('user_email').value;
-                const pass = document.getElementById('user_pass').value;
                 const userCredential = await auth.signInWithEmailAndPassword(email, pass);
                 if (userCredential.user.emailVerified) {
                     msg.innerText = "Berhasil! Mengalihkan...";
                     msg.className = "msg-success";
                     setTimeout(() => window.location.href = "menu.html", 1000);
                 } else {
-                    msg.innerText = "Email belum diverifikasi!";
+                    msg.innerText = "Email belum diverifikasi! Cek inbox/spam email Anda.";
                     msg.className = "msg-error";
                     btn.innerText = "MASUK";
+                    btn.disabled = false;
+                    auth.signOut();
                 }
             } catch (err) {
-                msg.innerText = "Login Gagal! Cek Email/Password.";
+                msg.innerText = "Gagal Login! Periksa kembali email & password.";
                 msg.className = "msg-error";
                 btn.innerText = "MASUK";
+                btn.disabled = false;
             }
         };
 
-        // Modal Logic
+        // 5. Forgot Password Logic
         document.getElementById('btnForgot').onclick = () => document.getElementById('forgotModal').style.display = 'flex';
         document.getElementById('closeModal').onclick = () => document.getElementById('forgotModal').style.display = 'none';
+
+        document.getElementById('sendReset').onclick = async () => {
+            const email = document.getElementById('forgotEmail').value.trim();
+            if (!email) return alert("Masukkan email!");
+            
+            try {
+                await auth.sendPasswordResetEmail(email);
+                alert("Link reset password telah dikirim ke email Anda.");
+                document.getElementById('forgotModal').style.display = 'none';
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        };
+
+        // Close modal on outside click
+        window.onclick = (event) => {
+            const modal = document.getElementById('forgotModal');
+            if (event.target == modal) modal.style.display = "none";
+        };
     </script>
 </body>
 </html>
