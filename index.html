@@ -10,176 +10,55 @@
             --emas-lux: #D4AF37; 
             --grey-bg: #2c2c2c; 
         }
-
         body {
             font-family: 'Segoe UI', Arial, sans-serif; 
             background-color: #1a1a1a; 
-            margin: 0; 
-            padding: 20px; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            overflow: hidden; 
+            margin: 0; padding: 20px; 
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; overflow: hidden; 
         }
 
-        /* --- CSS STARTUP LOGO (SPLASH SCREEN) --- */
+        /* --- SPLASH SCREEN --- */
         #splash-screen {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-color: var(--grey-bg);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 999999;
-            opacity: 1;
-            visibility: visible;
-            transition: opacity 0.8s ease, visibility 0.8s;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--grey-bg); display: flex;
+            justify-content: center; align-items: center; z-index: 999999;
+            opacity: 1; visibility: visible; transition: opacity 0.8s ease, visibility 0.8s;
         }
+        .splash-content { text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .logo-wrapper { position: relative; width: 180px; height: 180px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; }
+        .splash-logo { width: 120px; height: auto; z-index: 2; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1)); animation: pulse 2s infinite ease-in-out; }
+        .gold-loader { position: absolute; width: 160px; height: 160px; border: 5px solid rgba(212, 175, 55, 0.1); border-top: 5px solid var(--emas-lux); border-radius: 50%; animation: spin 1.5s linear infinite; box-shadow: 0 0 25px rgba(212, 175, 55, 0.3); z-index: 1; }
+        .sipapua-text { color: var(--emas-lux); font-weight: bold; font-size: 42px; letter-spacing: 5px; text-transform: uppercase; margin: 0; text-shadow: 0 0 20px rgba(212, 175, 55, 0.8); animation: glow 2s infinite alternate; }
+        .subtitle-text { color: #ffffff; font-size: 13px; font-weight: 300; margin-top: -5px; letter-spacing: 1px; opacity: 0.9; }
 
-        .splash-content {
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .logo-wrapper {
-            position: relative;
-            width: 180px; 
-            height: 180px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .splash-logo {
-            width: 120px; 
-            height: auto;
-            z-index: 2;
-            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1));
-            animation: pulse 2s infinite ease-in-out;
-        }
-
-        .gold-loader {
-            position: absolute;
-            width: 160px; 
-            height: 160px;
-            border: 5px solid rgba(212, 175, 55, 0.1);
-            border-top: 5px solid var(--emas-lux);
-            border-radius: 50%;
-            animation: spin 1.5s linear infinite;
-            box-shadow: 0 0 25px rgba(212, 175, 55, 0.3);
-            z-index: 1;
-        }
-
-        .sipapua-text {
-            color: var(--emas-lux);
-            font-weight: bold;
-            font-size: 42px;
-            letter-spacing: 5px;
-            text-transform: uppercase;
-            margin: 0;
-            text-shadow: 0 0 20px rgba(212, 175, 55, 0.8), 
-                         0 0 40px rgba(212, 175, 55, 0.4);
-            animation: glow 2s infinite alternate;
-        }
-
-        .subtitle-text {
-            color: #ffffff;
-            font-size: 13px;
-            font-weight: 300;
-            margin-top: -5px;
-            letter-spacing: 1px;
-            opacity: 0.9;
-        }
-
-        @keyframes glow {
-            from { text-shadow: 0 0 10px rgba(212, 175, 55, 0.6); }
-            to { text-shadow: 0 0 25px rgba(212, 175, 55, 1), 0 0 10px #ffffff; }
-        }
-
+        @keyframes glow { from { text-shadow: 0 0 10px rgba(212, 175, 55, 0.6); } to { text-shadow: 0 0 25px rgba(212, 175, 55, 1); } }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-        
         .splash-hidden { opacity: 0 !important; visibility: hidden !important; }
 
-        /* --- UI LOGIN CARD --- */
-        .login-card {
-            background: #ffffff; padding: 40px; border-radius: 15px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; 
-            max-width: 400px; box-sizing: border-box; 
-            border-top: 5px solid #007bff; 
-            position: relative; z-index: 1;
-        }
+        /* --- LOGIN CARD --- */
+        .login-card { background: #ffffff; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 400px; box-sizing: border-box; border-top: 5px solid #007bff; position: relative; z-index: 1; }
         .header { text-align: center; margin-bottom: 30px; }
         .header img { width: 80px; margin-bottom: 10px; }
         .header h2 { margin: 0; color: #333; font-size: 20px; text-transform: uppercase; }
-        .header span { 
-            color: #ffcc00; font-size: 14px; background: #2c3e50; 
-            padding: 4px 12px; border-radius: 20px; display: inline-block; margin-top: 10px;
-        }
-
-        #login-msg {
-            display: none;
-            padding: 12px; margin-bottom: 15px; border-radius: 8px;
-            font-size: 13px; font-weight: bold; text-align: center;
-        }
+        .header span { color: #ffcc00; font-size: 14px; background: #2c3e50; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-top: 10px; }
+        
+        #login-msg { display: none; padding: 12px; margin-bottom: 15px; border-radius: 8px; font-size: 13px; font-weight: bold; text-align: center; }
         .msg-error { display: block !important; background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
         .msg-success { display: block !important; background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
 
         .form-group { margin-bottom: 20px; position: relative; }
         .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #444; }
-        .form-group input { 
-            width: 100%; padding: 12px; border: 1px solid #ddd; 
-            border-radius: 8px; box-sizing: border-box; font-size: 14px; outline: none; 
-        }
-        .form-group input:focus { border-color: #007bff; }
-
-        .toggle-password { 
-            position: absolute; right: 15px; top: 38px; 
-            cursor: pointer; color: #888; transition: 0.3s; 
-        }
-        .eye-active { color: #007bff !important; text-shadow: 0 0 8px rgba(0,123,255,0.5); }
-
-        .btn-login { 
-            width: 100%; padding: 14px; background-color: #007bff; 
-            color: white; border: none; border-radius: 8px; 
-            font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; 
-        }
-        .btn-login:hover { background-color: #0056b3; }
-        
+        .form-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; outline: none; }
+        .toggle-password { position: absolute; right: 15px; top: 38px; cursor: pointer; color: #888; }
+        .btn-login { width: 100%; padding: 14px; background-color: #007bff; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
         .footer-links { text-align: center; margin-top: 20px; font-size: 13px; color: #666; }
-        .footer-links a { color: #007bff; text-decoration: none; font-weight: bold; }
+        .forgot-pass { display: block; margin: 15px 0; font-size: 12px; color: #ff5722; text-decoration: none; font-weight: bold; cursor: pointer; }
 
-        /* --- CSS LUPA PASSWORD --- */
-        .forgot-pass {
-            display: block;
-            margin: 15px 0;
-            font-size: 12px;
-            color: #ff5722;
-            text-decoration: none;
-            font-weight: bold;
-            transition: 0.3s;
-            cursor: pointer;
-        }
-        .forgot-pass:hover {
-            color: #e64a19;
-            transform: scale(1.05);
-        }
-
-        /* --- CSS MODAL --- */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); display: none; justify-content: center;
-            align-items: center; z-index: 1000;
-        }
-        .modal-content {
-            background: white; padding: 25px; border-radius: 12px;
-            width: 90%; max-width: 350px; text-align: center;
-        }
+        /* --- MODAL --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 350px; text-align: center; }
     </style>
 </head>
 <body>
@@ -201,9 +80,7 @@
             <h2>Pondok Pemulihan Papua</h2>
             <span>SISTEM INFORMASI JEMAAT</span>
         </div>
-
         <div id="login-msg"></div>
-
         <form id="userLoginForm">
             <div class="form-group">
                 <label>Email Anggota</label>
@@ -216,201 +93,88 @@
             </div>
             <button type="submit" id="btnMasuk" class="btn-login">MASUK</button>
         </form>
-
         <div class="footer-links">
             Belum punya akun? <a href="registrasi.html">Daftar Sekarang</a>
-            
             <span class="forgot-pass" id="btnForgot">Lupa Password Ya ?? 😊</span>
-            
-          <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
-<a href="login_cyber.html" style="font-weight: bold; color: #888; font-size: 18px; text-decoration: none;">
-    <h4>Masuk sebagai Admin</h4>
-</a>
+            <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
+            <a href="login_cyber.html" style="font-weight: normal; color: #888; font-size: 11px;">Masuk sebagai Admin</a>
         </div>
     </div>
 
     <div id="forgotModal" class="modal-overlay">
         <div class="modal-content">
-            <h3 style="margin-top: 0; color: #333;">Pulihkan Akun</h3>
-            <p style="font-size: 13px; color: #666;">Masukkan email anda yang didaftarkan pada akun ini:</p>
-            <input type="email" id="forgotEmail" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;" placeholder="contoh@email.com">
+            <h3>Pulihkan Akun</h3>
+            <input type="email" id="forgotEmail" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ddd;" placeholder="contoh@email.com">
             <div style="display: flex; gap: 10px;">
-                <button id="sendReset" style="flex: 1; padding: 10px; background: #007bff; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">KIRIM LINK</button>
+                <button id="sendReset" style="flex: 1; padding: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">KIRIM</button>
                 <button id="closeModal" style="flex: 1; padding: 10px; background: #eee; border: none; border-radius: 5px; cursor: pointer;">BATAL</button>
             </div>
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
-   <script>
-    // 1. FIREBASE CONFIG
-    const firebaseConfig = {
-        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
-        authDomain: "boby-apps-project.firebaseapp.com",
-        projectId: "boby-apps-project",
-        storageBucket: "boby-apps-project.appspot.com",
-        messagingSenderId: "125984859692",
-        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
-    };
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+            authDomain: "boby-apps-project.firebaseapp.com",
+            projectId: "boby-apps-project",
+            storageBucket: "boby-apps-project.appspot.com",
+            messagingSenderId: "125984859692",
+            appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+        };
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-    // Inisialisasi Realtime Database untuk fungsi baru
-    const dbRT = firebase.database(); 
-
-    // 2. LOGIC STARTUP SPLASH SCREEN
-    document.addEventListener("DOMContentLoaded", function() {
-        setTimeout(() => {
-            const splash = document.getElementById('splash-screen');
-            if (splash) {
-                splash.classList.add('splash-hidden');
+        // Splash Screen Timer
+        document.addEventListener("DOMContentLoaded", () => {
+            setTimeout(() => {
+                document.getElementById('splash-screen').classList.add('splash-hidden');
                 document.body.style.overflow = "auto";
-            }
-        }, 3000);
-    });
+            }, 3000);
+        });
 
-    // 3. FITUR LIHAT PASSWORD
-    const eyeIcon = document.getElementById('eyeIcon');
-    const passInput = document.getElementById('user_pass');
-    if(eyeIcon) {
-        eyeIcon.addEventListener('click', function() {
-            const isPassword = passInput.type === 'password';
-            passInput.type = isPassword ? 'text' : 'password';
+        // Toggle Password
+        document.getElementById('eyeIcon').onclick = function() {
+            const pass = document.getElementById('user_pass');
+            const isPass = pass.type === 'password';
+            pass.type = isPass ? 'text' : 'password';
             this.classList.toggle('fa-eye-slash');
-            this.classList.toggle('eye-active'); 
-        });
-    }
+        };
 
-    // 4. LOGIC LOGIN & VERIFIKASI (DIPERBARUI)
-    document.getElementById('userLoginForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const email = document.getElementById('user_email').value.trim();
-        const pass = document.getElementById('user_pass').value;
-        const msgBox = document.getElementById('login-msg');
-        const btn = document.getElementById('btnMasuk');
-
-        btn.innerText = "Memverifikasi...";
-        btn.disabled = true;
-
-        try {
-            const userCredential = await auth.signInWithEmailAndPassword(email, pass);
-            const user = userCredential.user;
-
-            // Update status ke objek user untuk data terbaru
-            await user.reload();
-
-            if (auth.currentUser.emailVerified) {
-                localStorage.setItem("userEmail", email);
-                localStorage.setItem("userUID", user.uid);
-                localStorage.setItem("adminLoggedIn", "false");
-
-                // Update Firestore secara silent
-                await db.collection("users").doc(user.uid).update({
-                    status_verifikasi: "Active"
-                }).catch(e => console.log("Update status skipped"));
-
-                msgBox.innerText = "Login Berhasil! Mengalihkan...";
-                msgBox.className = "msg-success";
-                
-                setTimeout(() => { 
-                    window.location.replace("menu.html"); 
-                }, 1000);
-
-            } else {
-                msgBox.innerText = "Akun belum aktif! Cek inbox/spam email kamu untuk link verifikasi.";
-                msgBox.className = "msg-error";
-                btn.innerText = "MASUK";
-                btn.disabled = false;
-                await auth.signOut();
-            }
-
-        } catch (err) {
-            console.error(err);
-            let errorMessage = "Gagal login. Periksa kembali email dan password.";
-            if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
-                errorMessage = "Email atau Password salah!";
-            }
-            msgBox.innerText = errorMessage;
-            msgBox.className = "msg-error";
-            btn.innerText = "MASUK";
-            btn.disabled = false;
-        }
-    });
-
-    // 5. LOGIKA RESET PASSWORD
-    const btnForgot = document.getElementById('btnForgot');
-    const forgotModal = document.getElementById('forgotModal');
-    const closeModal = document.getElementById('closeModal');
-    const sendReset = document.getElementById('sendReset');
-    const forgotEmailInput = document.getElementById('forgotEmail');
-    const mainMsgBox = document.getElementById('login-msg');
-
-    btnForgot.onclick = () => { forgotModal.style.display = 'flex'; };
-    closeModal.onclick = () => { forgotModal.style.display = 'none'; };
-
-    sendReset.onclick = async () => {
-        const email = forgotEmailInput.value.trim();
-        if (!email) { alert("Mohon masukkan email Anda!"); return; }
-
-        sendReset.innerText = "Mengirim...";
-        sendReset.disabled = true;
-
-        try {
-            await auth.sendPasswordResetEmail(email);
-            forgotModal.style.display = 'none';
-            mainMsgBox.innerText = "Link pemulihan terkirim! Silakan cek email Anda.";
-            mainMsgBox.className = "msg-success";
-            forgotEmailInput.value = "";
-        } catch (error) {
-            alert("Gagal: " + error.message);
-        } finally {
-            sendReset.innerText = "KIRIM LINK";
-            sendReset.disabled = false;
-        }
-    };
-
-    window.onclick = (event) => {
-        if (event.target == forgotModal) { forgotModal.style.display = "none"; }
-    };
-
-    // --- PENAMBAHAN FUNGSI FETCH REPORT DATA (SESUAI PERINTAH) ---
-    function fetchUserReportData(uid) {
-        // Ambil data profil dari Realtime Database berdasarkan UID user yang sedang login
-        const userRef = dbRT.ref('users/' + uid);
-
-        userRef.on('value', (snapshot) => {
-            const data = snapshot.val();
+        // Login Logic
+        document.getElementById('userLoginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnMasuk');
+            const msg = document.getElementById('login-msg');
+            btn.innerText = "Memverifikasi...";
             
-            if (data) {
-                // 1. ISI PROFIL JEMAAT (Otomatis sesuai UID)
-                document.getElementById('display-nama').innerText = data.nama_lengkap || 'Anggota';
-                document.getElementById('display-nij').innerText = data.nij || '-';
-                document.getElementById('display-jemaat').innerText = data.wilayah_jemaat || '-';
-                document.getElementById('display-komsel-info').innerText = data.nama_komsel || '-';
-
-                // 2. AMBIL DATA STATISTIK (Jika admin sudah mengisi di database)
-                const stats = data.statistik || {
-                    "Pembacaan FT": 0, "Kehadiran Doa": 0, "Kehadiran Komsel": 0,
-                    "Ibadah Raya": 0, "Komsel Gabungan": 0, "Kegiatan KD": 0,
-                    "Latihan": 0, "Pelayanan": 0
-                };
-                
-                // Panggil fungsi render yang sudah didefinisikan di elemen lain
-                if (typeof renderVisualisasi === "function") {
-                    renderVisualisasi(stats);
+            try {
+                const email = document.getElementById('user_email').value;
+                const pass = document.getElementById('user_pass').value;
+                const userCredential = await auth.signInWithEmailAndPassword(email, pass);
+                if (userCredential.user.emailVerified) {
+                    msg.innerText = "Berhasil! Mengalihkan...";
+                    msg.className = "msg-success";
+                    setTimeout(() => window.location.href = "menu.html", 1000);
+                } else {
+                    msg.innerText = "Email belum diverifikasi!";
+                    msg.className = "msg-error";
+                    btn.innerText = "MASUK";
                 }
-                
-            } else {
-                console.warn("Data profil belum dibuat di Realtime Database untuk UID:", uid);
-                document.getElementById('display-nama').innerText = "Data Tidak Ditemukan";
+            } catch (err) {
+                msg.innerText = "Login Gagal! Cek Email/Password.";
+                msg.className = "msg-error";
+                btn.innerText = "MASUK";
             }
-        }, (error) => {
-            console.error("Error mengambil data:", error);
-        });
-    }
-</script></body>
+        };
+
+        // Modal Logic
+        document.getElementById('btnForgot').onclick = () => document.getElementById('forgotModal').style.display = 'flex';
+        document.getElementById('closeModal').onclick = () => document.getElementById('forgotModal').style.display = 'none';
+    </script>
+</body>
 </html>
