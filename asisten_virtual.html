@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIPAPUA - Integrated</title>
+    <title>Asisten Virtual - Integrated</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
@@ -18,7 +18,7 @@
             transition: opacity 1s ease;
         }
 
-        /* 2. STYLE ASISTEN VIRTUAL (HIDDEN BY DEFAULT) */
+        /* 2. STYLE ASISTEN VIRTUAL */
         #assistant-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle at center, #0a0f1f, #000);
@@ -31,11 +31,10 @@
         }
         .text-box { margin-top: 25px; color: #fff; font-size: 18px; text-align: center; max-width: 80%; min-height: 80px; line-height: 1.5; }
         
-        /* 3. STYLE LOGIN CARD (HIDDEN BY DEFAULT) */
+        /* 3. STYLE LOGIN CARD */
         #login-page {
             display: none; height: 100vh; justify-content: center; align-items: center;
         }
-        /* ... Style login card Anda tetap sama seperti sebelumnya ... */
         .login-card { background: #ffffff; padding: 30px; border-radius: 15px; width: 90%; max-width: 380px; }
 
         /* ANIMASI */
@@ -78,6 +77,10 @@
         const loginPage = document.getElementById('login-page');
         const typingEl = document.getElementById('typing');
 
+        // --- TAMBAHAN LOGIKA AUDIO ---
+        const bgSound = new Audio('asisten_virtual_sound.mp3');
+        bgSound.loop = true; // Agar musik terus berputar selama sesi asisten
+
         const messages = [
             "Selamat Datang di SIPAPUA (Sistem Informasi Pondok Pemulihan Papua). Aplikasi ini adalah sebuah terobosan untuk membantu Anda dalam menjalankan penilaian dari segi level pelayanan yang Anda lakukan.",
             "Aplikasi ini sangat membantu saudara mempermudah melakukan kontrol terhadap penilaian disetiap bidang pelayanan yang Anda lakukan.",
@@ -93,7 +96,13 @@
             splash.style.opacity = '0';
             setTimeout(() => {
                 splash.style.display = 'none';
-                assistant.style.display = 'flex'; // Munculkan Asisten
+                assistant.style.display = 'flex'; 
+                
+                // --- MULAI PUTAR SUARA ---
+                bgSound.play().catch(error => {
+                    console.log("Autoplay diblokir browser, suara akan muncul setelah interaksi pengguna.");
+                });
+
                 startTyping();
             }, 1000);
         }, 3000);
@@ -106,18 +115,20 @@
                 if (charIndex < currentText.length) {
                     typingEl.innerHTML += currentText.charAt(charIndex);
                     charIndex++;
-                    setTimeout(startTyping, 40); // Kecepatan ketik
+                    setTimeout(startTyping, 40); 
                 } else {
-                    // Jeda setelah satu slide selesai diketik
                     setTimeout(() => {
                         charIndex = 0;
                         typingEl.innerHTML = "";
                         msgIndex++;
                         startTyping();
-                    }, 3000); // Jeda antar pesan (3 detik)
+                    }, 3000); 
                 }
             } else {
-                // 3. Masuk ke Halaman Login setelah semua pesan selesai
+                // 3. Masuk ke Halaman Login & Matikan Suara
+                bgSound.pause(); // Musik berhenti saat masuk ke login
+                bgSound.currentTime = 0; // Reset ke awal jika ingin diputar lagi nanti
+
                 assistant.style.display = 'none';
                 loginPage.style.display = 'flex';
                 document.body.style.overflow = "auto";
