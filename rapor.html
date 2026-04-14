@@ -103,18 +103,20 @@
         <h3 style="text-align:left; font-size:16px; margin-bottom:10px;">TABEL PERSENTASE</h3>
         <table class="excel-table">
             <thead>
-              <tr>
-    <td>Minggu I</td>
-    <td id="alkitab-0">-</td>
-    <td id="ibadah-0">-</td>
-    <td id="komsel-0">-</td>
-    <td id="gabungan-0">-</td>
-    <td id="pemimpin-0">-</td>
-    <td id="kd-0">-</td>
-    <td id="latihan-0">-</td>
-    <td id="pelayanan-0">-</td>
-    <td id="doa-0">-</td>
-</tr>
+             <tbody id="excel-table-body">
+    <tr>
+        <td>Minggu I</td>
+        <td id="alkitab-0">-</td>
+        <td id="ibadah-0">-</td>
+        <td id="komsel-0">-</td>
+        <td id="gabungan-0">-</td>
+        <td id="pemimpin-0">-</td>
+        <td id="kd-0">-</td>
+        <td id="latihan-0">-</td>
+        <td id="pelayanan-0">-</td>
+        <td id="doa-0">-</td>
+    </tr>
+    </tbody>
             </thead>
             <tbody id="excel-table-body">
             </tbody>
@@ -157,7 +159,6 @@
  
 <script>
     // --- KONFIGURASI FIREBASE ---
-    // Pastikan URL ini benar sesuai dashboard Firebase Anda untuk menghindari WebSocket Failed
     const firebaseConfig = {
         apiKey: "AIzaSy...", 
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -188,22 +189,14 @@
     function exportToPDF() {
         const element = document.getElementById('report-content');
         const btn = document.querySelector('.pdf-export-btn');
-        
         btn.style.display = 'none';
- 
         const opt = {
-            margin:       [10, 10, 10, 10],
-            filename:     'Rapor_Pondok_Pemulihan_Papua.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { 
-                scale: 2, 
-                useCORS: true,
-                logging: false,
-                y: 0 
-            },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            margin: [10, 10, 10, 10],
+            filename: 'Rapor_Pondok_Pemulihan_Papua.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, logging: false, y: 0 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
         };
- 
         html2pdf().set(opt).from(element).save().then(() => {
             btn.style.display = 'block';
         });
@@ -221,12 +214,10 @@
                 document.getElementById('display-jemaat').innerText = data.wilayah_jemaat || '-';
                 document.getElementById('display-komsel-info').innerText = data.nama_komsel || '-';
 
-                // --- LOGIKA MENGISI TABEL MINGGUAN ---
+                // --- LOGIKA MENGISI TABEL MINGGUAN (Sesuai ID di HTML Anda) ---
                 const bulanan = data.statistik_bulanan;
                 if (bulanan && bulanan["Minggu I"]) {
                     const m1 = bulanan["Minggu I"];
-                    
-                    // Isi data ke ID yang baru saja Anda buat
                     document.getElementById('alkitab-0').innerText = (m1.alkitab || 0) + "%";
                     document.getElementById('ibadah-0').innerText = (m1.ibadah_raya || 0) + "%";
                     document.getElementById('komsel-0').innerText = (m1.komsel || 0) + "%";
@@ -245,8 +236,7 @@
  
     function renderHalaman() {
         const cardsCont = document.getElementById('cards-container');
-        const excelTable = document.getElementById('excel-table-body');
-        const excelTablePoin = document.getElementById('excel-table-body-poin');
+        // Bagian pembuatan tabel otomatis dihapus agar tidak merusak desain asli Anda
         
         cardsCont.innerHTML = "";
         Object.keys(dataPribadi).forEach(key => {
@@ -258,31 +248,6 @@
                     <div style="font-size:22px; font-weight:bold;">${val}%</div>
                 </div>`;
         });
- 
-        const listAnggota = [
-            { periode: "Minggu I" },
-            { periode: "Minggu II" },
-            { periode: "Minggu III" },
-            { periode: "Minggu IV" }
-        ];
- 
-        let tableHTML = "";
-        listAnggota.forEach((user) => {
-            tableHTML += `
-                <tr>
-                    <td>${user.periode}</td>
-                    <td></td> <td></td> 
-                    <td></td> 
-                    <td></td> 
-                    <td></td> 
-                    <td></td> 
-                    <td></td> 
-                    <td></td> 
-                    <td></td> </tr>`;
-        });
-        
-        excelTable.innerHTML = tableHTML + `<tr class="separator"><td colspan="10"></td></tr>`;
-        excelTablePoin.innerHTML = tableHTML + `<tr class="separator"><td colspan="10"></td></tr>`;
  
         new Chart(document.getElementById('pieChart'), {
             type: 'pie',
