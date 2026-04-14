@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Millionaire Alkitab - Pondok Pemulihan Papua</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --biru-tua: #003366; --emas: #D4AF37; --bg: #001f3f; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; color: white; overflow: hidden; }
+
+        /* Header */
+        .header-game { background: var(--biru-tua); padding: 15px; display: flex; align-items: center; border-bottom: 3px solid var(--emas); }
+        .btn-back { color: white; font-size: 20px; text-decoration: none; margin-right: 15px; }
+
+        /* Game Container */
+        .game-container { padding: 20px; text-align: center; max-width: 600px; margin: auto; height: 80vh; display: flex; flex-direction: column; justify-content: center; }
+
+        .prize-level { color: var(--emas); font-weight: bold; font-size: 18px; margin-bottom: 10px; }
+        
+        .question-box {
+            background: rgba(0, 51, 102, 0.8);
+            border: 2px solid var(--emas);
+            padding: 20px;
+            border-radius: 50px 0 50px 0;
+            margin-bottom: 30px;
+            font-size: 18px;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        .btn-answer {
+            background: transparent;
+            border: 1px solid var(--emas);
+            color: white;
+            padding: 15px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.3s;
+            text-align: left;
+            position: relative;
+        }
+
+        .btn-answer:hover { background: rgba(212, 175, 55, 0.2); }
+        .btn-answer.correct { background: #28a745 !important; border-color: white; }
+        .btn-answer.wrong { background: #d9534f !important; border-color: white; }
+
+        /* Lifelines */
+        .lifelines { display: flex; justify-content: center; gap: 20px; margin-top: 30px; }
+        .lifeline-btn { 
+            width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--emas);
+            background: var(--biru-tua); color: var(--emas); display: flex; align-items: center;
+            justify-content: center; cursor: pointer; font-size: 18px;
+        }
+        .lifeline-btn.used { opacity: 0.3; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+<div class="header-game">
+    <a href="menu.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i></a>
+    <div style="font-weight: bold;">MILLIONAIRE ALKITAB</div>
+</div>
+
+<div class="game-container" id="game-ui">
+    <div class="prize-level" id="level-display">Pertanyaan 1 - Rp 100.000</div>
+    <div class="question-box" id="question-text">Memuat pertanyaan...</div>
+    
+    <div class="answers-grid" id="answers-container">
+        </div>
+
+    <div class="lifelines">
+        <div class="lifeline-btn" onclick="use5050(this)" title="50:50">50:50</div>
+        <div class="lifeline-btn" onclick="usePhone(this)"><i class="fa-solid fa-phone"></i></div>
+        <div class="lifeline-btn" onclick="useAudience(this)"><i class="fa-solid fa-users"></i></div>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        { q: "Siapa raja pertama bangsa Israel?", a: ["Daud", "Saul", "Salomo", "Yosua"], c: 1 },
+        { q: "Apa arti nama 'Imanuel'?", a: ["Allah Mahakuasa", "Tuhan Raja kami", "Allah menyertai kita", "Gembala Baik"], c: 2 },
+        { q: "Berapa hari Tuhan menciptakan alam semesta?", a: ["5 Hari", "7 Hari", "6 Hari", "40 Hari"], c: 2 },
+        // Tambahkan lebih banyak pertanyaan di sini
+    ];
+
+    let currentQ = 0;
+    let score = 0;
+
+    function loadQuestion() {
+        const data = quizData[currentQ];
+        document.getElementById('level-display').innerText = `Pertanyaan ${currentQ + 1} - Skor: ${score}`;
+        document.getElementById('question-text').innerText = data.q;
+        
+        const container = document.getElementById('answers-container');
+        container.innerHTML = '';
+        
+        data.a.forEach((ans, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-answer';
+            btn.innerHTML = `<b>${String.fromCharCode(65 + idx)}:</b> ${ans}`;
+            btn.onclick = () => checkAnswer(idx, btn);
+            container.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(idx, btn) {
+        const correct = quizData[currentQ].c;
+        if(idx === correct) {
+            btn.classList.add('correct');
+            score += 1000;
+            setTimeout(() => {
+                currentQ++;
+                if(currentQ < quizData.length) loadQuestion();
+                else alert("Luar Biasa! Anda Millionaire Rohani!");
+            }, 1000);
+        } else {
+            btn.classList.add('wrong');
+            alert("Sayang sekali, jawaban Anda salah. Coba lagi nanti!");
+            window.location.reload();
+        }
+    }
+
+    // Fungsi Bantuan Sederhana
+    function use5050(btn) {
+        if(btn.classList.contains('used')) return;
+        btn.classList.add('used');
+        const correct = quizData[currentQ].c;
+        const buttons = document.querySelectorAll('.btn-answer');
+        let hidden = 0;
+        buttons.forEach((b, i) => {
+            if(i !== correct && hidden < 2) {
+                b.style.visibility = 'hidden';
+                hidden++;
+            }
+        });
+    }
+
+    window.onload = loadQuestion;
+</script>
+</body>
+</html>
