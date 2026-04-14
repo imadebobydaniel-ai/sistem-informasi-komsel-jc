@@ -24,7 +24,6 @@
             box-sizing: border-box;
         }
 
-        /* Timer Section */
         .timer-container {
             position: relative; width: 80px; height: 80px; margin: 0 auto;
             display: flex; align-items: center; justify-content: center;
@@ -54,28 +53,16 @@
         .btn-answer.wrong { background: #d9534f !important; border-color: white; }
         .btn-answer.hidden { visibility: hidden; }
 
-        /* Lifelines - PERBAIKAN DI SINI */
         .lifelines-container { display: flex; justify-content: center; gap: 15px; margin: 10px 0; }
         .btn-lifeline {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            border: 2px solid var(--emas);
-            background: var(--biru-tua);
-            color: var(--emas);
-            font-size: 11px; /* Ukuran font dikecilkan agar muat */
-            cursor: pointer;
-            display: inline-flex; /* Gunakan flexbox */
-            align-items: center; /* Rata tengah vertikal */
-            justify-content: center; /* Rata tengah horizontal */
-            font-weight: bold;
-            padding: 0;
-            overflow: hidden;
-            box-sizing: border-box;
+            width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--emas);
+            background: var(--biru-tua); color: var(--emas); font-size: 11px;
+            cursor: pointer; display: inline-flex; align-items: center;
+            justify-content: center; font-weight: bold; padding: 0;
+            overflow: hidden; box-sizing: border-box;
         }
         .btn-lifeline.used { opacity: 0.3; cursor: default; }
 
-        /* OVERLAY MINIMALIS LEADERBOARD */
         #leaderboard-overlay { 
             display: none; position: fixed; bottom: 0; left: 0; width: 100%; 
             height: 55vh; background: white; border-radius: 25px 25px 0 0;
@@ -89,7 +76,6 @@
         .rank-name { margin: 0; font-size: 13px; font-weight: bold; }
         .rank-score { font-weight: bold; color: #28a745; font-size: 13px; }
 
-        /* Other Overlays */
         #start-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 6000; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; box-sizing: border-box;}
         .start-box { background: var(--biru-tua); border: 2px solid var(--emas); padding: 25px; border-radius: 20px; width: 100%; max-width: 350px; }
         .notif-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 7000; align-items: center; justify-content: center; padding: 20px; }
@@ -183,6 +169,18 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // --- INISIALISASI AUDIO ---
+    const soundBg = new Audio('sounds/background_soal.mp3');
+    const soundCorrect = new Audio('sounds/jawaban_benar.mp3');
+    const soundWrong = new Audio('sounds/jawaban_salah.mp3');
+    const soundTimer = new Audio('sounds/timer_tick.mp3');
+    const soundWin = new Audio('sounds/pemenang.mp3');
+
+    soundBg.loop = true;
+    soundBg.volume = 0.4;
+    soundTimer.loop = true;
+    soundTimer.volume = 0.6;
+
     const quizRawData = [
         { q: "Siapa raja pertama bangsa Israel?", a: ["Daud", "Saul", "Salomo", "Yosua"], c: 1 },
         { q: "Apa arti nama 'Imanuel'?", a: ["Allah Mahakuasa", "Tuhan Raja kami", "Allah menyertai kita", "Gembala Baik"], c: 2 }
@@ -214,6 +212,11 @@
     function realStart() {
         isGameStarted = true;
         document.getElementById('start-btn-container').style.display = 'none';
+        
+        // Mulai Audio
+        soundBg.play();
+        soundTimer.play();
+        
         startGlobalTimer();
     }
 
@@ -258,42 +261,42 @@
 
     function checkAnswer(idx, btn) {
         const correct = quizData[currentQ].c;
+        soundTimer.pause(); // Hentikan timer saat cek jawaban
+
         if(idx === correct) {
+            soundCorrect.play();
             btn.classList.add('correct');
             score += 20;
             setTimeout(() => {
                 currentQ++;
+                soundTimer.play(); 
                 loadQuestion();
-            }, 600);
+            }, 2000);
         } else {
+            soundBg.pause();
+            soundWrong.play();
             btn.classList.add('wrong');
             clearInterval(timerInterval);
             setTimeout(() => {
                 showNotif("GAGAL", `Jawaban Salah. Skor: ${score}`, "fail", () => location.reload());
-            }, 600);
+            }, 2000);
         }
     }
 
     async function finishGame() {
         clearInterval(timerInterval);
+        soundBg.pause();
+        soundTimer.pause();
+        soundWin.play();
+
         if(userData) {
             const ref = db.collection("game_scores").doc(userData.email);
             const doc = await ref.get();
-            
             if(doc.exists) {
                 let poinLama = doc.data().skor || 0;
-                await ref.update({ 
-                    skor: poinLama + score, 
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-                });
+                await ref.update({ skor: poinLama + score, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
             } else {
-                await ref.set({ 
-                    nama: userData.nama, 
-                    email: userData.email, 
-                    skor: score, 
-                    foto: userData.foto_profil || "", 
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-                });
+                await ref.set({ nama: userData.nama, email: userData.email, skor: score, foto: userData.foto_profil || "", timestamp: firebase.firestore.FieldValue.serverTimestamp() });
             }
         }
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
@@ -309,20 +312,11 @@
     function loadLeaderboard() {
         const list = document.getElementById('rank-list');
         list.innerHTML = "<p style='text-align:center; color:#666;'>Mengambil data peringkat...</p>";
-        
         db.collection("game_scores").orderBy("skor", "desc").limit(15).get().then(snap => {
             let html = ""; let rank = 1;
             snap.forEach(doc => {
                 const d = doc.data();
-                html += `
-                <div class="rank-card">
-                    <div class="rank-numb">${rank++}</div>
-                    <img src="${d.foto || 'https://via.placeholder.com/100'}" class="rank-img">
-                    <div class="rank-info">
-                        <p class="rank-name">${d.nama}</p>
-                    </div>
-                    <div class="rank-score">${d.skor.toLocaleString()} Pt</div>
-                </div>`;
+                html += `<div class="rank-card"><div class="rank-numb">${rank++}</div><img src="${d.foto || 'https://via.placeholder.com/100'}" class="rank-img"><div class="rank-info"><p class="rank-name">${d.nama}</p></div><div class="rank-score">${d.skor.toLocaleString()} Pt</div></div>`;
             });
             list.innerHTML = html || "<p style='text-align:center; color:#999;'>Belum ada pemain.</p>";
         });
