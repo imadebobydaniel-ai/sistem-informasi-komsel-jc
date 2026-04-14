@@ -80,17 +80,14 @@
 
         .card-controls {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end; /* Hanya ada tombol hapus sekarang */
             align-items: center;
             margin-bottom: 10px;
             padding-bottom: 10px;
             border-bottom: 1px dashed #eee;
         }
 
-        .select-box { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #666; font-weight: bold; }
-        .select-box input { width: 18px; height: 18px; cursor: pointer; }
-
-        .btn-delete { color: var(--merah); cursor: pointer; font-size: 14px; background: none; border: none; }
+        .btn-delete { color: var(--merah); cursor: pointer; font-size: 14px; background: none; border: none; font-weight: bold; }
 
         .kesaksian-text { font-size: 15px; color: #333; line-height: 1.6; margin-bottom: 15px; font-style: italic; white-space: pre-wrap; }
         
@@ -98,28 +95,23 @@
             display: flex; 
             gap: 10px; 
             margin-bottom: 15px; 
-            opacity: 0.3; 
-            pointer-events: none; 
-            transition: 0.3s;
         }
-        .share-panel.active { opacity: 1; pointer-events: auto; }
         
         .btn-share { 
             flex: 1; 
-            padding: 8px; 
+            padding: 10px; 
             border-radius: 8px; 
             border: none; 
             color: white; 
-            font-size: 12px; 
+            font-size: 13px; 
             cursor: pointer; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            gap: 5px; 
+            gap: 8px; 
+            font-weight: bold;
         }
         .bg-wa { background: #25D366; }
-        .bg-fb { background: #1877F2; }
-        .bg-ig { background: #E4405F; }
 
         .kesaksian-footer { display: flex; align-items: center; gap: 12px; padding-top: 15px; border-top: 1px solid #eee; }
         .author-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--emas); }
@@ -225,23 +217,14 @@
                 html += `
                     <div class="kesaksian-card" id="card-${id}">
                         <div class="card-controls">
-                            <label class="select-box">
-                                <input type="checkbox" onchange="toggleShare('${id}', this)"> Aktifkan Share
-                            </label>
                             ${canDelete ? `<button class="btn-delete" onclick="hapusKesaksian('${id}')"><i class="fa-solid fa-trash-can"></i> Hapus</button>` : ''}
                         </div>
 
                         <div class="kesaksian-text">"${data.isi_kesaksian}"</div>
 
-                        <div class="share-panel" id="share-${id}">
+                        <div class="share-panel">
                             <button class="btn-share bg-wa" onclick="shareWA('${isiMurni}', '${namaPenulis}', '${nijPenulis}', '${komselPenulis}')">
-                                <i class="fa-brands fa-whatsapp"></i> WA
-                            </button>
-                            <button class="btn-share bg-fb" onclick="shareFB('${isiMurni}', '${namaPenulis}', '${nijPenulis}', '${komselPenulis}')">
-                                <i class="fa-brands fa-facebook-f"></i> FB
-                            </button>
-                            <button class="btn-share bg-ig" onclick="shareIG('${isiMurni}', '${namaPenulis}', '${nijPenulis}', '${komselPenulis}')">
-                                <i class="fa-brands fa-instagram"></i> IG
+                                <i class="fa-brands fa-whatsapp"></i> BAGIKAN KE WHATSAPP
                             </button>
                         </div>
 
@@ -258,38 +241,10 @@
         });
     }
 
-    function toggleShare(id, cb) {
-        const panel = document.getElementById(`share-${id}`);
-        if(cb.checked) panel.classList.add('active');
-        else panel.classList.remove('active');
-    }
-
-    // FUNGSI PEMBUAT TEKS FORMAT STANDAR
-    function buatFormatPesan(isi, nama, nij, komsel) {
-        return `SIPAPUA\n(Sistem Informasi Pondok Pemulihan Papua)\nPope Shelter\n\nKesaksian:\n"${isi}"\n\n---\nPenulis: ${nama}\nNIJ: ${nij}\nKomsel: ${komsel}`;
-    }
-
     function shareWA(isi, nama, nij, komsel) {
-        // Khusus WA kita gunakan format bold/italic
         const teks = `*SIPAPUA*\n(Sistem Informasi Pondok Pemulihan Papua)\n_Pope Shelter_\n\n*Kesaksian:*\n"${isi}"\n\n---\n*Penulis:* ${nama}\n*NIJ:* ${nij}\n*Komsel:* ${komsel}`;
         const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(teks)}`;
         window.open(url, '_blank');
-    }
-
-    function shareFB(isi, nama, nij, komsel) {
-        const teks = buatFormatPesan(isi, nama, nij, komsel);
-        navigator.clipboard.writeText(teks).then(() => {
-            alert("Teks format SIPAPUA telah disalin! Silakan paste (tempel) teks di postingan Facebook Anda.");
-            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank');
-        });
-    }
-
-    function shareIG(isi, nama, nij, komsel) {
-        const teks = buatFormatPesan(isi, nama, nij, komsel);
-        navigator.clipboard.writeText(teks).then(() => {
-            alert("Format SIPAPUA sudah disalin ke Clipboard.\n\nLangkah:\n1. Buka Instagram\n2. Paste (tempel) teks di Caption.");
-            window.open('https://www.instagram.com/', '_blank');
-        });
     }
 
     async function hapusKesaksian(id) {
