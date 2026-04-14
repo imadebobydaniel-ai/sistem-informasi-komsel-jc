@@ -18,7 +18,7 @@
             min-height: 100vh; overflow: hidden; 
         }
 
-        /* --- SPLASH SCREEN --- */
+        /* --- SPLASH SCREEN (STRUKTUR ASLI) --- */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: var(--grey-bg); display: flex;
@@ -34,7 +34,7 @@
         .sipapua-text { 
             color: var(--emas-lux); 
             font-weight: bold; 
-            font-size: 48px; /* Sedikit diperbesar dari 42px */
+            font-size: 48px;
             letter-spacing: 6px; 
             text-transform: uppercase; 
             margin: 0; 
@@ -42,15 +42,14 @@
             animation: glow 2s infinite alternate; 
         }
 
-        /* PERUBAHAN: Subtitle diperbesar dan dipertegas */
         .subtitle-text { 
             color: #ffffff; 
-            font-size: 18px; /* Diperbesar dari 13px */
-            font-weight: 600; /* Dipertegas dari 300 */
+            font-size: 18px; 
+            font-weight: 600; 
             margin-top: 5px; 
-            letter-spacing: 2px; /* Jarak huruf ditambah agar seimbang */
+            letter-spacing: 2px; 
             opacity: 1; 
-            text-transform: uppercase; /* Dibuat kapital agar senada dengan SIPAPUA */
+            text-transform: uppercase; 
         }
 
         @keyframes glow { from { text-shadow: 0 0 10px rgba(212, 175, 55, 0.6); } to { text-shadow: 0 0 25px rgba(212, 175, 55, 1); } }
@@ -58,8 +57,41 @@
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
         .splash-hidden { opacity: 0 !important; visibility: hidden !important; }
 
-        /* --- LOGIN CARD --- */
-        .login-card { background: #ffffff; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 400px; box-sizing: border-box; border-top: 5px solid #007bff; position: relative; z-index: 1; }
+        /* --- ASISTEN VIRTUAL (PENAMBAHAN BARU) --- */
+        #assistant-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #0a0f1f, #000);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 888888;
+        }
+        .assistant-img {
+            width: 320px;
+            animation: breathing 4s ease-in-out infinite, headMove 6s ease-in-out infinite;
+            filter: drop-shadow(0 0 25px rgba(0,150,255,0.4));
+        }
+        .glow-asisten {
+            position: absolute; width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(0,150,255,0.3), transparent 70%);
+            animation: glowMove 6s infinite ease-in-out;
+        }
+        .text-box-asisten {
+            margin-top: 25px; color: #fff; font-size: 20px; text-align: center;
+            min-height: 30px; max-width: 80%; line-height: 1.5;
+        }
+        .cursor-asisten { display: inline-block; width: 10px; background: white; margin-left: 5px; animation: blink 1s infinite; }
+        
+        @keyframes breathing { 0%,100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+        @keyframes headMove { 0% { transform: rotate(0deg); } 50% { transform: rotate(1deg); } 100% { transform: rotate(0deg); } }
+        @keyframes glowMove { 0% { transform: translateX(-20px); opacity: 0.5; } 50% { transform: translateX(20px); opacity: 0.8; } 100% { transform: translateX(-20px); opacity: 0.5; } }
+        @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* --- LOGIN CARD (STRUKTUR ASLI) --- */
+        .login-card { 
+            display: none; /* Awalnya disembunyikan untuk asisten */
+            background: #ffffff; padding: 40px; border-radius: 15px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 400px; 
+            box-sizing: border-box; border-top: 5px solid #007bff; position: relative; z-index: 1; 
+        }
         .header { text-align: center; margin-bottom: 30px; }
         .header img { width: 80px; margin-bottom: 10px; }
         .header h2 { margin: 0; color: #333; font-size: 20px; text-transform: uppercase; }
@@ -79,22 +111,12 @@
         .forgot-pass { display: block; margin: 15px 0; font-size: 12px; color: #ff5722; text-decoration: none; font-weight: bold; cursor: pointer; }
 
         .admin-link {
-            display: inline-block;
-            margin-top: 10px;
-            font-weight: 800; 
-            color: #2c3e50; 
-            font-size: 14px; 
-            text-decoration: none;
-            text-transform: uppercase;
-            border: 2px solid #2c3e50;
-            padding: 8px 20px;
-            border-radius: 5px;
-            transition: all 0.3s ease;
+            display: inline-block; margin-top: 10px; font-weight: 800; 
+            color: #2c3e50; font-size: 14px; text-decoration: none;
+            text-transform: uppercase; border: 2px solid #2c3e50;
+            padding: 8px 20px; border-radius: 5px; transition: all 0.3s ease;
         }
-        .admin-link:hover {
-            background: #2c3e50;
-            color: #ffffff;
-        }
+        .admin-link:hover { background: #2c3e50; color: #ffffff; }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 350px; text-align: center; }
@@ -113,7 +135,15 @@
         </div>
     </div>
 
-    <div class="login-card">
+    <div id="assistant-container">
+        <div class="glow-asisten"></div>
+        <img src="asisten_papua.png" class="assistant-img">
+        <div class="text-box-asisten">
+            <span id="typing"></span><span class="cursor-asisten"></span>
+        </div>
+    </div>
+
+    <div class="login-card" id="main-login-card">
         <div class="header">
             <img src="logo_pondok.png" alt="Logo">
             <h2>Pondok Pemulihan Papua</h2>
@@ -157,6 +187,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
     <script>
+        // --- KONFIGURASI FIREBASE (ASLI) ---
         const firebaseConfig = {
             apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
             authDomain: "boby-apps-project.firebaseapp.com",
@@ -169,18 +200,60 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // Timer Splash Screen
+        // --- LOGIKA ALUR (SPLASH -> ASISTEN -> LOGIN) ---
+        const messages = [
+            "Selamat Datang di SIPAPUA (Sistem Informasi Pondok Pemulihan Papua). Aplikasi ini adalah sebuah terobosan untuk membantu Anda dalam menjalankan penilaian dari segi level pelayanan yang Anda lakukan.",
+            "Aplikasi ini sangat membantu saudara mempermudah melakukan kontrol terhadap penilaian disetiap bidang pelayanan yang Anda lakukan.",
+            "Kami percaya dengan pertumbuhan Rohani dapat diukur melalui sebuah tindakan positif dan bukti nyata serta dibantu dengan penilaian yang tepat, untuk menjadikan kita sebagai pelayan pelayan yang baik.",
+            "Selamat datang, Tuhan memberkati."
+        ];
+
+        let msgIndex = 0;
+        let charIndex = 0;
+        const typingEl = document.getElementById('typing');
+        const assistantContainer = document.getElementById('assistant-container');
+        const loginCard = document.getElementById('main-login-card');
+
+        // Step 1: Splash Screen (5 Detik)
         document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
-                if (splash) {
-                    splash.classList.add('splash-hidden');
-                    document.body.style.overflow = "auto";
-                }
+                splash.classList.add('splash-hidden');
+                
+                // Menuju Step 2: Munculkan Asisten
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    assistantContainer.style.display = 'flex';
+                    startTyping();
+                }, 1200);
             }, 5000); 
         });
 
-        // Lihat Password
+        // Step 2: Fungsi Typing Asisten
+        function startTyping() {
+            if (msgIndex < messages.length) {
+                let currentText = messages[msgIndex];
+                if (charIndex < currentText.length) {
+                    typingEl.innerHTML += currentText.charAt(charIndex);
+                    charIndex++;
+                    setTimeout(startTyping, 40);
+                } else {
+                    setTimeout(() => {
+                        charIndex = 0;
+                        typingEl.innerHTML = "";
+                        msgIndex++;
+                        startTyping();
+                    }, 3500); // Jeda per slide pesan
+                }
+            } else {
+                // Step 3: Selesai Asisten -> Munculkan Login
+                assistantContainer.style.display = 'none';
+                loginCard.style.display = 'block';
+                document.body.style.overflow = "auto";
+            }
+        }
+
+        // --- FUNGSI LOGIN & UI ASLI (TIDAK ADA PERUBAHAN) ---
         document.getElementById('eyeIcon').onclick = function() {
             const pass = document.getElementById('user_pass');
             const isPass = pass.type === 'password';
@@ -189,17 +262,14 @@
             this.style.color = isPass ? '#007bff' : '#888';
         };
 
-        // Form Login
         document.getElementById('userLoginForm').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnMasuk');
             const msg = document.getElementById('login-msg');
             const email = document.getElementById('user_email').value.trim();
             const pass = document.getElementById('user_pass').value;
-
             btn.innerText = "Memverifikasi...";
             btn.disabled = true;
-            
             try {
                 const userCredential = await auth.signInWithEmailAndPassword(email, pass);
                 if (userCredential.user.emailVerified) {
@@ -221,10 +291,8 @@
             }
         };
 
-        // Modal Lupa Password
         document.getElementById('btnForgot').onclick = () => document.getElementById('forgotModal').style.display = 'flex';
         document.getElementById('closeModal').onclick = () => document.getElementById('forgotModal').style.display = 'none';
-
         document.getElementById('sendReset').onclick = async () => {
             const email = document.getElementById('forgotEmail').value.trim();
             if (!email) return alert("Masukkan email!");
@@ -236,10 +304,8 @@
                 alert("Error: " + err.message);
             }
         };
-
         window.onclick = (event) => {
-            const modal = document.getElementById('forgotModal');
-            if (event.target == modal) modal.style.display = "none";
+            if (event.target == document.getElementById('forgotModal')) document.getElementById('forgotModal').style.display = "none";
         };
     </script>
 </body>
