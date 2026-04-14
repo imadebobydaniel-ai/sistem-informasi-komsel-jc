@@ -259,6 +259,8 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
     const auth = firebase.auth();
+    // Inisialisasi Realtime Database untuk fungsi baru
+    const dbRT = firebase.database(); 
 
     // 2. LOGIC STARTUP SPLASH SCREEN
     document.addEventListener("DOMContentLoaded", function() {
@@ -374,5 +376,41 @@
     window.onclick = (event) => {
         if (event.target == forgotModal) { forgotModal.style.display = "none"; }
     };
+
+    // --- PENAMBAHAN FUNGSI FETCH REPORT DATA (SESUAI PERINTAH) ---
+    function fetchUserReportData(uid) {
+        // Ambil data profil dari Realtime Database berdasarkan UID user yang sedang login
+        const userRef = dbRT.ref('users/' + uid);
+
+        userRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            
+            if (data) {
+                // 1. ISI PROFIL JEMAAT (Otomatis sesuai UID)
+                document.getElementById('display-nama').innerText = data.nama_lengkap || 'Anggota';
+                document.getElementById('display-nij').innerText = data.nij || '-';
+                document.getElementById('display-jemaat').innerText = data.wilayah_jemaat || '-';
+                document.getElementById('display-komsel-info').innerText = data.nama_komsel || '-';
+
+                // 2. AMBIL DATA STATISTIK (Jika admin sudah mengisi di database)
+                const stats = data.statistik || {
+                    "Pembacaan FT": 0, "Kehadiran Doa": 0, "Kehadiran Komsel": 0,
+                    "Ibadah Raya": 0, "Komsel Gabungan": 0, "Kegiatan KD": 0,
+                    "Latihan": 0, "Pelayanan": 0
+                };
+                
+                // Panggil fungsi render yang sudah didefinisikan di elemen lain
+                if (typeof renderVisualisasi === "function") {
+                    renderVisualisasi(stats);
+                }
+                
+            } else {
+                console.warn("Data profil belum dibuat di Realtime Database untuk UID:", uid);
+                document.getElementById('display-nama').innerText = "Data Tidak Ditemukan";
+            }
+        }, (error) => {
+            console.error("Error mengambil data:", error);
+        });
+    }
 </script></body>
 </html>
