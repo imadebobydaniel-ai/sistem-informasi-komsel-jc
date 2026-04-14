@@ -79,9 +79,11 @@
         const loginPage = document.getElementById('login-page');
         const typingEl = document.getElementById('typing');
 
-        // Setup Audio
-        const bgSound = new Audio('asisten_virtual_sound.mp3');
-        bgSound.loop = true;
+      // Gunakan Audio object dengan preload
+    const bgSound = new Audio();
+    bgSound.src = 'asisten_virtual_sound.mp3'; // Pastikan nama file ini 100% sama
+    bgSound.loop = true;
+    bgSound.preload = 'auto'; // Memaksa browser mendownload audio lebih awal
 
         const messages = [
             "Selamat Datang di SIPAPUA (Sistem Informasi Pondok Pemulihan Papua). Aplikasi ini adalah sebuah terobosan untuk membantu Anda dalam menjalankan penilaian dari segi level pelayanan yang Anda lakukan.",
