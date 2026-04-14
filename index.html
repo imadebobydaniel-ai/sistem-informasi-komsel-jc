@@ -19,7 +19,7 @@
             min-height: 100vh; overflow: hidden; 
         }
 
-        /* --- SPLASH SCREEN (ASLI) --- */
+        /* --- SPLASH SCREEN --- */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: var(--grey-bg); display: flex;
@@ -39,44 +39,25 @@
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
         .splash-hidden { opacity: 0 !important; visibility: hidden !important; }
 
-        /* --- ASISTEN VIRTUAL (MODIFIKASI VISUAL & SMOOTH TRANSITION) --- */
+        /* --- ASISTEN VIRTUAL --- */
         #assistant-container {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle at center, #0a0f1f, #000);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
             z-index: 888888;
-            opacity: 0; visibility: hidden;
-            transition: opacity 1.5s ease, visibility 1.5s ease; /* Fade Smooth */
+            opacity: 0;
+            transition: opacity 1.5s ease;
         }
         
-        #assistant-container.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
         .assistant-img {
             width: 300px;
-            animation: breathing 4s ease-in-out infinite, aura-glow 3s infinite alternate; /* Cahaya Dinamis */
+            animation: breathing 4s ease-in-out infinite, aura-glow 3s infinite alternate;
             filter: drop-shadow(0 0 25px rgba(0, 212, 255, 0.4));
-            transition: transform 0.1s ease-in-out;
         }
 
-        /* Efek Cahaya Aura */
         @keyframes aura-glow {
             from { filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.4)) brightness(1); }
             to { filter: drop-shadow(0 0 40px rgba(0, 212, 255, 0.8)) brightness(1.2); }
-        }
-
-        /* Penambahan Efek Stop Motion */
-        @keyframes talkingStopMotion {
-            0% { transform: scale(1) rotate(0deg) translateY(0); }
-            25% { transform: scale(1.02) rotate(1.5deg) translateY(-3px); }
-            50% { transform: scale(1) rotate(-1.5deg) translateY(0); }
-            75% { transform: scale(1.03) rotate(0deg) translateY(-4px); }
-            100% { transform: scale(1) rotate(1.5deg) translateY(0); }
-        }
-        .talking {
-            animation: talkingStopMotion 0.4s steps(4) infinite !important;
         }
 
         .text-box-asisten {
@@ -98,7 +79,6 @@
         }
         .cursor-asisten { display: inline-block; width: 3px; height: 20px; background: var(--cyan-glow); margin-left: 5px; animation: blink 1s infinite; vertical-align: middle; }
         
-        /* TOMBOL NEXT */
         #next-btn {
             margin-top: 30px;
             padding: 12px 35px;
@@ -123,7 +103,7 @@
         @keyframes breathing { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
         @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
 
-        /* --- LOGIN CARD (ASLI) --- */
+        /* --- LOGIN CARD --- */
         .login-card { 
             display: none; 
             background: #ffffff; padding: 40px; border-radius: 15px; 
@@ -131,10 +111,6 @@
             box-sizing: border-box; border-top: 5px solid #007bff; position: relative; z-index: 1; 
             opacity: 0;
             transition: opacity 1s ease;
-        }
-        .login-card.fade-in {
-            display: block;
-            opacity: 1;
         }
 
         .header { text-align: center; margin-bottom: 30px; }
@@ -163,6 +139,10 @@
     </style>
 </head>
 <body>
+
+    <audio id="bg-music" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-17.mp3" type="audio/mpeg">
+    </audio>
 
     <div id="splash-screen">
         <div class="splash-content">
@@ -227,7 +207,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
     <script>
-        // --- KONFIGURASI FIREBASE (ASLI) ---
         const firebaseConfig = {
             apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
             authDomain: "boby-apps-project.firebaseapp.com",
@@ -240,7 +219,21 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // --- LOGIKA ASISTEN ---
+        // --- AUDIO ENGINE UNTUK SUARA KEYBOARD ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTypingSound() {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.05);
+        }
+
         const messages = [
             "Selamat Datang di SIPAPUA (Sistem Informasi Pondok Pemulihan Papua). Aplikasi ini adalah sebuah terobosan untuk membantu Anda dalam menjalankan penilaian dari segi level pelayanan yang Anda lakukan.",
             "Aplikasi ini sangat membantu saudara mempermudah melakukan kontrol terhadap penilaian disetiap bidang pelayanan yang Anda lakukan.",
@@ -253,19 +246,22 @@
         let isTyping = false;
         const typingEl = document.getElementById('typing');
         const assistantContainer = document.getElementById('assistant-container');
-        const assistantImg = document.querySelector('.assistant-img');
         const loginCard = document.getElementById('main-login-card');
         const nextBtn = document.getElementById('next-btn');
+        const bgMusic = document.getElementById('bg-music');
 
-        // Splash ke Asisten (Fade In Smooth)
         document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 splash.classList.add('splash-hidden');
                 setTimeout(() => {
                     splash.style.display = 'none';
-                    assistantContainer.classList.add('active'); // Trigger Fade In
-                    setTimeout(startTyping, 1000);
+                    assistantContainer.style.display = 'flex';
+                    setTimeout(() => { assistantContainer.style.opacity = '1'; }, 50);
+                    // Mulai Musik saat asisten muncul
+                    bgMusic.volume = 0.3;
+                    bgMusic.play().catch(() => console.log("Menunggu interaksi user untuk musik"));
+                    startTyping();
                 }, 1200);
             }, 5000); 
         });
@@ -274,15 +270,14 @@
             if (msgIndex < messages.length) {
                 isTyping = true;
                 nextBtn.style.display = 'none';
-                assistantImg.classList.add('talking');
                 let currentText = messages[msgIndex];
                 if (charIndex < currentText.length) {
                     typingEl.innerHTML += currentText.charAt(charIndex);
+                    playTypingSound(); // Mainkan suara setiap huruf
                     charIndex++;
                     setTimeout(startTyping, 35);
                 } else {
                     isTyping = false;
-                    assistantImg.classList.remove('talking');
                     nextBtn.style.display = 'block'; 
                     if (msgIndex === messages.length - 1) {
                         nextBtn.innerHTML = 'Buka Login <i class="fa-solid fa-unlock"></i>';
@@ -293,26 +288,36 @@
 
         function nextMessage() {
             if (isTyping) return;
+            // Resume audio context jika terblokir browser
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
             msgIndex++;
             if (msgIndex < messages.length) {
                 charIndex = 0;
                 typingEl.innerHTML = "";
                 startTyping();
             } else {
-                // Fade Out Asisten Smooth
-                assistantContainer.classList.remove('active');
+                // Fade Out Asisten
+                assistantContainer.style.opacity = '0';
+                // Fade out musik sedikit demi sedikit
+                const fadeInterval = setInterval(() => {
+                    if (bgMusic.volume > 0.05) bgMusic.volume -= 0.05;
+                    else {
+                        bgMusic.pause();
+                        clearInterval(fadeInterval);
+                    }
+                }, 200);
+
                 setTimeout(() => {
                     assistantContainer.style.display = 'none';
                     loginCard.style.display = 'block';
-                    // Force reflow for opacity transition
-                    void loginCard.offsetWidth;
-                    loginCard.classList.add('fade-in');
+                    setTimeout(() => { loginCard.style.opacity = '1'; }, 50);
                     document.body.style.overflow = "auto";
                 }, 1500);
             }
         }
 
-        // --- FUNGSI LOGIN & UI ASLI (TIDAK BERUBAH) ---
+        // --- FUNGSI LOGIN & MODAL (TETAP SAMA) ---
         document.getElementById('eyeIcon').onclick = function() {
             const pass = document.getElementById('user_pass');
             const isPass = pass.type === 'password';
