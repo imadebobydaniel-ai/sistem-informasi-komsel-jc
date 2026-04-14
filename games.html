@@ -11,6 +11,7 @@
         :root { --biru-tua: #003366; --emas: #D4AF37; --bg: #001f3f; --putih: #ffffff; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; color: white; overflow: hidden; }
 
+        /* Header */
         .header-game { 
             background: var(--biru-tua); padding: 15px; display: flex; align-items: center; 
             border-bottom: 3px solid var(--emas); position: relative; height: 60px; box-sizing: border-box;
@@ -18,64 +19,81 @@
         .btn-back { color: white; font-size: 20px; text-decoration: none; position: absolute; left: 15px; z-index: 10; }
         .header-title { width: 100%; text-align: center; font-weight: bold; font-size: 16px; letter-spacing: 1px; }
 
+        /* Start Overlay */
+        #start-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 31, 63, 0.95); z-index: 4000;
+            display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center;
+        }
+
         /* Timer Styles */
         .timer-container {
-            position: relative; width: 100px; height: 100px; margin: 0 auto 20px auto;
+            position: relative; width: 90px; height: 90px; margin: 0 auto 15px auto;
             display: flex; align-items: center; justify-content: center;
         }
-        .timer-svg { transform: rotate(-90deg); width: 100px; height: 100px; }
-        .timer-circle-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 8; }
+        .timer-svg { transform: rotate(-90deg); width: 90px; height: 90px; }
+        .timer-circle-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 6; }
         .timer-circle-progress {
-            fill: none; stroke: var(--emas); stroke-width: 8; stroke-linecap: round;
+            fill: none; stroke: var(--emas); stroke-width: 6; stroke-linecap: round;
             stroke-dasharray: 283; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear;
         }
-        .timer-text { position: absolute; font-family: 'Courier New', Courier, monospace; font-size: 24px; font-weight: bold; color: var(--emas); }
+        .timer-text { position: absolute; font-family: 'Courier New', Courier, monospace; font-size: 22px; font-weight: bold; color: var(--emas); }
 
-        .game-container { padding: 20px; text-align: center; max-width: 600px; margin: auto; height: 90vh; display: flex; flex-direction: column; justify-content: center; }
-        .prize-level { color: var(--emas); font-weight: bold; font-size: 18px; margin-bottom: 10px; text-shadow: 0 0 10px rgba(212, 175, 55, 0.5); }
-        .question-box { background: rgba(0, 51, 102, 0.8); border: 2px solid var(--emas); padding: 20px; border-radius: 50px 0 50px 0; margin-bottom: 20px; font-size: 17px; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); min-height: 80px; display: flex; align-items: center; justify-content: center; }
-        .answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .btn-answer { background: transparent; border: 1px solid var(--emas); color: white; padding: 15px; border-radius: 30px; cursor: pointer; font-size: 13px; transition: 0.3s; text-align: left; }
-        .btn-answer.correct { background: #28a745 !important; border-color: white; animation: blink 0.5s 2; }
+        /* Game UI */
+        .game-container { padding: 20px; text-align: center; max-width: 600px; margin: auto; height: calc(100vh - 60px); display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; }
+        .prize-level { color: var(--emas); font-weight: bold; font-size: 16px; margin-bottom: 10px; }
+        .question-box { background: rgba(0, 51, 102, 0.8); border: 2px solid var(--emas); padding: 20px; border-radius: 40px 0 40px 0; margin-bottom: 20px; font-size: 16px; min-height: 70px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(212, 175, 55, 0.2); }
+        .answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+        .btn-answer { background: transparent; border: 1px solid var(--emas); color: white; padding: 12px; border-radius: 25px; cursor: pointer; font-size: 13px; transition: 0.3s; text-align: left; overflow: hidden; }
+        .btn-answer.correct { background: #28a745 !important; border-color: white; }
         .btn-answer.wrong { background: #d9534f !important; border-color: white; }
 
-        @keyframes blink { 50% { opacity: 0.5; } }
-
-        /* Notification & Overlays */
-        .notif-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
-        .notif-box { background: var(--biru-tua); border: 2px solid var(--emas); border-radius: 20px; padding: 30px; text-align: center; max-width: 400px; width: 100%; box-shadow: 0 0 30px rgba(212,175,55,0.4); }
-        .notif-title { font-size: 22px; font-weight: bold; color: var(--emas); margin-bottom: 15px; }
-        .notif-msg { font-size: 16px; margin-bottom: 25px; line-height: 1.5; }
-        .notif-btn { background: var(--emas); color: var(--biru-tua); border: none; padding: 12px 30px; border-radius: 25px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-
-        .lifelines { display: flex; justify-content: center; gap: 15px; margin-top: 25px; }
-        .lifeline-btn { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--emas); background: var(--biru-tua); color: var(--emas); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; }
-        .lifeline-btn.btn-rank { background: var(--emas); color: var(--biru-tua); border-radius: 10px; width: auto; padding: 0 15px; font-weight: bold; font-size: 12px; }
-        .lifeline-btn.used { opacity: 0.3; pointer-events: none; }
-
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; overflow-y: auto; padding: 20px; flex-direction: column; }
-        .rank-card { background: white; border-radius: 15px; padding: 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; border-left: 5px solid var(--emas); }
+        /* Leaderboard */
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 5000; overflow-y: auto; padding: 20px; box-sizing: border-box; }
+        .rank-card { background: white; border-radius: 12px; padding: 10px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; border-left: 5px solid var(--emas); }
+        .rank-num { font-weight: bold; color: var(--biru-tua); width: 25px; text-align: center; }
+        .rank-img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--emas); object-fit: cover; }
         .rank-info { flex: 1; color: var(--biru-tua); text-align: left; }
-        .rank-name { font-weight: bold; font-size: 14px; margin: 0; color: var(--biru-tua); }
-        .rank-score { background: var(--biru-tua); color: var(--emas); padding: 6px 12px; border-radius: 8px; font-weight: bold; }
+        .rank-name { font-weight: bold; font-size: 13px; margin: 0; text-transform: uppercase; }
+        .rank-score { background: var(--biru-tua); color: var(--emas); padding: 5px 10px; border-radius: 6px; font-weight: bold; font-size: 12px; }
+
+        /* Notification */
+        .notif-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 6000; align-items: center; justify-content: center; padding: 20px; }
+        .notif-box { background: var(--biru-tua); border: 2px solid var(--emas); border-radius: 20px; padding: 30px; text-align: center; width: 100%; max-width: 350px; }
+
+        .lifelines { display: flex; justify-content: center; gap: 12px; margin-top: 20px; }
+        .lifeline-btn { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--emas); background: var(--biru-tua); color: var(--emas); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; }
+        .btn-rank { width: auto !important; padding: 0 15px; border-radius: 10px !important; font-weight: bold; font-size: 11px !important; }
+        .used { opacity: 0.3; pointer-events: none; }
     </style>
 </head>
 <body>
 
+<div id="start-overlay">
+    <div class="notif-box">
+        <h3 style="color:var(--emas)">PERSIAPAN</h3>
+        <p>Apakah Anda siap menguji kepintaran Anda dalam Alkitab?</p>
+        <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+            <button class="notif-btn" onclick="startGame()" style="background:#28a745; color:white; padding:10px 25px; border:none; border-radius:20px; font-weight:bold; cursor:pointer;">SIAP</button>
+            <button class="notif-btn" onclick="location.href='menu.html'" style="background:#d9534f; color:white; padding:10px 25px; border:none; border-radius:20px; font-weight:bold; cursor:pointer;">TIDAK</button>
+        </div>
+    </div>
+</div>
+
 <div id="custom-notif" class="notif-overlay">
     <div class="notif-box">
-        <div id="notif-icon" style="font-size: 50px; margin-bottom: 15px;"></div>
-        <div class="notif-title" id="notif-title">PEMBERITAHUAN</div>
-        <div class="notif-msg" id="notif-message">Pesan...</div>
-        <button class="notif-btn" id="notif-action" onclick="closeNotif()">OKE</button>
+        <div id="notif-icon" style="font-size: 40px; margin-bottom: 10px;"></div>
+        <div id="notif-title" style="font-weight:bold; color:var(--emas); margin-bottom:10px;">INFO</div>
+        <div id="notif-message" style="font-size:14px; margin-bottom:20px;"></div>
+        <button class="notif-btn" onclick="closeNotif()" style="background:var(--emas); border:none; padding:10px 30px; border-radius:20px; font-weight:bold; cursor:pointer;">OKE</button>
     </div>
 </div>
 
 <div id="leaderboard-overlay" class="overlay">
-    <div class="leaderboard-content" style="max-width:500px; margin:auto; width:100%;">
+    <div style="max-width:500px; margin:auto; width:100%;">
         <h2 style="text-align: center; color: var(--emas);">Peringkat Tertinggi</h2>
         <div id="rank-list"></div>
-        <div style="text-align:center; color:var(--emas); padding:20px; cursor:pointer;" onclick="toggleRank()">TUTUP</div>
+        <div style="text-align:center; color:var(--emas); padding:20px; cursor:pointer; font-weight:bold;" onclick="toggleRank()">TUTUP</div>
     </div>
 </div>
 
@@ -87,14 +105,14 @@
 <div class="game-container">
     <div class="timer-container">
         <svg class="timer-svg">
-            <circle class="timer-circle-bg" cx="50" cy="50" r="45"></circle>
-            <circle id="progress" class="timer-circle-progress" cx="50" cy="50" r="45"></circle>
+            <circle class="timer-circle-bg" cx="45" cy="45" r="40"></circle>
+            <circle id="progress" class="timer-circle-progress" cx="45" cy="45" r="40"></circle>
         </svg>
         <div id="timer-text" class="timer-text">60</div>
     </div>
 
     <div class="prize-level" id="level-display">Level 1 - Poin: 0</div>
-    <div class="question-box" id="question-text">Menyiapkan soal...</div>
+    <div class="question-box" id="question-text">Menunggu instruksi...</div>
     <div class="answers-grid" id="answers-container"></div>
     
     <div class="lifelines">
@@ -109,7 +127,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -121,19 +138,13 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Soal (Lengkapi sampai 50)
     const quizRawData = [
         { q: "Siapa raja pertama bangsa Israel?", a: ["Daud", "Saul", "Salomo", "Yosua"], c: 1 },
         { q: "Apa arti nama 'Imanuel'?", a: ["Allah Mahakuasa", "Tuhan Raja kami", "Allah menyertai kita", "Gembala Baik"], c: 2 },
         { q: "Berapa hari Tuhan menciptakan alam semesta?", a: ["5 Hari", "7 Hari", "6 Hari", "40 Hari"], c: 2 },
         { q: "Siapa putra tertua dari Yakub?", a: ["Yusuf", "Benyamin", "Ruben", "Yehuda"], c: 2 },
-        { q: "Dimana Yesus dilahirkan?", a: ["Yerusalem", "Nazaret", "Betlehem", "Yudea"], c: 2 },
-        { q: "Siapa yang membelah Laut Teberau?", a: ["Harun", "Yosua", "Musa", "Kaleb"], c: 2 },
-        { q: "Apa nama kitab pertama di Alkitab?", a: ["Keluaran", "Imamat", "Kejadian", "Bilangan"], c: 2 },
-        { q: "Siapa murid yang mengkhianati Yesus?", a: ["Petrus", "Yohanes", "Yudas Iskariot", "Tomas"], c: 2 },
-        { q: "Bahtera Nuh terdampar di gunung apa?", a: ["Sinai", "Nebo", "Ararat", "Zaitun"], c: 2 },
-        { q: "Siapa manusia pertama yang diciptakan?", a: ["Habel", "Kain", "Adam", "Set"], c: 2 }
-        // ... Tambahkan soal 11 s/d 50 di sini dengan format yang sama
+        { q: "Dimana Yesus dilahirkan?", a: ["Yerusalem", "Nazaret", "Betlehem", "Yudea"], c: 2 }
+        // ... (Silakan tambahkan hingga 50 soal)
     ];
 
     let quizData = [];
@@ -144,7 +155,20 @@
     let userData = null;
     let nextAction = null;
 
-    // Timer Logic
+    async function fetchUserData() {
+        const email = localStorage.getItem("userEmail");
+        if(email) {
+            const snap = await db.collection("users").where("email", "==", email).get();
+            if (!snap.empty) userData = snap.docs[0].data();
+        }
+    }
+
+    function startGame() {
+        document.getElementById('start-overlay').style.display = 'none';
+        quizData = shuffleArray([...quizRawData]).slice(0, 50);
+        loadQuestion();
+    }
+
     function startTimer() {
         clearInterval(timerInterval);
         timeLeft = 60;
@@ -154,25 +178,14 @@
         timerInterval = setInterval(() => {
             timeLeft--;
             text.innerText = timeLeft;
-            
-            // Progress circle calculation
-            const offset = (timeLeft / 60) * 283;
-            circle.style.strokeDashoffset = 283 - offset;
+            const offset = (timeLeft / 60) * 251; // 2 * PI * R (R=40)
+            circle.style.strokeDashoffset = 251 - offset;
 
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
-                gameOver("WAKTU HABIS!");
+                showNotif("WAKTU HABIS", "Sayang sekali waktu Anda habis.", "fail", () => location.reload());
             }
         }, 1000);
-    }
-
-    async function initGame() {
-        const email = localStorage.getItem("userEmail");
-        const snap = await db.collection("users").where("email", "==", email).get();
-        if (!snap.empty) userData = snap.docs[0].data();
-        
-        quizData = shuffleArray([...quizRawData]).slice(0, 50); // Ambil 50 soal acak
-        loadQuestion();
     }
 
     function loadQuestion() {
@@ -202,42 +215,49 @@
                 currentQ++;
                 if(currentQ < quizData.length) loadQuestion();
                 else finishGame();
-            }, 1200);
+            }, 1000);
         } else {
             btn.classList.add('wrong');
-            setTimeout(() => gameOver("JAWABAN SALAH"), 500);
+            setTimeout(() => {
+                showNotif("JAWABAN SALAH", "Maaf, Anda tidak dapat melanjutkan ke Leaderboard.", "fail", () => location.reload());
+            }, 500);
         }
     }
 
-    async function gameOver(reason) {
-        await saveScore();
-        showNotif(reason, `Skor akhir Anda: ${score}. Teruslah belajar Firman Tuhan!`, 'fail', () => {
-            window.location.reload();
-        });
-    }
-
-    async function saveScore() {
+    async function finishGame() {
         if(userData) {
-            await db.collection("game_scores").add({
-                nama: userData.nama,
-                email: userData.email,
-                skor: score,
-                waktu: 0, // Bisa ditambah durasi total jika mau
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            const scoresRef = db.collection("game_scores");
+            const q = await scoresRef.where("email", "==", userData.email).get();
+            
+            if(q.empty) {
+                // Tambah Data Baru
+                await scoresRef.add({
+                    nama: userData.nama,
+                    email: userData.email,
+                    foto: userData.foto_profil || "",
+                    skor: score,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } else {
+                // Akumulasi Poin
+                const docId = q.docs[0].id;
+                const oldSkor = q.docs[0].data().skor || 0;
+                await scoresRef.doc(docId).update({
+                    skor: oldSkor + score,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
         }
+        
+        celebrate();
+        showNotif("SELAMAT!", "Anda berhasil menyelesaikan seluruh pertanyaan! Skor Anda telah diakumulasi.", "success", () => location.reload());
     }
 
-    function shuffleArray(array) {
-        return array.sort(() => Math.random() - 0.5);
-    }
-
-    // Modal & UI Functions
-    function showNotif(title, message, iconType, callback) {
+    function showNotif(title, msg, type, callback) {
         nextAction = callback;
         document.getElementById('notif-title').innerText = title;
-        document.getElementById('notif-message').innerText = message;
-        document.getElementById('notif-icon').innerHTML = iconType === 'success' ? "🏆" : "❌";
+        document.getElementById('notif-message').innerText = msg;
+        document.getElementById('notif-icon').innerHTML = type === 'success' ? "🏆" : "❌";
         document.getElementById('custom-notif').style.display = 'flex';
     }
 
@@ -253,21 +273,32 @@
     }
 
     function loadLeaderboard() {
-        db.collection("game_scores").orderBy("skor", "desc").limit(10).get().then(snap => {
+        document.getElementById('rank-list').innerHTML = "<p style='text-align:center'>Memuat...</p>";
+        db.collection("game_scores").orderBy("skor", "desc").limit(20).get().then(snap => {
             let html = "";
+            if(snap.empty) html = "<p style='text-align:center; color:white'>Belum ada pemenang.</p>";
             snap.forEach((doc, i) => {
                 const d = doc.data();
-                html += `<div class="rank-card">
-                    <div style="font-weight:bold; color:var(--biru-tua)">#${i+1}</div>
+                html += `
+                <div class="rank-card">
+                    <div class="rank-num">${i + 1}</div>
+                    <img src="${d.foto || 'https://via.placeholder.com/100'}" class="rank-img">
                     <div class="rank-info">
                         <p class="rank-name">${d.nama}</p>
-                        <p style="font-size:10px">${d.email}</p>
                     </div>
-                    <div class="rank-score">${d.skor}</div>
+                    <div class="rank-score">${d.skor} Poin</div>
                 </div>`;
             });
             document.getElementById('rank-list').innerHTML = html;
         });
+    }
+
+    function celebrate() {
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+    }
+
+    function shuffleArray(array) {
+        return array.sort(() => Math.random() - 0.5);
     }
 
     function use5050(btn) {
@@ -278,10 +309,10 @@
         btns.forEach((b, i) => { if(i !== correct && hidden < 2) { b.style.visibility = 'hidden'; hidden++; } });
     }
 
-    function usePhone(btn) { btn.classList.add('used'); alert("Temanmu yakin jawabannya adalah " + String.fromCharCode(65 + quizData[currentQ].c)); }
-    function useAudience(btn) { btn.classList.add('used'); alert("75% Jemaat memilih " + String.fromCharCode(65 + quizData[currentQ].c)); }
+    function usePhone(btn) { btn.classList.add('used'); alert("Temanmu berbisik: Sepertinya jawabannya " + String.fromCharCode(65 + quizData[currentQ].c)); }
+    function useAudience(btn) { btn.classList.add('used'); alert("Mayoritas jemaat memilih " + String.fromCharCode(65 + quizData[currentQ].c)); }
 
-    window.onload = initGame;
+    window.onload = fetchUserData;
 </script>
 </body>
 </html>
