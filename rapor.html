@@ -157,15 +157,14 @@
  
 <script>
     // --- KONFIGURASI FIREBASE ---
-    // PENTING: Ganti dengan data asli dari Firebase Console Anda agar koneksi tidak 'failed'
+    // Pastikan URL ini benar sesuai dashboard Firebase Anda untuk menghindari WebSocket Failed
     const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT.firebaseapp.com",
-        databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT.appspot.com",
-        messagingSenderId: "YOUR_ID",
-        appId: "YOUR_APP_ID"
+        apiKey: "AIzaSy...", 
+        authDomain: "boby-apps-project.firebaseapp.com",
+        databaseURL: "https://boby-apps-project-default-rtdb.firebaseio.com",
+        projectId: "boby-apps-project",
+        storageBucket: "boby-apps-project.appspot.com",
+        appId: "1:..."
     };
     
     if (!firebase.apps.length) {
@@ -210,16 +209,13 @@
         });
     }
  
-    // FUNGSI DETEKSI DATA FIREBASE
     function fetchDataJemaat() {
-        // userId disesuaikan dengan struktur di image_284244.png
         const userId = "boby_daniel"; 
         const userRef = firebase.database().ref('users/' + userId);
  
         userRef.on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                // Mencocokkan ID elemen dengan key di database
                 document.getElementById('display-nama').innerText = data.nama_lengkap || '-';
                 document.getElementById('display-nij').innerText = data.nij || '-';
                 document.getElementById('display-jemaat').innerText = data.wilayah_jemaat || '-';
@@ -292,7 +288,7 @@
  
     window.onload = function() {
         renderHalaman();
-        fetchDataJemaat(); // Menjalankan fungsi deteksi saat halaman dimuat
+        fetchDataJemaat();
     };
 </script>
 </body>
