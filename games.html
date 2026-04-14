@@ -10,82 +10,36 @@
     <style>
         :root { --biru-tua: #003366; --emas: #D4AF37; --bg: #001f3f; --putih: #ffffff; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; color: white; overflow: hidden; height: 100vh; }
-
-        .header-game { 
-            background: var(--biru-tua); padding: 10px; display: flex; align-items: center; 
-            border-bottom: 3px solid var(--emas); height: 50px; box-sizing: border-box;
-        }
+        .header-game { background: var(--biru-tua); padding: 10px; display: flex; align-items: center; border-bottom: 3px solid var(--emas); height: 50px; box-sizing: border-box; }
         .btn-back { color: white; font-size: 18px; text-decoration: none; z-index: 10; }
         .header-title { flex: 1; text-align: center; font-weight: bold; font-size: 14px; letter-spacing: 1px; }
-
-        .game-container { 
-            padding: 15px; text-align: center; max-width: 500px; margin: auto; 
-            height: calc(100vh - 50px); display: flex; flex-direction: column; justify-content: space-between;
-            box-sizing: border-box;
-        }
-
-        .timer-container {
-            position: relative; width: 80px; height: 80px; margin: 0 auto;
-            display: flex; align-items: center; justify-content: center;
-        }
+        .game-container { padding: 15px; text-align: center; max-width: 500px; margin: auto; height: calc(100vh - 50px); display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; }
+        .timer-container { position: relative; width: 80px; height: 80px; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
         .timer-svg { transform: rotate(-90deg); width: 80px; height: 80px; }
         .timer-circle-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 6; }
-        .timer-circle-progress {
-            fill: none; stroke: #ff4d4d; stroke-width: 6; stroke-linecap: round;
-            stroke-dasharray: 251; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear;
-        }
+        .timer-circle-progress { fill: none; stroke: #ff4d4d; stroke-width: 6; stroke-linecap: round; stroke-dasharray: 251; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear; }
         .timer-text { position: absolute; font-size: 20px; font-weight: bold; color: #ff4d4d; }
-
         .prize-level { color: var(--emas); font-weight: bold; font-size: 14px; margin: 5px 0; }
-        .question-box { 
-            background: rgba(0, 51, 102, 0.8); border: 2px solid var(--emas); padding: 15px; 
-            border-radius: 30px 0 30px 0; font-size: 15px; min-height: 70px; 
-            display: flex; align-items: center; justify-content: center;
-        }
-        
+        .question-box { background: rgba(0, 51, 102, 0.8); border: 2px solid var(--emas); padding: 15px; border-radius: 30px 0 30px 0; font-size: 15px; min-height: 70px; display: flex; align-items: center; justify-content: center; }
         .answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn-answer { 
-            background: transparent; border: 1px solid var(--emas); color: white; padding: 10px; 
-            border-radius: 20px; cursor: pointer; font-size: 12px; transition: 0.3s; text-align: left;
-            min-height: 45px;
-        }
+        .btn-answer { background: transparent; border: 1px solid var(--emas); color: white; padding: 10px; border-radius: 20px; cursor: pointer; font-size: 12px; transition: 0.3s; text-align: left; min-height: 45px; }
         .btn-answer.correct { background: #28a745 !important; border-color: white; }
         .btn-answer.wrong { background: #d9534f !important; border-color: white; }
         .btn-answer.hidden { visibility: hidden; }
-
         .lifelines-container { display: flex; justify-content: center; gap: 15px; margin: 10px 0; }
-        .btn-lifeline {
-            width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--emas);
-            background: var(--biru-tua); color: var(--emas); font-size: 11px;
-            cursor: pointer; display: inline-flex; align-items: center;
-            justify-content: center; font-weight: bold; padding: 0;
-            overflow: hidden; box-sizing: border-box;
-        }
+        .btn-lifeline { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--emas); background: var(--biru-tua); color: var(--emas); font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; padding: 0; overflow: hidden; box-sizing: border-box; }
         .btn-lifeline.used { opacity: 0.3; cursor: default; }
-
-        #leaderboard-overlay { 
-            display: none; position: fixed; bottom: 0; left: 0; width: 100%; 
-            height: 55vh; background: white; border-radius: 25px 25px 0 0;
-            z-index: 5000; overflow-y: auto; padding: 15px; box-sizing: border-box;
-            box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
-        }
+        #leaderboard-overlay { display: none; position: fixed; bottom: 0; left: 0; width: 100%; height: 55vh; background: white; border-radius: 25px 25px 0 0; z-index: 5000; overflow-y: auto; padding: 15px; box-shadow: 0 -10px 30px rgba(0,0,0,0.5); }
         .rank-card { background: #f8f9fa; border-radius: 12px; padding: 10px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; border: 1px solid #ddd; }
-        .rank-numb { font-weight: bold; color: var(--biru-tua); width: 25px; font-size: 14px;}
+        .rank-numb { font-weight: bold; color: var(--biru-tua); width: 25px; }
         .rank-img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1px solid var(--emas); }
         .rank-info { flex: 1; color: #333; text-align: left; }
-        .rank-name { margin: 0; font-size: 13px; font-weight: bold; }
         .rank-score { font-weight: bold; color: #28a745; font-size: 13px; }
-
-        #start-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 6000; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; box-sizing: border-box;}
+        #start-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 6000; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; }
         .start-box { background: var(--biru-tua); border: 2px solid var(--emas); padding: 25px; border-radius: 20px; width: 100%; max-width: 350px; }
         .notif-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 7000; align-items: center; justify-content: center; padding: 20px; }
-        
         #start-btn-container button { animation: pulse 1.5s infinite; }
-        @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7); }
-            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
-        }
+        @keyframes pulse { 0% { transform: scale(1); } 70% { transform: scale(1.05); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
@@ -169,19 +123,20 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // --- INISIALISASI AUDIO ---
-    const soundBg = new Audio('sounds/background_soal.mp3');
-    const soundCorrect = new Audio('sounds/jawaban_benar.mp3');
-    const soundWrong = new Audio('sounds/jawaban_salah.mp3');
-    const soundTimer = new Audio('sounds/timer_tick.mp3');
-    const soundWin = new Audio('sounds/pemenang.mp3');
+    // --- INISIALISASI AUDIO (Nama file sudah disesuaikan) ---
+    const soundOpening = new Audio('OPENING SOUND-new.mp3');
+    const soundStart = new Audio('START SOUND-new.mp3');
+    const soundBg = new Audio('background_soal.mp3');
+    const soundCorrect = new Audio('jawaban_benar.mp3');
+    const soundWrong = new Audio('timer_tick.mp3'); // Menggunakan intens sound untuk salah
+    const soundTimer = new Audio('timer_tick.mp3');
+    const soundWin = new Audio('pemenang.mp3');
 
+    soundOpening.loop = true;
     soundBg.loop = true;
-    soundBg.volume = 0.4;
     soundTimer.loop = true;
-    soundTimer.volume = 0.6;
 
-    // --- DAFTAR 50 SOAL ALKITAB ---
+    // --- DAFTAR SOAL ---
     const quizRawData = [
         { q: "Siapa raja pertama bangsa Israel?", a: ["Daud", "Saul", "Salomo", "Yosua"], c: 1 },
         { q: "Apa arti nama 'Imanuel'?", a: ["Allah Mahakuasa", "Tuhan Raja kami", "Allah menyertai kita", "Gembala Baik"], c: 2 },
@@ -218,7 +173,7 @@
         { q: "Berapa jumlah kitab dalam Alkitab?", a: ["60", "66", "70", "39"], c: 1 },
         { q: "Siapa yang menulis surat Roma?", a: ["Petrus", "Paulus", "Yakobus", "Yudas"], c: 1 },
         { q: "Apa arti nama 'Musa'?", a: ["Anak Allah", "Diangkat dari Air", "Gembala", "Pembebas"], c: 1 },
-        { q: "Siapa mertua Musa?", police: ["Yitro", "Labu", "Potifar", "Firaun"], a: ["Yitro", "Laban", "Potifar", "Imam Eli"], c: 0 },
+        { q: "Siapa mertua Musa?", a: ["Yitro", "Laban", "Potifar", "Imam Eli"], c: 0 },
         { q: "Apa perintah kelima dalam 10 Hukum?", a: ["Jangan Membunuh", "Hormati Orang Tua", "Kuduskan Sabat", "Jangan Mencuri"], c: 1 },
         { q: "Apa nama taman tempat Adam dan Hawa?", a: ["Taman Getsemani", "Taman Eden", "Taman Zaitun", "Taman Firdaus"], c: 1 },
         { q: "Apa kitab terakhir Perjanjian Baru?", a: ["Yudas", "Wahyu", "Ibrani", "Maleakhi"], c: 1 },
@@ -252,20 +207,17 @@
         }
     }
 
-    // Fungsi untuk memutar suara dengan aman (mencegah error browser)
-    function playAudio(audio) {
-        audio.currentTime = 0;
-        audio.play().catch(e => console.log("Autoplay diblokir browser, butuh interaksi user."));
-    }
-
-    // Fungsi Mengacak (Shuffle)
-    function shuffleArray(arr) { 
-        return arr.sort(() => Math.random() - 0.5); 
+    function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
     }
 
     function startGame() {
         document.getElementById('start-overlay').style.display = 'none';
-        // ACAK SOAL SETIAP KALI MULAI
+        soundOpening.play().catch(() => {});
         quizData = shuffleArray([...quizRawData]);
         loadQuestion(); 
     }
@@ -273,13 +225,16 @@
     function realStart() {
         if(isGameStarted) return;
         isGameStarted = true;
+        soundOpening.pause();
+        soundStart.play().catch(() => {});
+        
         document.getElementById('start-btn-container').style.display = 'none';
         
-        // Mulai Audio setelah klik
-        playAudio(soundBg);
-        playAudio(soundTimer);
-        
-        startGlobalTimer();
+        setTimeout(() => {
+            soundBg.play().catch(() => {});
+            soundTimer.play().catch(() => {});
+            startGlobalTimer();
+        }, 1500);
     }
 
     function startGlobalTimer() {
@@ -290,10 +245,7 @@
             text.innerText = totalTime;
             const offset = (totalTime / 180) * 251;
             circle.style.strokeDashoffset = 251 - offset;
-            if (totalTime <= 0) {
-                clearInterval(timerInterval);
-                finishGame();
-            }
+            if (totalTime <= 0) { clearInterval(timerInterval); finishGame(); }
         }, 1000);
     }
 
@@ -311,10 +263,7 @@
             btn.id = `ans-${idx}`;
             btn.innerHTML = `<b>${String.fromCharCode(65 + idx)}:</b> ${ans}`;
             btn.onclick = () => {
-                if(!isGameStarted) {
-                    showNotif("INFO", "Tekan tombol MULAI SEKARANG terlebih dahulu!", "success", null);
-                    return;
-                }
+                if(!isGameStarted) return;
                 checkAnswer(idx, btn);
             };
             container.appendChild(btn);
@@ -324,64 +273,41 @@
     function checkAnswer(idx, btn) {
         const correct = quizData[currentQ].c;
         soundTimer.pause();
-
         if(idx === correct) {
-            playAudio(soundCorrect);
+            soundCorrect.play().catch(() => {});
             btn.classList.add('correct');
             score += 20;
             setTimeout(() => {
                 currentQ++;
-                if(isGameStarted) playAudio(soundTimer);
+                if(isGameStarted) soundTimer.play().catch(() => {});
                 loadQuestion();
             }, 2000);
         } else {
             soundBg.pause();
-            playAudio(soundWrong);
+            soundWrong.play().catch(() => {});
             btn.classList.add('wrong');
             clearInterval(timerInterval);
             setTimeout(() => {
-                showNotif("GAGAL", `Jawaban Salah. Skor Akhir: ${score}`, "fail", () => location.reload());
+                showNotif("GAGAL", `Jawaban Salah. Skor: ${score}`, "fail", () => location.reload());
             }, 2000);
         }
     }
 
     async function finishGame() {
         clearInterval(timerInterval);
-        soundBg.pause();
-        soundTimer.pause();
-        playAudio(soundWin);
-
+        soundBg.pause(); soundTimer.pause();
+        soundWin.play().catch(() => {});
         if(userData) {
             const ref = db.collection("game_scores").doc(userData.email);
             const doc = await ref.get();
             if(doc.exists) {
-                let poinLama = doc.data().skor || 0;
-                await ref.update({ skor: poinLama + score, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+                await ref.update({ skor: doc.data().skor + score, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
             } else {
                 await ref.set({ nama: userData.nama, email: userData.email, skor: score, foto: userData.foto_profil || "", timestamp: firebase.firestore.FieldValue.serverTimestamp() });
             }
         }
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-        showNotif("SELESAI!", `Selamat! Poin ${score} telah diakumulasi.`, "success", () => location.reload());
-    }
-
-    function toggleRank() {
-        const overlay = document.getElementById('leaderboard-overlay');
-        overlay.style.display = (overlay.style.display === 'block') ? 'none' : 'block';
-        if(overlay.style.display === 'block') loadLeaderboard();
-    }
-
-    function loadLeaderboard() {
-        const list = document.getElementById('rank-list');
-        list.innerHTML = "<p style='text-align:center; color:#666;'>Mengambil data peringkat...</p>";
-        db.collection("game_scores").orderBy("skor", "desc").limit(15).get().then(snap => {
-            let html = ""; let rank = 1;
-            snap.forEach(doc => {
-                const d = doc.data();
-                html += `<div class="rank-card"><div class="rank-numb">${rank++}</div><img src="${d.foto || 'https://via.placeholder.com/100'}" class="rank-img"><div class="rank-info"><p class="rank-name">${d.nama}</p></div><div class="rank-score">${d.skor.toLocaleString()} Pt</div></div>`;
-            });
-            list.innerHTML = html || "<p style='text-align:center; color:#999;'>Belum ada pemain.</p>";
-        });
+        showNotif("SELESAI!", `Poin ${score} berhasil disimpan.`, "success", () => location.reload());
     }
 
     function showNotif(title, msg, icon, action) {
@@ -396,24 +322,41 @@
         document.getElementById('custom-notif').style.display = 'none';
         if(window.nextAction) window.nextAction();
     }
-    
-    // Lifelines
+
+    function toggleRank() {
+        const overlay = document.getElementById('leaderboard-overlay');
+        overlay.style.display = (overlay.style.display === 'block') ? 'none' : 'block';
+        if(overlay.style.display === 'block') loadLeaderboard();
+    }
+
+    function loadLeaderboard() {
+        const list = document.getElementById('rank-list');
+        list.innerHTML = "<p style='text-align:center;'>Memuat...</p>";
+        db.collection("game_scores").orderBy("skor", "desc").limit(15).get().then(snap => {
+            let html = ""; let rank = 1;
+            snap.forEach(doc => {
+                const d = doc.data();
+                html += `<div class="rank-card"><div class="rank-numb">${rank++}</div><img src="${d.foto || 'https://via.placeholder.com/100'}" class="rank-img"><div class="rank-info"><p class="rank-name">${d.nama}</p></div><div class="rank-score">${d.skor.toLocaleString()} Pt</div></div>`;
+            });
+            list.innerHTML = html || "<p style='text-align:center;'>Belum ada pemain.</p>";
+        });
+    }
+
     function use5050() {
         if(!isGameStarted || usedLifelines.f50) return;
         const correct = quizData[currentQ].c;
         let indices = [0,1,2,3].filter(i => i !== correct);
-        indices = shuffleArray(indices);
-        indices.slice(0, 2).forEach(i => document.getElementById(`ans-${i}`).classList.add('hidden'));
+        indices.sort(() => Math.random() - 0.5).slice(0, 2).forEach(i => document.getElementById(`ans-${i}`).classList.add('hidden'));
         usedLifelines.f50 = true; document.getElementById('ll-5050').classList.add('used');
     }
     function usePhone() {
         if(!isGameStarted || usedLifelines.phone) return;
-        showNotif("TANYA TEMAN", `Sahabat Anda yakin jawabannya adalah ${String.fromCharCode(65 + quizData[currentQ].c)}`, "success", null);
+        showNotif("TANYA TEMAN", `Temanmu yakin jawabannya ${String.fromCharCode(65 + quizData[currentQ].c)}`, "success", null);
         usedLifelines.phone = true; document.getElementById('ll-phone').classList.add('used');
     }
     function useAudience() {
         if(!isGameStarted || usedLifelines.audience) return;
-        showNotif("PENONTON", "85% Penonton memilih jawaban yang benar!", "success", null);
+        showNotif("PENONTON", "85% Penonton yakin jawaban benar!", "success", null);
         usedLifelines.audience = true; document.getElementById('ll-audience').classList.add('used');
     }
 
