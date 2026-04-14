@@ -62,12 +62,12 @@
             align-items: center; 
             justify-content: center; 
             gap: 10px; 
-            font-size: 13px; 
+            font-size: 11px;
+            text-align: center;
         }
 
         .content-scroll { padding: 0 15px 15px 15px; max-width: 600px; margin: auto; }
 
-        /* Card Artikel */
         .kesaksian-card { 
             background: white; 
             border-radius: 15px; 
@@ -78,7 +78,6 @@
             position: relative;
         }
 
-        /* Control Panel (Checkbox & Hapus) */
         .card-controls {
             display: flex;
             justify-content: space-between;
@@ -93,9 +92,8 @@
 
         .btn-delete { color: var(--merah); cursor: pointer; font-size: 14px; background: none; border: none; }
 
-        .kesaksian-text { font-size: 15px; color: #333; line-height: 1.6; margin-bottom: 15px; font-style: italic; }
+        .kesaksian-text { font-size: 15px; color: #333; line-height: 1.6; margin-bottom: 15px; font-style: italic; white-space: pre-wrap; }
         
-        /* Share Buttons */
         .share-panel { 
             display: flex; 
             gap: 10px; 
@@ -129,7 +127,6 @@
         .author-name { font-weight: bold; font-size: 13px; color: var(--biru-tua); margin: 0; }
         .author-meta { font-size: 10px; color: #777; margin: 0; }
 
-        /* Popups & Toast */
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
         .popup { background: white; width: 100%; max-width: 400px; border-radius: 20px; padding: 25px; }
         .form-group textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; height: 150px; resize: none; box-sizing: border-box; }
@@ -217,11 +214,13 @@
             snap.forEach(doc => {
                 const data = doc.data();
                 const id = doc.id;
-                const textKesaksian = data.isi_kesaksian.replace(/\n/g, " ");
-                const foto = data.author_foto || 'https://via.placeholder.com/100';
                 
-                // Cek apakah ini milik user saat ini untuk fungsi hapus
-                const canDelete = data.author_email === currentUserData.email;
+                const isiMurni = data.isi_kesaksian ? data.isi_kesaksian.replace(/\n/g, " ") : "";
+                const namaPenulis = data.author_nama || "Anonim";
+                const nijPenulis = data.author_nij || "-";
+                const komselPenulis = data.author_komsel || "Umum";
+                const foto = data.author_foto || 'https://via.placeholder.com/100';
+                const canDelete = data.author_email === (currentUserData ? currentUserData.email : "");
 
                 html += `
                     <div class="kesaksian-card" id="card-${id}">
@@ -235,16 +234,22 @@
                         <div class="kesaksian-text">"${data.isi_kesaksian}"</div>
 
                         <div class="share-panel" id="share-${id}">
-                            <button class="btn-share bg-wa" onclick="shareWA('${textKesaksian}')"><i class="fa-brands fa-whatsapp"></i> WA</button>
-                            <button class="btn-share bg-fb" onclick="shareFB('${id}')"><i class="fa-brands fa-facebook-f"></i> FB</button>
-                            <button class="btn-share bg-ig" onclick="shareIG()"><i class="fa-brands fa-instagram"></i> IG</button>
+                            <button class="btn-share bg-wa" onclick="shareWA('${isiMurni}', '${namaPenulis}', '${nijPenulis}', '${komselPenulis}')">
+                                <i class="fa-brands fa-whatsapp"></i> WA
+                            </button>
+                            <button class="btn-share bg-fb" onclick="shareFB('${isiMurni}', '${namaPenulis}', '${nijPenulis}', '${komselPenulis}')">
+                                <i class="fa-brands fa-facebook-f"></i> FB
+                            </button>
+                            <button class="btn-share bg-ig" onclick="shareIG('${isiMurni}', '${namaPenulis}', '${nijPenulis}', '${komselPenulis}')">
+                                <i class="fa-brands fa-instagram"></i> IG
+                            </button>
                         </div>
 
                         <div class="kesaksian-footer">
                             <img src="${foto}" class="author-img" onerror="this.src='https://via.placeholder.com/100'">
                             <div class="author-info">
-                                <p class="author-name">${data.author_nama}</p>
-                                <p class="author-meta">NIJ: ${data.author_nij} • ${data.author_komsel}</p>
+                                <p class="author-name">${namaPenulis}</p>
+                                <p class="author-meta">NIJ: ${nijPenulis} • ${komselPenulis}</p>
                             </div>
                         </div>
                     </div>`;
@@ -253,55 +258,40 @@
         });
     }
 
-    // FUNGSI TOGGLE SHARE
     function toggleShare(id, cb) {
         const panel = document.getElementById(`share-${id}`);
         if(cb.checked) panel.classList.add('active');
         else panel.classList.remove('active');
     }
 
-  // FUNGSI SHARE WHATSAPP
+    // FUNGSI PEMBUAT TEKS FORMAT STANDAR
+    function buatFormatPesan(isi, nama, nij, komsel) {
+        return `SIPAPUA\n(Sistem Informasi Pondok Pemulihan Papua)\nPope Shelter\n\nKesaksian:\n"${isi}"\n\n---\nPenulis: ${nama}\nNIJ: ${nij}\nKomsel: ${komsel}`;
+    }
+
     function shareWA(isi, nama, nij, komsel) {
-        const teks = `*SIPAPUA*
-(Sistem Informasi Pondok Pemulihan Papua)
-_Pope Shelter_
-
-*Kesaksian:*
-"${isi}"
-
----
-*Penulis:* ${nama}
-*NIJ:* ${nij}
-*Komsel:* ${komsel}`;
-
+        // Khusus WA kita gunakan format bold/italic
+        const teks = `*SIPAPUA*\n(Sistem Informasi Pondok Pemulihan Papua)\n_Pope Shelter_\n\n*Kesaksian:*\n"${isi}"\n\n---\n*Penulis:* ${nama}\n*NIJ:* ${nij}\n*Komsel:* ${komsel}`;
         const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(teks)}`;
         window.open(url, '_blank');
     }
 
-    // FUNGSI SHARE FACEBOOK
-    function shareFB(isi, nama, nij, foto) {
-        // Facebook sharer biasanya mengambil metadata dari URL. 
-        // Agar foto penulis muncul, kita buat format teks yang siap di-copy.
-        const teks = `SIPAPUA (Sistem Informasi Pondok Pemulihan Papua)\n\nKESAKSIAN:\n"${isi}"\n\nPenulis: ${nama}\nNIJ: ${nij}`;
-        
-        // Salin teks ke clipboard agar user tinggal paste di FB
+    function shareFB(isi, nama, nij, komsel) {
+        const teks = buatFormatPesan(isi, nama, nij, komsel);
         navigator.clipboard.writeText(teks).then(() => {
-            alert("Teks format SIPAPUA telah disalin! Silakan pilih foto Anda dan paste teks di postingan Facebook.");
+            alert("Teks format SIPAPUA telah disalin! Silakan paste (tempel) teks di postingan Facebook Anda.");
             window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank');
         });
     }
 
-    // FUNGSI SHARE INSTAGRAM
-    function shareIG(isi, nama, nij) {
-        const teks = `SIPAPUA (Sistem Informasi Pondok Pemulihan Papua)\n\nKESAKSIAN:\n"${isi}"\n\nPenulis: ${nama}\nNIJ: ${nij}`;
-        
+    function shareIG(isi, nama, nij, komsel) {
+        const teks = buatFormatPesan(isi, nama, nij, komsel);
         navigator.clipboard.writeText(teks).then(() => {
-            alert("Format SIPAPUA sudah disalin ke Clipboard.\n\nLangkah:\n1. Buka Instagram\n2. Pilih Foto Penulis\n3. Paste teks di Caption.");
+            alert("Format SIPAPUA sudah disalin ke Clipboard.\n\nLangkah:\n1. Buka Instagram\n2. Paste (tempel) teks di Caption.");
             window.open('https://www.instagram.com/', '_blank');
         });
     }
 
-    // FUNGSI HAPUS
     async function hapusKesaksian(id) {
         if(confirm("Apakah Anda yakin ingin menghapus kesaksian ini?")) {
             try {
