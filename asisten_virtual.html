@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asisten Virtual</title>
+
+<style>
+body {
+    margin: 0;
+    background: linear-gradient(to bottom, #0a0a0a, #1a1a1a);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* CONTAINER */
+.assistant {
+    text-align: center;
+    animation: fadeIn 2s ease-in-out;
+}
+
+/* GAMBAR */
+.assistant img {
+    width: 300px;
+    animation: idleMove 3s infinite ease-in-out;
+}
+
+/* TEKS */
+.text {
+    color: white;
+    font-size: 20px;
+    margin-top: 15px;
+    animation: blinkText 3s infinite;
+}
+
+/* ANIMASI GERAK (STOP MOTION STYLE) */
+@keyframes idleMove {
+    0% { transform: translateY(0px) scale(1); }
+    25% { transform: translateY(-5px) scale(1.02); }
+    50% { transform: translateY(0px) scale(1); }
+    75% { transform: translateY(-3px) scale(1.01); }
+    100% { transform: translateY(0px) scale(1); }
+}
+
+/* FADE */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* TEKS BERKEDIP */
+@keyframes blinkText {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="assistant">
+    <img src="asisten.png">
+    <div class="text">Selamat datang, saya siap membantu Anda...</div>
+</div>
+
+</body>
+</html>
