@@ -11,7 +11,6 @@
         :root { --biru-tua: #003366; --emas: #D4AF37; --bg: #001f3f; --putih: #ffffff; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; color: white; overflow: hidden; }
 
-        /* Header */
         .header-game { 
             background: var(--biru-tua); padding: 15px; display: flex; align-items: center; 
             border-bottom: 3px solid var(--emas); position: relative; height: 60px; box-sizing: border-box;
@@ -19,81 +18,71 @@
         .btn-back { color: white; font-size: 20px; text-decoration: none; position: absolute; left: 15px; z-index: 10; }
         .header-title { width: 100%; text-align: center; font-weight: bold; font-size: 16px; letter-spacing: 1px; }
 
-        /* Start Overlay */
-        #start-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 31, 63, 0.95); z-index: 4000;
-            display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center;
-        }
-
-        /* Timer Styles */
+        /* Timer Section */
         .timer-container {
-            position: relative; width: 90px; height: 90px; margin: 0 auto 15px auto;
+            position: relative; width: 110px; height: 110px; margin: 0 auto 15px auto;
             display: flex; align-items: center; justify-content: center;
         }
-        .timer-svg { transform: rotate(-90deg); width: 90px; height: 90px; }
-        .timer-circle-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 6; }
+        .timer-svg { transform: rotate(-90deg); width: 110px; height: 110px; }
+        .timer-circle-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 8; }
         .timer-circle-progress {
-            fill: none; stroke: var(--emas); stroke-width: 6; stroke-linecap: round;
+            fill: none; stroke: #ff4d4d; stroke-width: 8; stroke-linecap: round;
             stroke-dasharray: 283; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear;
         }
-        .timer-text { position: absolute; font-family: 'Courier New', Courier, monospace; font-size: 22px; font-weight: bold; color: var(--emas); }
+        .timer-text { position: absolute; font-family: 'Courier New', Courier, monospace; font-size: 26px; font-weight: bold; color: #ff4d4d; }
 
-        /* Game UI */
-        .game-container { padding: 20px; text-align: center; max-width: 600px; margin: auto; height: calc(100vh - 60px); display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; }
+        .game-container { padding: 20px; text-align: center; max-width: 600px; margin: auto; height: calc(100vh - 60px); display: flex; flex-direction: column; justify-content: center; }
         .prize-level { color: var(--emas); font-weight: bold; font-size: 16px; margin-bottom: 10px; }
-        .question-box { background: rgba(0, 51, 102, 0.8); border: 2px solid var(--emas); padding: 20px; border-radius: 40px 0 40px 0; margin-bottom: 20px; font-size: 16px; min-height: 70px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(212, 175, 55, 0.2); }
-        .answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
-        .btn-answer { background: transparent; border: 1px solid var(--emas); color: white; padding: 12px; border-radius: 25px; cursor: pointer; font-size: 13px; transition: 0.3s; text-align: left; overflow: hidden; }
+        .question-box { background: rgba(0, 51, 102, 0.8); border: 2px solid var(--emas); padding: 20px; border-radius: 40px 0 40px 0; margin-bottom: 20px; font-size: 16px; min-height: 80px; display: flex; align-items: center; justify-content: center; }
+        
+        .answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .btn-answer { background: transparent; border: 1px solid var(--emas); color: white; padding: 12px; border-radius: 25px; cursor: pointer; font-size: 13px; transition: 0.3s; text-align: left; }
         .btn-answer.correct { background: #28a745 !important; border-color: white; }
         .btn-answer.wrong { background: #d9534f !important; border-color: white; }
 
-        /* Leaderboard */
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 5000; overflow-y: auto; padding: 20px; box-sizing: border-box; }
-        .rank-card { background: white; border-radius: 12px; padding: 10px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; border-left: 5px solid var(--emas); }
-        .rank-num { font-weight: bold; color: var(--biru-tua); width: 25px; text-align: center; }
-        .rank-img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--emas); object-fit: cover; }
+        /* Leaderboard Fix */
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 5000; overflow-y: auto; padding: 20px; }
+        .rank-card { background: white; border-radius: 15px; padding: 10px; margin-bottom: 12px; display: flex; align-items: center; gap: 15px; border-left: 6px solid var(--emas); }
+        .rank-numb { font-weight: bold; color: var(--biru-tua); font-size: 18px; width: 30px; text-align: center; }
+        .rank-img { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--emas); object-fit: cover; }
         .rank-info { flex: 1; color: var(--biru-tua); text-align: left; }
-        .rank-name { font-weight: bold; font-size: 13px; margin: 0; text-transform: uppercase; }
-        .rank-score { background: var(--biru-tua); color: var(--emas); padding: 5px 10px; border-radius: 6px; font-weight: bold; font-size: 12px; }
+        .rank-name { font-weight: bold; font-size: 14px; margin: 0; color: #333; }
+        .rank-score { background: var(--biru-tua); color: var(--emas); padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 13px; }
 
-        /* Notification */
-        .notif-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 6000; align-items: center; justify-content: center; padding: 20px; }
-        .notif-box { background: var(--biru-tua); border: 2px solid var(--emas); border-radius: 20px; padding: 30px; text-align: center; width: 100%; max-width: 350px; }
-
-        .lifelines { display: flex; justify-content: center; gap: 12px; margin-top: 20px; }
-        .lifeline-btn { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--emas); background: var(--biru-tua); color: var(--emas); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; }
-        .btn-rank { width: auto !important; padding: 0 15px; border-radius: 10px !important; font-weight: bold; font-size: 11px !important; }
-        .used { opacity: 0.3; pointer-events: none; }
+        /* Start Modal */
+        #start-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 6000; display: flex; align-items: center; justify-content: center; text-align: center; padding: 30px; }
+        .start-box { background: var(--biru-tua); border: 2px solid var(--emas); padding: 30px; border-radius: 20px; max-width: 400px; }
+        
+        .notif-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 7000; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
 <div id="start-overlay">
-    <div class="notif-box">
-        <h3 style="color:var(--emas)">PERSIAPAN</h3>
-        <p>Apakah Anda siap menguji kepintaran Anda dalam Alkitab?</p>
-        <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
-            <button class="notif-btn" onclick="startGame()" style="background:#28a745; color:white; padding:10px 25px; border:none; border-radius:20px; font-weight:bold; cursor:pointer;">SIAP</button>
-            <button class="notif-btn" onclick="location.href='menu.html'" style="background:#d9534f; color:white; padding:10px 25px; border:none; border-radius:20px; font-weight:bold; cursor:pointer;">TIDAK</button>
+    <div class="start-box">
+        <h2 style="color:var(--emas)">SYALOM!</h2>
+        <p>Apakah Anda siap menguji kepintaran Anda dalam Alkitab? (Waktu Anda hanya 3 Menit)</p>
+        <div style="margin-top:25px; display:flex; gap:10px; justify-content:center;">
+            <button onclick="startGame()" style="background:#28a745; color:white; padding:12px 30px; border:none; border-radius:25px; font-weight:bold; cursor:pointer;">SIAP</button>
+            <button onclick="location.href='menu.html'" style="background:#d9534f; color:white; padding:12px 30px; border:none; border-radius:25px; font-weight:bold; cursor:pointer;">TIDAK</button>
         </div>
     </div>
 </div>
 
 <div id="custom-notif" class="notif-overlay">
-    <div class="notif-box">
-        <div id="notif-icon" style="font-size: 40px; margin-bottom: 10px;"></div>
-        <div id="notif-title" style="font-weight:bold; color:var(--emas); margin-bottom:10px;">INFO</div>
-        <div id="notif-message" style="font-size:14px; margin-bottom:20px;"></div>
-        <button class="notif-btn" onclick="closeNotif()" style="background:var(--emas); border:none; padding:10px 30px; border-radius:20px; font-weight:bold; cursor:pointer;">OKE</button>
+    <div class="start-box">
+        <div id="notif-icon" style="font-size: 50px;"></div>
+        <h3 id="notif-title">INFO</h3>
+        <p id="notif-message"></p>
+        <button onclick="closeNotif()" style="background:var(--emas); padding:10px 30px; border:none; border-radius:20px; font-weight:bold; cursor:pointer;">OKE</button>
     </div>
 </div>
 
 <div id="leaderboard-overlay" class="overlay">
-    <div style="max-width:500px; margin:auto; width:100%;">
+    <div style="max-width:500px; margin:auto;">
         <h2 style="text-align: center; color: var(--emas);">Peringkat Tertinggi</h2>
         <div id="rank-list"></div>
-        <div style="text-align:center; color:var(--emas); padding:20px; cursor:pointer; font-weight:bold;" onclick="toggleRank()">TUTUP</div>
+        <div style="text-align:center; color:var(--emas); padding:30px; font-weight:bold; cursor:pointer;" onclick="toggleRank()">TUTUP</div>
     </div>
 </div>
 
@@ -105,21 +94,18 @@
 <div class="game-container">
     <div class="timer-container">
         <svg class="timer-svg">
-            <circle class="timer-circle-bg" cx="45" cy="45" r="40"></circle>
-            <circle id="progress" class="timer-circle-progress" cx="45" cy="45" r="40"></circle>
+            <circle class="timer-circle-bg" cx="55" cy="55" r="50"></circle>
+            <circle id="progress" class="timer-circle-progress" cx="55" cy="55" r="50"></circle>
         </svg>
-        <div id="timer-text" class="timer-text">60</div>
+        <div id="timer-text" class="timer-text">180</div>
     </div>
 
     <div class="prize-level" id="level-display">Level 1 - Poin: 0</div>
-    <div class="question-box" id="question-text">Menunggu instruksi...</div>
+    <div class="question-box" id="question-text">Memuat Soal...</div>
     <div class="answers-grid" id="answers-container"></div>
     
-    <div class="lifelines">
-        <div class="lifeline-btn" onclick="use5050(this)">50:50</div>
-        <div class="lifeline-btn" onclick="usePhone(this)"><i class="fa-solid fa-phone"></i></div>
-        <div class="lifeline-btn" onclick="useAudience(this)"><i class="fa-solid fa-users"></i></div>
-        <div class="lifeline-btn btn-rank" onclick="toggleRank()"><i class="fa-solid fa-trophy"></i> RANKING</div>
+    <div style="display:flex; justify-content:center; gap:12px; margin-top:20px;">
+        <button onclick="toggleRank()" style="background:var(--emas); color:var(--biru-tua); border:none; padding:10px 20px; border-radius:10px; font-weight:bold; cursor:pointer;"><i class="fa-solid fa-trophy"></i> RANKING</button>
     </div>
 </div>
 
@@ -143,14 +129,58 @@
         { q: "Apa arti nama 'Imanuel'?", a: ["Allah Mahakuasa", "Tuhan Raja kami", "Allah menyertai kita", "Gembala Baik"], c: 2 },
         { q: "Berapa hari Tuhan menciptakan alam semesta?", a: ["5 Hari", "7 Hari", "6 Hari", "40 Hari"], c: 2 },
         { q: "Siapa putra tertua dari Yakub?", a: ["Yusuf", "Benyamin", "Ruben", "Yehuda"], c: 2 },
-        { q: "Dimana Yesus dilahirkan?", a: ["Yerusalem", "Nazaret", "Betlehem", "Yudea"], c: 2 }
-        // ... (Silakan tambahkan hingga 50 soal)
+        { q: "Dimana Yesus dilahirkan?", a: ["Yerusalem", "Nazaret", "Betlehem", "Yudea"], c: 2 },
+        { q: "Siapa yang membelah Laut Teberau?", a: ["Harun", "Yosua", "Musa", "Kaleb"], c: 2 },
+        { q: "Apa nama kitab pertama di Alkitab?", a: ["Keluaran", "Imamat", "Kejadian", "Bilangan"], c: 2 },
+        { q: "Siapa murid yang mengkhianati Yesus?", a: ["Petrus", "Yohanes", "Yudas Iskariot", "Tomas"], c: 2 },
+        { q: "Bahtera Nuh terdampar di gunung apa?", a: ["Sinai", "Nebo", "Ararat", "Zaitun"], c: 2 },
+        { q: "Siapa manusia pertama yang diciptakan?", a: ["Habel", "Kain", "Adam", "Set"], c: 2 },
+        { q: "Siapa yang mengalahkan raksasa Goliat?", a: ["Saul", "Daud", "Salomo", "Samsun"], c: 1 },
+        { q: "Siapa istri Ishak?", a: ["Sara", "Ribka", "Rahel", "Lea"], c: 1 },
+        { q: "Berapa jumlah murid Yesus?", a: ["10", "11", "12", "13"], c: 2 },
+        { q: "Di mana Musa menerima 10 perintah Allah?", a: ["Gunung Ararat", "Gunung Sinai", "Gunung Nebo", "Gunung Zaitun"], c: 1 },
+        { q: "Siapa nabi yang ditelan ikan besar?", a: ["Elia", "Yesaya", "Yunus", "Yeremia"], c: 2 },
+        { q: "Siapa ibu Yesus?", a: ["Elisabet", "Marta", "Maria", "Magdalena"], c: 2 },
+        { q: "Apa pekerjaan Petrus sebelum ikut Yesus?", a: ["Pemungut Cukai", "Nelayan", "Tukang Kayu", "Gembala"], c: 1 },
+        { q: "Siapa yang membaptis Yesus?", a: ["Petrus", "Yohanes Pembaptis", "Yakobus", "Paulus"], c: 1 },
+        { q: "Siapa orang tertua di Alkitab?", a: ["Adam", "Nuh", "Metusalah", "Enos"], c: 2 },
+        { q: "Apa nama kota yang dihancurkan Allah selain Gomora?", a: ["Ninewe", "Yerikho", "Sodom", "Tirus"], c: 2 },
+        { q: "Siapa nabi yang naik ke surga dengan kereta kuda berapi?", a: ["Elisa", "Elia", "Enoch", "Musa"], c: 1 },
+        { q: "Siapa yang menjual hak kesulungannya demi semangkuk sup?", a: ["Yakub", "Esau", "Ismael", "Ishak"], c: 1 },
+        { q: "Berapa orang yang selamat dalam Bahtera Nuh?", a: ["2 Orang", "4 Orang", "8 Orang", "12 Orang"], c: 2 },
+        { q: "Siapa yang menggantikan Musa memimpin bangsa Israel?", a: ["Kaleb", "Yosua", "Gideon", "Samson"], c: 1 },
+        { q: "Apa hadiah yang dibawa orang majus selain Emas dan Kemenyan?", a: ["Perak", "Mur", "Permata", "Gaharu"], c: 1 },
+        { q: "Siapa nama lain dari Rasul Paulus?", a: ["Simon", "Saulus", "Lukas", "Stefanus"], c: 1 },
+        { q: "Siapa penulis Kitab Wahyu?", a: ["Paulus", "Petrus", "Yohanes", "Lukas"], c: 2 },
+        { q: "Mujizat pertama Yesus adalah mengubah air menjadi apa?", a: ["Susu", "Anggur", "Madu", "Minyak"], c: 1 },
+        { q: "Siapa yang dibangkitkan Yesus setelah mati 4 hari?", a: ["Lazarus", "Yairus", "Tabita", "Stefanus"], c: 0 },
+        { q: "Apa nama tempat Yesus disalibkan?", a: ["Getsemani", "Golgota", "Betania", "Emmaus"], c: 1 },
+        { q: "Siapa nabi yang dimasukkan ke lubang singa?", a: ["Sadrakh", "Mesakh", "Daniel", "Abednego"], c: 2 },
+        { q: "Siapa yang menemani Paulus dalam perjalanan misinya?", a: ["Barnabas", "Petrus", "Matius", "Tomas"], c: 0 },
+        { q: "Apa hukum terutama yang diajarkan Yesus?", a: ["Jangan Mencuri", "Kasihilah Tuhan Allahmu", "Hormati Orangtuamu", "Berdoa"], c: 1 },
+        { q: "Siapa yang merobohkan tembok Yerikho dengan tiupan sangkakala?", a: ["Musa", "Daud", "Yosua", "Gideon"], c: 2 },
+        { q: "Siapa perempuan yang memotong rambut Samson?", a: ["Rut", "Delila", "Esther", "Hana"], c: 1 },
+        { q: "Siapa raja yang membangun Bait Allah pertama?", a: ["Daud", "Salomo", "Saul", "Hezekia"], c: 1 },
+        { q: "Apa Kitab terpendek di Alkitab?", a: ["2 Yohanes", "Obaja", "Filemon", "Yudas"], c: 0 },
+        { q: "Berapa kali Petrus menyangkal Yesus?", a: ["1 Kali", "2 Kali", "3 Kali", "4 Kali"], c: 2 },
+        { q: "Siapa yang membawa bangsa Israel keluar dari Mesir?", a: ["Yusuf", "Musa", "Abraham", "Ishak"], c: 1 },
+        { q: "Siapa yang dipanggil dari pohon ara oleh Yesus?", a: ["Zakeus", "Natanael", "Matius", "Andreas"], c: 1 },
+        { q: "Apa burung yang dikirim Nuh untuk mencari tanah kering?", a: ["Elang", "Merpati", "Gereja", "Pipit"], c: 1 },
+        { q: "Siapa anak tunggal Abraham dari Sara?", a: ["Ismael", "Ishak", "Yakub", "Esau"], c: 1 },
+        { q: "Apa arti nama 'Musa'?", a: ["Anak Allah", "Diangkat dari air", "Pembebas", "Gembala"], c: 1 },
+        { q: "Berapa bakul sisa makanan saat Yesus memberi makan 5000 orang?", a: ["7 Bakul", "10 Bakul", "12 Bakul", "5 Bakul"], c: 2 },
+        { q: "Siapa yang paling bijaksana di antara raja-raja Israel?", a: ["Daud", "Salomo", "Yosia", "Solomon"], c: 1 },
+        { q: "Siapa yang dibuang ke dapur api yang menyala-nyala?", a: ["Daniel", "Sadrakh, dkk", "Yunus", "Yeremia"], c: 1 },
+        { q: "Kitab Mazmur sebagian besar ditulis oleh siapa?", a: ["Musa", "Daud", "Salomo", "Asaf"], c: 1 },
+        { q: "Siapa rasul yang berjalan di atas air menuju Yesus?", a: ["Yohanes", "Petrus", "Yakobus", "Andreas"], c: 1 },
+        { q: "Apa nama taman tempat Adam dan Hawa tinggal?", a: ["Taman Getsemani", "Taman Eden", "Taman Firdaus", "Taman Babel"], c: 1 },
+        { q: "Siapa yang menulis kitab Kejadian?", a: ["Abraham", "Musa", "Adam", "Yosua"], c: 1 }
     ];
 
     let quizData = [];
     let currentQ = 0;
     let score = 0;
-    let timeLeft = 60;
+    let totalTime = 180; // 3 Menit
     let timerInterval;
     let userData = null;
     let nextAction = null;
@@ -165,25 +195,25 @@
 
     function startGame() {
         document.getElementById('start-overlay').style.display = 'none';
-        quizData = shuffleArray([...quizRawData]).slice(0, 50);
+        quizData = shuffleArray([...quizRawData]); // Mengacak 50 soal
         loadQuestion();
+        startGlobalTimer();
     }
 
-    function startTimer() {
-        clearInterval(timerInterval);
-        timeLeft = 60;
+    function startGlobalTimer() {
         const circle = document.getElementById('progress');
         const text = document.getElementById('timer-text');
         
         timerInterval = setInterval(() => {
-            timeLeft--;
-            text.innerText = timeLeft;
-            const offset = (timeLeft / 60) * 251; // 2 * PI * R (R=40)
-            circle.style.strokeDashoffset = 251 - offset;
+            totalTime--;
+            text.innerText = totalTime;
+            
+            const offset = (totalTime / 180) * 314; // Keliling Lingkaran R=50
+            circle.style.strokeDashoffset = 314 - offset;
 
-            if (timeLeft <= 0) {
+            if (totalTime <= 0) {
                 clearInterval(timerInterval);
-                showNotif("WAKTU HABIS", "Sayang sekali waktu Anda habis.", "fail", () => location.reload());
+                showNotif("WAKTU HABIS", "Waktu 3 menit Anda sudah habis!", "fail", () => location.reload());
             }
         }, 1000);
     }
@@ -202,11 +232,9 @@
             btn.onclick = () => checkAnswer(idx, btn);
             container.appendChild(btn);
         });
-        startTimer();
     }
 
     function checkAnswer(idx, btn) {
-        clearInterval(timerInterval);
         const correct = quizData[currentQ].c;
         if(idx === correct) {
             btn.classList.add('correct');
@@ -215,49 +243,80 @@
                 currentQ++;
                 if(currentQ < quizData.length) loadQuestion();
                 else finishGame();
-            }, 1000);
+            }, 500);
         } else {
             btn.classList.add('wrong');
+            clearInterval(timerInterval);
             setTimeout(() => {
-                showNotif("JAWABAN SALAH", "Maaf, Anda tidak dapat melanjutkan ke Leaderboard.", "fail", () => location.reload());
+                showNotif("GAGAL", "Jawaban Anda salah. Leaderboard hanya untuk yang tamat!", "fail", () => location.reload());
             }, 500);
         }
     }
 
     async function finishGame() {
+        clearInterval(timerInterval);
         if(userData) {
-            const scoresRef = db.collection("game_scores");
-            const q = await scoresRef.where("email", "==", userData.email).get();
+            const ref = db.collection("game_scores").doc(userData.email);
+            const doc = await ref.get();
             
-            if(q.empty) {
-                // Tambah Data Baru
-                await scoresRef.add({
-                    nama: userData.nama,
-                    email: userData.email,
-                    foto: userData.foto_profil || "",
-                    skor: score,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            if(doc.exists) {
+                // Akumulasi
+                const oldSkor = doc.data().skor || 0;
+                await ref.update({ 
+                    skor: oldSkor + score, 
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    foto: userData.foto_profil || "" 
                 });
             } else {
-                // Akumulasi Poin
-                const docId = q.docs[0].id;
-                const oldSkor = q.docs[0].data().skor || 0;
-                await scoresRef.doc(docId).update({
-                    skor: oldSkor + score,
+                // Input baru
+                await ref.set({
+                    nama: userData.nama,
+                    email: userData.email,
+                    skor: score,
+                    foto: userData.foto_profil || "",
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
             }
         }
         
-        celebrate();
-        showNotif("SELAMAT!", "Anda berhasil menyelesaikan seluruh pertanyaan! Skor Anda telah diakumulasi.", "success", () => location.reload());
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        showNotif("LUAR BIASA!", "Anda menyelesaikan 50 soal! Poin Anda diakumulasi ke Leaderboard.", "success", () => location.reload());
     }
 
-    function showNotif(title, msg, type, callback) {
-        nextAction = callback;
+    function toggleRank() {
+        const overlay = document.getElementById('leaderboard-overlay');
+        overlay.style.display = (overlay.style.display === 'block') ? 'none' : 'block';
+        if(overlay.style.display === 'block') loadLeaderboard();
+    }
+
+    function loadLeaderboard() {
+        const list = document.getElementById('rank-list');
+        list.innerHTML = "<p style='text-align:center'>Mengambil Data...</p>";
+        
+        db.collection("game_scores").orderBy("skor", "desc").limit(10).get().then(snap => {
+            let html = "";
+            let rank = 1; // Counter Manual untuk cegah NaN
+            snap.forEach((doc) => {
+                const d = doc.data();
+                html += `
+                <div class="rank-card">
+                    <div class="rank-numb">${rank++}</div>
+                    <img src="${d.foto || 'https://via.placeholder.com/100'}" class="rank-img">
+                    <div class="rank-info">
+                        <p class="rank-name">${d.nama}</p>
+                    </div>
+                    <div class="rank-score">${d.skor} Pt</div>
+                </div>`;
+            });
+            list.innerHTML = html || "<p style='text-align:center; color:white'>Belum ada pemenang.</p>";
+        });
+    }
+
+    function showNotif(title, msg, icon, action) {
+        nextAction = action;
         document.getElementById('notif-title').innerText = title;
         document.getElementById('notif-message').innerText = msg;
-        document.getElementById('notif-icon').innerHTML = type === 'success' ? "🏆" : "❌";
+        document.getElementById('notif-icon').innerHTML = icon === "success" ? "🏆" : "❌";
         document.getElementById('custom-notif').style.display = 'flex';
     }
 
@@ -266,51 +325,9 @@
         if(nextAction) nextAction();
     }
 
-    function toggleRank() {
-        const overlay = document.getElementById('leaderboard-overlay');
-        overlay.style.display = (overlay.style.display === 'flex') ? 'none' : 'flex';
-        if(overlay.style.display === 'flex') loadLeaderboard();
-    }
-
-    function loadLeaderboard() {
-        document.getElementById('rank-list').innerHTML = "<p style='text-align:center'>Memuat...</p>";
-        db.collection("game_scores").orderBy("skor", "desc").limit(20).get().then(snap => {
-            let html = "";
-            if(snap.empty) html = "<p style='text-align:center; color:white'>Belum ada pemenang.</p>";
-            snap.forEach((doc, i) => {
-                const d = doc.data();
-                html += `
-                <div class="rank-card">
-                    <div class="rank-num">${i + 1}</div>
-                    <img src="${d.foto || 'https://via.placeholder.com/100'}" class="rank-img">
-                    <div class="rank-info">
-                        <p class="rank-name">${d.nama}</p>
-                    </div>
-                    <div class="rank-score">${d.skor} Poin</div>
-                </div>`;
-            });
-            document.getElementById('rank-list').innerHTML = html;
-        });
-    }
-
-    function celebrate() {
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-    }
-
     function shuffleArray(array) {
         return array.sort(() => Math.random() - 0.5);
     }
-
-    function use5050(btn) {
-        btn.classList.add('used');
-        const correct = quizData[currentQ].c;
-        const btns = document.querySelectorAll('.btn-answer');
-        let hidden = 0;
-        btns.forEach((b, i) => { if(i !== correct && hidden < 2) { b.style.visibility = 'hidden'; hidden++; } });
-    }
-
-    function usePhone(btn) { btn.classList.add('used'); alert("Temanmu berbisik: Sepertinya jawabannya " + String.fromCharCode(65 + quizData[currentQ].c)); }
-    function useAudience(btn) { btn.classList.add('used'); alert("Mayoritas jemaat memilih " + String.fromCharCode(65 + quizData[currentQ].c)); }
 
     window.onload = fetchUserData;
 </script>
