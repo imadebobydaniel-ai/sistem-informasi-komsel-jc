@@ -74,12 +74,16 @@
         </div>
     </div>
 
-   <script>
+<script>
     const splash = document.getElementById('splash-screen');
     const assistant = document.getElementById('assistant-screen');
     const loginPage = document.getElementById('login-page');
     const typingEl = document.getElementById('typing');
-    const bgSound = document.getElementById('asisten_virtual_sound.mp3');
+    
+    // 1. POSISI PENGATURAN FILE MUSIK
+    // Ganti 'asisten_virtual_sound.mp3' sesuai nama file Anda di GitHub
+    const bgSound = new Audio('asisten_virtual_sound.mp3'); 
+    bgSound.loop = true; 
 
     const messages = [
         "Selamat Datang di SIPAPUA (Sistem Informasi Pondok Pemulihan Papua). Aplikasi ini adalah sebuah terobosan untuk membantu Anda dalam menjalankan penilaian dari segi level pelayanan yang Anda lakukan.",
@@ -96,19 +100,18 @@
         if (isStarted) return;
         isStarted = true;
 
-        // --- KONFIGURASI SEPERTI DI GAME (UNLOCK AUDIO) ---
+        // 2. KONFIGURASI UNLOCK AUDIO (Mechanical necessity untuk browser modern)
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') {
             audioCtx.resume();
         }
 
-        // Memastikan audio diputar setelah interaksi klik
+        // Jalankan Musik
         bgSound.play().then(() => {
-            console.log("Audio playing...");
+            console.log("Audio SIPAPUA berhasil diputar");
         }).catch(e => {
-            console.log("Audio error/blocked:", e);
+            console.error("Gagal putar audio. Pastikan nama file benar di GitHub:", e);
         });
-        // --------------------------------------------------
 
         // Transisi Visual
         splash.style.opacity = '0';
@@ -135,9 +138,9 @@
                 }, 3000); 
             }
         } else {
-            // Berhenti saat masuk login
+            // Berhenti dan reset musik saat masuk halaman login
             bgSound.pause();
-            bgSound.currentTime = 0; // Reset audio
+            bgSound.currentTime = 0; 
             assistant.style.display = 'none';
             loginPage.style.display = 'flex';
             document.body.style.overflow = "auto";
