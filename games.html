@@ -54,15 +54,28 @@
         .btn-answer.wrong { background: #d9534f !important; border-color: white; }
         .btn-answer.hidden { visibility: hidden; }
 
-        /* Lifelines */
+        /* Lifelines - PERBAIKAN DI SINI */
         .lifelines-container { display: flex; justify-content: center; gap: 15px; margin: 10px 0; }
         .btn-lifeline {
-            width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--emas);
-            background: var(--biru-tua); color: var(--emas); font-size: 16px; cursor: pointer;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 2px solid var(--emas);
+            background: var(--biru-tua);
+            color: var(--emas);
+            font-size: 11px; /* Ukuran font dikecilkan agar muat */
+            cursor: pointer;
+            display: inline-flex; /* Gunakan flexbox */
+            align-items: center; /* Rata tengah vertikal */
+            justify-content: center; /* Rata tengah horizontal */
+            font-weight: bold;
+            padding: 0;
+            overflow: hidden;
+            box-sizing: border-box;
         }
         .btn-lifeline.used { opacity: 0.3; cursor: default; }
 
-        /* OVERLAY MINIMALIS LEADERBOARD (Setengah Layar) */
+        /* OVERLAY MINIMALIS LEADERBOARD */
         #leaderboard-overlay { 
             display: none; position: fixed; bottom: 0; left: 0; width: 100%; 
             height: 55vh; background: white; border-radius: 25px 25px 0 0;
@@ -170,11 +183,9 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Data Soal (Disingkat untuk contoh, silakan lengkapi seperti sebelumnya)
     const quizRawData = [
         { q: "Siapa raja pertama bangsa Israel?", a: ["Daud", "Saul", "Salomo", "Yosua"], c: 1 },
-        { q: "Apa arti nama 'Imanuel'?", a: ["Allah Mahakuasa", "Tuhan Raja kami", "Allah menyertai kita", "Gembala Baik"], c: 2 },
-        // ... tambahkan soal lainnya di sini
+        { q: "Apa arti nama 'Imanuel'?", a: ["Allah Mahakuasa", "Tuhan Raja kami", "Allah menyertai kita", "Gembala Baik"], c: 2 }
     ];
 
     let quizData = [];
@@ -263,7 +274,6 @@
         }
     }
 
-    // --- LOGIKA AKUMULASI POIN TANPA DUPLIKASI ---
     async function finishGame() {
         clearInterval(timerInterval);
         if(userData) {
@@ -271,14 +281,12 @@
             const doc = await ref.get();
             
             if(doc.exists) {
-                // Akumulasikan poin lama + poin baru
                 let poinLama = doc.data().skor || 0;
                 await ref.update({ 
                     skor: poinLama + score, 
                     timestamp: firebase.firestore.FieldValue.serverTimestamp() 
                 });
             } else {
-                // Buat entri baru jika email belum pernah ada di skor
                 await ref.set({ 
                     nama: userData.nama, 
                     email: userData.email, 
@@ -302,7 +310,6 @@
         const list = document.getElementById('rank-list');
         list.innerHTML = "<p style='text-align:center; color:#666;'>Mengambil data peringkat...</p>";
         
-        // Ambil data teratas (Firebase akan secara otomatis unik karena kita pakai email sebagai Doc ID)
         db.collection("game_scores").orderBy("skor", "desc").limit(15).get().then(snap => {
             let html = ""; let rank = 1;
             snap.forEach(doc => {
@@ -321,7 +328,6 @@
         });
     }
 
-    // Fungsi Pembantu Lainnya (Sama seperti sebelumnya)
     function showNotif(title, msg, icon, action) {
         window.nextAction = action;
         document.getElementById('notif-title').innerText = title;
@@ -337,7 +343,6 @@
 
     function shuffleArray(arr) { return arr.sort(() => Math.random() - 0.5); }
     
-    // Lifelines (Sederhana)
     function use5050() {
         if(!isGameStarted || usedLifelines.f50) return;
         const correct = quizData[currentQ].c;
