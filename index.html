@@ -140,6 +140,10 @@
 </head>
 <body>
 
+    <audio id="asistenAudio" preload="auto">
+        <source src="asisten_virtual_sound.mp3" type="audio/mpeg">
+    </audio>
+
     <div id="splash-screen">
         <div class="splash-content">
             <div class="logo-wrapper">
@@ -215,7 +219,6 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // 1. AUTO-LOGIN GATEKEEPER
         auth.onAuthStateChanged((user) => {
             if (user && user.emailVerified) {
                 localStorage.setItem("userEmail", user.email);
@@ -237,6 +240,9 @@
         const assistantContainer = document.getElementById('assistant-container');
         const loginCard = document.getElementById('main-login-card');
         const nextBtn = document.getElementById('next-btn');
+        
+        // Konstanta Audio
+        const bgSound = document.getElementById('asistenAudio');
 
         document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => {
@@ -245,7 +251,13 @@
                 setTimeout(() => {
                     splash.style.display = 'none';
                     assistantContainer.style.display = 'flex';
-                    setTimeout(() => { assistantContainer.style.opacity = '1'; }, 50);
+                    setTimeout(() => { 
+                        assistantContainer.style.opacity = '1'; 
+                        
+                        // PEMICU SUARA: Browser memerlukan interaksi user atau transisi state untuk memutar audio
+                        // Kita coba putar saat asisten muncul
+                        bgSound.play().catch(e => console.log("Menunggu interaksi user untuk audio"));
+                    }, 50);
                     startTyping();
                 }, 1200);
             }, 3000);
@@ -277,12 +289,19 @@
 
         function nextMessage() {
             if (isTyping) return;
+            
+            // Re-trigger audio jika sempat terhenti atau gagal di awal
+            bgSound.play().catch(e => {});
+
             msgIndex++;
             if (msgIndex < messages.length) {
                 charIndex = 0;
                 typingEl.innerHTML = "";
                 startTyping();
             } else {
+                // Matikan suara saat masuk ke form login
+                bgSound.pause();
+                
                 assistantContainer.style.opacity = '0';
                 setTimeout(() => {
                     assistantContainer.style.display = 'none';
@@ -292,7 +311,6 @@
             }
         }
 
-        // --- FUNGSI LOGIN ---
         document.getElementById('eyeIcon').onclick = function() {
             const pass = document.getElementById('user_pass');
             const isPass = pass.type === 'password';
@@ -314,11 +332,8 @@
                 const userCredential = await auth.signInWithEmailAndPassword(email, pass);
                 if (userCredential.user.emailVerified) {
                     localStorage.setItem("userEmail", email);
-                    
-                    // PESAN BERHASIL SESUAI PERMINTAAN
                     msg.innerText = "Selamat Anda Berhasil Login";
                     msg.className = "msg-success";
-                    
                     setTimeout(() => window.location.replace("menu.html"), 1500);
                 } else {
                     msg.innerText = "Email belum diverifikasi!";
@@ -328,7 +343,6 @@
                     auth.signOut();
                 }
             } catch (err) {
-                // PESAN ERROR SESUAI PERMINTAAN
                 msg.innerText = "Periksa Kembali Pasword dan Email Anda";
                 msg.className = "msg-error";
                 btn.innerText = "MASUK";
@@ -336,7 +350,6 @@
             }
         };
 
-        // --- MODAL LUPA PASSWORD ---
         document.getElementById('btnForgot').onclick = () => document.getElementById('forgotModal').style.display = 'flex';
         document.getElementById('closeModal').onclick = () => document.getElementById('forgotModal').style.display = 'none';
         document.getElementById('sendReset').onclick = async () => {
