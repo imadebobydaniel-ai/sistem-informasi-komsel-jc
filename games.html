@@ -39,7 +39,7 @@
 
         /* CSS LEADERBOARD */
         .leaderboard-section {
-            display: none; /* Awalnya disembunyikan sesuai permintaan */
+            display: none;
             height: 40vh;
             margin-top: 10px;
             background: rgba(0, 20, 40, 0.7);
@@ -149,6 +149,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // Inisialisasi Audio
     const soundOpening = new Audio('OPENING SOUND-new.mp3');
     const soundStart   = new Audio('START SOUND-new.mp3');
     const soundCorrect = new Audio('jawaban_benar.mp3');
@@ -223,8 +224,17 @@
     }
 
     function startGame() {
+        // Unlock Audio Context untuk browser (Crucial fix)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+
         document.getElementById('start-overlay').style.display = 'none';
-        soundOpening.play().catch(() => {});
+        
+        // Memastikan audio diputar setelah interaksi tombol SIAP
+        soundOpening.play().catch(e => console.log("Audio play prevented:", e));
+        
         quizData = shuffleArray([...quizRawData]);
         loadQuestion();
     }
@@ -233,6 +243,7 @@
         if(isGameStarted) return;
         isGameStarted = true;
         soundOpening.pause();
+        soundOpening.currentTime = 0; // Reset ke awal
         soundStart.play().catch(() => {});
         document.getElementById('start-btn-container').style.display = 'none';
         
