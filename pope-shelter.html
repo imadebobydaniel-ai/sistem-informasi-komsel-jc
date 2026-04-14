@@ -260,19 +260,45 @@
         else panel.classList.remove('active');
     }
 
-    // FUNGSI SHARE
-    function shareWA(text) {
-        const url = `https://api.whatsapp.com/send?text=${encodeURIComponent("*Kesaksian Pondok Pemulihan Papua* \n\n" + text)}`;
+  // FUNGSI SHARE WHATSAPP
+    function shareWA(isi, nama, nij, komsel) {
+        const teks = `*SIPAPUA*
+(Sistem Informasi Pondok Pemulihan Papua)
+_Pope Shelter_
+
+*Kesaksian:*
+"${isi}"
+
+---
+*Penulis:* ${nama}
+*NIJ:* ${nij}
+*Komsel:* ${komsel}`;
+
+        const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(teks)}`;
         window.open(url, '_blank');
     }
 
-    function shareFB(id) {
-        const shareUrl = window.location.href; // Sebaiknya arahkan ke landing page artikel
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
+    // FUNGSI SHARE FACEBOOK
+    function shareFB(isi, nama, nij, foto) {
+        // Facebook sharer biasanya mengambil metadata dari URL. 
+        // Agar foto penulis muncul, kita buat format teks yang siap di-copy.
+        const teks = `SIPAPUA (Sistem Informasi Pondok Pemulihan Papua)\n\nKESAKSIAN:\n"${isi}"\n\nPenulis: ${nama}\nNIJ: ${nij}`;
+        
+        // Salin teks ke clipboard agar user tinggal paste di FB
+        navigator.clipboard.writeText(teks).then(() => {
+            alert("Teks format SIPAPUA telah disalin! Silakan pilih foto Anda dan paste teks di postingan Facebook.");
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank');
+        });
     }
 
-    function shareIG() {
-        alert("Buka Instagram, lalu paste cerita di Story Anda!");
+    // FUNGSI SHARE INSTAGRAM
+    function shareIG(isi, nama, nij) {
+        const teks = `SIPAPUA (Sistem Informasi Pondok Pemulihan Papua)\n\nKESAKSIAN:\n"${isi}"\n\nPenulis: ${nama}\nNIJ: ${nij}`;
+        
+        navigator.clipboard.writeText(teks).then(() => {
+            alert("Format SIPAPUA sudah disalin ke Clipboard.\n\nLangkah:\n1. Buka Instagram\n2. Pilih Foto Penulis\n3. Paste teks di Caption.");
+            window.open('https://www.instagram.com/', '_blank');
+        });
     }
 
     // FUNGSI HAPUS
