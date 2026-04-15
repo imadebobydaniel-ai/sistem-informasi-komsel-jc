@@ -52,49 +52,21 @@
            transition: opacity 1.5s ease;
         }
 
-        /* --- MUTE BUTTON --- */
         .mute-toggle {
-            position: absolute;
-            top: 30px;
-            right: 30px;
-            color: var(--cyan-glow);
-            font-size: 24px;
-            cursor: pointer;
-            z-index: 999999;
-            background: rgba(255, 255, 255, 0.1);
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            border: 1px solid var(--cyan-glow);
-            transition: 0.3s;
+            position: absolute; top: 30px; right: 30px; color: var(--cyan-glow);
+            font-size: 24px; cursor: pointer; z-index: 999999;
+            background: rgba(255, 255, 255, 0.1); width: 50px; height: 50px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; border: 1px solid var(--cyan-glow); transition: 0.3s;
         }
         .mute-toggle:hover { background: var(--cyan-glow); color: #000; }
 
-        /* --- SKIP BUTTON --- */
         .skip-btn {
-            position: absolute;
-            bottom: 30px;
-            right: 30px;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: 0.3s;
-            z-index: 999999;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 8px 15px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .skip-btn:hover {
-            color: var(--cyan-glow);
-            border-color: var(--cyan-glow);
-            background: rgba(0, 212, 255, 0.1);
+            position: absolute; bottom: 30px; right: 30px; color: rgba(255, 255, 255, 0.5);
+            font-size: 14px; font-weight: bold; cursor: pointer; text-transform: uppercase;
+            letter-spacing: 1px; transition: 0.3s; z-index: 999999;
+            background: rgba(255, 255, 255, 0.05); padding: 8px 15px;
+            border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .assistant-img {
@@ -103,62 +75,33 @@
             filter: drop-shadow(0 0 25px rgba(0, 212, 255, 0.4));
         }
  
-        @keyframes aura-glow {
-            from { filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.4)) brightness(1); }
-            to { filter: drop-shadow(0 0 40px rgba(0, 212, 255, 0.8)) brightness(1.2); }
-        }
- 
-       .text-box-asisten {
-           margin-top: 20px; 
-            padding: 0 25px;
-           text-align: center;
-            max-width: 600px;
-           min-height: 160px;
-        }
+        .text-box-asisten { margin-top: 20px; padding: 0 25px; text-align: center; max-width: 600px; min-height: 160px; }
         #typing {
-            font-size: 1.15rem;
-           font-weight: 500;
-           line-height: 1.8;
-           background: linear-gradient(to right, #ffffff, var(--cyan-glow));
-           -webkit-background-clip: text;
-           -webkit-text-fill-color: transparent;
-           text-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
-            display: inline-block;
+            font-size: 1.15rem; font-weight: 500; line-height: 1.8;
+            background: linear-gradient(to right, #ffffff, var(--cyan-glow));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.2); display: inline-block;
         }
-       .cursor-asisten { display: inline-block; width: 3px; height: 20px; background: var(--cyan-glow); margin-left: 5px; animation: blink 1s infinite; vertical-align: middle; }
+        .cursor-asisten { display: inline-block; width: 3px; height: 20px; background: var(--cyan-glow); margin-left: 5px; animation: blink 1s infinite; vertical-align: middle; }
         
         #next-btn {
-           margin-top: 30px;
-            padding: 12px 35px;
-           background: transparent;
-            color: var(--cyan-glow);
-            border: 2px solid var(--cyan-glow);
-           border-radius: 30px;
-           font-weight: bold;
-           text-transform: uppercase;
-           letter-spacing: 2px;
-            cursor: pointer;
-            display: none; 
-           transition: all 0.3s;
-           box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+           margin-top: 30px; padding: 12px 35px; background: transparent;
+            color: var(--cyan-glow); border: 2px solid var(--cyan-glow);
+           border-radius: 30px; font-weight: bold; text-transform: uppercase;
+           letter-spacing: 2px; cursor: pointer; display: none; 
+           transition: all 0.3s; box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
         }
-       #next-btn:hover {
-           background: var(--cyan-glow);
-            color: #000;
-           box-shadow: 0 0 25px rgba(0, 212, 255, 0.5);
-        }
+        #next-btn:hover { background: var(--cyan-glow); color: #000; box-shadow: 0 0 25px rgba(0, 212, 255, 0.5); }
  
         @keyframes breathing { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
         @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
  
         /* --- LOGIN CARD --- */
         .login-card { 
-            display: none; 
-           background: #ffffff; padding: 40px; border-radius: 15px; 
-           box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 400px; 
-           box-sizing: border-box; border-top: 5px solid #007bff; position: relative; z-index: 1; 
-            opacity: 0;
-           transition: opacity 1s ease;
+            display: none; background: #ffffff; padding: 40px; border-radius: 15px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 400px; 
+            box-sizing: border-box; border-top: 5px solid #007bff; position: relative; z-index: 1; 
+            opacity: 0; transition: opacity 1s ease;
         }
  
         .header { text-align: center; margin-bottom: 30px; }
@@ -187,9 +130,10 @@
     </style>
 </head>
 <body>
-<audio id="backsound" loop>
-    <source src="https://www.soundboard.com/handler/DownLoadTrack.ashx?cliptitle=Avengers+Endgame+Theme&filename=mt/MTk5MTYzNjc1MTk5MTcw_uWv_2f2fU59n8.MP3" type="audio/mpeg">
-</audio>
+
+    <audio id="backsound" loop preload="auto">
+        <source src="https://www.soundboard.com/handler/DownLoadTrack.ashx?cliptitle=Avengers+Endgame+Theme&filename=mt/MTk5MTYzNjc1MTk5MTcw_uWv_2f2fU59n8.MP3" type="audio/mpeg">
+    </audio>
  
     <div id="splash-screen">
         <div class="splash-content">
@@ -295,13 +239,10 @@
         const loginCard = document.getElementById('main-login-card');
         const nextBtn = document.getElementById('next-btn');
         const backsound = document.getElementById('backsound');
-        const muteIcon = document.getElementById('mute-icon');
 
-        // Fungsi untuk Mute/Unmute
+        // FUNGSI UTAMA AUDIO
         function toggleMute() {
-            const backsound = document.getElementById('backsound');
             const muteIcon = document.getElementById('mute-icon');
-            
             if (backsound.muted) {
                 backsound.muted = false;
                 muteIcon.className = "fa-solid fa-volume-high";
@@ -312,6 +253,7 @@
         }
 
         function enterSystem() {
+            // Putar musik saat klik tombol pertama kali (Interaksi Sah)
             backsound.play().catch(e => console.log("Audio play failed: ", e));
             
             const splash = document.getElementById('splash-screen');
@@ -322,6 +264,12 @@
                 setTimeout(() => { assistantContainer.style.opacity = '1'; }, 50);
                 startTyping();
             }, 1200);
+        }
+
+        function stopAudioGracefully() {
+            // Fungsi untuk mematikan musik saat masuk login
+            backsound.pause();
+            backsound.currentTime = 0;
         }
  
         function startTyping() {
@@ -356,12 +304,9 @@
                typingEl.innerHTML = "";
                startTyping();
             } else {
-                // Sesuai logika asli Anda: Matikan musik saat masuk login
-                backsound.pause();
-                backsound.currentTime = 0;
-
-               assistantContainer.style.opacity = '0';
-               setTimeout(() => {
+                stopAudioGracefully();
+                assistantContainer.style.opacity = '0';
+                setTimeout(() => {
                    assistantContainer.style.display = 'none';
                    loginCard.style.display = 'block';
                    setTimeout(() => { loginCard.style.opacity = '1'; }, 50);
@@ -369,11 +314,8 @@
             }
         }
 
-        // FUNGSI SKIP
         function skipAssistant() {
-            backsound.pause();
-            backsound.currentTime = 0;
-            
+            stopAudioGracefully();
             assistantContainer.style.opacity = '0';
             setTimeout(() => {
                 assistantContainer.style.display = 'none';
@@ -387,7 +329,7 @@
             const pass = document.getElementById('user_pass');
             const isPass = pass.type === 'password';
             pass.type = isPass ? 'text' : 'password';
-           this.classList.toggle('fa-eye-slash');
+            this.classList.toggle('fa-eye-slash');
         };
  
        document.getElementById('userLoginForm').onsubmit = async (e) => {
