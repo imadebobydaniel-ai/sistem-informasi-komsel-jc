@@ -237,14 +237,20 @@
             }
         });
 
-        // 1. FUNGSI TOGGLE MUTE
+        // 1. FUNGSI TOGGLE MUTE (DIPERKUAT)
         function toggleMute() {
             const volIcon = document.getElementById('volIcon');
+            
             if (bgSound.paused) {
                 bgSound.muted = false; 
-                bgSound.play().then(() => {
-                    volIcon.classList.replace('fa-volume-xmark', 'fa-volume-high');
-                }).catch(e => console.error("Gagal memutar:", e));
+                const playPromise = bgSound.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        volIcon.classList.replace('fa-volume-xmark', 'fa-volume-high');
+                    }).catch(error => {
+                        console.log("Playback dicegah oleh browser.");
+                    });
+                }
             } else {
                 bgSound.pause();
                 volIcon.classList.replace('fa-volume-high', 'fa-volume-xmark');
@@ -260,10 +266,11 @@
             document.removeEventListener("click", unlockAudio);
         }, { once: true });
 
-        // 3. FUNGSI NEXT MESSAGE
-        function nextMessage() {
+        // 3. FUNGSI NEXT MESSAGE (MENCEGAH TABRAKAN AUDIO)
+        async function nextMessage() {
             if (isTyping) return;
             
+            // Hentikan audio sebelumnya secara bersih
             bgSound.pause();
             bgSound.currentTime = 0;
 
@@ -271,10 +278,14 @@
             if (msgIndex < messages.length) {
                 charIndex = 0;
                 typingEl.innerHTML = "";
+                
+                // Jeda memberikan waktu browser untuk memproses pause sebelum play lagi
                 setTimeout(() => {
-                    bgSound.play().catch(e => {});
+                    if (!bgSound.muted) {
+                        bgSound.play().catch(e => console.log("Audio dihentikan manual"));
+                    }
                     startTyping();
-                }, 100); 
+                }, 200); 
             } else {
                 bgSound.pause();
                 assistantContainer.style.opacity = '0';
@@ -296,11 +307,11 @@
                 if (currentText.slice(charIndex, charIndex + 4) === "<br>") {
                     typingEl.innerHTML += "<br>";
                     charIndex += 4;
-                    setTimeout(startTyping, 30);
+                    setTimeout(startTyping, 40);
                 } else if (charIndex < currentText.length) {
                     typingEl.innerHTML += currentText.charAt(charIndex);
                     charIndex++;
-                    setTimeout(startTyping, 30);
+                    setTimeout(startTyping, 40);
                 } else {
                     isTyping = false;
                     nextBtn.style.display = 'block'; 
