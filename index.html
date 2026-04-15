@@ -197,7 +197,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
-  <script>
+<script>
     // --- FIREBASE CONFIG ---
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
@@ -229,57 +229,67 @@
     let msgIndex = 0;
     let charIndex = 0;
     let isTyping = false;
+    let audioPromise = null;
 
-    // --- AUDIO ENGINE (FIXED) ---
+    // --- AUDIO ENGINE (STABLE & SECURE) ---
 
-// --- AUDIO ENGINE (ULTIMATE FIX) ---
-
-function forceUnlockAudio() {
-    bgSound.muted = false;
-    
-    // Simpan hasil play dalam variable untuk mengecek promise
-    let playPromise = bgSound.play();
-
-    if (playPromise !== undefined) {
-        playPromise.then(() => {
-            // Audio berhasil diputar, sekarang baru aman untuk di-pause
-            bgSound.pause();
-            bgSound.currentTime = 0;
-            console.log("Audio Unlocked & Ready");
-            
-            // Hapus listener agar tidak berjalan berkali-kali
-            document.removeEventListener('click', forceUnlockAudio);
-            document.removeEventListener('touchstart', forceUnlockAudio);
-        }).catch(e => {
-            console.log("Menunggu klik yang lebih mantap dari pengguna...");
-        });
+    async function safePlay() {
+        try {
+            bgSound.muted = false;
+            // Tunggu jika ada proses audio yang sedang berjalan
+            if (audioPromise) await audioPromise;
+            audioPromise = bgSound.play();
+            await audioPromise;
+            volIcon.classList.replace('fa-volume-xmark', 'fa-volume-high');
+        } catch (err) {
+            console.log("Play tertunda atau diblokir browser:", err.message);
+            volIcon.classList.replace('fa-volume-high', 'fa-volume-xmark');
+        }
     }
-}
 
-function toggleMute() {
-    if (bgSound.paused) {
+    async function safePause() {
+        try {
+            if (audioPromise) await audioPromise;
+            bgSound.pause();
+        } catch (err) {
+            console.log("Gagal pause:", err.message);
+        }
+    }
+
+    function forceUnlockAudio() {
         bgSound.muted = false;
         bgSound.play().then(() => {
-            volIcon.classList.replace('fa-volume-xmark', 'fa-volume-high');
-        }).catch(error => {
-            console.log("Play tertunda:", error);
-        });
-    } else {
-        // Pastikan kita tidak mem-pause sesuatu yang belum selesai di-play
-        bgSound.pause();
-        volIcon.classList.replace('fa-volume-high', 'fa-volume-xmark');
+            // Beri jeda sangat singkat agar browser mencatat izin "play" telah diberikan
+            setTimeout(() => {
+                bgSound.pause();
+                bgSound.currentTime = 0;
+            }, 100);
+            console.log("Audio Unlocked");
+            document.removeEventListener('click', forceUnlockAudio);
+            document.removeEventListener('touchstart', forceUnlockAudio);
+        }).catch(e => console.log("Menunggu interaksi pengguna..."));
     }
-}
+
+    document.addEventListener('click', forceUnlockAudio);
+    document.addEventListener('touchstart', forceUnlockAudio);
+
+    function toggleMute() {
+        if (bgSound.paused) {
+            safePlay();
+        } else {
+            safePause();
+            volIcon.classList.replace('fa-volume-high', 'fa-volume-xmark');
+        }
+    }
 
     // --- MESSAGE & TRANSITION ENGINE ---
 
     async function nextMessage() {
         if (isTyping) return;
 
-        try {
-            bgSound.pause();
-            bgSound.currentTime = 0;
-        } catch (e) {}
+        // Pastikan audio berhenti total sebelum pindah pesan
+        await safePause();
+        bgSound.currentTime = 0;
 
         msgIndex++;
         if (msgIndex < messages.length) {
@@ -287,7 +297,7 @@ function toggleMute() {
             typingEl.innerHTML = "";
             
             setTimeout(() => {
-                bgSound.play().catch(() => console.log("Audio tertahan browser"));
+                safePlay(); 
                 startTyping();
             }, 300); 
         } else {
@@ -324,10 +334,9 @@ function toggleMute() {
         }
     }
 
-    // --- INITIALIZATION (FIXED) ---
+    // --- INITIALIZATION ---
 
     document.addEventListener("DOMContentLoaded", () => {
-        // Splash screen timer (3 detik)
         setTimeout(() => {
             const splash = document.getElementById('splash-screen');
             splash.classList.add('splash-hidden');
@@ -338,16 +347,8 @@ function toggleMute() {
                 
                 setTimeout(() => { 
                     assistantContainer.style.opacity = '1'; 
-                    
-                    // Coba putar audio otomatis
-                    bgSound.play().then(() => {
-                        volIcon.classList.replace('fa-volume-xmark', 'fa-volume-high');
-                    }).catch(() => {
-                        // Jika kena blokir Autoplay Policy browser
-                        console.log("Autoplay diblokir browser. Menunggu klik user.");
-                        volIcon.classList.replace('fa-volume-high', 'fa-volume-xmark');
-                    });
-
+                    // Gunakan safePlay untuk inisialisasi awal
+                    safePlay();
                     startTyping();
                 }, 50);
             }, 1200);
