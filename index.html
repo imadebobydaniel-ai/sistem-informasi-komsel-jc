@@ -229,6 +229,45 @@
         let charIndex = 0;
         let isTyping = false;
 
+        // --- AUDIO LOGIC INTEGRATION ---
+
+        // 1. Fungsi Toggle Mute
+        function toggleMute() {
+            const volIcon = document.getElementById('volIcon');
+            if (bgSound.paused) {
+                bgSound.muted = false; 
+                const playPromise = bgSound.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        volIcon.classList.replace('fa-volume-xmark', 'fa-volume-high');
+                        bgSound.setAttribute('data-unlocked', 'true');
+                    }).catch(error => {
+                        console.log("Klik layar terlebih dahulu agar audio aktif.");
+                        volIcon.classList.replace('fa-volume-high', 'fa-volume-xmark');
+                    });
+                }
+            } else {
+                bgSound.pause();
+                volIcon.classList.replace('fa-volume-high', 'fa-volume-xmark');
+            }
+        }
+
+        // 2. Listener untuk Unlock Audio (Sekali klik di mana saja)
+        document.addEventListener("click", function initAudio() {
+            bgSound.muted = false; 
+            bgSound.play().then(() => {
+                bgSound.pause();
+                bgSound.currentTime = 0;
+                bgSound.setAttribute('data-unlocked', 'true'); 
+                console.log("Audio Permission Granted");
+            }).catch(e => {
+                console.log("Interaksi pertama belum cukup untuk unlock audio.");
+            });
+            document.removeEventListener("click", initAudio);
+        }, { once: true });
+
+        // --- END AUDIO LOGIC ---
+
         // --- AUTH CHECK ---
         auth.onAuthStateChanged((user) => {
             if (user && user.emailVerified) {
@@ -237,24 +276,6 @@
             }
         });
 
-        // 1. FUNGSI TOGGLE MUTE (DIPERBAIKI)
-        function toggleMute() {
-            const volIcon = document.getElementById('volIcon');
-            
-            if (bgSound.paused) {
-                bgSound.muted = false; 
-                bgSound.play().then(() => {
-                    volIcon.classList.replace('fa-volume-xmark', 'fa-volume-high');
-                }).catch(error => {
-                    console.log("Klik layar terlebih dahulu agar audio aktif.");
-                });
-            } else {
-                bgSound.pause();
-                volIcon.classList.replace('fa-volume-high', 'fa-volume-xmark');
-            }
-        }
-
-        // 2. FUNGSI NEXT MESSAGE (DENGAN PENANGANAN ASYNC)
         async function nextMessage() {
             if (isTyping) return;
             
@@ -284,19 +305,6 @@
             }
         }
 
-        // 3. UNLOCK AUDIO (PENTING: Agar Playback tidak dicegah browser)
-        document.addEventListener("click", function initAudio() {
-            bgSound.play().then(() => {
-                bgSound.pause();
-                bgSound.currentTime = 0;
-                bgSound.setAttribute('data-unlocked', 'true'); 
-                console.log("Audio Unlocked");
-            }).catch(e => console.log("Interaksi pertama gagal"));
-            
-            document.removeEventListener("click", initAudio);
-        }, { once: true });
-
-        // --- TYPING LOGIC ---
         function startTyping() {
             if (msgIndex < messages.length) {
                 isTyping = true;
@@ -321,7 +329,6 @@
             }
         }
 
-        // --- INITIALIZATION LOAD ---
         document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
@@ -331,6 +338,7 @@
                     assistantContainer.style.display = 'flex';
                     setTimeout(() => { 
                         assistantContainer.style.opacity = '1'; 
+                        // Mencoba play otomatis jika sudah ada interaksi sebelumnya
                         bgSound.play().catch(e => {
                             document.getElementById('volIcon').classList.replace('fa-volume-high', 'fa-volume-xmark');
                         });
@@ -340,7 +348,6 @@
             }, 3000);
         });
 
-        // --- FORM & MODAL LOGIC ---
         document.getElementById('eyeIcon').onclick = function() {
             const pass = document.getElementById('user_pass');
             pass.type = (pass.type === 'password') ? 'text' : 'password';
