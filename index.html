@@ -205,9 +205,17 @@
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
     
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    // Inisialisasi Firebase dengan proteksi ganda
+    let auth, db;
+    try {
+        if (!firebase.apps.length) { 
+            firebase.initializeApp(firebaseConfig); 
+        }
+        auth = firebase.auth();
+        db = firebase.firestore();
+    } catch (e) {
+        console.error("Firebase Initialization Error:", e);
+    }
 
     // --- GLOBAL VARIABLES ---
     const bgSound = document.getElementById('asistenAudio');
@@ -216,8 +224,8 @@
     const assistantContainer = document.getElementById('assistant-container');
     const loginCard = document.getElementById('main-login-card');
     const nextBtn = document.getElementById('next-btn');
-    
-    // Gunakan sampel audio untuk tes awal
+
+    // Gunakan sampel audio untuk tes (Ganti ke file lokal jika sudah yakin)
     if (bgSound) {
         bgSound.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
     }
@@ -275,7 +283,7 @@
             console.log("Izin Audio Aktif");
             document.removeEventListener('click', forceUnlockAudio);
             document.removeEventListener('touchstart', forceUnlockAudio);
-        }).catch(e => console.log("Menunggu klik pengguna..."));
+        }).catch(e => {});
     }
 
     document.addEventListener('click', forceUnlockAudio);
@@ -297,6 +305,7 @@
                 startTyping();
             }, 300); 
         } else {
+            // Sembunyikan asisten dan tampilkan login
             if (assistantContainer) assistantContainer.style.opacity = '0';
             setTimeout(() => {
                 if (assistantContainer) assistantContainer.style.display = 'none';
@@ -338,6 +347,7 @@
     // --- INITIALIZATION ---
 
     document.addEventListener("DOMContentLoaded", () => {
+        // Timer Splash Screen
         setTimeout(() => {
             const splash = document.getElementById('splash-screen');
             if (splash) splash.classList.add('splash-hidden');
@@ -354,9 +364,9 @@
         }, 3000);
     });
 
-    // --- UI & LOGIN HANDLERS (PENTING!) ---
+    // --- UI HANDLERS (Login, Password Toggle) ---
 
-    // Toggle Lihat Password
+    // Toggle View Password
     const eyeIcon = document.getElementById('eyeIcon');
     if (eyeIcon) {
         eyeIcon.onclick = function() {
@@ -368,7 +378,7 @@
         };
     }
 
-    // Handle Form Login
+    // Handle Login Form
     const loginForm = document.getElementById('userLoginForm');
     if (loginForm) {
         loginForm.onsubmit = async (e) => {
@@ -384,8 +394,8 @@
                 const userCredential = await auth.signInWithEmailAndPassword(email, pass);
                 if (userCredential.user.emailVerified) {
                     if (msg) {
-                        msg.innerText = "Berhasil Login!";
-                        msg.className = "msg-success";
+                        msg.innerText = "Selamat Anda Berhasil Login";
+                        msg.className = "msg-success text-success";
                     }
                     setTimeout(() => window.location.replace("menu.html"), 1500);
                 } else {
@@ -396,21 +406,11 @@
             } catch (err) {
                 if (msg) {
                     msg.innerText = "Email atau Password Salah";
-                    msg.className = "msg-error";
+                    msg.className = "msg-error text-danger";
                 }
                 if (btn) { btn.innerText = "MASUK"; btn.disabled = false; }
             }
         };
-    }
-
-    // Forgot Password Logic
-    const btnForgot = document.getElementById('btnForgot');
-    if (btnForgot) {
-        btnForgot.onclick = () => document.getElementById('forgotModal').style.display = 'flex';
-    }
-    const closeModal = document.getElementById('closeModal');
-    if (closeModal) {
-        closeModal.onclick = () => document.getElementById('forgotModal').style.display = 'none';
     }
 </script></body>
 </html>
