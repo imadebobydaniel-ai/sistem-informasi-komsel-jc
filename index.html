@@ -204,8 +204,13 @@
         messagingSenderId: "125984859692",
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    
+    // Inisialisasi Firebase hanya jika belum ada
+    if (!firebase.apps.length) { 
+        firebase.initializeApp(firebaseConfig); 
+    }
     const auth = firebase.auth();
+    const db = firebase.firestore();
 
     // --- GLOBAL VARIABLES ---
     const bgSound = document.getElementById('asistenAudio');
@@ -214,10 +219,12 @@
     const assistantContainer = document.getElementById('assistant-container');
     const loginCard = document.getElementById('main-login-card');
     const nextBtn = document.getElementById('next-btn');
-
-    // TEST: Paksa gunakan musik sampel jika file lokal tidak ditemukan/error
-    bgSound.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
     
+    // Sumber audio sampel (Ganti kembali ke file lokal jika sudah siap)
+    if (bgSound) {
+        bgSound.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+    }
+
     const messages = [
         "Shalom! Selamat Datang di SIPAPUA.<br><br>Aplikasi ini hadir sebagai terobosan digital untuk membantu Anda mengelola pelayanan di Pondok Pemulihan Papua secara efektif.",
         "Dengan sistem ini, Saudara dapat memantau penilaian setiap bidang pelayanan kapan saja dan di mana saja.",
@@ -230,39 +237,52 @@
     let isTyping = false;
     let audioPromise = null;
 
-    // --- AUDIO ENGINE (STABLE) ---
+    // --- AUDIO ENGINE (STABLE & SECURE) ---
 
     async function safePlay() {
+        if (!bgSound) return;
         try {
             bgSound.muted = false;
             if (audioPromise) await audioPromise;
             audioPromise = bgSound.play();
             await audioPromise;
-            if(volIcon) volIcon.classList.replace('fa-volume-xmark', 'fa-volume-high');
+            if (volIcon) volIcon.classList.replace('fa-volume-xmark', 'fa-volume-high');
         } catch (err) {
-            console.log("Audio play blocked/interrupted:", err.message);
+            console.log("Autoplay ditahan browser. Menunggu interaksi.");
+            if (volIcon) volIcon.classList.replace('fa-volume-high', 'fa-volume-xmark');
         }
     }
 
     async function safePause() {
+        if (!bgSound) return;
         try {
             if (audioPromise) await audioPromise;
             bgSound.pause();
-            if(volIcon) volIcon.classList.replace('fa-volume-high', 'fa-volume-xmark');
+            if (volIcon) volIcon.classList.replace('fa-volume-high', 'fa-volume-xmark');
         } catch (err) {}
     }
 
+    function toggleMute() {
+        if (!bgSound) return;
+        if (bgSound.paused) {
+            safePlay();
+        } else {
+            safePause();
+        }
+    }
+
     function forceUnlockAudio() {
+        if (!bgSound) return;
         bgSound.muted = false;
         bgSound.play().then(() => {
             setTimeout(() => {
                 bgSound.pause();
                 bgSound.currentTime = 0;
             }, 100);
-            console.log("Browser Permission Granted");
+            console.log("Izin Audio Aktif");
             document.removeEventListener('click', forceUnlockAudio);
             document.removeEventListener('touchstart', forceUnlockAudio);
-        }).catch(e => console.log("Waiting for user interaction..."));
+        }).catch(e => console.log("Menunggu klik pertama pengguna..."));
     }
 
     document.addEventListener('click', forceUnlockAudio);
@@ -273,30 +293,34 @@
     async function nextMessage() {
         if (isTyping) return;
         await safePause();
-        bgSound.currentTime = 0;
+        if (bgSound) bgSound.currentTime = 0;
 
         msgIndex++;
         if (msgIndex < messages.length) {
             charIndex = 0;
-            typingEl.innerHTML = "";
+            if (typingEl) typingEl.innerHTML = "";
             setTimeout(() => {
                 safePlay(); 
                 startTyping();
             }, 300); 
         } else {
-            assistantContainer.style.opacity = '0';
+            // Sembunyikan Asisten & Tampilkan Form Login
+            if (assistantContainer) assistantContainer.style.opacity = '0';
             setTimeout(() => {
-                assistantContainer.style.display = 'none';
-                loginCard.style.display = 'block';
-                setTimeout(() => { loginCard.style.opacity = '1'; }, 50);
+                if (assistantContainer) assistantContainer.style.display = 'none';
+                if (loginCard) {
+                    loginCard.style.display = 'block';
+                    setTimeout(() => { loginCard.style.opacity = '1'; }, 50);
+                }
             }, 1000);
         }
     }
 
     function startTyping() {
+        if (!typingEl) return;
         if (msgIndex < messages.length) {
             isTyping = true;
-            nextBtn.style.display = 'none';
+            if (nextBtn) nextBtn.style.display = 'none';
             let currentText = messages[msgIndex];
             
             if (currentText.slice(charIndex, charIndex + 4) === "<br>") {
@@ -309,9 +333,11 @@
                 setTimeout(startTyping, 40);
             } else {
                 isTyping = false;
-                nextBtn.style.display = 'block'; 
-                if (msgIndex === messages.length - 1) {
-                    nextBtn.innerHTML = 'Buka Login <i class="fa-solid fa-unlock"></i>';
+                if (nextBtn) {
+                    nextBtn.style.display = 'block'; 
+                    if (msgIndex === messages.length - 1) {
+                        nextBtn.innerHTML = 'Buka Login <i class="fa-solid fa-unlock"></i>';
+                    }
                 }
             }
         }
@@ -322,19 +348,55 @@
     document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => {
             const splash = document.getElementById('splash-screen');
-            if(splash) splash.classList.add('splash-hidden');
+            if (splash) splash.classList.add('splash-hidden');
             
             setTimeout(() => {
-                if(splash) splash.style.display = 'none';
-                assistantContainer.style.display = 'flex';
+                if (splash) splash.style.display = 'none';
+                if (assistantContainer) assistantContainer.style.display = 'flex';
                 
                 setTimeout(() => { 
-                    assistantContainer.style.opacity = '1'; 
+                    if (assistantContainer) assistantContainer.style.opacity = '1'; 
                     safePlay();
                     startTyping();
                 }, 50);
             }, 1200);
         }, 3000);
     });
+
+    // --- LOGIN & UI HANDLERS ---
+    // Pastikan ID ini sesuai dengan yang ada di form login Anda
+    const loginForm = document.getElementById('userLoginForm');
+    if (loginForm) {
+        loginForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnMasuk');
+            const msg = document.getElementById('login-msg');
+            const email = document.getElementById('user_email').value.trim();
+            const pass = document.getElementById('user_pass').value;
+
+            if (btn) { btn.innerText = "Memverifikasi..."; btn.disabled = true; }
+
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, pass);
+                if (userCredential.user.emailVerified) {
+                    if (msg) {
+                        msg.innerText = "Selamat Anda Berhasil Login";
+                        msg.className = "msg-success";
+                    }
+                    setTimeout(() => window.location.replace("menu.html"), 1500);
+                } else {
+                    alert("Email belum diverifikasi!");
+                    auth.signOut();
+                    if (btn) { btn.innerText = "MASUK"; btn.disabled = false; }
+                }
+            } catch (err) {
+                if (msg) {
+                    msg.innerText = "Email atau Password Salah";
+                    msg.className = "msg-error";
+                }
+                if (btn) { btn.innerText = "MASUK"; btn.disabled = false; }
+            }
+        };
+    }
 </script></body>
 </html>
