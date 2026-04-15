@@ -197,195 +197,207 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
-    <script>
-        // --- FIREBASE CONFIG ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
-            authDomain: "boby-apps-project.firebaseapp.com",
-            projectId: "boby-apps-project",
-            storageBucket: "boby-apps-project.appspot.com",
-            messagingSenderId: "125984859692",
-            appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
-        };
-        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+  <script>
+    // --- FIREBASE CONFIG ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+        authDomain: "boby-apps-project.firebaseapp.com",
+        projectId: "boby-apps-project",
+        storageBucket: "boby-apps-project.appspot.com",
+        messagingSenderId: "125984859692",
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+    };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-        // --- GLOBAL VARIABLES ---
-        const bgSound = document.getElementById('asistenAudio');
-        const volIcon = document.getElementById('volIcon');
-        const typingEl = document.getElementById('typing');
-        const assistantContainer = document.getElementById('assistant-container');
-        const loginCard = document.getElementById('main-login-card');
-        const nextBtn = document.getElementById('next-btn');
-        
-        const messages = [
-            "Shalom! Selamat Datang di SIPAPUA.<br><br>Aplikasi ini hadir sebagai terobosan digital untuk membantu Anda mengelola pelayanan di Pondok Pemulihan Papua secara efektif.",
-            "Dengan sistem ini, Saudara dapat memantau penilaian setiap bidang pelayanan kapan saja dan di mana saja.",
-            "Mari bersama menjadi pelayan yang lebih baik melalui penilaian yang objektif dan terukur.",
-            "Silahkan Login untuk melanjutkan.<br><br>Tuhan Yesus Memberkati."
-        ];
+    // --- GLOBAL VARIABLES ---
+    const bgSound = document.getElementById('asistenAudio');
+    const volIcon = document.getElementById('volIcon');
+    const typingEl = document.getElementById('typing');
+    const assistantContainer = document.getElementById('assistant-container');
+    const loginCard = document.getElementById('main-login-card');
+    const nextBtn = document.getElementById('next-btn');
+    
+    const messages = [
+        "Shalom! Selamat Datang di SIPAPUA.<br><br>Aplikasi ini hadir sebagai terobosan digital untuk membantu Anda mengelola pelayanan di Pondok Pemulihan Papua secara efektif.",
+        "Dengan sistem ini, Saudara dapat memantau penilaian setiap bidang pelayanan kapan saja dan di mana saja.",
+        "Mari bersama menjadi pelayan yang lebih baik melalui penilaian yang objektif dan terukur.",
+        "Silahkan Login untuk melanjutkan.<br><br>Tuhan Yesus Memberkati."
+    ];
 
-        let msgIndex = 0;
-        let charIndex = 0;
-        let isTyping = false;
+    let msgIndex = 0;
+    let charIndex = 0;
+    let isTyping = false;
 
-        // --- AUDIO ENGINE (OPTIMIZED) ---
+    // --- AUDIO ENGINE (FIXED) ---
 
-        function toggleMute() {
-            if (bgSound.paused) {
-                bgSound.muted = false;
-                let playPromise = bgSound.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        volIcon.classList.replace('fa-volume-xmark', 'fa-volume-high');
-                    }).catch(error => {
-                        console.log("Audio diblokir, butuh klik.");
-                    });
-                }
-            } else {
-                bgSound.pause();
-                volIcon.classList.replace('fa-volume-high', 'fa-volume-xmark');
-            }
-        }
+    // Fungsi untuk memastikan audio bisa berputar setelah interaksi pertama
+    function forceUnlockAudio() {
+        bgSound.muted = false;
+        // Play sebentar lalu pause untuk memicu "izin" dari browser
+        bgSound.play().then(() => {
+            bgSound.pause();
+            bgSound.currentTime = 0;
+            console.log("Audio Unlocked");
+            
+            // Hapus listener setelah berhasil unlock
+            document.removeEventListener('click', forceUnlockAudio);
+            document.removeEventListener('touchstart', forceUnlockAudio);
+        }).catch(e => console.log("Menunggu interaksi pengguna..."));
+    }
 
-        function unlockAudio() {
+    // Pasang listener di dokumen untuk "memancing" izin browser
+    document.addEventListener('click', forceUnlockAudio);
+    document.addEventListener('touchstart', forceUnlockAudio);
+
+    function toggleMute() {
+        if (bgSound.paused) {
             bgSound.muted = false;
             bgSound.play().then(() => {
-                bgSound.pause();
-                bgSound.currentTime = 0;
-                console.log("Izin Audio Diterima");
-                document.removeEventListener('click', unlockAudio);
-                document.removeEventListener('touchstart', unlockAudio);
-            }).catch(e => console.log("Menunggu interaksi nyata..."));
+                volIcon.classList.replace('fa-volume-xmark', 'fa-volume-high');
+            }).catch(error => {
+                console.error("Gagal memutar audio:", error);
+            });
+        } else {
+            bgSound.pause();
+            volIcon.classList.replace('fa-volume-high', 'fa-volume-xmark');
         }
-        document.addEventListener('click', unlockAudio);
-        document.addEventListener('touchstart', unlockAudio);
+    }
 
-        // --- MESSAGE & TRANSITION ENGINE ---
+    // --- MESSAGE & TRANSITION ENGINE ---
 
-        async function nextMessage() {
-            if (isTyping) return;
+    async function nextMessage() {
+        if (isTyping) return;
 
-            try {
-                bgSound.pause();
-                bgSound.currentTime = 0;
-            } catch (e) {}
+        try {
+            bgSound.pause();
+            bgSound.currentTime = 0;
+        } catch (e) {}
 
-            msgIndex++;
-            if (msgIndex < messages.length) {
-                charIndex = 0;
-                typingEl.innerHTML = "";
-                
-                setTimeout(() => {
-                    bgSound.play().catch(() => console.log("Audio tertahan browser"));
-                    startTyping();
-                }, 300); 
-            } else {
-                assistantContainer.style.opacity = '0';
-                setTimeout(() => {
-                    assistantContainer.style.display = 'none';
-                    loginCard.style.display = 'block';
-                    setTimeout(() => { loginCard.style.opacity = '1'; }, 50);
-                }, 1000);
-            }
-        }
-
-        function startTyping() {
-            if (msgIndex < messages.length) {
-                isTyping = true;
-                nextBtn.style.display = 'none';
-                let currentText = messages[msgIndex];
-                
-                if (currentText.slice(charIndex, charIndex + 4) === "<br>") {
-                    typingEl.innerHTML += "<br>";
-                    charIndex += 4;
-                    setTimeout(startTyping, 40);
-                } else if (charIndex < currentText.length) {
-                    typingEl.innerHTML += currentText.charAt(charIndex);
-                    charIndex++;
-                    setTimeout(startTyping, 40);
-                } else {
-                    isTyping = false;
-                    nextBtn.style.display = 'block'; 
-                    if (msgIndex === messages.length - 1) {
-                        nextBtn.innerHTML = 'Buka Login <i class="fa-solid fa-unlock"></i>';
-                    }
-                }
-            }
-        }
-
-        // --- INITIALIZATION ---
-
-        document.addEventListener("DOMContentLoaded", () => {
+        msgIndex++;
+        if (msgIndex < messages.length) {
+            charIndex = 0;
+            typingEl.innerHTML = "";
+            
             setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
-                splash.classList.add('splash-hidden');
-                setTimeout(() => {
-                    splash.style.display = 'none';
-                    assistantContainer.style.display = 'flex';
-                    setTimeout(() => { 
-                        assistantContainer.style.opacity = '1'; 
-                        bgSound.play().catch(() => {
-                            volIcon.classList.replace('fa-volume-high', 'fa-volume-xmark');
-                        });
-                        startTyping();
-                    }, 50);
-                }, 1200);
-            }, 3000);
-        });
+                bgSound.play().catch(() => console.log("Audio tertahan browser"));
+                startTyping();
+            }, 300); 
+        } else {
+            assistantContainer.style.opacity = '0';
+            setTimeout(() => {
+                assistantContainer.style.display = 'none';
+                loginCard.style.display = 'block';
+                setTimeout(() => { loginCard.style.opacity = '1'; }, 50);
+            }, 1000);
+        }
+    }
 
-        // --- UI HANDLERS ---
-
-        document.getElementById('eyeIcon').onclick = function() {
-            const pass = document.getElementById('user_pass');
-            pass.type = (pass.type === 'password') ? 'text' : 'password';
-            this.classList.toggle('fa-eye-slash');
-        };
-
-        document.getElementById('userLoginForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btnMasuk');
-            const msg = document.getElementById('login-msg');
-            const email = document.getElementById('user_email').value.trim();
-            const pass = document.getElementById('user_pass').value;
-
-            btn.innerText = "Memverifikasi...";
-            btn.disabled = true;
-
-            try {
-                const userCredential = await auth.signInWithEmailAndPassword(email, pass);
-                if (userCredential.user.emailVerified) {
-                    localStorage.setItem("userEmail", email);
-                    msg.innerText = "Selamat Anda Berhasil Login";
-                    msg.className = "msg-success";
-                    setTimeout(() => window.location.replace("menu.html"), 1500);
-                } else {
-                    msg.innerText = "Email belum diverifikasi!";
-                    msg.className = "msg-error";
-                    btn.innerText = "MASUK";
-                    btn.disabled = false;
-                    auth.signOut();
+    function startTyping() {
+        if (msgIndex < messages.length) {
+            isTyping = true;
+            nextBtn.style.display = 'none';
+            let currentText = messages[msgIndex];
+            
+            if (currentText.slice(charIndex, charIndex + 4) === "<br>") {
+                typingEl.innerHTML += "<br>";
+                charIndex += 4;
+                setTimeout(startTyping, 40);
+            } else if (charIndex < currentText.length) {
+                typingEl.innerHTML += currentText.charAt(charIndex);
+                charIndex++;
+                setTimeout(startTyping, 40);
+            } else {
+                isTyping = false;
+                nextBtn.style.display = 'block'; 
+                if (msgIndex === messages.length - 1) {
+                    nextBtn.innerHTML = 'Buka Login <i class="fa-solid fa-unlock"></i>';
                 }
-            } catch (err) {
-                msg.innerText = "Periksa Kembali Password dan Email Anda";
+            }
+        }
+    }
+
+    // --- INITIALIZATION (FIXED) ---
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Splash screen timer (3 detik)
+        setTimeout(() => {
+            const splash = document.getElementById('splash-screen');
+            splash.classList.add('splash-hidden');
+            
+            setTimeout(() => {
+                splash.style.display = 'none';
+                assistantContainer.style.display = 'flex';
+                
+                setTimeout(() => { 
+                    assistantContainer.style.opacity = '1'; 
+                    
+                    // Coba putar audio otomatis
+                    bgSound.play().then(() => {
+                        volIcon.classList.replace('fa-volume-xmark', 'fa-volume-high');
+                    }).catch(() => {
+                        // Jika kena blokir Autoplay Policy browser
+                        console.log("Autoplay diblokir browser. Menunggu klik user.");
+                        volIcon.classList.replace('fa-volume-high', 'fa-volume-xmark');
+                    });
+
+                    startTyping();
+                }, 50);
+            }, 1200);
+        }, 3000);
+    });
+
+    // --- UI HANDLERS ---
+
+    document.getElementById('eyeIcon').onclick = function() {
+        const pass = document.getElementById('user_pass');
+        pass.type = (pass.type === 'password') ? 'text' : 'password';
+        this.classList.toggle('fa-eye-slash');
+    };
+
+    document.getElementById('userLoginForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btnMasuk');
+        const msg = document.getElementById('login-msg');
+        const email = document.getElementById('user_email').value.trim();
+        const pass = document.getElementById('user_pass').value;
+
+        btn.innerText = "Memverifikasi...";
+        btn.disabled = true;
+
+        try {
+            const userCredential = await auth.signInWithEmailAndPassword(email, pass);
+            if (userCredential.user.emailVerified) {
+                localStorage.setItem("userEmail", email);
+                msg.innerText = "Selamat Anda Berhasil Login";
+                msg.className = "msg-success";
+                setTimeout(() => window.location.replace("menu.html"), 1500);
+            } else {
+                msg.innerText = "Email belum diverifikasi!";
                 msg.className = "msg-error";
                 btn.innerText = "MASUK";
                 btn.disabled = false;
+                auth.signOut();
             }
-        };
+        } catch (err) {
+            msg.innerText = "Periksa Kembali Password dan Email Anda";
+            msg.className = "msg-error";
+            btn.innerText = "MASUK";
+            btn.disabled = false;
+        }
+    };
 
-        document.getElementById('btnForgot').onclick = () => document.getElementById('forgotModal').style.display = 'flex';
-        document.getElementById('closeModal').onclick = () => document.getElementById('forgotModal').style.display = 'none';
-        document.getElementById('sendReset').onclick = async () => {
-            const email = document.getElementById('forgotEmail').value.trim();
-            if (!email) return alert("Masukkan email!");
-            try {
-                await auth.sendPasswordResetEmail(email);
-                alert("Link reset password telah dikirim ke email Anda.");
-                document.getElementById('forgotModal').style.display = 'none';
-            } catch (err) { alert("Error: " + err.message); }
-        };
-    </script>
-</body>
+    document.getElementById('btnForgot').onclick = () => document.getElementById('forgotModal').style.display = 'flex';
+    document.getElementById('closeModal').onclick = () => document.getElementById('forgotModal').style.display = 'none';
+    document.getElementById('sendReset').onclick = async () => {
+        const email = document.getElementById('forgotEmail').value.trim();
+        if (!email) return alert("Masukkan email!");
+        try {
+            await auth.sendPasswordResetEmail(email);
+            alert("Link reset password telah dikirim ke email Anda.");
+            document.getElementById('forgotModal').style.display = 'none';
+        } catch (err) { alert("Error: " + err.message); }
+    };
+</script></body>
 </html>
