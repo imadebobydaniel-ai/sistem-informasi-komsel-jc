@@ -146,7 +146,6 @@
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
@@ -332,5 +331,29 @@
             if(selectedCountElem) selectedCountElem.innerText = `${count} Terpilih`;
         }
     }
+
+    // --- FUNGSI SINKRONISASI DATA KOSONG ---
+    const fixIncompleteData = async () => {
+        const snapshot = await db.collection('users').get();
+        console.log("Memulai proses sinkronisasi...");
+
+        snapshot.forEach(async (doc) => {
+            const data = doc.data();
+            
+            // Cek jika field krusial hilang
+            if (!data.komsel || !data.lokasi_berjemaat) {
+                await db.collection('users').doc(doc.id).update({
+                    komsel: data.komsel || "Belum Ditentukan",
+                    jabatan: data.jabatan || "Anggota Jemaat",
+                    sub_jabatan: data.sub_jabatan || "Anggota Jemaat Ordinari",
+                    lokasi_berjemaat: data.lokasi_berjemaat || "Belum Diisi",
+                    status: data.status || "Pending",
+                    total_poin: data.total_poin || 0
+                });
+                console.log(`Data ${data.nama || doc.id} telah dilengkapi.`);
+            }
+        });
+        alert("Sinkronisasi selesai!");
+    };
 </script></body>
 </html>
