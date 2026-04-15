@@ -72,6 +72,30 @@
             transition: 0.3s;
         }
         .mute-toggle:hover { background: var(--cyan-glow); color: #000; }
+
+        /* --- SKIP BUTTON --- */
+        .skip-btn {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            z-index: 999999;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .skip-btn:hover {
+            color: var(--cyan-glow);
+            border-color: var(--cyan-glow);
+            background: rgba(0, 212, 255, 0.1);
+        }
         
         .assistant-img {
             width: 300px;
@@ -190,6 +214,8 @@
             <span id="typing"></span><span class="cursor-asisten"></span>
         </div>
         <button id="next-btn" onclick="nextMessage()">Lanjut <i class="fa-solid fa-arrow-right"></i></button>
+        
+        <div class="skip-btn" onclick="skipAssistant()">Skip Intro <i class="fa-solid fa-forward"></i></div>
     </div>
  
     <div class="login-card" id="main-login-card">
@@ -273,18 +299,19 @@
         const muteIcon = document.getElementById('mute-icon');
 
         // Fungsi untuk Mute/Unmute
-function toggleMute() {
-    const backsound = document.getElementById('backsound');
-    const muteIcon = document.getElementById('mute-icon');
-    
-    if (backsound.muted) {
-        backsound.muted = false;
-        muteIcon.className = "fa-solid fa-volume-high";
-    } else {
-        backsound.muted = true;
-        muteIcon.className = "fa-solid fa-volume-xmark";
-    }
-}
+        function toggleMute() {
+            const backsound = document.getElementById('backsound');
+            const muteIcon = document.getElementById('mute-icon');
+            
+            if (backsound.muted) {
+                backsound.muted = false;
+                muteIcon.className = "fa-solid fa-volume-high";
+            } else {
+                backsound.muted = true;
+                muteIcon.className = "fa-solid fa-volume-xmark";
+            }
+        }
+
         function enterSystem() {
             backsound.play().catch(e => console.log("Audio play failed: ", e));
             
@@ -330,7 +357,7 @@ function toggleMute() {
                typingEl.innerHTML = "";
                startTyping();
             } else {
-                // Biarkan musik tetap menyala atau matikan jika ingin masuk login sunyi
+                // Sesuai logika asli Anda: Matikan musik saat masuk login
                 backsound.pause();
                 backsound.currentTime = 0;
 
@@ -341,6 +368,19 @@ function toggleMute() {
                    setTimeout(() => { loginCard.style.opacity = '1'; }, 50);
                 }, 1000);
             }
+        }
+
+        // FUNGSI SKIP
+        function skipAssistant() {
+            backsound.pause();
+            backsound.currentTime = 0;
+            
+            assistantContainer.style.opacity = '0';
+            setTimeout(() => {
+                assistantContainer.style.display = 'none';
+                loginCard.style.display = 'block';
+                setTimeout(() => { loginCard.style.opacity = '1'; }, 50);
+            }, 500);
         }
  
         // --- FUNGSI LOGIN ---
