@@ -61,15 +61,13 @@
         }
         .mute-toggle:hover { background: var(--cyan-glow); color: #000; }
 
-        /* MODIFIKASI POSISI SKIP INTRO KE KIRI ATAS */
         .skip-btn {
-            position: absolute; top: 30px; left: 30px; color: rgba(255, 255, 255, 0.6);
-            font-size: 13px; font-weight: bold; cursor: pointer; text-transform: uppercase;
+            position: absolute; top: 30px; left: 30px; color: rgba(255, 255, 255, 0.5);
+            font-size: 14px; font-weight: bold; cursor: pointer; text-transform: uppercase;
             letter-spacing: 1px; transition: 0.3s; z-index: 999999;
-            background: rgba(255, 255, 255, 0.08); padding: 10px 18px;
-            border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05); padding: 8px 15px;
+            border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .skip-btn:hover { background: rgba(255, 255, 255, 0.2); color: #fff; }
         
         .assistant-img {
             width: 300px;
@@ -150,8 +148,6 @@
     </div>
  
     <div id="assistant-container">
-        <div class="skip-btn" onclick="skipAssistant()"><i class="fa-solid fa-forward"></i> Skip Intro</div>
-
         <div class="mute-toggle" onclick="toggleMute()">
             <i id="mute-icon" class="fa-solid fa-volume-high"></i>
         </div>
@@ -161,6 +157,8 @@
             <span id="typing"></span><span class="cursor-asisten"></span>
         </div>
         <button id="next-btn" onclick="nextMessage()">Lanjut <i class="fa-solid fa-arrow-right"></i></button>
+        
+        <div class="skip-btn" onclick="skipAssistant()">Skip Intro <i class="fa-solid fa-forward"></i></div>
     </div>
  
     <div class="login-card" id="main-login-card">
@@ -274,6 +272,7 @@
 
         // NAVIGATION FUNCTIONS
         function enterSystem() {
+            // Play audio
             backsound.play().catch(e => console.log("Audio ditahan browser:", e));
             
             const splash = document.getElementById('splash-screen');
@@ -347,4 +346,49 @@
         document.getElementById('userLoginForm').onsubmit = async (e) => {
            e.preventDefault();
             const btn = document.getElementById('btnMasuk');
-            const msg = document.getElementById('login-
+            const msg = document.getElementById('login-msg');
+            const email = document.getElementById('user_email').value.trim();
+            const pass = document.getElementById('user_pass').value;
+ 
+           btn.innerText = "Memverifikasi...";
+           btn.disabled = true;
+ 
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, pass);
+                if (userCredential.user.emailVerified) {
+                   localStorage.setItem("userEmail", email);
+                   msg.innerText = "Berhasil! Mengalihkan...";
+                   msg.className = "msg-success";
+                   setTimeout(() => window.location.replace("menu.html"), 1000);
+                } else {
+                   msg.innerText = "Email belum diverifikasi!";
+                   msg.className = "msg-error";
+                   btn.innerText = "MASUK";
+                   btn.disabled = false;
+                  auth.signOut();
+                }
+            } catch (err) {
+               msg.innerText = "Gagal Login! Periksa kembali email & password.";
+               msg.className = "msg-error";
+               btn.innerText = "MASUK";
+               btn.disabled = false;
+            }
+        };
+ 
+        // FORGOT PASSWORD
+        document.getElementById('btnForgot').onclick = () => document.getElementById('forgotModal').style.display = 'flex';
+        document.getElementById('closeModal').onclick = () => document.getElementById('forgotModal').style.display = 'none';
+        document.getElementById('sendReset').onclick = async () => {
+            const email = document.getElementById('forgotEmail').value.trim();
+            if (!email) return alert("Masukkan email!");
+            try {
+                await auth.sendPasswordResetEmail(email);
+               alert("Link reset password telah dikirim ke email Anda.");
+               document.getElementById('forgotModal').style.display = 'none';
+            } catch (err) {
+               alert("Error: " + err.message);
+            }
+        };
+    </script>
+</body>
+</html>
