@@ -205,10 +205,7 @@
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
     
-    // Inisialisasi Firebase hanya jika belum ada
-    if (!firebase.apps.length) { 
-        firebase.initializeApp(firebaseConfig); 
-    }
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const auth = firebase.auth();
     const db = firebase.firestore();
 
@@ -220,7 +217,7 @@
     const loginCard = document.getElementById('main-login-card');
     const nextBtn = document.getElementById('next-btn');
     
-    // Sumber audio sampel (Ganti kembali ke file lokal jika sudah siap)
+    // Gunakan sampel audio untuk tes awal
     if (bgSound) {
         bgSound.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
     }
@@ -237,7 +234,7 @@
     let isTyping = false;
     let audioPromise = null;
 
-    // --- AUDIO ENGINE (STABLE & SECURE) ---
+    // --- AUDIO ENGINE (STABLE) ---
 
     async function safePlay() {
         if (!bgSound) return;
@@ -264,11 +261,7 @@
 
     function toggleMute() {
         if (!bgSound) return;
-        if (bgSound.paused) {
-            safePlay();
-        } else {
-            safePause();
-        }
+        if (bgSound.paused) { safePlay(); } else { safePause(); }
     }
 
     function forceUnlockAudio() {
@@ -282,13 +275,13 @@
             console.log("Izin Audio Aktif");
             document.removeEventListener('click', forceUnlockAudio);
             document.removeEventListener('touchstart', forceUnlockAudio);
-        }).catch(e => console.log("Menunggu klik pertama pengguna..."));
+        }).catch(e => console.log("Menunggu klik pengguna..."));
     }
 
     document.addEventListener('click', forceUnlockAudio);
     document.addEventListener('touchstart', forceUnlockAudio);
 
-    // --- MESSAGE ENGINE ---
+    // --- MESSAGE & TRANSITION ENGINE ---
 
     async function nextMessage() {
         if (isTyping) return;
@@ -304,7 +297,6 @@
                 startTyping();
             }, 300); 
         } else {
-            // Sembunyikan Asisten & Tampilkan Form Login
             if (assistantContainer) assistantContainer.style.opacity = '0';
             setTimeout(() => {
                 if (assistantContainer) assistantContainer.style.display = 'none';
@@ -353,7 +345,6 @@
             setTimeout(() => {
                 if (splash) splash.style.display = 'none';
                 if (assistantContainer) assistantContainer.style.display = 'flex';
-                
                 setTimeout(() => { 
                     if (assistantContainer) assistantContainer.style.opacity = '1'; 
                     safePlay();
@@ -363,8 +354,21 @@
         }, 3000);
     });
 
-    // --- LOGIN & UI HANDLERS ---
-    // Pastikan ID ini sesuai dengan yang ada di form login Anda
+    // --- UI & LOGIN HANDLERS (PENTING!) ---
+
+    // Toggle Lihat Password
+    const eyeIcon = document.getElementById('eyeIcon');
+    if (eyeIcon) {
+        eyeIcon.onclick = function() {
+            const passField = document.getElementById('user_pass');
+            if (passField) {
+                passField.type = (passField.type === 'password') ? 'text' : 'password';
+                this.classList.toggle('fa-eye-slash');
+            }
+        };
+    }
+
+    // Handle Form Login
     const loginForm = document.getElementById('userLoginForm');
     if (loginForm) {
         loginForm.onsubmit = async (e) => {
@@ -380,7 +384,7 @@
                 const userCredential = await auth.signInWithEmailAndPassword(email, pass);
                 if (userCredential.user.emailVerified) {
                     if (msg) {
-                        msg.innerText = "Selamat Anda Berhasil Login";
+                        msg.innerText = "Berhasil Login!";
                         msg.className = "msg-success";
                     }
                     setTimeout(() => window.location.replace("menu.html"), 1500);
@@ -397,6 +401,16 @@
                 if (btn) { btn.innerText = "MASUK"; btn.disabled = false; }
             }
         };
+    }
+
+    // Forgot Password Logic
+    const btnForgot = document.getElementById('btnForgot');
+    if (btnForgot) {
+        btnForgot.onclick = () => document.getElementById('forgotModal').style.display = 'flex';
+    }
+    const closeModal = document.getElementById('closeModal');
+    if (closeModal) {
+        closeModal.onclick = () => document.getElementById('forgotModal').style.display = 'none';
     }
 </script></body>
 </html>
