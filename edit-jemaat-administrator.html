@@ -405,6 +405,10 @@
             const fileBerkas = document.getElementById('upload_berkas').files[0];
             const storageRef = firebase.storage().ref();
 
+            // Ambil data user saat ini untuk mendapatkan URL file lama
+            const userDoc = await db.collection("users").doc(userId).get();
+            const userData = userDoc.data();
+
             const updateData = {
                 nama_lengkap: document.getElementById('nama_lengkap').value,
                 tanggal_lahir_murni: document.getElementById('tanggal_lahir_murni').value,
@@ -426,14 +430,30 @@
                 last_update: new Date().toISOString()
             };
 
+            // Logika replace file KTP
             if (fileKtp) {
-                const ktpRef = storageRef.child(`ktp/${userId}_${fileKtp.name}`);
+                if (userData.url_ktp) {
+                    try {
+                        await firebase.storage().refFromURL(userData.url_ktp).delete();
+                    } catch (err) {
+                        console.warn("File KTP lama tidak ditemukan atau gagal dihapus.");
+                    }
+                }
+                const ktpRef = storageRef.child(`ktp/${userId}_${Date.now()}_${fileKtp.name}`);
                 await ktpRef.put(fileKtp);
                 updateData.url_ktp = await ktpRef.getDownloadURL();
             }
 
+            // Logika replace file Berkas
             if (fileBerkas) {
-                const berkasRef = storageRef.child(`berkas/${userId}_${fileBerkas.name}`);
+                if (userData.url_berkas) {
+                    try {
+                        await firebase.storage().refFromURL(userData.url_berkas).delete();
+                    } catch (err) {
+                        console.warn("Berkas lama tidak ditemukan atau gagal dihapus.");
+                    }
+                }
+                const berkasRef = storageRef.child(`berkas/${userId}_${Date.now()}_${fileBerkas.name}`);
                 await berkasRef.put(fileBerkas);
                 updateData.url_berkas = await berkasRef.getDownloadURL();
             }
@@ -442,6 +462,7 @@
             alert("Data User Berhasil Diperbarui!");
             window.location.href = 'admin.html';
         } catch (error) {
+            console.error(error);
             alert("Error: " + error.message);
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-save"></i> Simpan Perubahan';
