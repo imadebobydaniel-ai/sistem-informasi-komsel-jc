@@ -35,13 +35,28 @@
         .left-side { display: flex; flex-direction: column; align-items: center; width: 125px; }
         .photo-frame { 
             width: 115px; height: 135px; border: 2px solid #003366; 
-            object-fit: cover; border-radius: 5px; background: #fff; margin-bottom: 5px;
+            object-fit: cover; border-radius: 5px; background: #fff; margin-bottom: 3px;
         }
 
-        /* Perbaikan Container Barcode agar lebih leluasa */
+        /* Teks Berlaku Seumur Hidup di bawah foto */
+        .validity-text {
+            font-size: 8.5px;
+            font-weight: bold;
+            color: #003366;
+            text-align: center;
+            width: 100%;
+            margin-top: 2px;
+        }
+
+        .right-side { flex: 1; display: flex; flex-direction: column; gap: 4px; position: relative; }
+        .info-row { display: flex; font-size: 10.5px; border-bottom: 1px solid #eee; padding-bottom: 2px; }
+        .label { width: 85px; font-weight: bold; color: #003366; }
+        .value { flex: 1; color: #333; text-transform: uppercase; font-weight: 600; line-height: 1.2; }
+
+        /* Container Barcode dipindah ke kanan bawah jemaat */
         .barcode-container { 
-            width: 115px; 
-            height: 48px; /* Sedikit lebih tinggi */
+            width: 220px; 
+            height: 45px; 
             background: white; 
             padding: 2px; 
             border: 1px solid #ccc; 
@@ -49,17 +64,14 @@
             align-items: center; 
             justify-content: center;
             overflow: hidden;
+            margin-top: 8px; /* Jarak dari baris data terakhir */
+            align-self: flex-start;
         }
         .barcode-svg { width: 100%; height: 100%; }
 
-        .right-side { flex: 1; display: flex; flex-direction: column; gap: 4px; }
-        .info-row { display: flex; font-size: 10.5px; border-bottom: 1px solid #eee; padding-bottom: 2px; }
-        .label { width: 85px; font-weight: bold; color: #003366; }
-        .value { flex: 1; color: #333; text-transform: uppercase; font-weight: 600; line-height: 1.2; }
-
         .card-footer { 
             position: absolute; bottom: 0; width: 100%; background: #003366; 
-            color: white; font-size: 10px; text-align: center; padding: 4px 0; /* Padding footer diperkecil */
+            color: white; font-size: 10px; text-align: center; padding: 4px 0;
         }
 
         .no-print { position: fixed; bottom: 20px; right: 20px; z-index: 99; }
@@ -121,9 +133,7 @@
                         <div class="card-body">
                             <div class="left-side">
                                 <img src="${fotoFinal}" class="photo-frame">
-                                <div class="barcode-container">
-                                    <svg class="barcode-svg" id="barcode-${id}"></svg>
-                                </div>
+                                <div class="validity-text">BERLAKU SEUMUR HIDUP</div>
                             </div>
                             
                             <div class="right-side">
@@ -134,6 +144,10 @@
                                 <div class="info-row"><span class="label">JABATAN</span><span class="value">: ${d.jabatan || 'ANGGOTA JEMAAT'}</span></div>
                                 <div class="info-row"><span class="label">JEMAAT</span><span class="value">: ${d.lokasi_berjemaat || '-'}</span></div>
                                 <div class="info-row"><span class="label">KOMSEL</span><span class="value">: ${d.komsel || '-'}</span></div>
+                                
+                                <div class="barcode-container">
+                                    <svg class="barcode-svg" id="barcode-${id}"></svg>
+                                </div>
                             </div>
                         </div>
                         
@@ -144,14 +158,13 @@
                 `;
                 container.innerHTML += cardHtml;
 
-                // Render Barcode dengan optimasi scan (CODE128 lebih tegas)
                 setTimeout(() => {
                     JsBarcode(`#barcode-${id}`, nijValue, {
                         format: "CODE128",
-                        width: 2.0,       // Dipertebal dari 1.5 ke 2.0
-                        height: 40,        // Tinggi ditambah agar leluasa
+                        width: 2.0,
+                        height: 40,
                         displayValue: false,
-                        lineColor: "#000", // Hitam pekat
+                        lineColor: "#000",
                         margin: 0
                     });
                 }, 300);
