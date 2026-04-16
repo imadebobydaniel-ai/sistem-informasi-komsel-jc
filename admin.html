@@ -168,7 +168,14 @@
             
             snapshot.forEach(doc => {
                 const d = doc.data();
+                
+                // Fallback untuk Nama
                 const nama = d.nama_lengkap || d.nama || d.Nama || '-';
+                
+                // --- BAGIAN KRUSIAL: PENCARIAN TANGGAL LAHIR ---
+                // Kode ini akan mengecek semua kemungkinan nama field di Firebase Anda
+                const tanggalLahir = d.tanggal_lahir || d.tgl_lahir || d.tglLahir || d.lahir || '-';
+                
                 const status = d.status_akun || 'Pending';
                 const statusBadge = status === 'Aktif' ? 'badge-aktif' : 'badge-pending';
                 const btnColor = status === 'Aktif' ? '#28a745' : '#dc3545';
@@ -178,7 +185,7 @@
                     <td class="check-col"><input type="checkbox" class="user-checkbox" value="${doc.id}" onclick="updateActionMenu()"></td>
                     <td class="nij-col">${d.nij || '-'}</td>
                     <td><strong>${nama}</strong></td>
-                    <td>${d.kota || '-'}<br><small>${d.tanggal_lahir || d.tgl_lahir || '-'}</small></td>
+                    <td>${d.kota || '-'}<br><small style="color: blue; font-weight: bold;">${tanggalLahir}</small></td>
                     <td style="text-align:center;">${d.darah || '-'}</td>
                     <td>${d.whatsapp || '-'}<br><small>${d.email || '-'}</small></td>
                     <td><small>P: ${d.nama_pasangan || '-'}<br>A: ${d.jumlah_anak || '0'}</small></td>
@@ -244,7 +251,6 @@
         });
     }
 
-    // Jalankan load data saat halaman siap
     window.onload = loadMembersRealtime;
 </script></body>
 </html>
