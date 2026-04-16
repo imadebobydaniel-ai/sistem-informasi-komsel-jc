@@ -196,9 +196,9 @@
         window.location.href = 'admin.html';
     }
 
-    // --- PENGATURAN CLOUDINARY ---
-    const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/id_cloudinary_kamu/image/upload';
-    const CLOUDINARY_UPLOAD_PRESET = 'nama_preset_kamu';
+    // --- PENGATURAN CLOUDINARY (SUDAH DIUPDATE) ---
+    const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dxzllsbgj/image/upload';
+    const CLOUDINARY_UPLOAD_PRESET = 'boby_preset';
 
     // Fungsi Helper untuk Upload ke Cloudinary
     async function uploadToCloudinary(file) {
@@ -211,15 +211,17 @@
             body: formData
         });
         
-        if (!res.ok) throw new Error("Gagal upload ke Cloudinary");
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.error.message || "Gagal upload ke Cloudinary");
+        }
+        
         const data = await res.json();
-        return data.secure_url; // Mengembalikan link https
+        return data.secure_url; 
     }
 
-    // Variabel wilayah (txtProv, dll) dan fungsi load wilayah tetap sama seperti kode kamu sebelumnya...
     let txtProv = "", txtKota = "", txtKec = "", txtDesa = "";
 
-    // [Fungsi loadProvinsi, loadKota, loadKecamatan, loadDesa tetap di sini...]
     async function loadProvinsi(selectedName = "") {
         const res = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
         const data = await res.json();
@@ -268,7 +270,6 @@
         if(selectedName) txtDesa = selectedName;
     }
 
-    // Event onchange wilayah tetap sama...
     document.getElementById('provinsi').onchange = function() {
         txtProv = this.options[this.selectedIndex].getAttribute('data-nama');
         loadKota(this.value);
@@ -285,9 +286,25 @@
         txtDesa = this.options[this.selectedIndex].getAttribute('data-nama');
     };
 
-    // [Data Komsel & Fungsi tetap sama...]
-    const dataKomsel = { "Abepura": ["Lansia Abepura", "Joseph 1"], "Sentani": ["Siloam 1"] }; // Disingkat untuk contoh
-    const dataFungsi = { "Koordinator Multimedia": ["Director media", "Campers"] }; // Disingkat untuk contoh
+    const dataKomsel = { 
+        "Abepura": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "Esther 8", "Esther 9", "Esther 10", "Esther 11", "Esther 12", "Komsel Mahasiswa Abe", "Komsel Profesi Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu"],
+        "Sentani": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Komsel 5", "Siloam 6", "Siloam 8", "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", "Komsel Remaja Sentani", "Komsel Sekolah Minggu Sentani"],
+        "Doyo": ["Komsel Bapak doyo", "Komsel Ibu doyo"],
+        "Arso 1": ["Komsel Keluarga Arso 1"],
+        "Arso 2": ["Komsel Keluarga Arso 2"]
+    };
+
+    const dataFungsi = {
+        "Koordinator Praise & Worship": ["Drum Player", "Keyboard Player", "Piano Player", "Bass Player", "Guitar Player", "Violin Player", "Saxsophone Player", "Flute player", "Vocal coach", "Worship leader", "Singers", "Choirs"],
+        "Koordinator Multimedia": ["Director media", "Floor director", "Campers", "Crew equipment", "Streaming operator", "Video switcher operator", "Easy Worshipe / Presenter Operator"],
+        "Koordinator Sound Engineering & Elektrical": ["Sound engineering", "Crew equipment", "Elektrical & Peripheral"],
+        "Koordinator User": ["Front Desk user", "User direct", "Event organizer", "General Affairs"],
+        "Koordinator parkir dan keamanan": ["Parkir leader", "Parkir Crew", "Security"],
+        "Koordinator Pelayanan Misi": ["Team Doa Syafaat", "Team Misi bidang Fundraising", "Team Misi bidang research & Deplovement", "Team Road Map", "Public Relations"],
+        "Koordinator Pendoa": ["Team Doa Syafaat"],
+        "Koordinator dekorasi dan event": ["Decoration leader", "Decoration Crew", "Art And Painting", "Special effect"],
+        "Fulltimer Gereja": ["Kepala Sekolah PAUD & PPA", "Sekretaris Operasional Gereja", "Bendahara Operasional gereja", "Guru Paud", "Mentor PPA", "Staff Geraja", "Staff PPA", "Hospitality & Konsumsi", "Driver"]
+    };
 
     function updateKomsel(selectedValue = "") {
         const wilayah = document.getElementById('wilayah').value;
@@ -317,7 +334,6 @@
         }
     }
 
-    // Load data awal saat halaman dibuka
     window.onload = async function() {
         try {
             const doc = await db.collection("users").doc(userId).get();
@@ -346,13 +362,11 @@
                 }
 
                 await loadProvinsi(data.provinsi);
-                // Logika load kota/kec/desa otomatis jika ada data lama...
                 document.getElementById('loading').style.display = 'none';
             }
         } catch (error) { console.error(error); }
     };
 
-    // LOGIKA SIMPAN BARU (PAKAI CLOUDINARY)
     document.getElementById('editForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = e.target.querySelector('button');
@@ -384,24 +398,20 @@
                 last_update: new Date().toISOString()
             };
 
-            // Jika ada file KTP baru, upload ke Cloudinary
             if (fileKtp) {
                 updateData.url_ktp = await uploadToCloudinary(fileKtp);
             }
 
-            // Jika ada file Berkas baru, upload ke Cloudinary
             if (fileBerkas) {
                 updateData.url_berkas = await uploadToCloudinary(fileBerkas);
             }
 
-            // Simpan semua data (termasuk link Cloudinary) ke Firestore
             await db.collection("users").doc(userId).update(updateData);
-            
             alert("Data User Berhasil Diperbarui!");
             window.location.href = 'admin.html';
         } catch (error) {
             console.error(error);
-            alert("Error: " + error.message);
+            alert("Gagal menyimpan: " + error.message);
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-save"></i> Simpan Perubahan';
         }
