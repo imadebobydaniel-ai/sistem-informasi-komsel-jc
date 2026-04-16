@@ -16,16 +16,14 @@
             background-image: linear-gradient(to bottom right, #ffffff, #f0f7ff);
         }
 
-        /* Header dengan Logo yang diperbesar */
         .card-header { 
-            background: #003366; color: white; padding: 5px 15px; /* Padding dikecilkan agar logo bisa maksimal */
+            background: #003366; color: white; padding: 5px 15px; 
             display: flex; align-items: center; justify-content: space-between;
             border-top: 4px solid #D4AF37; 
             border-bottom: 8px solid #D4AF37;
-            height: 75px; /* Tinggi header dikunci agar proporsional */
+            height: 75px;
         }
         
-        /* Ukuran Logo diperbesar dari 55px ke 70px */
         .header-logo { width: 70px; height: 70px; object-fit: contain; }
         
         .header-text { text-align: center; flex: 1; }
@@ -38,9 +36,20 @@
         .photo-frame { 
             width: 115px; height: 135px; border: 2px solid #003366; 
             object-fit: cover; border-radius: 5px; background: #fff; margin-bottom: 5px;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
         }
-        .barcode-container { width: 115px; height: 40px; background: white; padding: 2px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; }
+
+        /* Perbaikan Container Barcode agar lebih leluasa */
+        .barcode-container { 
+            width: 115px; 
+            height: 48px; /* Sedikit lebih tinggi */
+            background: white; 
+            padding: 2px; 
+            border: 1px solid #ccc; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            overflow: hidden;
+        }
         .barcode-svg { width: 100%; height: 100%; }
 
         .right-side { flex: 1; display: flex; flex-direction: column; gap: 4px; }
@@ -50,7 +59,7 @@
 
         .card-footer { 
             position: absolute; bottom: 0; width: 100%; background: #003366; 
-            color: white; font-size: 10px; text-align: center; padding: 6px 0;
+            color: white; font-size: 10px; text-align: center; padding: 4px 0; /* Padding footer diperkecil */
         }
 
         .no-print { position: fixed; bottom: 20px; right: 20px; z-index: 99; }
@@ -83,11 +92,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const ids = urlParams.get('ids') ? urlParams.get('ids').split(',') : [];
         const container = document.getElementById('cardContainer');
-        container.style.display = 'flex';
-        container.style.flexWrap = 'wrap';
-        container.style.gap = '20px';
-        container.style.justifyContent = 'center';
-
+        
         if (ids.length === 0) {
             container.innerHTML = "<h2 style='color:white'>Silakan pilih jemaat di Admin Dashboard.</h2>";
             return;
@@ -133,18 +138,20 @@
                         </div>
                         
                         <div class="card-footer">
-                            Pondok Pemulihan Papua - Unity In Diversity
+                            Pondok Pemulihan Papua - Blessing To The Nations
                         </div>
                     </div>
                 `;
                 container.innerHTML += cardHtml;
 
+                // Render Barcode dengan optimasi scan (CODE128 lebih tegas)
                 setTimeout(() => {
                     JsBarcode(`#barcode-${id}`, nijValue, {
                         format: "CODE128",
-                        width: 1.5,
-                        height: 35,
+                        width: 2.0,       // Dipertebal dari 1.5 ke 2.0
+                        height: 40,        // Tinggi ditambah agar leluasa
                         displayValue: false,
+                        lineColor: "#000", // Hitam pekat
                         margin: 0
                     });
                 }, 300);
