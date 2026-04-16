@@ -3,11 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Data Users - Admin</title>
+    <title>Edit Data Users & Kartu - Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> 
     <style>
         :root { --primary: #003366; --accent: #007bff; --light: #f4f7f6; --gold: #D4AF37; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--light); padding: 20px; }
+        
+        /* Style Preview Kartu */
+        .card-preview-section { 
+            max-width: 800px; margin: 0 auto 30px; background: #fff; padding: 20px; 
+            border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;
+        }
+        .id-card {
+            width: 450px; height: 280px; background: linear-gradient(135deg, #003366 0%, #0055aa 100%);
+            border-radius: 15px; margin: 20px auto; position: relative; color: white;
+            text-align: left; padding: 20px; box-sizing: border-box; border: 3px solid var(--gold);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .id-card h2 { margin: 0; font-size: 18px; border-bottom: 1px solid var(--gold); padding-bottom: 5px; }
+        .card-content { margin-top: 15px; font-size: 13px; }
+        .card-content div { margin-bottom: 5px; }
+        .card-content strong { color: var(--gold); display: inline-block; width: 80px; }
+
+        /* Style Form CMS */
         .edit-container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .form-group { margin-bottom: 15px; position: relative; } 
         label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; color: var(--primary); }
@@ -28,14 +46,34 @@
 
 <div id="loading" class="loading-overlay"><p><i class="fas fa-spinner fa-spin"></i> Memuat Data...</p></div>
 
+<div class="card-preview-section">
+    <h3 style="color: var(--primary); margin: 0;">Live Preview Kartu Jemaat</h3>
+    <div class="id-card" id="printArea">
+        <h2>KARTU ANGGOTA JEMAAT</h2>
+        <div class="card-content">
+            <div><strong>NIJ</strong>: <span id="display_nij">-</span></div>
+            <div><strong>NAMA</strong>: <span id="display_nama">-</span></div>
+            <div><strong>TTL</strong>: <span id="display_ttl">-</span></div>
+            <div><strong>ALAMAT</strong>: <span id="display_alamat">-</span></div>
+            <div><strong>JABATAN</strong>: <span id="display_jabatan">-</span></div>
+            <div><strong>WILAYAH</strong>: <span id="display_wilayah">-</span></div>
+            <div><strong>KOMSEL</strong>: <span id="display_komsel">-</span></div>
+        </div>
+        <div style="position: absolute; bottom: 15px; right: 20px; font-size: 10px; color: var(--gold);">
+            Gereja Digital System © 2026
+        </div>
+    </div>
+    <button onclick="window.print()" style="padding: 8px 15px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc;"><i class="fas fa-print"></i> Cetak Kartu Ini</button>
+</div>
+
 <div class="edit-container">
     <a href="admin.html" class="btn-back"><i class="fas fa-arrow-left"></i> Kembali ke Dashboard</a>
-    <h2 class="section-title">Edit Profil User</h2>
+    <h2 class="section-title">CMS Edit Profil & Kartu</h2>
     
     <form id="editForm">
         <div class="form-group">
-            <label>Nama Lengkap</label>
-            <input type="text" id="nama_lengkap" required>
+            <label>Nama Lengkap (Muncul di Kartu)</label>
+            <input type="text" id="nama_lengkap" oninput="syncLive()" required>
         </div>
         <div class="form-group">
             <label>NIJ (Nomor Induk Jemaat)</label>
@@ -43,7 +81,7 @@
         </div>
         <div class="form-group">
             <label>Tanggal Lahir</label>
-            <input type="date" id="tanggal_lahir_murni" required>
+            <input type="date" id="tanggal_lahir_murni" oninput="syncLive()" required>
         </div>
         <div class="form-group">
             <label>Golongan Darah</label>
@@ -53,7 +91,6 @@
                 <option value="A">A</option>
                 <option value="B">B</option>
                 <option value="AB">AB</option>
-                <option value="AB+">AB+</option>
             </select>
         </div>
         <div class="form-group">
@@ -77,8 +114,8 @@
             <select id="provinsi" onchange="loadKota(this.value)"><option value="">Pilih Provinsi</option></select>
         </div>
         <div class="form-group">
-            <label>Kota / Kabupaten</label>
-            <select id="kota" onchange="loadKecamatan(this.value)"><option value="">Pilih Kota</option></select>
+            <label>Kota / Kabupaten (Muncul di TTL Kartu)</label>
+            <select id="kota" onchange="loadKecamatan(this.value); syncLive()"><option value="">Pilih Kota</option></select>
         </div>
         <div class="form-group">
             <label>Kecamatan</label>
@@ -90,12 +127,12 @@
         </div>
 
         <div class="form-group">
-            <label>Alamat Domisili</label>
-            <textarea id="alamat" rows="2"></textarea>
+            <label>Alamat Domisili (Muncul di Kartu)</label>
+            <textarea id="alamat" rows="2" oninput="syncLive()"></textarea>
         </div>
         <div class="form-group">
             <label>Wilayah Berjemaat</label>
-            <select id="wilayah" onchange="updateKomsel()">
+            <select id="wilayah" onchange="updateKomsel(); syncLive()">
                 <option value="">-- Pilih Wilayah --</option>
                 <option value="Abepura">Abepura</option>
                 <option value="Sentani">Sentani</option>
@@ -106,11 +143,11 @@
         </div>
         <div class="form-group">
             <label>Komsel / Jemaat Cell</label>
-            <select id="komsel"><option value="">-- Pilih Wilayah Terlebih Dahulu --</option></select>
+            <select id="komsel" onchange="syncLive()"><option value="">-- Pilih Wilayah Terlebih Dahulu --</option></select>
         </div>
         <div class="form-group">
             <label>Jabatan Utama</label>
-            <select id="jabatan">
+            <select id="jabatan" onchange="syncLive()">
                 <option value="Anggota Jemaat">Anggota Jemaat</option>
                 <option value="Gembala Sidang">Gembala Sidang</option>
                 <option value="Pemimpin / Koordinator">Pemimpin / Koordinator</option>
@@ -124,34 +161,12 @@
                 <option value="Anggota Jemaat Ordinari">Anggota Jemaat Ordinari</option>
                 <option value="Gembala Sidang Jemaat">Gembala Sidang Jemaat</option>
                 <option value="Pdt. Pembantu">Pdt. Pembantu</option>
-                <option value="Pdt. Muda">Pdt. Muda</option>
                 <option value="Sekretaris Gereja">Sekretaris Gereja</option>
-                <option value="Bendahara Gereja">Bendahara Gereja</option>
-                <option value="Komite Gereja">Komite Gereja</option>
-                <option value="Koordinator Lansia">Koordinator Lansia</option>
-                <option value="Koordinator Bapak">Koordinator Bapak</option>
-                <option value="Koordinator Ibu">Koordinator Ibu</option>
-                <option value="Koordinator Profesi">Koordinator Profesi</option>
-                <option value="Koordinator Mahasiswa">Koordinator Mahasiswa</option>
-                <option value="Koordinator Pelajar">Koordinator Pelajar</option>
-                <option value="Koordinator Sekolah minggu">Koordinator Sekolah minggu</option>
-                <option value="Koordinator Praise & Worship">Koordinator Praise & Worship</option>
-                <option value="Koordinator Tamborin, flag">Koordinator Tamborin, flag</option>
-                <option value="Koordinator Multimedia">Koordinator Multimedia</option>
-                <option value="Koordinator Sound Engineering & Elektrical">Koordinator Sound Engineering & Elektrical</option>
-                <option value="Koordinator Pelayanan Misi">Koordinator Pelayanan Misi</option>
-                <option value="Koordinator Pendoa">Koordinator Pendoa</option>
-                <option value="Koordinator User">Koordinator User</option>
-                <option value="Koordinator parkir dan keamanan">Koordinator parkir dan keamanan</option>
-                <option value="Koordinator dekorasi dan event">Koordinator dekorasi dan event</option>
                 <option value="PKS Komsel">PKS Komsel</option>
                 <option value="Fulltimer Gereja">Fulltimer Gereja</option>
             </select>
         </div>
-        <div class="form-group" id="fungsi_container" style="display:none;">
-            <label>Fungsi Spesifik Pelayanan</label>
-            <select id="fungsi_spesifik"><option value="">-- Pilih Fungsi --</option></select>
-        </div>
+        
         <div class="form-group">
             <label>Status Akun</label>
             <select id="status_akun">
@@ -159,25 +174,15 @@
                 <option value="Aktif">Aktif</option>
             </select>
         </div>
-        <div class="form-group">
-            <label>Upload Foto KTP (JPG/PNG)</label>
-            <input type="file" id="upload_ktp" accept="image/jpeg, image/png">
-            <span id="info_ktp" class="file-info"></span>
-        </div>
-        <div class="form-group">
-            <label>Upload Berkas Pendukung (PDF/JPG)</label>
-            <input type="file" id="upload_berkas" accept="application/pdf, image/jpeg">
-            <span id="info_berkas" class="file-info"></span>
-        </div>
 
-        <button type="submit" class="btn-save"><i class="fas fa-save"></i> Simpan Perubahan</button>
+        <button type="submit" class="btn-save"><i class="fas fa-save"></i> Simpan Data & Update Kartu</button>
     </form>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script>
-    // 1. CONFIGURATION & INITIALIZATION
+    // 1. CONFIGURATION
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -189,53 +194,45 @@
 
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
-
     const urlParams = new URLSearchParams(window.location.search);
     const userId = urlParams.get('edit'); 
 
-    if (!userId) {
-        alert("ID User tidak ditemukan!");
-        window.location.href = 'admin.html';
-    }
+    // 2. LIVE SYNC FUNCTION (PENTING!)
+    // Fungsi ini membuat apa yang diketik di CMS langsung muncul di kartu atas
+    function syncLive() {
+        const nama = document.getElementById('nama_lengkap').value;
+        const nij = document.getElementById('nij').value;
+        const tglMurni = document.getElementById('tanggal_lahir_murni').value;
+        const kotaSelect = document.getElementById('kota');
+        const kota = kotaSelect.selectedIndex > 0 ? kotaSelect.options[kotaSelect.selectedIndex].text : "-";
+        const alamat = document.getElementById('alamat').value;
+        const jabatan = document.getElementById('jabatan').value;
+        const wilayah = document.getElementById('wilayah').value;
+        const komsel = document.getElementById('komsel').value;
 
-    // 2. CLOUDINARY UPLOAD FUNCTION
-    async function uploadToCloudinary(file) {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', 'boby_preset'); 
-
-        try {
-            const res = await fetch('https://api.cloudinary.com/v1_1/dxzllsbgj/image/upload', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await res.json();
-            return data.secure_url; 
-        } catch (err) {
-            console.error("Cloudinary Error:", err);
-            throw err;
+        // Format Tanggal untuk Kartu (DD/MM/YYYY)
+        let tglIndo = "-";
+        if(tglMurni) {
+            const [y, m, d] = tglMurni.split("-");
+            tglIndo = `${d}/${m}/${y}`;
         }
+
+        document.getElementById('display_nama').innerText = nama || "-";
+        document.getElementById('display_nij').innerText = nij || "-";
+        document.getElementById('display_ttl').innerText = `${kota}, ${tglIndo}`;
+        document.getElementById('display_alamat').innerText = alamat || "-";
+        document.getElementById('display_jabatan').innerText = jabatan || "-";
+        document.getElementById('display_wilayah').innerText = wilayah || "-";
+        document.getElementById('display_komsel').innerText = komsel || "-";
     }
 
-    // 3. DATA KOMSEL & FUNGSI MAPPING
+    // 3. MAPPING DATA
     const dataKomsel = { 
         "Abepura": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "Esther 8", "Esther 9", "Esther 10", "Esther 11", "Esther 12", "Komsel Mahasiswa Abe", "Komsel Profesi Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu"],
         "Sentani": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Komsel 5", "Siloam 6", "Siloam 8", "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", "Komsel Remaja Sentani", "Komsel Sekolah Minggu Sentani"],
         "Doyo": ["Komsel Bapak doyo", "Komsel Ibu doyo"],
         "Arso 1": ["Komsel Keluarga Arso 1"],
         "Arso 2": ["Komsel Keluarga Arso 2"]
-    };
-
-    const dataFungsi = {
-        "Koordinator Praise & Worship": ["Drum Player", "Keyboard Player", "Piano Player", "Bass Player", "Guitar Player", "Violin Player", "Saxsophone Player", "Flute player", "Vocal coach", "Worship leader", "Singers", "Choirs"],
-        "Koordinator Multimedia": ["Director media", "Floor director", "Campers", "Crew equipment", "Streaming operator", "Video switcher operator", "Easy Worshipe / Presenter Operator"],
-        "Koordinator Sound Engineering & Elektrical": ["Sound engineering", "Crew equipment", "Elektrical & Peripheral"],
-        "Koordinator User": ["Front Desk user", "User direct", "Event organizer", "General Affairs"],
-        "Koordinator parkir dan keamanan": ["Parkir leader", "Parkir Crew", "Security"],
-        "Koordinator Pelayanan Misi": ["Team Doa Syafaat", "Team Misi bidang Fundraising", "Team Misi bidang research & Deplovement", "Team Road Map", "Public Relations"],
-        "Koordinator Pendoa": ["Team Doa Syafaat"],
-        "Koordinator dekorasi dan event": ["Decoration leader", "Decoration Crew", "Art And Painting", "Special effect"],
-        "Fulltimer Gereja": ["Kepala Sekolah PAUD & PPA", "Sekretaris Operasional Gereja", "Bendahara Operasional gereja", "Guru Paud", "Mentor PPA", "Staff Geraja", "Staff PPA", "Hospitality & Konsumsi", "Driver"]
     };
 
     function updateKomsel(selectedValue = "") {
@@ -250,23 +247,7 @@
         }
     }
 
-    function updateFungsiPelayanan(selectedValue = "") {
-        const sub = document.getElementById('sub_bidang').value;
-        const container = document.getElementById('fungsi_container');
-        const fungsiSelect = document.getElementById('fungsi_spesifik');
-        if(dataFungsi[sub]) {
-            container.style.display = 'block';
-            fungsiSelect.innerHTML = '<option value="">-- Pilih Fungsi --</option>';
-            dataFungsi[sub].forEach(f => {
-                const selected = f === selectedValue ? "selected" : "";
-                fungsiSelect.innerHTML += `<option value="${f}" ${selected}>${f}</option>`;
-            });
-        } else {
-            container.style.display = 'none';
-        }
-    }
-
-    // 4. INDONESIA GEOLOCATION API LOGIC
+    // 4. GEOLOCATION (API Wilayah)
     async function loadProvinsi(selectedName = "") {
         const res = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
         const data = await res.json();
@@ -320,130 +301,88 @@
         document.getElementById('desa').innerHTML = options;
     }
 
-    // 5. WINDOW ONLOAD (WITH REINFORCED DATE LOGIC)
+    // 5. LOAD DATA FROM FIREBASE
     window.onload = async function() {
+        if (!userId) return;
         try {
             const doc = await db.collection("users").doc(userId).get();
             if (doc.exists) {
                 const data = doc.data();
-                console.log("Data Firebase:", data);
-
-                // Field Dasar
                 document.getElementById('nama_lengkap').value = data.nama_lengkap || '';
                 document.getElementById('nij').value = data.nij || '';
-
-                // Logika Deteksi Tanggal Lahir
-                let tglValue = data.tanggal_lahir_murni || data.tanggal_lahir || data.tgl_lahir || "";
                 
-                // Konversi jika formatnya adalah Timestamp Firebase
-                if (tglValue && typeof tglValue === 'object' && tglValue.seconds) {
-                    tglValue = new Date(tglValue.seconds * 1000).toISOString().split('T')[0];
-                } 
-                
-                // Pastikan format YYYY-MM-DD untuk input type="date"
-                if (tglValue) {
-                    document.getElementById('tanggal_lahir_murni').value = tglValue;
-                }
+                // Handle Tanggal Lahir (Murni YYYY-MM-DD)
+                let tgl = data.tanggal_lahir_murni || data.tanggal_lahir || "";
+                if(tgl && typeof tgl === 'object') tgl = new Date(tgl.seconds * 1000).toISOString().split('T')[0];
+                document.getElementById('tanggal_lahir_murni').value = tgl;
 
-                document.getElementById('gol_darah').value = data.darah || '-';
-                document.getElementById('whatsapp').value = data.whatsapp || '';
-                document.getElementById('email').value = data.email || '';
-                document.getElementById('password_user').value = data.password || '';
                 document.getElementById('alamat').value = data.alamat || '';
-                document.getElementById('status_akun').value = data.status_akun || 'Pending';
                 document.getElementById('wilayah').value = data.wilayah || '';
-                
-                // Update Dropdown Relasional
                 updateKomsel(data.komsel);
                 document.getElementById('jabatan').value = data.jabatan || 'Anggota Jemaat';
-                document.getElementById('sub_bidang').value = data.sub_bidang || 'Anggota Jemaat Ordinari';
-                updateFungsiPelayanan(data.fungsi_spesifik);
+                document.getElementById('whatsapp').value = data.whatsapp || '';
+                document.getElementById('email').value = data.email || '';
+                document.getElementById('status_akun').value = data.status_akun || 'Pending';
 
-                // Info Berkas
-                if (data.url_ktp) document.getElementById('info_ktp').innerHTML = `File: <a href="${data.url_ktp}" target="_blank">Lihat KTP</a>`;
-                if (data.url_berkas) document.getElementById('info_berkas').innerHTML = `File: <a href="${data.url_berkas}" target="_blank">Lihat Berkas</a>`;
-
-                // Load Wilayah Cascading
+                // Load API Wilayah
                 const provId = await loadProvinsi(data.provinsi);
                 if(provId) {
                     const kotaId = await loadKota(provId, data.kota);
                     if(kotaId) {
                         const kecId = await loadKecamatan(kotaId, data.kecamatan);
-                        if(kecId) {
-                            await loadDesa(kecId, data.desa);
-                        }
+                        if(kecId) await loadDesa(kecId, data.desa);
                     }
                 }
 
                 document.getElementById('loading').style.display = 'none';
-            } else {
-                alert("Dokumen tidak ditemukan!");
+                syncLive(); // Jalankan preview pertama kali
             }
-        } catch (error) { 
-            console.error("Load Error:", error); 
-        }
+        } catch (e) { console.error(e); }
     };
 
-    // 6. SAVE DATA SUBMISSION
+    // 6. SAVE ACTION
     document.getElementById('editForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = e.target.querySelector('button');
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+        btn.innerHTML = 'Menyimpan...';
+
+        const p = document.getElementById('provinsi');
+        const k = document.getElementById('kota');
+        const kec = document.getElementById('kecamatan');
+        const d = document.getElementById('desa');
+
+        const updateData = {
+            nama_lengkap: document.getElementById('nama_lengkap').value,
+            tanggal_lahir_murni: document.getElementById('tanggal_lahir_murni').value,
+            provinsi: p.selectedIndex > 0 ? p.options[p.selectedIndex].text : "",
+            kota: k.selectedIndex > 0 ? k.options[k.selectedIndex].text : "",
+            kecamatan: kec.selectedIndex > 0 ? kec.options[kec.selectedIndex].text : "",
+            desa: d.selectedIndex > 0 ? d.options[d.selectedIndex].text : "",
+            alamat: document.getElementById('alamat').value,
+            wilayah: document.getElementById('wilayah').value,
+            komsel: document.getElementById('komsel').value,
+            jabatan: document.getElementById('jabatan').value,
+            status_akun: document.getElementById('status_akun').value,
+            last_update: new Date().toISOString()
+        };
 
         try {
-            const fileKtp = document.getElementById('upload_ktp').files[0];
-            const fileBerkas = document.getElementById('upload_berkas').files[0];
-
-            const p = document.getElementById('provinsi');
-            const k = document.getElementById('kota');
-            const kec = document.getElementById('kecamatan');
-            const d = document.getElementById('desa');
-
-            const updateData = {
-                nama_lengkap: document.getElementById('nama_lengkap').value,
-                tanggal_lahir_murni: document.getElementById('tanggal_lahir_murni').value,
-                darah: document.getElementById('gol_darah').value,
-                whatsapp: document.getElementById('whatsapp').value,
-                email: document.getElementById('email').value,
-                password: document.getElementById('password_user').value,
-                provinsi: p.selectedIndex > 0 ? p.options[p.selectedIndex].text : (p.getAttribute('data-old') || ""),
-                kota: k.selectedIndex > 0 ? k.options[k.selectedIndex].text : (k.getAttribute('data-old') || ""),
-                kecamatan: kec.selectedIndex > 0 ? kec.options[kec.selectedIndex].text : (kec.getAttribute('data-old') || ""),
-                desa: d.selectedIndex > 0 ? d.options[d.selectedIndex].text : (d.getAttribute('data-old') || ""),
-                alamat: document.getElementById('alamat').value,
-                wilayah: document.getElementById('wilayah').value,
-                komsel: document.getElementById('komsel').value,
-                jabatan: document.getElementById('jabatan').value,
-                sub_bidang: document.getElementById('sub_bidang').value,
-                fungsi_spesifik: document.getElementById('fungsi_spesifik').value,
-                status_akun: document.getElementById('status_akun').value,
-                last_update: new Date().toISOString()
-            };
-
-            if (fileKtp) updateData.url_ktp = await uploadToCloudinary(fileKtp);
-            if (fileBerkas) updateData.url_berkas = await uploadToCloudinary(fileBerkas);
-
             await db.collection("users").doc(userId).update(updateData);
-            alert("Data Berhasil Diperbarui!");
-            window.location.href = 'admin.html';
-        } catch (error) {
-            alert("Gagal menyimpan: " + error.message);
+            alert("Berhasil! Data Database & Kartu telah sinkron.");
+            window.location.reload();
+        } catch (err) {
+            alert("Error: " + err.message);
             btn.disabled = false;
-            btn.innerHTML = 'Simpan Perubahan';
         }
     };
 
-    // 7. TOGGLE PASSWORD VISIBILITY
+    // Toggle Password
     document.getElementById('eyeIcon').onclick = function() {
         const passInput = document.getElementById('password_user');
-        if (passInput.type === "password") {
-            passInput.type = "text";
-            this.classList.replace('fa-eye', 'fa-eye-slash');
-        } else {
-            passInput.type = "password";
-            this.classList.replace('fa-eye-slash', 'fa-eye');
-        }
+        passInput.type = passInput.type === "password" ? "text" : "password";
+        this.classList.toggle('fa-eye-slash');
     };
-</script></body>
+</script>
+</body>
 </html>
