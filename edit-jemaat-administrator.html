@@ -196,18 +196,14 @@
         window.location.href = 'admin.html';
     }
 
-    // --- PENGATURAN CLOUDINARY ---
-    const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dxzllsbgj/image/upload';
-    const CLOUDINARY_UPLOAD_PRESET = 'boby_preset';
-
-    // Fungsi Helper untuk Upload ke Cloudinary
+    // --- PENGATURAN CLOUDINARY (VERSI BERSIH) ---
     async function uploadToCloudinary(file) {
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+        formData.append('upload_preset', 'boby_preset'); 
 
         try {
-            const res = await fetch(CLOUDINARY_URL, {
+            const res = await fetch('https://api.cloudinary.com/v1_1/dxzllsbgj/image/upload', {
                 method: 'POST',
                 body: formData
             });
@@ -215,8 +211,8 @@
             const data = await res.json();
             
             if (!res.ok) {
-                console.error("Cloudinary Error Detail:", data);
-                throw new Error(data.error.message || "Gagal upload ke Cloudinary");
+                console.error("Detail Error Cloudinary:", data);
+                throw new Error(data.error.message || "Gagal upload");
             }
             
             return data.secure_url; 
@@ -237,7 +233,6 @@
             options += `<option value="${p.id}" data-nama="${p.name}" ${isSel}>${p.name}</option>`;
         });
         document.getElementById('provinsi').innerHTML = options;
-        if(selectedName) txtProv = selectedName;
     }
 
     async function loadKota(id, selectedName = "") {
@@ -249,7 +244,6 @@
             options += `<option value="${p.id}" data-nama="${p.name}" ${isSel}>${p.name}</option>`;
         });
         document.getElementById('kota').innerHTML = options;
-        if(selectedName) txtKota = selectedName;
     }
 
     async function loadKecamatan(id, selectedName = "") {
@@ -261,7 +255,6 @@
             options += `<option value="${p.id}" data-nama="${p.name}" ${isSel}>${p.name}</option>`;
         });
         document.getElementById('kecamatan').innerHTML = options;
-        if(selectedName) txtKec = selectedName;
     }
 
     async function loadDesa(id, selectedName = "") {
@@ -273,7 +266,6 @@
             options += `<option value="${p.id}" data-nama="${p.name}" ${isSel}>${p.name}</option>`;
         });
         document.getElementById('desa').innerHTML = options;
-        if(selectedName) txtDesa = selectedName;
     }
 
     document.getElementById('provinsi').onchange = function() {
@@ -345,6 +337,13 @@
             const doc = await db.collection("users").doc(userId).get();
             if (doc.exists) {
                 const data = doc.data();
+                
+                // Inisialisasi variabel wilayah agar data lama tetap ada jika tidak diubah
+                txtProv = data.provinsi || "";
+                txtKota = data.kota || "";
+                txtKec = data.kecamatan || "";
+                txtDesa = data.desa || "";
+
                 document.getElementById('nama_lengkap').value = data.nama_lengkap || '';
                 document.getElementById('nij').value = data.nij || '';
                 document.getElementById('tanggal_lahir_murni').value = data.tanggal_lahir_murni || '';
@@ -404,17 +403,14 @@
                 last_update: new Date().toISOString()
             };
 
-            // PROSES UPLOAD KTP
             if (fileKtp) {
                 updateData.url_ktp = await uploadToCloudinary(fileKtp);
             }
 
-            // PROSES UPLOAD BERKAS
             if (fileBerkas) {
                 updateData.url_berkas = await uploadToCloudinary(fileBerkas);
             }
 
-            // UPDATE FIRESTORE
             await db.collection("users").doc(userId).update(updateData);
             alert("Data User Berhasil Diperbarui!");
             window.location.href = 'admin.html';
