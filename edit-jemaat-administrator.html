@@ -43,7 +43,7 @@
         </div>
         <div class="form-group">
             <label>Tanggal Lahir</label>
-            <input type="date" id="tanggal_lahir_murni">
+            <input type="date" id="tanggal_lahir_murni" required>
         </div>
         <div class="form-group">
             <label>Golongan Darah</label>
@@ -71,22 +71,24 @@
                 <i class="fas fa-eye toggle-password" id="eyeIcon"></i>
             </div>
         </div>
+        
         <div class="form-group">
             <label>Provinsi</label>
-            <select id="provinsi"><option value="">Pilih Provinsi</option></select>
+            <select id="provinsi" onchange="loadKota(this.value)"><option value="">Pilih Provinsi</option></select>
         </div>
         <div class="form-group">
             <label>Kota / Kabupaten</label>
-            <select id="kota"><option value="">Pilih Kota</option></select>
+            <select id="kota" onchange="loadKecamatan(this.value)"><option value="">Pilih Kota</option></select>
         </div>
         <div class="form-group">
             <label>Kecamatan</label>
-            <select id="kecamatan"><option value="">Pilih Kecamatan</option></select>
+            <select id="kecamatan" onchange="loadDesa(this.value)"><option value="">Pilih Kecamatan</option></select>
         </div>
         <div class="form-group">
             <label>Desa / Kelurahan</label>
             <select id="desa"><option value="">Pilih Desa</option></select>
         </div>
+
         <div class="form-group">
             <label>Alamat Domisili</label>
             <textarea id="alamat" rows="2"></textarea>
@@ -195,7 +197,7 @@
         window.location.href = 'admin.html';
     }
 
-    // --- PENGATURAN CLOUDINARY ---
+    // --- CLOUDINARY UPLOAD ---
     async function uploadToCloudinary(file) {
         const formData = new FormData();
         formData.append('file', file);
@@ -207,15 +209,14 @@
                 body: formData
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error.message || "Gagal upload");
             return data.secure_url; 
         } catch (err) {
-            console.error("Fetch Error:", err);
+            console.error("Cloudinary Error:", err);
             throw err;
         }
     }
 
-    // --- LOGIKA FORM DYNAMIC ---
+    // --- DATA KOMSEL & FUNGSI ---
     const dataKomsel = { 
         "Abepura": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "Esther 8", "Esther 9", "Esther 10", "Esther 11", "Esther 12", "Komsel Mahasiswa Abe", "Komsel Profesi Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu"],
         "Sentani": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Komsel 5", "Siloam 6", "Siloam 8", "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", "Komsel Remaja Sentani", "Komsel Sekolah Minggu Sentani"],
@@ -264,49 +265,71 @@
         }
     }
 
-    // --- LOGIKA WILAYAH INDONESIA ---
-    let txtProv = "", txtKota = "", txtKec = "", txtDesa = "";
-
+    // --- LOGIKA WILAYAH INDONESIA API ---
     async function loadProvinsi(selectedName = "") {
         const res = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
         const data = await res.json();
         let options = '<option value="">Pilih Provinsi</option>';
+        let selectedId = "";
         data.forEach(p => {
-            const isSel = p.name === selectedName ? "selected" : "";
-            options += `<option value="${p.id}" data-nama="${p.name}" ${isSel}>${p.name}</option>`;
+            if(p.name === selectedName) { options += `<option value="${p.id}" selected>${p.name}</option>`; selectedId = p.id; }
+            else { options += `<option value="${p.id}">${p.name}</option>`; }
         });
         document.getElementById('provinsi').innerHTML = options;
+        return selectedId;
     }
 
-    // --- WINDOW ONLOAD ---
+    async function loadKota(provId, selectedName = "") {
+        if(!provId) return;
+        const res = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${provId}.json`);
+        const data = await res.json();
+        let options = '<option value="">Pilih Kota</option>';
+        let selectedId = "";
+        data.forEach(k => {
+            if(k.name === selectedName) { options += `<option value="${k.id}" selected>${k.name}</option>`; selectedId = k.id; }
+            else { options += `<option value="${k.id}">${k.name}</option>`; }
+        });
+        document.getElementById('kota').innerHTML = options;
+        return selectedId;
+    }
+
+    async function loadKecamatan(kotaId, selectedName = "") {
+        if(!kotaId) return;
+        const res = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/districts/${kotaId}.json`);
+        const data = await res.json();
+        let options = '<option value="">Pilih Kecamatan</option>';
+        let selectedId = "";
+        data.forEach(k => {
+            if(k.name === selectedName) { options += `<option value="${k.id}" selected>${k.name}</option>`; selectedId = k.id; }
+            else { options += `<option value="${k.id}">${k.name}</option>`; }
+        });
+        document.getElementById('kecamatan').innerHTML = options;
+        return selectedId;
+    }
+
+    async function loadDesa(kecId, selectedName = "") {
+        if(!kecId) return;
+        const res = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/villages/${kecId}.json`);
+        const data = await res.json();
+        let options = '<option value="">Pilih Desa</option>';
+        data.forEach(d => {
+            const isSel = d.name === selectedName ? "selected" : "";
+            options += `<option value="${d.id}" ${isSel}>${d.name}</option>`;
+        });
+        document.getElementById('desa').innerHTML = options;
+    }
+
+    // --- WINDOW LOAD ---
     window.onload = async function() {
         try {
             const doc = await db.collection("users").doc(userId).get();
             if (doc.exists) {
                 const data = doc.data();
                 
-                txtProv = data.provinsi || "";
-                txtKota = data.kota || "";
-                txtKec = data.kecamatan || "";
-                txtDesa = data.desa || "";
-
+                // Isi field dasar
                 document.getElementById('nama_lengkap').value = data.nama_lengkap || '';
                 document.getElementById('nij').value = data.nij || '';
-                
-                // --- PROTEKSI TANGGAL LAHIR ---
-                let tglValue = "";
-                const rawDate = data.tanggal_lahir_murni || data.tanggal_lahir || data.tgl_lahir;
-                if (rawDate) {
-                    if (typeof rawDate === 'object' && rawDate.toDate) {
-                        // Jika format Firebase Timestamp, konversi ke YYYY-MM-DD
-                        tglValue = rawDate.toDate().toISOString().split('T')[0];
-                    } else {
-                        // Jika format String (misal "1990-01-01")
-                        tglValue = rawDate;
-                    }
-                }
-                document.getElementById('tanggal_lahir_murni').value = tglValue;
-
+                document.getElementById('tanggal_lahir_murni').value = data.tanggal_lahir_murni || '';
                 document.getElementById('gol_darah').value = data.darah || '-';
                 document.getElementById('whatsapp').value = data.whatsapp || '';
                 document.getElementById('email').value = data.email || '';
@@ -320,20 +343,27 @@
                 document.getElementById('sub_bidang').value = data.sub_bidang || 'Anggota Jemaat Ordinari';
                 updateFungsiPelayanan(data.fungsi_spesifik);
 
-                if (data.url_ktp) {
-                    document.getElementById('info_ktp').innerHTML = `File ada: <a href="${data.url_ktp}" target="_blank">Lihat KTP</a>`;
-                }
-                if (data.url_berkas) {
-                    document.getElementById('info_berkas').innerHTML = `File ada: <a href="${data.url_berkas}" target="_blank">Lihat Berkas</a>`;
+                if (data.url_ktp) document.getElementById('info_ktp').innerHTML = `File ada: <a href="${data.url_ktp}" target="_blank">Lihat KTP</a>`;
+                if (data.url_berkas) document.getElementById('info_berkas').innerHTML = `File ada: <a href="${data.url_berkas}" target="_blank">Lihat Berkas</a>`;
+
+                // Load Wilayah Cascading
+                const provId = await loadProvinsi(data.provinsi);
+                if(provId) {
+                    const kotaId = await loadKota(provId, data.kota);
+                    if(kotaId) {
+                        const kecId = await loadKecamatan(kotaId, data.kecamatan);
+                        if(kecId) {
+                            await loadDesa(kecId, data.desa);
+                        }
+                    }
                 }
 
-                await loadProvinsi(data.provinsi);
                 document.getElementById('loading').style.display = 'none';
             }
         } catch (error) { console.error(error); }
     };
 
-    // --- FORM SUBMISSION ---
+    // --- SAVE DATA ---
     document.getElementById('editForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = e.target.querySelector('button');
@@ -344,6 +374,12 @@
             const fileKtp = document.getElementById('upload_ktp').files[0];
             const fileBerkas = document.getElementById('upload_berkas').files[0];
 
+            // Ambil nama (text) dari dropdown wilayah
+            const p = document.getElementById('provinsi');
+            const k = document.getElementById('kota');
+            const kec = document.getElementById('kecamatan');
+            const d = document.getElementById('desa');
+
             const updateData = {
                 nama_lengkap: document.getElementById('nama_lengkap').value,
                 tanggal_lahir_murni: document.getElementById('tanggal_lahir_murni').value,
@@ -351,10 +387,10 @@
                 whatsapp: document.getElementById('whatsapp').value,
                 email: document.getElementById('email').value,
                 password: document.getElementById('password_user').value,
-                provinsi: txtProv,
-                kota: txtKota,
-                kecamatan: txtKec,
-                desa: txtDesa,
+                provinsi: p.options[p.selectedIndex].text,
+                kota: k.options[k.selectedIndex].text,
+                kecamatan: kec.options[kec.selectedIndex].text,
+                desa: d.options[d.selectedIndex].text,
                 alamat: document.getElementById('alamat').value,
                 wilayah: document.getElementById('wilayah').value,
                 komsel: document.getElementById('komsel').value,
@@ -372,14 +408,13 @@
             alert("Data User Berhasil Diperbarui!");
             window.location.href = 'admin.html';
         } catch (error) {
-            console.error(error);
-            alert("Gagal menyimpan: " + error.message);
+            alert("Gagal: " + error.message);
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-save"></i> Simpan Perubahan';
         }
     };
 
-    // Toggle Password Visibility
+    // Toggle Password
     document.getElementById('eyeIcon').onclick = function() {
         const passInput = document.getElementById('password_user');
         if (passInput.type === "password") {
