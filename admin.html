@@ -82,7 +82,6 @@
         .preview-container { display: flex; flex-direction: column; gap: 20px; align-items: center; margin-bottom: 20px; }
         .card-preview-box { width: 85.6mm; height: 54mm; background: white; border: 1px solid #ccc; box-shadow: 0 5px 15px rgba(0,0,0,0.2); position: relative; overflow: hidden; }
         
-        /* Tambahan Style untuk Form di Admin jika diperlukan */
         .admin-form-group { text-align: left; margin-bottom: 15px; }
         .admin-form-group label { font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; }
         .form-control { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
@@ -132,7 +131,7 @@
                     <th>Tempat Tanggal Lahir</th> <th>G.D</th> 
                     <th>WhatsApp / Email</th>
                     <th>Detail Keluarga</th>
-                    <th>Alamat</th>
+                    <th>Alamat Lengkap</th>
                     <th>Lokasi & Komsel</th>
                     <th>Jabatan & Pelayanan</th>
                     <th>Lampiran</th>
@@ -186,19 +185,28 @@
                 const namaTampil = d.nama_lengkap || d.nama || d.Nama || '-';
                 const nij = d.nij || '-';
                 
-                // Menampilkan Tempat Tanggal Lahir dari field baru
-                const ttl = d.tempat_tanggal_lahir || '-'; 
+                // Menampilkan Tempat Tanggal Lahir
+                let ttl = (d.tempat_lahir || "-") + ", " + (d.tanggal_lahir_murni || d.tanggal_lahir || "-");
+                if(d.tempat_tanggal_lahir) ttl = d.tempat_tanggal_lahir;
 
                 const goldar = d.darah || d.golongan_darah || '-'; 
                 const whatsapp = d.whatsapp || d.WhatsApp || '-';
                 const email = d.email || '-';
                 const pasangan = d.nama_suami_istri || d.nama_pasangan || d.suami || d.istri || d.pasangan || '-';
                 const anak = d.jumlah_anak || d.anak || '0';
-                const alamatDetail = d.alamat || d.Alamat || '-';
+                
+                // --- INTEGRASI ALAMAT LENGKAP ---
+                const alamatHtml = `
+                    ${d.alamat || '-'}<br>
+                    <small>Kel. ${d.desa || '-'}, Kec. ${d.kecamatan || '-'}</small><br>
+                    <small>${d.kota || '-'}, ${d.provinsi || '-'}</small>
+                `;
+
                 const wilayah = d.wilayah || '-';
                 const komsel = d.komsel || d.Komsel || '-';
                 const jabatan = d.jabatan || '-';
                 const fungsi = d.sub_bidang || d.fungsi_pelayanan || d.fungsi_spesifik || '-';
+                
                 const linkKtp = d.url_ktp || d.urlKtp || d.ktp || d.foto_ktp || d.lampiran_ktp || d.urlKTP;
                 const linkBerkas = d.url_berkas || d.berkas || d.lampiran || d.file || d.urlBerkas;
 
@@ -224,7 +232,7 @@
                     <td>${ttl}</td> <td style="text-align:center;"><strong>${goldar}</strong></td> 
                     <td>${whatsapp}<br><small>${email}</small></td>
                     <td><small>P: ${pasangan}<br>A: ${anak}</small></td>
-                    <td><small>${alamatDetail}</small></td>
+                    <td>${alamatHtml}</td>
                     <td><small>${wilayah}<br>K: ${komsel}</small></td>
                     <td><small>${jabatan}<br>F: ${fungsi}</small></td>
                     <td style="text-align:center; font-size:18px;">${fileHtml}</td>
@@ -244,118 +252,7 @@
         });
     }
 
-    // --- FITUR AUTOMASI & API WILAYAH (UNTUK INTEGRASI FORM) ---
-    
-    // 1. Fungsi Load Wilayah (Digunakan di Edit Modal / Form Registrasi)
-    async function loadProvinsi() {
-        try {
-            const response = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
-            const data = await response.json();
-            let options = '<option value="">Pilih Provinsi</option>';
-            data.forEach(prov => { options += `<option value="${prov.id}" data-nama="${prov.name}">${prov.name}</option>`; });
-            if(document.getElementById('provinsi')) document.getElementById('provinsi').innerHTML = options;
-        } catch (e) { console.log(e); }
-    }
-
-    async function loadKota() {
-        const id = document.getElementById('provinsi').value;
-        const res = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${id}.json`);
-        const data = await res.json();
-        let options = '<option value="">Pilih Kota</option>';
-        data.forEach(item => { options += `<option value="${item.id}" data-nama="${item.name}">${item.name}</option>`; });
-        document.getElementById('kota').innerHTML = options;
-    }
-
-    async function loadKecamatan() {
-        const id = document.getElementById('kota').value;
-        const res = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/districts/${id}.json`);
-        const data = await res.json();
-        let options = '<option value="">Pilih Kecamatan</option>';
-        data.forEach(item => { options += `<option value="${item.id}" data-nama="${item.name}">${item.name}</option>`; });
-        document.getElementById('kecamatan').innerHTML = options;
-    }
-
-    async function loadDesa() {
-        const id = document.getElementById('kecamatan').value;
-        const res = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/villages/${id}.json`);
-        const data = await res.json();
-        let options = '<option value="">Pilih Desa</option>';
-        data.forEach(item => { options += `<option value="${item.id}" data-nama="${item.name}">${item.name}</option>`; });
-        document.getElementById('desa').innerHTML = options;
-    }
-
-    // 2. Automasi Cek & Generate NIJ 
-    async function generateAutoNIJ() {
-        const snapshot = await db.collection("users").orderBy("nij", "desc").limit(1).get();
-        let lastNIJ = "NIJ-000";
-        if (!snapshot.empty) { lastNIJ = snapshot.docs[0].data().nij || "NIJ-000"; }
-        const lastNum = parseInt(lastNIJ.split('-')[1]) || 0;
-        return "NIJ-" + (lastNum + 1).toString().padStart(3, '0');
-    }
-
-    // --- LOGIKA CETAK KARTU TETAP TERJAGA ---
-    let currentPreviewPDF = null;
-
-    async function generateMemberCards() {
-        const { jsPDF } = window.jspdf;
-        const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
-        if (selectedCheckboxes.length === 0) { alert("Pilih jemaat terlebih dahulu!"); return; }
-
-        const doc = new jsPDF('l', 'mm', [85.6, 54]); 
-        const canvas = document.getElementById('barcodeCanvas');
-        const usersSnapshot = await db.collection("users").get();
-        const usersData = {};
-        usersSnapshot.forEach(u => { usersData[u.id] = u.data(); });
-
-        for (let i = 0; i < selectedCheckboxes.length; i++) {
-            const row = selectedCheckboxes[i].closest('tr');
-            const nijTabel = row.cells[1].innerText;
-            const uid = selectedCheckboxes[i].value;
-            const realData = usersData[uid];
-            if (!realData) continue;
-            if (i > 0) doc.addPage();
-
-            doc.setFillColor(255, 255, 255);
-            doc.rect(0, 0, 85.6, 54, 'F');
-            const blueGBI = [0, 51, 102], goldAccent = [212, 175, 55];
-            doc.setFillColor(blueGBI[0], blueGBI[1], blueGBI[2]);
-            doc.rect(0, 0, 85.6, 15, 'F');
-            doc.setFillColor(goldAccent[0], goldAccent[1], goldAccent[2]);
-            doc.rect(0, 15, 85.6, 1, 'F');
-
-            const urlLogoPondok = "https://raw.githubusercontent.com/boby-apps-project/pendaftaran-jemaat/main/logo_pondok.png";
-            const urlLogoGBI = "https://raw.githubusercontent.com/boby-apps-project/pendaftaran-jemaat/main/gbi.png";
-            try { doc.addImage(urlLogoPondok, 'PNG', 5, 2.5, 10, 10); } catch(e){}
-            try { doc.addImage(urlLogoGBI, 'PNG', 70.6, 2.5, 10, 10); } catch(e){}
-
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(10);
-            doc.text("PONDOK PEMULIHAN PAPUA", 42.8, 7, { align: "center" });
-            doc.setFontSize(8);
-            doc.text("KARTU JEMAAT", 42.8, 11, { align: "center" });
-
-            const dTTL = realData.tempat_tanggal_lahir || "-";
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(33, 33, 33);
-            doc.setFontSize(7.5);
-            const rF = (lab, val, y) => {
-                doc.setFont("helvetica", "bold"); doc.text(lab, 26, y);
-                doc.setFont("helvetica", "normal"); doc.text(`: ${val}`, 40, y);
-            };
-            rF("NIJ", nijTabel, 21.5);
-            rF("Nama", (realData.nama_lengkap || "-").substring(0, 25), 26);
-            rF("TTL", dTTL, 30.5);
-            rF("Jabatan", (realData.jabatan || "-").substring(0, 25), 35);
-
-            JsBarcode(canvas, nijTabel, { format: "CODE128", displayValue: false, margin: 0, lineColor: "#003366", width: 1, height: 40 });
-            doc.addImage(canvas.toDataURL("image/png"), 'PNG', 5, 43, 25, 8);
-        }
-
-        currentPreviewPDF = doc;
-        showPreview(doc);
-    }
-
+    // --- FUNGSI TOOLS & MODAL ---
     function showPreview(doc) {
         const previewArea = document.getElementById('previewArea');
         previewArea.innerHTML = "";
