@@ -20,6 +20,9 @@
         .btn-back { display: inline-block; margin-bottom: 20px; color: var(--primary); text-decoration: none; font-weight: bold; }
         .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .section-title { color: var(--primary); border-bottom: 2px solid var(--gold); padding-bottom: 10px; margin-bottom: 20px; }
+        /* Style Tambahan untuk Info File */
+        .file-info { font-size: 12px; color: #666; margin-top: 5px; display: block; }
+        .file-info a { color: var(--accent); text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -171,12 +174,25 @@
             </select>
         </div>
 
+        <div class="form-group">
+            <label>Upload Foto KTP (JPG/PNG)</label>
+            <input type="file" id="upload_ktp" accept="image/jpeg, image/png">
+            <span id="info_ktp" class="file-info"></span>
+        </div>
+
+        <div class="form-group">
+            <label>Upload Berkas Pendukung (PDF/JPG)</label>
+            <input type="file" id="upload_berkas" accept="application/pdf, image/jpeg">
+            <span id="info_berkas" class="file-info"></span>
+        </div>
+
         <button type="submit" class="btn-save"><i class="fas fa-save"></i> Simpan Perubahan</button>
     </form>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
 <script>
     const firebaseConfig = {
@@ -190,6 +206,7 @@
 
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
+    const storage = firebase.storage();
 
     const urlParams = new URLSearchParams(window.location.search);
     const userId = urlParams.get('edit'); 
@@ -199,10 +216,8 @@
         window.location.href = 'admin.html';
     }
 
-    // VARIABEL PENAMPUNG TEKS WILAYAH
     let txtProv = "", txtKota = "", txtKec = "", txtDesa = "";
 
-    // FUNGSI API WILAYAH OTOMATIS
     async function loadProvinsi(selectedName = "") {
         const res = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
         const data = await res.json();
@@ -251,7 +266,6 @@
         if(selectedName) txtDesa = selectedName;
     }
 
-    // EVENT LISTENER WILAYAH
     document.getElementById('provinsi').onchange = function() {
         txtProv = this.options[this.selectedIndex].getAttribute('data-nama');
         loadKota(this.value);
@@ -268,7 +282,6 @@
         txtDesa = this.options[this.selectedIndex].getAttribute('data-nama');
     };
 
-    // FUNGSI LIHAT PASSWORD
     document.getElementById('eyeIcon').addEventListener('click', function() {
         const passInput = document.getElementById('password_user');
         if (passInput.type === "password") {
@@ -328,7 +341,6 @@
         }
     }
 
-    // LOAD DATA UTAMA
     window.onload = async function() {
         try {
             const doc = await db.collection("users").doc(userId).get();
@@ -350,9 +362,14 @@
                 document.getElementById('sub_bidang').value = data.sub_bidang || 'Anggota Jemaat Ordinari';
                 updateFungsiPelayanan(data.fungsi_spesifik);
 
-                // Load Wilayah API (Auto Select)
+                if (data.url_ktp) {
+                    document.getElementById('info_ktp').innerHTML = `File ada: <a href="${data.url_ktp}" target="_blank">Lihat KTP</a>`;
+                }
+                if (data.url_berkas) {
+                    document.getElementById('info_berkas').innerHTML = `File ada: <a href="${data.url_berkas}" target="_blank">Lihat Berkas</a>`;
+                }
+
                 await loadProvinsi(data.provinsi);
-                // Jika data ada, load level di bawahnya
                 if(data.provinsi) {
                     const provEl = Array.from(document.getElementById('provinsi').options).find(o => o.text === data.provinsi);
                     if(provEl) {
@@ -377,7 +394,6 @@
         }
     };
 
-    // SIMPAN DATA
     document.getElementById('editForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = e.target.querySelector('button');
@@ -385,20 +401,21 @@
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
 
         try {
-            await db.collection("users").doc(userId).update({
+            const fileKtp = document.getElementById('upload_ktp').files[0];
+            const fileBerkas = document.getElementById('upload_berkas').files[0];
+            const storageRef = firebase.storage().ref();
+
+            const updateData = {
                 nama_lengkap: document.getElementById('nama_lengkap').value,
                 tanggal_lahir_murni: document.getElementById('tanggal_lahir_murni').value,
                 darah: document.getElementById('gol_darah').value,
                 whatsapp: document.getElementById('whatsapp').value,
                 email: document.getElementById('email').value,
                 password: document.getElementById('password_user').value,
-                
-                // Simpan Kolom Baru Wilayah
                 provinsi: txtProv,
                 kota: txtKota,
                 kecamatan: txtKec,
                 desa: txtDesa,
-
                 alamat: document.getElementById('alamat').value,
                 wilayah: document.getElementById('wilayah').value,
                 komsel: document.getElementById('komsel').value,
@@ -407,7 +424,21 @@
                 fungsi_spesifik: document.getElementById('fungsi_spesifik').value,
                 status_akun: document.getElementById('status_akun').value,
                 last_update: new Date().toISOString()
-            });
+            };
+
+            if (fileKtp) {
+                const ktpRef = storageRef.child(`ktp/${userId}_${fileKtp.name}`);
+                await ktpRef.put(fileKtp);
+                updateData.url_ktp = await ktpRef.getDownloadURL();
+            }
+
+            if (fileBerkas) {
+                const berkasRef = storageRef.child(`berkas/${userId}_${fileBerkas.name}`);
+                await berkasRef.put(fileBerkas);
+                updateData.url_berkas = await berkasRef.getDownloadURL();
+            }
+
+            await db.collection("users").doc(userId).update(updateData);
             alert("Data User Berhasil Diperbarui!");
             window.location.href = 'admin.html';
         } catch (error) {
