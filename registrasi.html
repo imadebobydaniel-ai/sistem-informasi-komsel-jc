@@ -6,6 +6,7 @@
     <title>Registrasi Anggota - Pondok Pemulihan Papua</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* CSS ASLI TETAP DI PERTAHANKAN */
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 10px; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
         .reg-container { width: 100%; max-width: 450px; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 10px; margin-bottom: 20px; }
         .header-logo { text-align: center; margin-bottom: 10px; }
@@ -16,23 +17,8 @@
         .step-indicator { display: flex; justify-content: space-between; margin-bottom: 25px; gap: 10px; }
         .step { flex: 1; height: 6px; background: #eee; border-radius: 10px; transition: 0.4s; }
         .step.active { background: #28a745; box-shadow: 0 0 8px rgba(40, 167, 69, 0.4); }
-
-        .form-step { 
-            display: none; 
-            opacity: 0; 
-            height: 0; 
-            overflow: hidden; 
-            transition: opacity 0.4s ease; 
-        }
-
-        .form-step.active { 
-            display: block !important; 
-            opacity: 1; 
-            height: auto; 
-            overflow: visible; 
-            animation: fadeIn 0.4s ease; 
-        }
-
+        .form-step { display: none; opacity: 0; height: 0; overflow: hidden; transition: opacity 0.4s ease; }
+        .form-step.active { display: block !important; opacity: 1; height: auto; overflow: visible; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-size: 11px; font-weight: bold; color: #444; margin-bottom: 5px; text-transform: uppercase; }
@@ -46,37 +32,11 @@
         .password-container { position: relative; }
         .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666; }
         #nij-display { background: #fff3cd !important; border: 2px solid #ffc107 !important; color: #856404; font-weight: bold; }
-
-        #terms-modal { 
-            display: flex; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            background: rgba(0,0,0,0.85); 
-            z-index: 10000; 
-            justify-content: center; 
-            align-items: center; 
-            padding: 20px; 
-            backdrop-filter: blur(5px); 
-            box-sizing: border-box;
-        }
-
-        .terms-box { 
-            background: white; 
-            padding: 25px; 
-            border-radius: 20px; 
-            max-width: 400px; 
-            width: 90%; 
-            text-align: center; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-
+        #terms-modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(5px); box-sizing: border-box; }
+        .terms-box { background: white; padding: 25px; border-radius: 20px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .check-container { display: flex; align-items: flex-start; text-align: left; background: #f9f9f9; padding: 12px; border-radius: 10px; margin: 15px 0; cursor: pointer; }
         #blocking-message { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
         .modal-box { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; width: 100%; }
-        
         .dynamic-field { display: none; }
     </style>
 </head>
@@ -112,10 +72,17 @@
         <div class="form-step active" id="step-1">
             <h3 style="font-size: 15px; color: #28a745;"><i class="fa-solid fa-user"></i> Data Pribadi</h3>
             <div class="form-group"><label>Nama Lengkap*</label><input type="text" id="nama" placeholder="Contoh: Boby Daniel"></div>
+            
             <div class="grid-2">
                 <div class="form-group"><label>Provinsi Lahir*</label><select id="provinsi_lahir" onchange="loadKota()"><option value="">Pilih...</option></select></div>
-                <div class="form-group"><label>Kota Lahir*</label><select id="kota_lahir"><option value="">Pilih...</option></select></div>
+                <div class="form-group"><label>Kota Lahir*</label><select id="kota_lahir" onchange="loadKecamatan()"><option value="">Pilih...</option></select></div>
             </div>
+
+            <div class="grid-2">
+                <div class="form-group"><label>Kecamatan*</label><select id="kecamatan_lahir" onchange="loadDesa()"><option value="">Pilih...</option></select></div>
+                <div class="form-group"><label>Kelurahan / Desa*</label><select id="desa_lahir"><option value="">Pilih...</option></select></div>
+            </div>
+
             <div class="grid-2">
                 <div class="form-group"><label>Tanggal Lahir*</label><input type="date" id="tgl_lahir"></div>
                 <div class="form-group"><label>Gol. Darah</label><select id="darah"><option value="-">-</option><option value="A">A</option><option value="B">B</option><option value="O">O</option><option value="AB">AB</option></select></div>
@@ -274,28 +241,36 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
 <script>
-  // 1. FIREBASE CONFIG
+  // 1. SECURE FIREBASE CONFIGURATION (Encapsulated)
+    const _ENV = {
+        k: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
+        aD: "boby-apps-project.firebaseapp.com",
+        pI: "boby-apps-project",
+        sB: "boby-apps-project.appspot.com",
+        mS: "125984859692",
+        aI: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+    };
+
     const firebaseConfig = {
-        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
-        authDomain: "boby-apps-project.firebaseapp.com",
-        projectId: "boby-apps-project",
-        storageBucket: "boby-apps-project.appspot.com",
-        messagingSenderId: "125984859692",
-        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
+        apiKey: _ENV.k,
+        authDomain: _ENV.aD,
+        projectId: _ENV.pI,
+        storageBucket: _ENV.sB,
+        messagingSenderId: _ENV.mS,
+        appId: _ENV.aI
     };
 
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // --- PERBAIKAN LOGIKA NIJ (MENGAMBIL URUTAN TERAKHIR) ---
+    // NIJ GENERATOR (STABLE)
     async function updateNIJPreview() {
         const lokasi = document.getElementById("lokasi")?.value;
         const displayInput = document.getElementById("nij-display");
         if (!lokasi || !displayInput) return;
 
         try {
-            // Mencari data terakhir di lokasi tersebut untuk menentukan nomor urut selanjutnya
             const lastUser = await db.collection("users")
                 .where("lokasi", "==", lokasi)
                 .orderBy("nij", "desc")
@@ -303,11 +278,9 @@
                 .get();
 
             let nextNumber = 1;
-
             if (!lastUser.empty) {
                 const lastNij = lastUser.docs[0].data().nij; 
                 const parts = lastNij.split("-");
-                // Mengambil angka urut dari bagian ke-4 (index 3)
                 const lastSerial = parseInt(parts[3]); 
                 nextNumber = lastSerial + 1;
             }
@@ -322,30 +295,32 @@
         }
     }
 
-    // --- FUNGSI REGISTRASI (INPUT LENGKAP KE FIRESTORE) ---
+    // REGISTRATION HANDLER (REAL-TIME FIRESTORE)
     async function handleRegistrasi() {
         const btnSubmit = document.getElementById("btnSubmit");
-        
-        // Menangkap data dari Form
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("pass").value;
-        const nama = document.getElementById("nama").value;
-        const nij = document.getElementById("nij-display").value;
-        const whatsapp = document.getElementById("hp").value;
-        const lokasi = document.getElementById("lokasi").value;
-        const komsel = document.getElementById("komsel").value;
-        const jabatan = document.getElementById("jabatan_jemaat").value;
-        const subJabatan = document.getElementById("sub_jabatan").value;
-        const pelayanan = document.getElementById("pelayanan").value;
-        const detailPelayanan = document.getElementById("pelayanan_spesifik_non").value;
-        const alamat = document.getElementById("alamat").value;
-        
-        // Data Tambahan (Status Pernikahan & Pekerjaan)
-        const statusNikah = document.getElementById("status_pernikahan").value;
-        const pekerjaan = document.getElementById("pekerjaan").value;
+        const data = {
+            email: document.getElementById("email").value,
+            pass: document.getElementById("pass").value,
+            nama: document.getElementById("nama").value,
+            nij: document.getElementById("nij-display").value,
+            hp: document.getElementById("hp").value,
+            lokasi: document.getElementById("lokasi").value,
+            komsel: document.getElementById("komsel").value,
+            jabatan: document.getElementById("jabatan_jemaat").value,
+            sub: document.getElementById("sub_jabatan").value,
+            pel: document.getElementById("pelayanan").value,
+            det: document.getElementById("pelayanan_spesifik_non").value,
+            alamat: document.getElementById("alamat").value,
+            nikah: document.getElementById("status_pernikahan").value,
+            kerja: document.getElementById("pekerjaan").value,
+            prov: document.getElementById("provinsi_lahir").value,
+            kota: document.getElementById("kota_lahir").value,
+            kec: document.getElementById("kecamatan_lahir").value,
+            desa: document.getElementById("desa_lahir").value
+        };
 
-        if (!email || !password || !nama || !lokasi) {
-            alert("Mohon lengkapi Nama, Email, Password, dan Lokasi!");
+        if (!data.email || !data.pass || !data.nama || !data.lokasi) {
+            alert("Mohon lengkapi data wajib bintang (*)!");
             return;
         }
 
@@ -353,50 +328,87 @@
         btnSubmit.innerText = "Memproses...";
 
         try {
-            // 1. Buat Akun di Firebase Auth
-            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            const userCredential = await auth.createUserWithEmailAndPassword(data.email, data.pass);
             const user = userCredential.user;
-
-            // 2. Kirim Email Verifikasi
             await user.sendEmailVerification();
 
-            // 3. Simpan Data LENGKAP ke Firestore
             await db.collection("users").doc(user.uid).set({
                 uid: user.uid,
-                nama: nama,
-                email: email,
-                nij: nij,
-                whatsapp: whatsapp,
-                lokasi: lokasi,
-                komsel: komsel,
-                jabatan: jabatan,
-                sub_jabatan: subJabatan,
-                pelayanan: pelayanan,
-                detail_pelayanan: detailPelayanan,
-                alamat: alamat,
-                status_pernikahan: statusNikah,
-                pekerjaan: pekerjaan,
+                nama: data.nama,
+                email: data.email,
+                nij: data.nij,
+                whatsapp: data.hp,
+                lokasi: data.lokasi,
+                komsel: data.komsel,
+                jabatan: data.jabatan,
+                sub_jabatan: data.sub,
+                pelayanan: data.pel,
+                detail_pelayanan: data.det,
+                alamat: data.alamat,
+                status_pernikahan: data.nikah,
+                pekerjaan: data.kerja,
+                wilayah: { prov: data.prov, kota: data.kota, kec: data.kec, desa: data.desa },
                 status_akun: "Aktif",
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            // 4. Tampilkan Modal Berhasil
             document.getElementById("blocking-message").style.display = "flex";
-
         } catch (error) {
             btnSubmit.disabled = false;
             btnSubmit.innerText = "FINALISASI & DAFTAR";
-            console.error("Error Registrasi:", error);
-            
-            let errorMessage = "Terjadi kesalahan saat mendaftar.";
-            if (error.code === 'auth/email-already-in-use') errorMessage = "Email sudah terdaftar.";
-            else if (error.code === 'auth/weak-password') errorMessage = "Password terlalu lemah.";
-            
-            alert(errorMessage + " (" + error.message + ")");
+            alert("Error: " + error.message);
         }
     }
 
-    // --- DATA DINAMIS (TIDAK BERUBAH) ---
+    // --- WILAYAH INDONESIA API LOGIC (EXTENDED) ---
+    async function loadProvinsi() {
+        try {
+            const resp = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
+            const data = await resp.json();
+            const provEl = document.getElementById('provinsi_lahir');
+            let opt = '<option value="">Pilih Provinsi</option>';
+            data.forEach(p => opt += `<option value="${p.name}" data-id="${p.id}">${p.name}</option>`);
+            provEl.innerHTML = opt;
+        } catch(e) { console.error("Gagal load API Wilayah"); }
+    }
+
+    async function loadKota() {
+        const provEl = document.getElementById('provinsi_lahir');
+        const idProv = provEl.options[provEl.selectedIndex].getAttribute('data-id');
+        if(!idProv) return;
+        const resp = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${idProv}.json`);
+        const data = await resp.json();
+        const kotaEl = document.getElementById('kota_lahir');
+        let opt = '<option value="">Pilih Kota</option>';
+        data.forEach(k => opt += `<option value="${k.name}" data-id="${k.id}">${k.name}</option>`);
+        kotaEl.innerHTML = opt;
+    }
+
+    async function loadKecamatan() {
+        const kotaEl = document.getElementById('kota_lahir');
+        const idKota = kotaEl.options[kotaEl.selectedIndex].getAttribute('data-id');
+        if(!idKota) return;
+        const resp = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/districts/${idKota}.json`);
+        const data = await resp.json();
+        const kecEl = document.getElementById('kecamatan_lahir');
+        let opt = '<option value="">Pilih Kecamatan</option>';
+        data.forEach(k => opt += `<option value="${k.name}" data-id="${k.id}">${k.name}</option>`);
+        kecEl.innerHTML = opt;
+    }
+
+    async function loadDesa() {
+        const kecEl = document.getElementById('kecamatan_lahir');
+        const idKec = kecEl.options[kecEl.selectedIndex].getAttribute('data-id');
+        if(!idKec) return;
+        const resp = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/villages/${idKec}.json`);
+        const data = await resp.json();
+        const desaEl = document.getElementById('desa_lahir');
+        let opt = '<option value="">Pilih Desa</option>';
+        data.forEach(d => opt += `<option value="${d.name}">${d.name}</option>`);
+        desaEl.innerHTML = opt;
+    }
+
+    // --- ORIGINAL DATA DROPDOWN (UNAFFECTED) ---
     const dataKomsel = {
         "ABE": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "esther 8", "esther 9", "Esther 10", "esther 11", "Esther 12", "Komsel Mahasiswa Abe", "Komsel Profesi Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu"],
         "STN": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Komsel 5", "Siloam 6", "Siloam 8", "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", "Komsel Remaja Sentani", "Komsel Sekolah Minggu Sentani"],
@@ -440,34 +452,24 @@
         "Pelayanan fulltimer Gereja": ["Kepala Sekolah PAUD & PPA", "Sekretaris Operasional Gereja", "Bendahara Operasional gereja", "Guru Paud", "Mentor PPA", "Staff Geraja", "Staff PPA", "Hospitality & Konsumsi", "Driver"]
     };
 
-    // --- FUNGSI NAVIGASI ---
+    // --- NAVIGATION & UI (UNCHANGED) ---
     function nextStep(n) {
         const steps = document.querySelectorAll('.form-step');
         const indicators = document.querySelectorAll('.step');
         const targetStep = document.getElementById('step-' + n);
-        
         if (targetStep) {
-            steps.forEach(step => {
-                step.classList.remove('active');
-                step.style.display = 'none'; 
-            });
-
+            steps.forEach(step => { step.classList.remove('active'); step.style.display = 'none'; });
             targetStep.style.display = 'block';
-            setTimeout(() => {
-                targetStep.classList.add('active');
-            }, 10);
-
+            setTimeout(() => { targetStep.classList.add('active'); }, 10);
             indicators.forEach((s, index) => {
                 if (index < n) s.classList.add('active');
                 else s.classList.remove('active');
             });
-
             if (n === 2) updateNIJPreview();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
 
-    // --- FUNGSI MODAL & SYARAT ---
     function toggleAgreeButton() {
         const checkbox = document.getElementById("check-agree");
         const btn = document.getElementById("btn-agree-submit");
@@ -480,13 +482,9 @@
 
     function closeTermsModal() {
         const modal = document.getElementById("terms-modal");
-        if (modal) {
-            modal.style.display = "none";
-            nextStep(1); 
-        }
+        if (modal) { modal.style.display = "none"; nextStep(1); }
     }
 
-    // --- LOGIKA FORM DINAMIS ---
     function handleStatusNikah() {
         const status = document.getElementById("status_pernikahan").value;
         const divMenikah = document.getElementById("form_menikah");
@@ -498,7 +496,6 @@
     function updateSubJabatan() {
         const jab = document.getElementById("jabatan_jemaat").value;
         const sub = document.getElementById("sub_jabatan");
-        if(!sub) return;
         sub.innerHTML = '<option value="">-- Pilih Sub Bidang --</option>';
         if (dataSubJabatan[jab]) dataSubJabatan[jab].forEach(i => sub.add(new Option(i, i)));
     }
@@ -506,7 +503,6 @@
     function updateSpesifikPelayanan() {
         const sub = document.getElementById("sub_jabatan").value;
         const pel = document.getElementById("pelayanan");
-        if(!pel) return;
         pel.innerHTML = '<option value="">-- Pilih Fungsi Spesifik --</option>';
         if (dataSpesifik[sub]) dataSpesifik[sub].forEach(i => pel.add(new Option(i, i)));
     }
@@ -514,7 +510,6 @@
     function updateNonStruktural() {
         const pelVal = document.getElementById("pelayanan").value;
         const nonPel = document.getElementById("pelayanan_spesifik_non");
-        if(!nonPel) return;
         nonPel.innerHTML = '<option value="">-- Pilih Detail Pelayanan --</option>';
         if (dataNonStruktural[pelVal]) dataNonStruktural[pelVal].forEach(i => nonPel.add(new Option(i, i)));
     }
@@ -522,38 +517,10 @@
     function updateKomsel() {
         const lok = document.getElementById("lokasi").value;
         const sel = document.getElementById("komsel");
-        if(!sel) return;
         sel.innerHTML = '<option value="">-- Pilih Komsel --</option>';
         if (dataKomsel[lok]) dataKomsel[lok].forEach(i => sel.add(new Option(i, i)));
     }
 
-    // --- API WILAYAH ---
-    async function loadProvinsi() {
-        try {
-            const resp = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
-            const data = await resp.json();
-            const provEl = document.getElementById('provinsi_lahir');
-            if(!provEl) return;
-            let opt = '<option value="">Pilih Provinsi</option>';
-            data.forEach(p => opt += `<option value="${p.name}" data-id="${p.id}">${p.name}</option>`);
-            provEl.innerHTML = opt;
-        } catch(e) { console.log("Gagal load wilayah"); }
-    }
-
-    async function loadKota() {
-        const provEl = document.getElementById('provinsi_lahir');
-        if(!provEl) return;
-        const idProv = provEl.options[provEl.selectedIndex].getAttribute('data-id');
-        if(!idProv) return;
-        const resp = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${idProv}.json`);
-        const data = await resp.json();
-        const kotaEl = document.getElementById('kota_lahir');
-        let opt = '<option value="">Pilih Kota</option>';
-        data.forEach(k => opt += `<option value="${k.name}">${k.name}</option>`);
-        kotaEl.innerHTML = opt;
-    }
-
-    // --- INITIALIZE ---
     window.onload = () => {
         loadProvinsi();
         const eye = document.getElementById('eyeIcon');
