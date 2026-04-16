@@ -196,7 +196,7 @@
         window.location.href = 'admin.html';
     }
 
-    // --- PENGATURAN CLOUDINARY (SUDAH DIUPDATE) ---
+    // --- PENGATURAN CLOUDINARY ---
     const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dxzllsbgj/image/upload';
     const CLOUDINARY_UPLOAD_PRESET = 'boby_preset';
 
@@ -206,18 +206,24 @@
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
 
-        const res = await fetch(CLOUDINARY_URL, {
-            method: 'POST',
-            body: formData
-        });
-        
-        if (!res.ok) {
-            const errorData = await res.json();
-            throw new Error(errorData.error.message || "Gagal upload ke Cloudinary");
+        try {
+            const res = await fetch(CLOUDINARY_URL, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await res.json();
+            
+            if (!res.ok) {
+                console.error("Cloudinary Error Detail:", data);
+                throw new Error(data.error.message || "Gagal upload ke Cloudinary");
+            }
+            
+            return data.secure_url; 
+        } catch (err) {
+            console.error("Fetch Error:", err);
+            throw err;
         }
-        
-        const data = await res.json();
-        return data.secure_url; 
     }
 
     let txtProv = "", txtKota = "", txtKec = "", txtDesa = "";
@@ -398,14 +404,17 @@
                 last_update: new Date().toISOString()
             };
 
+            // PROSES UPLOAD KTP
             if (fileKtp) {
                 updateData.url_ktp = await uploadToCloudinary(fileKtp);
             }
 
+            // PROSES UPLOAD BERKAS
             if (fileBerkas) {
                 updateData.url_berkas = await uploadToCloudinary(fileBerkas);
             }
 
+            // UPDATE FIRESTORE
             await db.collection("users").doc(userId).update(updateData);
             alert("Data User Berhasil Diperbarui!");
             window.location.href = 'admin.html';
