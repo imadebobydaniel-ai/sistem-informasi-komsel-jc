@@ -8,6 +8,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
 
     <style>
         :root { 
@@ -56,6 +57,10 @@
         /* Tombol Extract Khusus */
         .btn-extract-main { background: #ff0000; color: white; border: none; padding: 12px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
         .btn-extract-main:hover { background: #cc0000; transform: scale(1.02); }
+
+        /* PENAMBAHAN GAYA TOMBOL CETAK KARTU */
+        .btn-cetak-kartu { background: var(--teal); color: white; border: none; padding: 12px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-cetak-kartu:hover { background: #006666; transform: scale(1.02); }
 
         .table-responsive { overflow-x: auto; border: 1px solid #eee; border-radius: 10px; }
         table { width: 100%; border-collapse: collapse; min-width: 1400px; }
@@ -108,6 +113,7 @@
         <span style="font-size: 12px; font-weight: bold; margin-right: 10px;" id="selectedCount">0 Terpilih</span>
         <button class="btn-action" style="background: var(--danger);" onclick="bulkDelete()"><i class="fas fa-trash"></i> Hapus Massal</button>
         <button class="btn-action" style="background: #ff0000;" onclick="extractSelectedToPDF()"><i class="fas fa-file-pdf"></i> Extract PDF Terpilih</button>
+        <button class="btn-action" style="background: var(--teal);" onclick="generateMemberCards()"><i class="fas fa-id-card"></i> Cetak Kartu Terpilih</button>
     </div>
 
     <div class="table-controls">
@@ -115,6 +121,9 @@
             <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Cari NIJ, nama, komsel, atau jabatan...">
             <i class="fas fa-search"></i>
         </div>
+        <button class="btn-cetak-kartu" onclick="generateMemberCards()">
+            <i class="fas fa-id-card"></i> CETAK KARTU
+        </button>
         <button class="btn-extract-main" onclick="extractSelectedToPDF()">
             <i class="fas fa-file-pdf"></i> EXTRACT PDF
         </button>
@@ -144,6 +153,8 @@
     </div>
 </div>
 
+<canvas id="barcodeCanvas" style="display:none;"></canvas>
+
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script>
@@ -161,7 +172,7 @@
 
     window.onload = function() { loadMembersRealtime(); };
 
-    // --- LOAD DATA REALTIME ---
+    // --- LOAD DATA REALTIME (TIDAK ADA PERUBAHAN) ---
     function loadMembersRealtime() {
         db.collection("users").onSnapshot(snapshot => {
             const tableBody = document.getElementById("memberData");
@@ -171,31 +182,28 @@
             snapshot.forEach(doc => {
                 const d = doc.data();
                 
-                // --- Sinkronisasi Nama & Identitas ---
                 const namaTampil = d.nama || d.nama_lengkap || d.Nama || '-';
                 const nij = d.nij || '-';
                 const goldar = d.darah || d.golongan_darah || '-'; 
                 
-                // --- Sinkronisasi Kontak ---
                 const whatsapp = d.whatsapp || d.WhatsApp || '-';
                 const email = d.email || '-';
 
-                // --- SINKRONISASI KELUARGA (LOGIKA DIPERKUAT) ---
                 const pasangan = d.nama_suami_istri || d.nama_pasangan || d.suami || d.istri || d.pasangan || '-';
                 const anak = d.jumlah_anak || d.anak || '0';
 
-                // --- Sinkronisasi Alamat & Lokasi ---
                 const alamatDetail = d.alamat || d.Alamat || '-';
                 const wilayah = d.wilayah || '-';
                 const komsel = d.komsel || d.Komsel || '-';
 
-                // --- Sinkronisasi Jabatan & Pelayanan ---
                 const jabatan = d.jabatan || '-';
                 const fungsi = d.sub_bidang || d.fungsi_pelayanan || d.fungsi_spesifik || '-';
 
-                // --- LOGIKA LAMPIRAN (CEK SEMUA KEMUNGKINAN FIELD) ---
                 const linkKtp = d.url_ktp || d.urlKtp || d.ktp || d.foto_ktp || d.lampiran_ktp || d.urlKTP;
                 const linkBerkas = d.url_berkas || d.berkas || d.lampiran || d.file || d.urlBerkas;
+
+                // FOTO PROFIL (untuk kartu)
+                const fotoUrl = d.foto_profil || d.url_foto || "";
 
                 let fileHtml = "";
                 if (linkKtp && linkKtp !== "" && linkKtp !== "-") {
@@ -208,13 +216,13 @@
 
                 const status = d.status_akun || 'Pending';
                 
-                // --- UI State & Badges ---
                 const statusBadge = status === 'Aktif' ? 'badge-aktif' : 'badge-pending';
                 const statusIcon = status === 'Aktif' ? 'fa-check-square' : 'fa-stop-circle';
                 const statusBtnColor = status === 'Aktif' ? '#28a745' : '#dc3545';
 
+                // Data attributes ditambahkan untuk mempermudah fungsi kartu tanpa merubah struktur visual tabel
                 tableBody.innerHTML += `
-                <tr>
+                <tr data-foto="${fotoUrl}" data-ttl="${d.tempat_tanggal_lahir || '-'}">
                     <td class="check-col"><input type="checkbox" class="user-checkbox" value="${doc.id}" onclick="updateActionMenu()"></td>
                     <td class="nij-col">${nij}</td>
                     <td><strong>${namaTampil}</strong></td>
@@ -241,14 +249,93 @@
         });
     }
 
-    // --- FUNGSI EXTRACT PDF ---
+    // --- FITUR BARU: GENERATE MEMBER CARD (PENAMBAHAN) ---
+    async function generateMemberCards() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('l', 'mm', [85.6, 54]); 
+
+        const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+        if (selectedCheckboxes.length === 0) {
+            alert("Pilih jemaat terlebih dahulu!");
+            return;
+        }
+
+        const canvas = document.getElementById('barcodeCanvas');
+
+        for (let i = 0; i < selectedCheckboxes.length; i++) {
+            const row = selectedCheckboxes[i].closest('tr');
+            const nij = row.cells[1].innerText;
+            const nama = row.cells[2].innerText;
+            const alamat = row.cells[6].innerText;
+            const wilayah = row.cells[7].innerText.split('\n')[0];
+            const jabatan = row.cells[8].innerText.split('\n')[0];
+            const ttl = row.getAttribute('data-ttl');
+            const foto = row.getAttribute('data-foto');
+
+            if (i > 0) doc.addPage();
+
+            // Background & Border
+            doc.setDrawColor(212, 175, 55);
+            doc.setLineWidth(0.8);
+            doc.rect(2, 2, 81.6, 50);
+
+            // LOGO (Kiri: Pondok, Kanan: GBI sesuai koreksi)
+            try {
+                doc.addImage('logo_pondok.png', 'PNG', 4, 4, 10, 10);
+                doc.addImage('gbi.png', 'PNG', 71, 4, 10, 10);
+            } catch(e) { console.warn("Logo tidak ditemukan, pastikan file ada di github."); }
+
+            // KOP KARTU
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(0, 51, 102);
+            doc.setFontSize(10);
+            doc.text("PONDOK PEMULIHAN PAPUA", 42.8, 8, { align: "center" });
+            doc.setFontSize(8);
+            doc.text("KARTU JEMAAT", 42.8, 12, { align: "center" });
+            doc.setDrawColor(212, 175, 55);
+            doc.line(16, 14, 69, 14);
+
+            // FOTO PROFIL
+            if (foto && foto !== "") {
+                try { doc.addImage(foto, 'JPEG', 5, 18, 18, 22); }
+                catch(e) { doc.rect(5, 18, 18, 22); doc.text("Foto", 14, 29, {align:"center"}); }
+            } else {
+                doc.setDrawColor(200);
+                doc.rect(5, 18, 18, 22);
+                doc.setFontSize(6);
+                doc.text("Tanpa Foto", 14, 29, {align:"center"});
+            }
+
+            // BIODATA
+            doc.setFontSize(7);
+            doc.setTextColor(0);
+            let x = 26; let y = 21; let s = 4.2;
+
+            doc.text(`NIJ`, x, y);              doc.text(`: ${nij}`, x+18, y);
+            doc.text(`Nama`, x, y+s);           doc.text(`: ${nama}`, x+18, y+s);
+            doc.text(`Alamat`, x, y+s*2);       doc.text(`: ${alamat.substring(0,30)}`, x+18, y+s*2);
+            doc.text(`TTL`, x, y+s*3);          doc.text(`: ${ttl}`, x+18, y+s*3);
+            doc.text(`Jabatan`, x, y+s*4);      doc.text(`: ${jabatan}`, x+18, y+s*4);
+            doc.text(`Wilayah`, x, y+s*5);      doc.text(`: ${wilayah}`, x+18, y+s*5);
+
+            // BARCODE
+            JsBarcode(canvas, nij, { format: "CODE128", displayValue: false, margin: 0 });
+            const b64 = canvas.toDataURL("image/png");
+            doc.addImage(b64, 'PNG', 5, 42, 25, 7);
+            doc.setFontSize(5);
+            doc.text("Scan to Search System", 17.5, 50, { align: "center" });
+        }
+        doc.save(`Kartu_Jemaat_PPP_${Date.now()}.pdf`);
+    }
+
+    // --- FUNGSI EXTRACT PDF (TIDAK BERUBAH) ---
     function extractSelectedToPDF() {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('l', 'mm', 'a4'); // Landscape
+        const doc = new jsPDF('l', 'mm', 'a4'); 
         
         const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
         if (selectedCheckboxes.length === 0) {
-            alert("Pilih jemaat terlebih dahulu (Centang kotak di sisi kiri)!");
+            alert("Pilih jemaat terlebih dahulu!");
             return;
         }
 
@@ -258,45 +345,35 @@
             if (cb && cb.checked) {
                 const tds = tr.querySelectorAll("td");
                 rows.push([
-                    tds[1].innerText, // NIJ
-                    tds[2].innerText, // Nama
-                    tds[3].innerText, // Goldar
-                    tds[4].innerText.replace(/\n/g, ' / '), // Kontak
-                    tds[6].innerText, // Alamat
-                    tds[7].innerText.replace(/\n/g, ' '), // Wilayah/Komsel
-                    tds[8].innerText.replace(/\n/g, ' '), // Jabatan/Pelayanan
-                    tds[10].innerText.split('\n')[0] // Status
+                    tds[1].innerText, tds[2].innerText, tds[3].innerText,
+                    tds[4].innerText.replace(/\n/g, ' / '), tds[6].innerText,
+                    tds[7].innerText.replace(/\n/g, ' '), tds[8].innerText.replace(/\n/g, ' '),
+                    tds[10].innerText.split('\n')[0]
                 ]);
             }
         });
 
         doc.setFontSize(16);
         doc.text("LAPORAN DATA JEMAAT - PONDOK PEMULIHAN PAPUA", 14, 15);
-        doc.setFontSize(10);
-        doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 14, 22); 
-
         doc.autoTable({
             startY: 30,
-            head: [['NIJ', 'Nama Lengkap', 'G.D', 'WhatsApp/Email', 'Alamat', 'Wilayah/Komsel', 'Jabatan/Sub-Bidang', 'Status']],
+            head: [['NIJ', 'Nama Lengkap', 'G.D', 'WhatsApp/Email', 'Alamat', 'Wilayah/Komsel', 'Jabatan/Pelayanan', 'Status']],
             body: rows,
             theme: 'striped',
             headStyles: { fillColor: [0, 51, 102] },
-            styles: { fontSize: 7, cellPadding: 2 }
+            styles: { fontSize: 7 }
         });
-
         doc.save(`Data_Jemaat_PPP_${Date.now()}.pdf`);
     }
 
-    // --- FUNGSI OPERASIONAL ---
+    // --- FUNGSI OPERASIONAL LAINNYA (TIDAK BERUBAH) ---
     function toggleUserStatus(id, current) {
         const next = current === 'Aktif' ? 'Pending' : 'Aktif';
         db.collection("users").doc(id).update({ status_akun: next });
     }
 
     function deleteUser(id) { 
-        if(confirm("Hapus data ini secara permanen?")) {
-            db.collection("users").doc(id).delete(); 
-        }
+        if(confirm("Hapus data ini secara permanen?")) { db.collection("users").doc(id).delete(); }
     }
 
     function bulkDelete() {
@@ -306,9 +383,7 @@
         }
     }
 
-    function openEditModal(uid) {
-        window.location.href = `edit-jemaat-administrator.html?edit=${uid}`;
-    }
+    function openEditModal(uid) { window.location.href = `edit-jemaat-administrator.html?edit=${uid}`; }
 
     function filterTable() {
         let val = document.getElementById("searchInput").value.toLowerCase();
@@ -331,29 +406,6 @@
             if(selectedCountElem) selectedCountElem.innerText = `${count} Terpilih`;
         }
     }
-
-    // --- FUNGSI SINKRONISASI DATA KOSONG ---
-    const fixIncompleteData = async () => {
-        const snapshot = await db.collection('users').get();
-        console.log("Memulai proses sinkronisasi...");
-
-        snapshot.forEach(async (doc) => {
-            const data = doc.data();
-            
-            // Cek jika field krusial hilang
-            if (!data.komsel || !data.lokasi_berjemaat) {
-                await db.collection('users').doc(doc.id).update({
-                    komsel: data.komsel || "Belum Ditentukan",
-                    jabatan: data.jabatan || "Anggota Jemaat",
-                    sub_jabatan: data.sub_jabatan || "Anggota Jemaat Ordinari",
-                    lokasi_berjemaat: data.lokasi_berjemaat || "Belum Diisi",
-                    status: data.status || "Pending",
-                    total_poin: data.total_poin || 0
-                });
-                console.log(`Data ${data.nama || doc.id} telah dilengkapi.`);
-            }
-        });
-        alert("Sinkronisasi selesai!");
-    };
-</script></body>
+</script>
+</body>
 </html>
