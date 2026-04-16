@@ -8,56 +8,54 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
     <style>
-        body { background: #333; display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; padding: 20px; font-family: 'Segoe UI', Arial, sans-serif; }
+        body { background: #333; display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; padding: 20px; font-family: 'Arial', sans-serif; }
         
         .card { 
-            width: 450px; height: 280px; background: white; border-radius: 12px; 
-            position: relative; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            width: 480px; height: 300px; background: white; border-radius: 12px; 
+            position: relative; overflow: hidden; border: 1px solid #999;
             background-image: linear-gradient(to bottom right, #ffffff, #f0f7ff);
-            border: 1px solid #999;
         }
 
-        /* Header dengan Outline Emas di Atas */
+        /* Header dengan Garis Emas Tebal di Bawah */
         .card-header { 
-            background: #003366; color: white; padding: 12px 15px; 
+            background: #003366; color: white; padding: 10px 15px; 
             display: flex; align-items: center; justify-content: space-between;
-            border-top: 5px solid #D4AF37; /* Garis Outline Emas Atas */
-            border-bottom: 2px solid #D4AF37;
+            border-top: 4px solid #D4AF37; 
+            border-bottom: 6px solid #D4AF37; /* PADDING GARIS EMAS DIPERTEBAL */
         }
         
-        .header-logo { width: 50px; height: 50px; object-fit: contain; }
+        .header-logo { width: 55px; height: 55px; object-fit: contain; }
         
         .header-text { text-align: center; flex: 1; }
-        .header-text h2 { margin: 0; font-size: 15px; letter-spacing: 1px; font-weight: 800; }
-        .header-text p { margin: 2px 0 0 0; font-size: 11px; color: #D4AF37; font-weight: bold; text-transform: uppercase; }
+        .header-text h2 { margin: 0; font-size: 16px; letter-spacing: 1px; font-weight: 800; }
+        .header-text p { margin: 2px 0 0 0; font-size: 11px; color: #D4AF37; font-weight: bold; }
 
-        .card-body { padding: 15px; display: flex; gap: 20px; align-items: flex-start; }
+        .card-body { padding: 15px; display: flex; gap: 15px; align-items: flex-start; }
 
-        /* Sisi Kiri: Foto & Barcode */
-        .left-side { display: flex; flex-direction: column; align-items: center; width: 115px; }
+        /* Sisi Kiri: Foto & Barcode dibawahnya */
+        .left-side { display: flex; flex-direction: column; align-items: center; width: 120px; }
         .photo-frame { 
-            width: 105px; height: 130px; border: 2px solid #003366; 
-            object-fit: cover; border-radius: 5px; background: #fff; margin-bottom: 10px;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+            width: 110px; height: 135px; border: 2px solid #003366; 
+            object-fit: cover; border-radius: 5px; background: #fff; margin-bottom: 8px;
         }
-        .barcode-svg { width: 115px; height: 45px; background: white; padding: 2px; border: 1px solid #ddd; }
+        .barcode-container { width: 110px; height: 50px; background: white; padding: 2px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; }
+        .barcode-svg { width: 100%; height: 100%; }
 
         /* Sisi Kanan: Detail Data */
-        .right-side { flex: 1; display: flex; flex-direction: column; gap: 5px; }
-        .info-row { display: flex; font-size: 10.5px; border-bottom: 1px solid #eee; padding-bottom: 3px; align-items: flex-start; }
-        .label { width: 85px; font-weight: bold; color: #003366; flex-shrink: 0; }
-        .value { flex: 1; color: #333; text-transform: uppercase; font-weight: 600; line-height: 1.2; }
+        .right-side { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .info-row { display: flex; font-size: 11.5px; border-bottom: 1px solid #eee; padding-bottom: 2px; }
+        .label { width: 80px; font-weight: bold; color: #003366; }
+        .value { flex: 1; color: #333; text-transform: uppercase; font-weight: 600; }
 
         .card-footer { 
             position: absolute; bottom: 0; width: 100%; background: #003366; 
-            color: white; font-size: 9px; text-align: center; padding: 5px 0;
-            letter-spacing: 1px;
+            color: white; font-size: 10px; text-align: center; padding: 6px 0;
         }
 
         .no-print { position: fixed; bottom: 20px; right: 20px; z-index: 99; }
-        .btn-print { background: #28a745; color: white; border: none; padding: 15px 35px; border-radius: 50px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .btn-print { background: #28a745; color: white; border: none; padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
 
-        @media print { .no-print { display: none; } body { background: white; padding: 0; } .card { box-shadow: none; border: 1px solid #000; margin: 10px; page-break-inside: avoid; } }
+        @media print { .no-print { display: none; } body { background: white; padding: 0; } .card { box-shadow: none; border: 1px solid #000; margin: 10px; } }
     </style>
 </head>
 <body>
@@ -66,10 +64,9 @@
     <button class="btn-print" onclick="window.print()">CETAK SEKARANG</button>
 </div>
 
-<div id="cardContainer" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;"></div>
+<div id="cardContainer"></div>
 
 <script>
-    // Konfigurasi Firebase (Tetap)
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -85,9 +82,13 @@
         const urlParams = new URLSearchParams(window.location.search);
         const ids = urlParams.get('ids') ? urlParams.get('ids').split(',') : [];
         const container = document.getElementById('cardContainer');
+        container.style.display = 'flex';
+        container.style.flexWrap = 'wrap';
+        container.style.gap = '20px';
+        container.style.justifyContent = 'center';
 
         if (ids.length === 0) {
-            container.innerHTML = "<h2 style='color:white'>Data tidak ditemukan. Silakan pilih dari Dashboard.</h2>";
+            container.innerHTML = "<h2 style='color:white'>Pilih data jemaat di Dashboard Admin.</h2>";
             return;
         }
 
@@ -96,6 +97,10 @@
             if (doc.exists) {
                 const d = doc.data();
                 const nijValue = d.nij || "NO-NIJ";
+                
+                // Perbaikan Tanggal Lahir: Cek berbagai kemungkinan key di database kamu
+                const tglLahir = d.tanggal_lahir || d.tgl_lahir || d.lahir || "-";
+                const tempatLahir = d.kota || d.tempat_lahir || "-";
                 
                 const cardHtml = `
                     <div class="card">
@@ -110,16 +115,18 @@
                         
                         <div class="card-body">
                             <div class="left-side">
-                                <img src="${d.url_foto || 'https://via.placeholder.com/105x130?text=FOTO'}" class="photo-frame">
-                                <svg class="barcode-svg" id="barcode-${id}"></svg>
+                                <img src="${d.url_foto || d.foto || 'https://via.placeholder.com/110x135?text=FOTO'}" class="photo-frame">
+                                <div class="barcode-container">
+                                    <svg class="barcode-svg" id="barcode-${id}"></svg>
+                                </div>
                             </div>
                             
                             <div class="right-side">
                                 <div class="info-row"><span class="label">NIJ</span><span class="value">: ${nijValue}</span></div>
                                 <div class="info-row"><span class="label">NAMA</span><span class="value">: ${d.nama_lengkap || d.nama || '-'}</span></div>
-                                <div class="info-row"><span class="label">TTL</span><span class="value">: ${d.kota || '-'}, ${d.tanggal_lahir || '-'}</span></div>
+                                <div class="info-row"><span class="label">TTL</span><span class="value">: ${tempatLahir}, ${tglLahir}</span></div>
                                 <div class="info-row"><span class="label">ALAMAT</span><span class="value">: ${d.alamat || '-'}</span></div>
-                                <div class="info-row"><span class="label">JABATAN</span><span class="value">: ${d.jabatan || 'ANGGOTA'}</span></div>
+                                <div class="info-row"><span class="label">JABATAN</span><span class="value">: ${d.jabatan || 'ANGGOTA JEMAAT'}</span></div>
                                 <div class="info-row"><span class="label">JEMAAT</span><span class="value">: ${d.lokasi_berjemaat || '-'}</span></div>
                                 <div class="info-row"><span class="label">KOMSEL</span><span class="value">: ${d.komsel || '-'}</span></div>
                             </div>
@@ -132,7 +139,7 @@
                 `;
                 container.innerHTML += cardHtml;
 
-                // Render Barcode
+                // Render Barcode Berdasarkan NIJ
                 setTimeout(() => {
                     JsBarcode(`#barcode-${id}`, nijValue, {
                         format: "CODE128",
@@ -141,7 +148,7 @@
                         displayValue: false,
                         margin: 0
                     });
-                }, 150);
+                }, 200);
             }
         }
     }
