@@ -177,6 +177,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script>
+    // 1. CONFIGURATION & INITIALIZATION
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -197,7 +198,7 @@
         window.location.href = 'admin.html';
     }
 
-    // --- CLOUDINARY UPLOAD ---
+    // 2. CLOUDINARY UPLOAD FUNCTION
     async function uploadToCloudinary(file) {
         const formData = new FormData();
         formData.append('file', file);
@@ -216,7 +217,7 @@
         }
     }
 
-    // --- DATA KOMSEL & FUNGSI ---
+    // 3. DATA KOMSEL & FUNGSI MAPPING
     const dataKomsel = { 
         "Abepura": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "Esther 8", "Esther 9", "Esther 10", "Esther 11", "Esther 12", "Komsel Mahasiswa Abe", "Komsel Profesi Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu"],
         "Sentani": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Komsel 5", "Siloam 6", "Siloam 8", "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", "Komsel Remaja Sentani", "Komsel Sekolah Minggu Sentani"],
@@ -265,7 +266,7 @@
         }
     }
 
-    // --- LOGIKA WILAYAH INDONESIA API ---
+    // 4. INDONESIA GEOLOCATION API LOGIC
     async function loadProvinsi(selectedName = "") {
         const res = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
         const data = await res.json();
@@ -319,17 +320,31 @@
         document.getElementById('desa').innerHTML = options;
     }
 
-    // --- WINDOW LOAD ---
+    // 5. WINDOW ONLOAD (WITH REINFORCED DATE LOGIC)
     window.onload = async function() {
         try {
             const doc = await db.collection("users").doc(userId).get();
             if (doc.exists) {
                 const data = doc.data();
-                
-                // Isi field dasar
+                console.log("Data Firebase:", data);
+
+                // Field Dasar
                 document.getElementById('nama_lengkap').value = data.nama_lengkap || '';
                 document.getElementById('nij').value = data.nij || '';
-                document.getElementById('tanggal_lahir_murni').value = data.tanggal_lahir_murni || '';
+
+                // Logika Deteksi Tanggal Lahir
+                let tglValue = data.tanggal_lahir_murni || data.tanggal_lahir || data.tgl_lahir || "";
+                
+                // Konversi jika formatnya adalah Timestamp Firebase
+                if (tglValue && typeof tglValue === 'object' && tglValue.seconds) {
+                    tglValue = new Date(tglValue.seconds * 1000).toISOString().split('T')[0];
+                } 
+                
+                // Pastikan format YYYY-MM-DD untuk input type="date"
+                if (tglValue) {
+                    document.getElementById('tanggal_lahir_murni').value = tglValue;
+                }
+
                 document.getElementById('gol_darah').value = data.darah || '-';
                 document.getElementById('whatsapp').value = data.whatsapp || '';
                 document.getElementById('email').value = data.email || '';
@@ -338,13 +353,15 @@
                 document.getElementById('status_akun').value = data.status_akun || 'Pending';
                 document.getElementById('wilayah').value = data.wilayah || '';
                 
+                // Update Dropdown Relasional
                 updateKomsel(data.komsel);
                 document.getElementById('jabatan').value = data.jabatan || 'Anggota Jemaat';
                 document.getElementById('sub_bidang').value = data.sub_bidang || 'Anggota Jemaat Ordinari';
                 updateFungsiPelayanan(data.fungsi_spesifik);
 
-                if (data.url_ktp) document.getElementById('info_ktp').innerHTML = `File ada: <a href="${data.url_ktp}" target="_blank">Lihat KTP</a>`;
-                if (data.url_berkas) document.getElementById('info_berkas').innerHTML = `File ada: <a href="${data.url_berkas}" target="_blank">Lihat Berkas</a>`;
+                // Info Berkas
+                if (data.url_ktp) document.getElementById('info_ktp').innerHTML = `File: <a href="${data.url_ktp}" target="_blank">Lihat KTP</a>`;
+                if (data.url_berkas) document.getElementById('info_berkas').innerHTML = `File: <a href="${data.url_berkas}" target="_blank">Lihat Berkas</a>`;
 
                 // Load Wilayah Cascading
                 const provId = await loadProvinsi(data.provinsi);
@@ -359,11 +376,15 @@
                 }
 
                 document.getElementById('loading').style.display = 'none';
+            } else {
+                alert("Dokumen tidak ditemukan!");
             }
-        } catch (error) { console.error(error); }
+        } catch (error) { 
+            console.error("Load Error:", error); 
+        }
     };
 
-    // --- SAVE DATA ---
+    // 6. SAVE DATA SUBMISSION
     document.getElementById('editForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = e.target.querySelector('button');
@@ -374,7 +395,6 @@
             const fileKtp = document.getElementById('upload_ktp').files[0];
             const fileBerkas = document.getElementById('upload_berkas').files[0];
 
-            // Ambil nama (text) dari dropdown wilayah
             const p = document.getElementById('provinsi');
             const k = document.getElementById('kota');
             const kec = document.getElementById('kecamatan');
@@ -387,10 +407,10 @@
                 whatsapp: document.getElementById('whatsapp').value,
                 email: document.getElementById('email').value,
                 password: document.getElementById('password_user').value,
-                provinsi: p.options[p.selectedIndex].text,
-                kota: k.options[k.selectedIndex].text,
-                kecamatan: kec.options[kec.selectedIndex].text,
-                desa: d.options[d.selectedIndex].text,
+                provinsi: p.selectedIndex > 0 ? p.options[p.selectedIndex].text : (p.getAttribute('data-old') || ""),
+                kota: k.selectedIndex > 0 ? k.options[k.selectedIndex].text : (k.getAttribute('data-old') || ""),
+                kecamatan: kec.selectedIndex > 0 ? kec.options[kec.selectedIndex].text : (kec.getAttribute('data-old') || ""),
+                desa: d.selectedIndex > 0 ? d.options[d.selectedIndex].text : (d.getAttribute('data-old') || ""),
                 alamat: document.getElementById('alamat').value,
                 wilayah: document.getElementById('wilayah').value,
                 komsel: document.getElementById('komsel').value,
@@ -405,16 +425,16 @@
             if (fileBerkas) updateData.url_berkas = await uploadToCloudinary(fileBerkas);
 
             await db.collection("users").doc(userId).update(updateData);
-            alert("Data User Berhasil Diperbarui!");
+            alert("Data Berhasil Diperbarui!");
             window.location.href = 'admin.html';
         } catch (error) {
-            alert("Gagal: " + error.message);
+            alert("Gagal menyimpan: " + error.message);
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-save"></i> Simpan Perubahan';
+            btn.innerHTML = 'Simpan Perubahan';
         }
     };
 
-    // Toggle Password
+    // 7. TOGGLE PASSWORD VISIBILITY
     document.getElementById('eyeIcon').onclick = function() {
         const passInput = document.getElementById('password_user');
         if (passInput.type === "password") {
@@ -425,6 +445,5 @@
             this.classList.replace('fa-eye-slash', 'fa-eye');
         }
     };
-</script>
-</body>
+</script></body>
 </html>
