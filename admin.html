@@ -185,9 +185,9 @@
                 const namaTampil = d.nama_lengkap || d.nama || d.Nama || '-';
                 const nij = d.nij || '-';
                 
-                // --- LOGIKA TEMPAT TANGGAL LAHIR (KOLOM TERPISAH) ---
-                // Hanya mengambil field spesifik kelahiran
-                const kotaLahir = d.tempat_lahir || d.kota_lahir || "";
+                // --- 1. LOGIKA TEMPAT TANGGAL LAHIR (KOLOM TERPISAH) ---
+                // Mengambil data KHUSUS kelahiran agar tidak tercampur domisili
+                const kotaLahir = d.tempat_lahir || d.kota_lahir || ""; 
                 const tglLahir = d.tanggal_lahir || d.tanggal_lahir_murni || "";
                 let ttl = "-";
 
@@ -196,19 +196,27 @@
                 } else if (kotaLahir || tglLahir) {
                     ttl = kotaLahir || tglLahir;
                 }
-                // Override jika ada field gabungan manual
+                
+                // Mendukung field gabungan jika sudah ada di database
                 if(d.tempat_tanggal_lahir && d.tempat_tanggal_lahir !== "-") {
                     ttl = d.tempat_tanggal_lahir;
                 }
 
-                // --- LOGIKA ALAMAT DOMISILI (HANYA LOKASI TINGGAL) ---
-                // Data kelahiran (kotaLahir) tidak dimasukkan ke sini agar tidak rancu
+                // --- 2. LOGIKA ALAMAT DOMISILI (BERSIH DARI DATA LAHIR) ---
+                // Menampilkan hanya lokasi tinggal/perantauan saat ini
+                const alamatDomisili = d.alamat || '-';
+                const kelurahanDom = d.desa || d.kelurahan || '-';
+                const kecamatanDom = d.kecamatan || '-';
+                const kotaDom = d.kota_domisili || d.kabupaten || '-'; 
+                const provinsiDom = d.provinsi_domisili || d.provinsi || '-';
+
                 const alamatHtml = `
-                    ${d.alamat || '-'}<br>
-                    <small>Kel. ${d.desa || '-'}, Kec. ${d.kecamatan || '-'}</small><br>
-                    <small>${d.kota || '-'}, ${d.provinsi || '-'}</small>
+                    ${alamatDomisili}<br>
+                    <small>Kel. ${kelurahanDom}, Kec. ${kecamatanDom}</small><br>
+                    <small>${kotaDom}, ${provinsiDom}</small>
                 `;
 
+                // --- DATA LAINNYA ---
                 const goldar = d.darah || d.golongan_darah || '-'; 
                 const whatsapp = d.whatsapp || d.WhatsApp || '-';
                 const email = d.email || '-';
@@ -280,24 +288,31 @@
     function closePreview() { document.getElementById('previewModal').style.display = 'none'; }
     function printDirect() { if (typeof currentPreviewPDF !== 'undefined' && currentPreviewPDF) { currentPreviewPDF.autoPrint(); window.open(currentPreviewPDF.output('bloburl'), '_blank'); } }
     function downloadJPG() { if (typeof currentPreviewPDF !== 'undefined' && currentPreviewPDF) { currentPreviewPDF.save(`Kartu_Jemaat_${Date.now()}.pdf`); } }
+    
     function toggleUserStatus(id, current) {
         const next = current === 'Aktif' ? 'Pending' : 'Aktif';
         db.collection("users").doc(id).update({ status_akun: next });
     }
+    
     function deleteUser(id) { if(confirm("Hapus data secara permanen?")) { db.collection("users").doc(id).delete(); } }
+    
     function bulkDelete() {
         const selected = document.querySelectorAll('.user-checkbox:checked');
         if(confirm(`Hapus ${selected.length} data?`)) { selected.forEach(cb => db.collection("users").doc(cb.value).delete()); }
     }
+    
     function openEditModal(uid) { window.location.href = `edit-jemaat-administrator.html?edit=${uid}`; }
+    
     function filterTable() {
         let val = document.getElementById("searchInput").value.toLowerCase();
         document.querySelectorAll("#memberData tr").forEach(row => { row.style.display = row.innerText.toLowerCase().includes(val) ? "" : "none"; });
     }
+    
     function toggleAll(source) {
         document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = source.checked);
         updateActionMenu();
     }
+    
     function updateActionMenu() {
         const count = document.querySelectorAll('.user-checkbox:checked').length;
         const menu = document.getElementById('actionMenu');
