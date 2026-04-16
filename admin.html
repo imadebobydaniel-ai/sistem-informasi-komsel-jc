@@ -185,8 +185,11 @@
                 const namaTampil = d.nama_lengkap || d.nama || d.Nama || '-';
                 const nij = d.nij || '-';
                 
-                // Menampilkan Tempat Tanggal Lahir
-                let ttl = (d.tempat_lahir || "-") + ", " + (d.tanggal_lahir_murni || d.tanggal_lahir || "-");
+                // --- INTEGRASI TEMPAT TANGGAL LAHIR DENGAN KOTA ---
+                const kotaLahir = d.kota || d.tempat_lahir || "-";
+                const tglLahir = d.tanggal_lahir_murni || d.tanggal_lahir || "-";
+                let ttl = kotaLahir + ", " + tglLahir;
+                
                 if(d.tempat_tanggal_lahir) ttl = d.tempat_tanggal_lahir;
 
                 const goldar = d.darah || d.golongan_darah || '-'; 
@@ -195,7 +198,6 @@
                 const pasangan = d.nama_suami_istri || d.nama_pasangan || d.suami || d.istri || d.pasangan || '-';
                 const anak = d.jumlah_anak || d.anak || '0';
                 
-                // --- INTEGRASI ALAMAT LENGKAP ---
                 const alamatHtml = `
                     ${d.alamat || '-'}<br>
                     <small>Kel. ${d.desa || '-'}, Kec. ${d.kecamatan || '-'}</small><br>
@@ -252,7 +254,6 @@
         });
     }
 
-    // --- FUNGSI TOOLS & MODAL ---
     function showPreview(doc) {
         const previewArea = document.getElementById('previewArea');
         previewArea.innerHTML = "";
@@ -265,8 +266,8 @@
     }
 
     function closePreview() { document.getElementById('previewModal').style.display = 'none'; }
-    function printDirect() { if (currentPreviewPDF) { currentPreviewPDF.autoPrint(); window.open(currentPreviewPDF.output('bloburl'), '_blank'); } }
-    function downloadJPG() { currentPreviewPDF.save(`Kartu_Jemaat_${Date.now()}.pdf`); }
+    function printDirect() { if (typeof currentPreviewPDF !== 'undefined' && currentPreviewPDF) { currentPreviewPDF.autoPrint(); window.open(currentPreviewPDF.output('bloburl'), '_blank'); } }
+    function downloadJPG() { if (typeof currentPreviewPDF !== 'undefined' && currentPreviewPDF) { currentPreviewPDF.save(`Kartu_Jemaat_${Date.now()}.pdf`); } }
     function toggleUserStatus(id, current) {
         const next = current === 'Aktif' ? 'Pending' : 'Aktif';
         db.collection("users").doc(id).update({ status_akun: next });
