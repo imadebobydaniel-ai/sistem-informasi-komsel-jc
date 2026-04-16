@@ -11,17 +11,17 @@
         body { background: #333; display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; padding: 20px; font-family: 'Arial', sans-serif; }
         
         .card { 
-            width: 480px; height: 300px; background: white; border-radius: 12px; 
+            width: 480px; height: 305px; background: white; border-radius: 12px; 
             position: relative; overflow: hidden; border: 1px solid #999;
             background-image: linear-gradient(to bottom right, #ffffff, #f0f7ff);
         }
 
-        /* Header dengan Garis Emas Tebal di Bawah */
+        /* Header dengan Garis Emas Tebal di Bawah sesuai instruksi */
         .card-header { 
             background: #003366; color: white; padding: 10px 15px; 
             display: flex; align-items: center; justify-content: space-between;
             border-top: 4px solid #D4AF37; 
-            border-bottom: 6px solid #D4AF37; /* PADDING GARIS EMAS DIPERTEBAL */
+            border-bottom: 8px solid #D4AF37; /* DIPERTEBAL */
         }
         
         .header-logo { width: 55px; height: 55px; object-fit: contain; }
@@ -32,20 +32,22 @@
 
         .card-body { padding: 15px; display: flex; gap: 15px; align-items: flex-start; }
 
-        /* Sisi Kiri: Foto & Barcode dibawahnya */
-        .left-side { display: flex; flex-direction: column; align-items: center; width: 120px; }
+        /* Sisi Kiri: Foto & Barcode */
+        .left-side { display: flex; flex-direction: column; align-items: center; width: 125px; }
         .photo-frame { 
-            width: 110px; height: 135px; border: 2px solid #003366; 
+            width: 115px; height: 140px; border: 2px solid #003366; 
             object-fit: cover; border-radius: 5px; background: #fff; margin-bottom: 8px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
         }
-        .barcode-container { width: 110px; height: 50px; background: white; padding: 2px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; }
+        /* Kontainer Barcode tepat di bawah foto */
+        .barcode-container { width: 115px; height: 45px; background: white; padding: 2px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; }
         .barcode-svg { width: 100%; height: 100%; }
 
         /* Sisi Kanan: Detail Data */
-        .right-side { flex: 1; display: flex; flex-direction: column; gap: 4px; }
-        .info-row { display: flex; font-size: 11.5px; border-bottom: 1px solid #eee; padding-bottom: 2px; }
-        .label { width: 80px; font-weight: bold; color: #003366; }
-        .value { flex: 1; color: #333; text-transform: uppercase; font-weight: 600; }
+        .right-side { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+        .info-row { display: flex; font-size: 11px; border-bottom: 1px solid #eee; padding-bottom: 2px; }
+        .label { width: 85px; font-weight: bold; color: #003366; }
+        .value { flex: 1; color: #333; text-transform: uppercase; font-weight: 600; line-height: 1.2; }
 
         .card-footer { 
             position: absolute; bottom: 0; width: 100%; background: #003366; 
@@ -53,15 +55,15 @@
         }
 
         .no-print { position: fixed; bottom: 20px; right: 20px; z-index: 99; }
-        .btn-print { background: #28a745; color: white; border: none; padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+        .btn-print { background: #28a745; color: white; border: none; padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
 
-        @media print { .no-print { display: none; } body { background: white; padding: 0; } .card { box-shadow: none; border: 1px solid #000; margin: 10px; } }
+        @media print { .no-print { display: none; } body { background: white; padding: 0; } .card { box-shadow: none; border: 1px solid #000; margin: 10px; page-break-inside: avoid; } }
     </style>
 </head>
 <body>
 
 <div class="no-print">
-    <button class="btn-print" onclick="window.print()">CETAK SEKARANG</button>
+    <button class="btn-print" onclick="window.print()">PRINT KARTU</button>
 </div>
 
 <div id="cardContainer"></div>
@@ -88,7 +90,7 @@
         container.style.justifyContent = 'center';
 
         if (ids.length === 0) {
-            container.innerHTML = "<h2 style='color:white'>Pilih data jemaat di Dashboard Admin.</h2>";
+            container.innerHTML = "<h2 style='color:white'>Silakan pilih jemaat di Admin Dashboard.</h2>";
             return;
         }
 
@@ -98,24 +100,28 @@
                 const d = doc.data();
                 const nijValue = d.nij || "NO-NIJ";
                 
-                // Perbaikan Tanggal Lahir: Cek berbagai kemungkinan key di database kamu
-                const tglLahir = d.tanggal_lahir || d.tgl_lahir || d.lahir || "-";
+                // 1. Sinkronisasi Foto (Realtime dari Firestore)
+                // Mengambil field 'foto_profil' yang berisi Base64 seperti di file profil kamu
+                const fotoFinal = d.foto_profil || d.url_foto || d.url_berkas || 'https://via.placeholder.com/115x140?text=FOTO';
+
+                // 2. Sinkronisasi TTL & Data
+                const tglLahir = d.tanggal_lahir || d.tgl_lahir || "-";
                 const tempatLahir = d.kota || d.tempat_lahir || "-";
                 
                 const cardHtml = `
                     <div class="card">
                         <div class="card-header">
-                            <img src="logo_pondok.png" class="header-logo">
+                            <img src="logo_pondok.png" class="header-logo" onerror="this.src='https://via.placeholder.com/50?text=LOGO'">
                             <div class="header-text">
                                 <h2>PONDOK PEMULIHAN PAPUA</h2>
                                 <p>KARTU ANGGOTA JEMAAT</p>
                             </div>
-                            <img src="gbi.png" class="header-logo">
+                            <img src="gbi.png" class="header-logo" onerror="this.src='https://via.placeholder.com/50?text=GBI'">
                         </div>
                         
                         <div class="card-body">
                             <div class="left-side">
-                                <img src="${d.url_foto || d.foto || 'https://via.placeholder.com/110x135?text=FOTO'}" class="photo-frame">
+                                <img src="${fotoFinal}" class="photo-frame">
                                 <div class="barcode-container">
                                     <svg class="barcode-svg" id="barcode-${id}"></svg>
                                 </div>
@@ -139,7 +145,7 @@
                 `;
                 container.innerHTML += cardHtml;
 
-                // Render Barcode Berdasarkan NIJ
+                // 3. Render Barcode (Muncul di bawah foto)
                 setTimeout(() => {
                     JsBarcode(`#barcode-${id}`, nijValue, {
                         format: "CODE128",
@@ -148,7 +154,7 @@
                         displayValue: false,
                         margin: 0
                     });
-                }, 200);
+                }, 300);
             }
         }
     }
