@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Menu Utama - Pondok Pemulihan Papua</title>
 </head>
-    
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <script>
@@ -51,10 +51,8 @@
         .modal-detail { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 5000; justify-content: center; align-items: center; padding: 20px; }
         .btn-logout { background: var(--biru-tua); color: #fff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block; margin-top: 30px; border: 2px solid var(--emas-lux); }
 
-        /* --- CSS KARTU DIGITAL VERTIKAL (PROPORSI ATM) --- */
         .modal-card-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; padding: 10px; }
         .digital-card-box { width: 280px; height: 460px; background: linear-gradient(135deg, #f1c40f 0%, #d4af37 50%, #b8860b 100%); border-radius: 15px; position: relative; padding: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); color: #fff; font-family: 'Arial', sans-serif; border: 1px solid rgba(255,255,255,0.4); display: flex; flex-direction: column; align-items: center; text-align: center; }
-        /* PERBAIKAN: LOGO DIPERBESAR */
         .card-logo-top { width: 110px; height: 110px; object-fit: contain; margin-bottom: 10px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
         .card-header-title { font-size: 12px; font-weight: 800; color: #003366; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
         .card-data-group { width: 100%; margin-bottom: 12px; }
@@ -64,7 +62,7 @@
         .card-nij-bottom { margin-top: auto; width: 100%; background: rgba(0,0,0,0.15); padding: 8px 0; border-radius: 5px; font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold; letter-spacing: 2px; }
         #media-display-area { width: 100%; height: 100%; }
     </style>
-</head>
+
 <body>
 
     <div id="modal-logout" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 4000; justify-content: center; align-items: center; padding: 20px;">
@@ -179,7 +177,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
 
-<script>
+    <script>
         const firebaseConfig = { 
             apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
             authDomain: "boby-apps-project.firebaseapp.com", 
@@ -201,51 +199,134 @@
         function onYouTubeIframeAPIReady() {
             console.log("DEBUG: YouTube API Ready terdeteksi.");
             
-            db.collection("settings").doc("video_promo").get().then(doc => {
-               let videoId = "M7lc1UVf-VE"; // Video testing resmi YouTube
-                if(doc.exists && doc.data().url) {
-                    const url = doc.data().url;
-                    console.log("DEBUG: URL Video ditemukan di Firebase:", url);
-                    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-                    const match = url.match(regExp);
-                    if (match && match[2].length == 11) videoId = match[2];
-                } else {
-                    console.log("DEBUG: Dokumen settings tidak ditemukan, menggunakan Video ID default.");
-                }
-                
-                console.log("DEBUG: Inisialisasi Player untuk Video ID:", videoId);
-                
-                player = new YT.Player('player', {
-                    height: '100%',
-                    width: '100%',
-                    videoId: videoId,
-                    host: 'https://www.youtube.com',
-                    playerVars: { 
-                        'autoplay': 1, 
-                        'mute': 1, 
-                        'loop': 1, 
-                        'playlist': videoId,
-                        'origin': window.location.origin 
-                    },
-                    events: { 
-                        'onReady': (event) => {
-                            console.log("DEBUG: Player Siap (onReady).");
-                            event.target.playVideo();
-                        },
-                        'onError': (error) => {
-                            console.error("DEBUG: Terjadi Error pada Player:", error.data);
-                        }
+            // Gunakan setTimeout agar inisialisasi tidak memblokir fungsi utama (mencegah freeze)
+            setTimeout(() => {
+                db.collection("settings").doc("video_promo").get().then(doc => {
+                    let videoId = "M7lc1UVf-VE"; // Default Video
+                    if(doc.exists && doc.data().url) {
+                        const url = doc.data().url;
+                        console.log("DEBUG: URL Video ditemukan di Firebase:", url);
+                        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+                        const match = url.match(regExp);
+                        if (match && match[2].length == 11) videoId = match[2];
                     }
+                    
+                    try {
+                        player = new YT.Player('player', {
+                            height: '100%',
+                            width: '100%',
+                            videoId: videoId,
+                            host: 'https://www.youtube.com',
+                            playerVars: { 
+                                'autoplay': 1, 
+                                'mute': 1, 
+                                'loop': 1, 
+                                'playlist': videoId,
+                                'origin': window.location.origin 
+                            },
+                            events: { 
+                                'onReady': (event) => {
+                                    console.log("DEBUG: Player Siap (onReady).");
+                                    event.target.playVideo();
+                                },
+                                'onError': (error) => {
+                                    console.error("DEBUG: Terjadi Error pada Player:", error.data);
+                                }
+                            }
+                        });
+                    } catch (e) {
+                        console.error("DEBUG: Gagal inisialisasi Player objek:", e);
+                    }
+                }).catch(err => {
+                    console.error("DEBUG: Gagal mengambil data dari Firebase:", err);
                 });
-            }).catch(err => {
-                console.error("DEBUG: Gagal mengambil data dari Firebase:", err);
-            });
+            }, 500);
         }
 
-        // Fungsi asli Anda lainnya tetap di bawah sini...
         function bukaKartuDigital() {
-            // ... (kode asli Anda)
+            try {
+                db.collection("users").where("email", "==", userEmail).get().then(s => {
+                    if(!s.empty) {
+                        const d = s.docs[0].data();
+                        document.getElementById('dnama').innerText = d.nama || "User";
+                        document.getElementById('djemaat').innerText = d.lokasi_berjemaat || "-";
+                        document.getElementById('dkomsel').innerText = d.komsel || "-";
+                        document.getElementById('dnij').innerText = d.nij || "0000 0000";
+                        
+                        const qrBox = document.getElementById("qrbox");
+                        qrBox.innerHTML = "";
+                        
+                        const loc = window.location.href;
+                        const profileLink = loc.substring(0, loc.lastIndexOf("/")) + "/profil.html";
+
+                        if (typeof QRCode !== 'undefined') {
+                            new QRCode(qrBox, { 
+                                text: profileLink, 
+                                width: 140, 
+                                height: 140,
+                                correctLevel : QRCode.CorrectLevel.H
+                            });
+                        }
+                        document.getElementById('modalKartuDigital').style.display = 'flex';
+                    }
+                }).catch(err => console.error("Firebase Error:", err));
+            } catch (e) { console.error("Critical Error:", e); }
         }
-        // ... dst
-    </script></body>
+
+        function tutupKartuDigital() { document.getElementById('modalKartuDigital').style.display = 'none'; }
+        function executeLogout() { auth.signOut().then(() => { localStorage.clear(); window.location.replace("index.html"); }); }
+        
+        function syncUser() {
+            if (userEmail) {
+                db.collection("users").where("email", "==", userEmail).onSnapshot(s => {
+                    if (!s.empty) {
+                        const d = s.docs[0].data();
+                        document.getElementById('disp_nama').innerText = d.nama || "User";
+                        document.getElementById('disp_email').innerText = userEmail;
+                        document.getElementById('disp_komsel').innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
+                        if (d.foto_profil) { 
+                            document.getElementById('user-photo').src = d.foto_profil; 
+                            document.getElementById('user-photo').style.display = "block";
+                            document.getElementById('default-icon').style.display = "none"; 
+                        }
+                        if(typeof isAdmin !== 'undefined' && isAdmin === "true") document.getElementById('admin-badge').style.display = "block";
+                    }
+                });
+            }
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const elTgl = document.getElementById('display-tanggal');
+            const elClock = document.getElementById('digital-clock');
+            if(elTgl) elTgl.innerText = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            if(elClock) elClock.innerText = now.toLocaleTimeString('id-ID') + " WIT";
+        }
+
+        window.onload = () => { 
+            updateTime(); 
+            setInterval(updateTime, 1000); 
+            syncUser(); 
+
+            const btnToggle = document.getElementById('toggleProfile');
+            const profileCard = document.getElementById('profileCard');
+            const toggleIcon = document.getElementById('toggleIcon');
+
+            if(btnToggle && profileCard) {
+                btnToggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    profileCard.classList.toggle('closed');
+                    if(toggleIcon) {
+                        toggleIcon.className = profileCard.classList.contains('closed') ? "fa-solid fa-chevron-right" : "fa-solid fa-chevron-left";
+                    }
+                });
+            }
+        };
+
+        function bukaInbox() { document.getElementById('popup-inbox').style.display = 'flex'; }
+        function tutupInbox() { document.getElementById('popup-inbox').style.display = 'none'; }
+        function confirmLogout() { document.getElementById('modal-logout').style.display = 'flex'; }
+        function closeLogoutModal() { document.getElementById('modal-logout').style.display = 'none'; }
+    </script>
+</body>
 </html>
