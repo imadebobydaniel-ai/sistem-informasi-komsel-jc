@@ -120,7 +120,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
@@ -201,6 +200,23 @@
         });
     }
 
+    // FUNGSI BARU UNTUK CETAK KARTU (DENGAN PERBAIKAN URL)
+    function generateMemberCards() {
+        const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+        if (checkboxes.length === 0) {
+            alert("Pilih jemaat terlebih dahulu!");
+            return;
+        }
+
+        const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+        
+        // Mengarah ke cetak-kartu.html sesuai file yang ada di repo Anda
+        const url = `cetak-kartu.html?ids=${selectedIds.join(',')}`;
+        
+        // Membuka di tab baru agar dashboard tetap terbuka
+        window.open(url, '_blank');
+    }
+
     async function extractToPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('l', 'mm', 'a4'); 
@@ -256,17 +272,6 @@
         });
 
         doc.save(`Data_Jemaat_Extract_${Date.now()}.pdf`);
-    }
-
-    function generateMemberCards() {
-        const checkboxes = document.querySelectorAll('.user-checkbox:checked');
-        const selectedIds = Array.from(checkboxes).map(cb => cb.value);
-        
-        if (selectedIds.length === 0) {
-            alert("Silakan pilih minimal satu jemaat untuk dicetak!");
-            return;
-        }
-        window.location.href = `cetak-kartu-multi.html?ids=${selectedIds.join(',')}`;
     }
 
     function updateActionMenu() {
