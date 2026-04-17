@@ -142,9 +142,9 @@
                 const alamatDomisili = d.alamat || d.alamat_domisili || "-";
                 const kotaTinggal = d.kota || d.kabupaten || "-";
 
-                // 3. Info Keluarga (Penanganan Field Ganda)
-                const namaPasangan = d.nama_pasangan || d.pasangan || "-";
-                const jumlahAnak = d.jumlah_anak || d.anak || "0";
+                // 3. PERBAIKAN LOGIKA INFO KELUARGA (Mendeteksi semua kemungkinan nama field)
+                const namaPasangan = d.nama_pasangan || d.pasangan || d.nama_suami || d.nama_istri || "-";
+                const jumlahAnak = d.jumlah_anak || d.anak || d.total_anak || "0";
 
                 // 4. Format Tanggal Lahir
                 let tglLahir = "-";
@@ -161,7 +161,7 @@
                 const status = d.status_akun || 'Pending';
                 const statusClass = status === 'Aktif' ? 'badge-aktif' : 'badge-pending';
 
-                // 6. Render Baris Tabel (Total 12 Kolom sesuai Header)
+                // 6. Render Baris Tabel
                 tableBody.innerHTML += `
                 <tr>
                     <td><input type="checkbox" class="user-checkbox" value="${doc.id}" onclick="updateActionMenu()"></td>
@@ -202,7 +202,7 @@
         });
     }
 
-    // Fungsi pendukung manajemen tabel
+    // Fungsi pendukung tetap sama
     function updateActionMenu() {
         const count = document.querySelectorAll('.user-checkbox:checked').length;
         const menu = document.getElementById('actionMenu');
