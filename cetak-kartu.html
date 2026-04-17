@@ -52,23 +52,21 @@
         .label { width: 85px; font-weight: bold; color: #003366; }
         .value { flex: 1; color: #333; text-transform: uppercase; font-weight: 600; line-height: 1.2; }
 
-        /* PERBAIKAN PRESISI BARCODE - POSISI DI KANAN DAN MEMBERI JARAK DARI TEKS */
+        /* PENYESUAIAN POSISI BARCODE AGAR LEBIH KE ATAS DAN PRESISI */
         .barcode-container { 
-            width: 160px; 
+            width: 200px; 
             height: 40px; 
             background: white; 
-            padding: 2px; 
-            border: 1px solid #eee; 
+            padding: 0; 
+            border: 1px solid #ccc; 
             display: flex; 
             align-items: center; 
             justify-content: center;
             overflow: hidden;
-            
-            /* Pengaturan Posisi */
-            margin-top: 15px;    /* Memberikan jarak agar tidak menyentuh teks Komsel */
-            margin-left: auto;   /* Menggeser ke sisi kanan */
-            margin-right: 5px;   /* Jarak dari tepi kanan kartu */
-            margin-bottom: 5px;  /* Jarak aman dari footer */
+            margin-top: 5px;     /* Memberikan jarak tipis di bawah tulisan Komsel */
+            margin-left: auto;   /* Tetap di sisi kanan */
+            margin-right: 5px; 
+            align-self: flex-end;
         }
         .barcode-svg { 
             display: block;
@@ -181,8 +179,8 @@
                 setTimeout(() => {
                     JsBarcode(`#barcode-${id}`, nijValue, {
                         format: "CODE128",
-                        width: 1.2,
-                        height: 25, 
+                        width: 1.5,
+                        height: 35, 
                         displayValue: false,
                         lineColor: "#000",
                         margin: 0
