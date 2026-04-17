@@ -196,8 +196,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
-
-  <script>
+<script>
     // --- 1. KONFIGURASI FIREBASE ---
     const firebaseConfig = { 
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
@@ -212,12 +211,11 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
     
-    // Perbaikan: Ambil data dari localStorage sekali saja
+    // VARIABEL GLOBAL (Diambil sekali saja)
     const userEmail = localStorage.getItem("userEmail");
-    // GANTI DENGAN INI
-const isAdminValue = localStorage.getItem("isAdmin"); // Nama variabel diubah agar tidak bentrok
+    const statusAdmin = localStorage.getItem("isAdmin"); // Nama variabel diganti agar tidak bentrok
 
-    // --- 2. LOGIKA RUNNING TEXT (REAL-TIME SYNC) ---
+    // --- 2. LOGIKA RUNNING TEXT (REAL-TIME) ---
     function listenRunningText() {
         console.log("📡 Memulai listener Running Text...");
         db.collection("config").doc("running_text").onSnapshot((doc) => {
@@ -225,7 +223,7 @@ const isAdminValue = localStorage.getItem("isAdmin"); // Nama variabel diubah ag
                 const data = doc.data();
                 console.log("✅ RT Baru Diterima:", data.pesan);
                 
-                // Pastikan ID 'rt_display' ada di marquee/div Anda
+                // Pastikan Anda memiliki ID 'rt_display' di HTML (biasanya di tag <marquee>)
                 const rtElement = document.getElementById('rt_display'); 
                 if (rtElement) {
                     rtElement.innerText = data.pesan;
@@ -258,17 +256,17 @@ const isAdminValue = localStorage.getItem("isAdmin"); // Nama variabel diubah ag
                     'mute': 1, 
                     'loop': 1, 
                     'playlist': videoId,
+                    'origin': window.location.origin, // Memperbaiki error postMessage di gambar
                     'enablejsapi': 1
                 },
                 events: { 'onReady': onPlayerReady }
             });
-        });
+        }).catch(e => console.error("Gagal muat video:", e));
     }
     function onPlayerReady(event) { event.target.playVideo(); }
 
     // --- 4. FUNGSI UI & MODAL ---
     function bukaKartuDigital() {
-        console.log("🪪 Membuka Kartu Digital...");
         if (!userEmail) return;
         db.collection("users").where("email", "==", userEmail).get().then(s => {
             if(!s.empty) {
@@ -280,14 +278,14 @@ const isAdminValue = localStorage.getItem("isAdmin"); // Nama variabel diubah ag
                 
                 const qrBox = document.getElementById("qrbox");
                 qrBox.innerHTML = "";
-                const profileLink = window.location.origin + window.location.pathname.replace("index.html", "") + "profil.html";
+                const profileLink = window.location.origin + window.location.pathname.replace("menu.html", "profil.html");
 
                 if (typeof QRCode !== 'undefined') {
                     new QRCode(qrBox, { text: profileLink, width: 110, height: 110 });
                 }
                 document.getElementById('modalKartuDigital').style.display = 'flex';
             }
-        }).catch(err => console.error("Firebase Error Kartu:", err));
+        });
     }
 
     function tutupKartuDigital() { document.getElementById('modalKartuDigital').style.display = 'none'; }
@@ -303,7 +301,7 @@ const isAdminValue = localStorage.getItem("isAdmin"); // Nama variabel diubah ag
         }); 
     }
 
-    // --- 5. SINKRONISASI USER ---
+    // --- 5. SINKRONISASI DATA USER ---
     function syncUser() {
         if (userEmail) {
             db.collection("users").where("email", "==", userEmail).onSnapshot(s => {
@@ -313,16 +311,13 @@ const isAdminValue = localStorage.getItem("isAdmin"); // Nama variabel diubah ag
                     document.getElementById('disp_email').innerText = userEmail;
                     document.getElementById('disp_komsel').innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
                     
-                    if (d.foto_profil) { 
-                        const img = document.getElementById('user-photo');
-                        if(img) {
-                            img.src = d.foto_profil; 
-                            img.style.display = "block";
-                            document.getElementById('default-icon').style.display = "none"; 
-                        }
+                    const img = document.getElementById('user-photo');
+                    if (d.foto_profil && img) { 
+                        img.src = d.foto_profil; 
+                        img.style.display = "block";
+                        document.getElementById('default-icon').style.display = "none"; 
                     }
-                    // Cek admin untuk badge
-                    if(isAdminValue === "true") {
+                    if(statusAdmin === "true") {
                         const badge = document.getElementById('admin-badge');
                         if(badge) badge.style.display = "block";
                     }
@@ -339,15 +334,13 @@ const isAdminValue = localStorage.getItem("isAdmin"); // Nama variabel diubah ag
         if(elClock) elClock.innerText = now.toLocaleTimeString('id-ID') + " WIT";
     }
 
-    // --- 6. INITIALIZATION ---
+    // --- 6. INISIALISASI SAAT HALAMAN DIBUKA ---
     window.onload = () => { 
-        console.log("🚀 System Initialized");
         updateTime(); 
         setInterval(updateTime, 1000); 
         syncUser(); 
         listenRunningText(); 
 
-        // Listener untuk Profile Card toggle
         const btnToggle = document.getElementById('toggleProfile');
         const profileCard = document.getElementById('profileCard');
         if(btnToggle && profileCard) {
