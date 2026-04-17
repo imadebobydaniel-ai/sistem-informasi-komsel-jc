@@ -89,7 +89,7 @@
                     <th style="width: 30px;"><input type="checkbox" id="checkAll" onclick="toggleAll(this)"></th>
                     <th>NIJ</th>
                     <th>Identitas Jemaat</th>
-                    <th>TTL / Alamat</th> 
+                    <th>Tempat Tanggal Lahir</th> 
                     <th>Kontak</th>
                      <th>Alamat Domisili</th>
                     <th>Info Keluarga</th>
@@ -132,13 +132,21 @@
             snapshot.forEach(doc => {
                 const d = doc.data();
                 
+                // 1. Identitas Dasar
                 const nama = d.nama_lengkap || d.nama || "Tanpa Nama";
                 const golonganDarah = d.darah || "-";
+                
+                // 2. Lokasi & Gereja
                 const gereja = d.lokasi_berjemaat || d.wilayah || d.jemaat || "-";
                 const komsel = d.komsel || "-";
                 const alamatDomisili = d.alamat || d.alamat_domisili || "-";
                 const kotaTinggal = d.kota || d.kabupaten || "-";
 
+                // 3. Info Keluarga (Penanganan Field Ganda)
+                const namaPasangan = d.nama_pasangan || d.pasangan || "-";
+                const jumlahAnak = d.jumlah_anak || d.anak || "0";
+
+                // 4. Format Tanggal Lahir
                 let tglLahir = "-";
                 const rawDate = d.tanggal_lahir_murni || d.tanggal_lahir;
                 if (rawDate) {
@@ -149,10 +157,11 @@
                     }
                 }
 
+                // 5. Status Akun
                 const status = d.status_akun || 'Pending';
                 const statusClass = status === 'Aktif' ? 'badge-aktif' : 'badge-pending';
 
-                // Menyesuaikan urutan <td> dengan <th> (11 Kolom)
+                // 6. Render Baris Tabel (Total 12 Kolom sesuai Header)
                 tableBody.innerHTML += `
                 <tr>
                     <td><input type="checkbox" class="user-checkbox" value="${doc.id}" onclick="updateActionMenu()"></td>
@@ -167,7 +176,14 @@
                     </td>
                     <td>${d.whatsapp || '-'}<br><small>${d.email || '-'}</small></td>
                     <td><small style="color: var(--primary); font-weight: 500;">${alamatDomisili}</small></td>
-                    <td><small>P: ${d.nama_pasangan || '-'}<br>A: ${d.jumlah_anak || '0'}</small></td>
+                    
+                    <td>
+                        <div style="line-height: 1.4;">
+                            <span title="Pasangan"><i class="fas fa-heart" style="font-size: 10px; color: #e74c3c;"></i> P: ${namaPasangan}</span><br>
+                            <span title="Jumlah Anak"><i class="fas fa-child" style="font-size: 10px; color: #3498db;"></i> A: ${jumlahAnak}</span>
+                        </div>
+                    </td>
+
                     <td>
                         <strong style="color: var(--primary);"><i class="fas fa-church"></i> ${gereja.toUpperCase()}</strong><br>
                         <small>Komsel: ${komsel}</small>
@@ -186,11 +202,13 @@
         });
     }
 
+    // Fungsi pendukung manajemen tabel
     function updateActionMenu() {
         const count = document.querySelectorAll('.user-checkbox:checked').length;
         const menu = document.getElementById('actionMenu');
         if(menu) menu.style.display = count > 0 ? 'flex' : 'none';
-        document.getElementById('selectedCount').innerText = `${count} Terpilih`;
+        const selectedLabel = document.getElementById('selectedCount');
+        if(selectedLabel) selectedLabel.innerText = `${count} Terpilih`;
     }
 
     function toggleAll(source) {
@@ -206,7 +224,12 @@
     }
 
     function openEditModal(uid) { window.location.href = `edit-jemaat-administrator.html?edit=${uid}`; }
-    function deleteUser(id) { if(confirm("Hapus data ini?")) db.collection("users").doc(id).delete(); }
+    
+    function deleteUser(id) { 
+        if(confirm("Apakah Anda yakin ingin menghapus data jemaat ini secara permanen?")) {
+            db.collection("users").doc(id).delete(); 
+        }
+    }
 
     window.onload = loadMembersRealtime;
 </script></body>
