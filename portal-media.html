@@ -256,6 +256,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
+    // --- KONFIGURASI FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -270,16 +271,55 @@
     let runningItems = [];
     let playlistData = [];
 
-    // --- FUNGSI EKSTRAK ID YOUTUBE (MODERN) ---
+    // --- 1. FUNGSI EKSTRAK ID YOUTUBE DENGAN ORIGIN FIX ---
     function extractVideoID(url) {
         const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
         const match = url.match(regExp);
         if (match && match[2].length === 11) {
             const videoId = match[2];
-            // Menambahkan parameter yang dibutuhkan oleh API YouTube agar tidak Error 150
-            return `${videoId}?enablejsapi=1&origin=${window.location.origin}&rel=0&autoplay=1&mute=1`;
+            // Mengambil domain aktif secara otomatis (misal: imadebobydaniel-ai.github.io)
+            const currentOrigin = window.location.origin;
+            
+            // Menambahkan parameter wajib agar API YouTube tidak memblokir handshake
+            // rel=0 (tidak tampilkan video lain), enablejsapi=1 (aktifkan API), origin (domain Anda)
+            return `${videoId}?enablejsapi=1&origin=${encodeURIComponent(currentOrigin)}&rel=0&autoplay=1&mute=1`;
         }
         return url;
+    }
+
+    // --- 2. LOGIKA UPLOAD (DIPERBAIKI DENGAN TRY-CATCH) ---
+    async function uploadKePortal() {
+        const judul = document.getElementById('judul').value;
+        const tipe = document.getElementById('tipe_media').value;
+        let url = document.getElementById('url_media').value || "";
+
+        if(!judul) return alert("Judul wajib diisi!");
+
+        // Jika tipe adalah YouTube, bersihkan URL-nya menggunakan origin fix
+        if(tipe === 'video_youtube' && url !== "") {
+            url = extractVideoID(url);
+        }
+
+        try {
+            await db.collection("portal_media").add({
+                judul: judul,
+                tipe: tipe,
+                url: url,
+                isi_artikel: document.getElementById('isi_artikel').value || "",
+                urutan: Date.now(),
+                durasi: 10,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            alert("Konten Berhasil Terbit!");
+            
+            // Reset form tanpa reload halaman agar lebih efisien
+            document.getElementById('judul').value = "";
+            document.getElementById('url_media').value = "";
+            if(document.getElementById('isi_artikel')) document.getElementById('isi_artikel').value = "";
+        } catch (error) {
+            console.error("Error adding document: ", error);
+            alert("Gagal menyimpan ke Firebase.");
+        }
     }
 
     // --- LOGIKA RUNNING TEXT ---
@@ -298,6 +338,7 @@
     function loadRTCollection() {
         db.collection("rt_collection").orderBy("timestamp", "desc").onSnapshot(snapshot => {
             const list = document.getElementById('rt_history_list');
+            if(!list) return;
             list.innerHTML = ""; runningItems = [];
             snapshot.forEach(doc => {
                 const data = doc.data();
@@ -330,37 +371,17 @@
     // --- LOGIKA MEDIA & PLAYLIST ---
     function toggleInputFields() {
         const tipe = document.getElementById('tipe_media').value;
-        document.getElementById('input_url_container').style.display = tipe === 'teks' ? "none" : "block";
-        document.getElementById('input_teks_container').style.display = tipe === 'teks' ? "block" : "none";
-    }
-
-    async function uploadKePortal() {
-        const judul = document.getElementById('judul').value;
-        const tipe = document.getElementById('tipe_media').value;
-        let url = document.getElementById('url_media').value || "";
-
-        if(!judul) return alert("Judul wajib diisi!");
-
-        if(tipe === 'video_youtube' && url !== "") {
-            url = extractVideoID(url);
-        }
-
-        await db.collection("portal_media").add({
-            judul: judul,
-            tipe: tipe,
-            url: url,
-            isi_artikel: document.getElementById('isi_artikel').value || "",
-            urutan: Date.now(),
-            durasi: 10,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert("Konten Terbit!");
-        location.reload();
+        const urlContainer = document.getElementById('input_url_container');
+        const teksContainer = document.getElementById('input_teks_container');
+        
+        if(urlContainer) urlContainer.style.display = tipe === 'teks' ? "none" : "block";
+        if(teksContainer) teksContainer.style.display = tipe === 'teks' ? "block" : "none";
     }
 
     function loadMedia() {
         db.collection("portal_media").orderBy("urutan", "asc").onSnapshot(snapshot => {
             const list = document.getElementById('mediaList');
+            if(!list) return;
             list.innerHTML = ""; playlistData = [];
             snapshot.forEach(doc => {
                 const data = doc.data();
@@ -418,10 +439,14 @@
     async function updatePlayMode() {
         const mode = document.getElementById('play_mode').value;
         await db.collection("config").doc("playlist_settings").set({ mode: mode, updatedAt: Date.now() }, { merge: true });
-        document.getElementById('currentModeDisplay').innerText = mode.toUpperCase();
+        const display = document.getElementById('currentModeDisplay');
+        if(display) display.innerText = mode.toUpperCase();
     }
 
-    window.onload = () => { loadRTCollection(); loadMedia(); };
-</script>
-</body>
+    // Inisialisasi saat halaman dimuat
+    window.onload = () => { 
+        loadRTCollection(); 
+        loadMedia(); 
+    };
+</script></body>
 </html>
