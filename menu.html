@@ -224,14 +224,17 @@
         });
     }
 
-    // --- 3. YOUTUBE MEDIA PLAYER LOGIC (REAL-TIME CONFIG) ---
+    // --- 3. YOUTUBE MEDIA PLAYER LOGIC ---
     let player;
+    let isPlayerReady = false;
+    let pendingVideoId = null;
+
     function onYouTubeIframeAPIReady() {
-        // Inisialisasi player dengan ID default terlebih dahulu
+        console.log("🎥 Inisialisasi Player...");
         player = new YT.Player('player', {
             height: '100%',
             width: '100%',
-            videoId: 'V9p1k5wH3ZE', 
+            videoId: 'V9p1k5wH3ZE', // ID Cadangan
             playerVars: { 
                 'autoplay': 1, 
                 'mute': 1, 
@@ -241,15 +244,26 @@
                 'enablejsapi': 1
             },
             events: { 
-                'onReady': (event) => {
-                    event.target.playVideo();
-                    listenVideoPromo(); // Mulai mendengarkan perubahan link setelah player siap
-                } 
+                'onReady': onPlayerReady,
+                'onError': (e) => console.error("YouTube Error:", e.data)
             }
         });
     }
 
-    // Fungsi khusus untuk memantau perubahan Link Video di Portal Media secara Real-time
+    function onPlayerReady(event) {
+        console.log("✅ YouTube Player Siap!");
+        isPlayerReady = true;
+        event.target.playVideo();
+        
+        // Jika ada video yang sudah antri saat player belum siap, putar sekarang
+        if (pendingVideoId) {
+            player.loadVideoById(pendingVideoId);
+            pendingVideoId = null;
+        }
+        
+        listenVideoPromo(); // Mulai memantau Firestore setelah player siap
+    }
+
     function listenVideoPromo() {
         console.log("📡 Memantau perubahan Video Promo...");
         db.collection("config").doc("video_promo").onSnapshot((doc) => {
@@ -257,21 +271,18 @@
                 const url = doc.data().url;
                 const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
                 const match = url.match(regExp);
-                
-                if (match && match[2].length == 11) {
-                    const newVideoId = match[2];
+                const newVideoId = (match && match[2].length == 11) ? match[2] : null;
+
+                if (newVideoId) {
                     console.log("🎥 Video baru terdeteksi:", newVideoId);
-                    
-                    // Jika player sudah ada, ganti videonya secara halus tanpa reload halaman
-                    if (player && player.loadVideoById) {
-                        player.loadVideoById({
-                            videoId: newVideoId,
-                            startSeconds: 0
-                        });
+                    if (isPlayerReady && player && player.loadVideoById) {
+                        player.loadVideoById(newVideoId);
+                    } else {
+                        pendingVideoId = newVideoId; // Simpan di antrian jika player belum siap
                     }
                 }
             }
-        });
+        }, (err) => console.error("Firestore Video Error:", err));
     }
 
     // --- 4. FUNGSI UI & MODAL ---
@@ -316,15 +327,20 @@
             db.collection("users").where("email", "==", userEmail).onSnapshot(s => {
                 if (!s.empty) {
                     const d = s.docs[0].data();
-                    document.getElementById('disp_nama').innerText = d.nama || "User";
-                    document.getElementById('disp_email').innerText = userEmail;
-                    document.getElementById('disp_komsel').innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
+                    const dispNama = document.getElementById('disp_nama');
+                    const dispEmail = document.getElementById('disp_email');
+                    const dispKomsel = document.getElementById('disp_komsel');
+                    
+                    if(dispNama) dispNama.innerText = d.nama || "User";
+                    if(dispEmail) dispEmail.innerText = userEmail;
+                    if(dispKomsel) dispKomsel.innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
                     
                     const img = document.getElementById('user-photo');
                     if (d.foto_profil && img) { 
                         img.src = d.foto_profil; 
                         img.style.display = "block";
-                        document.getElementById('default-icon').style.display = "none"; 
+                        const defIcon = document.getElementById('default-icon');
+                        if(defIcon) defIcon.style.display = "none"; 
                     }
                     if(statusAdmin === "true") {
                         const badge = document.getElementById('admin-badge');
