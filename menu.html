@@ -235,9 +235,11 @@
         player = new YT.Player('player', {
             height: '100%',
             width: '100%',
-            videoId: 'aqz-KE-bpKQ', // Menggunakan ID video tes yang aman di-embed
+            videoId: 'aqz-KE-bpKQ', // ID video default
             playerVars: { 
-                'autoplay': 1, 'mute': 1, 'loop': 1, 
+                'autoplay': 1, 
+                'mute': 1, 
+                'loop': 1, 
                 'playlist': 'aqz-KE-bpKQ',
                 'origin': window.location.origin, 
                 'enablejsapi': 1
@@ -245,9 +247,9 @@
             events: { 
                 'onReady': onPlayerReady,
                 'onError': (e) => {
-                    console.error("YouTube Error:", e.data);
+                    console.error("❌ YouTube Error:", e.data);
                     if(e.data == 150 || e.data == 101) {
-                        alert("Video ini tidak mengizinkan pemutaran di luar YouTube. Silakan ganti URL di Portal Media.");
+                        console.warn("Video ini tidak bisa diputar di luar domain YouTube.");
                     }
                 }
             }
@@ -258,31 +260,47 @@
         console.log("✅ YouTube Player Siap!");
         isPlayerReady = true;
         event.target.playVideo();
+        
+        // Cek jika ada video dari Firestore yang sudah menunggu
         if (pendingVideoId) {
+            console.log("🔄 Memutar video tertunda:", pendingVideoId);
             player.loadVideoById(pendingVideoId);
             pendingVideoId = null;
         }
+        
         listenVideoPromo(); 
     }
 
+    // FUNGSI SINKRONISASI VIDEO (PORTAL MEDIA -> MEDIA PLAYER)
     function listenVideoPromo() {
         console.log("📡 Memantau perubahan Video Promo...");
         db.collection("config").doc("video_promo").onSnapshot((doc) => {
-            if (doc.exists && doc.data().url) {
-                const url = doc.data().url;
-                const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-                const match = url.match(regExp);
-                const newVideoId = (match && match[2].length == 11) ? match[2] : null;
+            if (doc.exists) {
+                const data = doc.data();
+                console.log("📥 Data Firestore diterima:", data);
 
-                if (newVideoId) {
-                    console.log("🎥 Video baru terdeteksi:", newVideoId);
-                    if (isPlayerReady && player && player.loadVideoById) {
-                        player.loadVideoById(newVideoId);
+                if (data.url) {
+                    const url = data.url;
+                    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+                    const match = url.match(regExp);
+                    const newVideoId = (match && match[2].length == 11) ? match[2] : null;
+
+                    if (newVideoId) {
+                        console.log("🎥 Mengganti video ke ID:", newVideoId);
+                        if (isPlayerReady && player && player.loadVideoById) {
+                            player.loadVideoById(newVideoId);
+                        } else {
+                            pendingVideoId = newVideoId;
+                        }
                     } else {
-                        pendingVideoId = newVideoId; 
+                        console.warn("⚠️ Link YouTube tidak valid:", url);
                     }
                 }
+            } else {
+                console.error("❌ Dokumen 'config/video_promo' tidak ditemukan!");
             }
+        }, (err) => {
+            console.error("❌ Error Firestore Listener:", err);
         });
     }
 
@@ -292,16 +310,18 @@
         db.collection("users").where("email", "==", userEmail).get().then(s => {
             if(!s.empty) {
                 const d = s.docs[0].data();
-                document.getElementById('dnama').innerText = d.nama || "User";
-                document.getElementById('djemaat').innerText = d.lokasi_berjemaat || "-";
-                document.getElementById('dkomsel').innerText = d.komsel || "-";
-                document.getElementById('dnij').innerText = d.nij || "0000 0000";
+                if(document.getElementById('dnama')) document.getElementById('dnama').innerText = d.nama || "User";
+                if(document.getElementById('djemaat')) document.getElementById('djemaat').innerText = d.lokasi_berjemaat || "-";
+                if(document.getElementById('dkomsel')) document.getElementById('dkomsel').innerText = d.komsel || "-";
+                if(document.getElementById('dnij')) document.getElementById('dnij').innerText = d.nij || "0000 0000";
                 
                 const qrBox = document.getElementById("qrbox");
-                qrBox.innerHTML = "";
-                if (typeof QRCode !== 'undefined') {
-                    const profileLink = window.location.origin + window.location.pathname.replace("menu.html", "profil.html");
-                    new QRCode(qrBox, { text: profileLink, width: 110, height: 110 });
+                if (qrBox) {
+                    qrBox.innerHTML = "";
+                    if (typeof QRCode !== 'undefined') {
+                        const profileLink = window.location.origin + window.location.pathname.replace("menu.html", "profil.html");
+                        new QRCode(qrBox, { text: profileLink, width: 110, height: 110 });
+                    }
                 }
                 document.getElementById('modalKartuDigital').style.display = 'flex';
             }
