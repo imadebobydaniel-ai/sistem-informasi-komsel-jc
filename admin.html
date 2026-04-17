@@ -28,11 +28,16 @@
 
         #actionMenu { display: none; gap: 10px; margin-bottom: 15px; padding: 15px; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 10px; align-items: center; }
 
-        .table-controls { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
-        .search-box { position: relative; flex: 1; min-width: 300px; }
-        .search-box input { width: 100%; padding: 14px 20px; border: 2px solid #eee; border-radius: 12px; font-size: 14px; outline: none; }
+        /* --- PERBAIKAN SEARCH BOX --- */
+        .table-controls { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
         
-        .btn-cetak-kartu-main { background: var(--teal); color: white; border: none; padding: 14px 25px; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .search-container { position: relative; flex: 1; min-width: 300px; display: flex; align-items: center; }
+        .search-container input { width: 100%; padding: 12px 20px 12px 45px; border: 2px solid #eee; border-radius: 12px; font-size: 14px; outline: none; transition: 0.3s; }
+        .search-container input:focus { border-color: var(--accent); box-shadow: 0 0 8px rgba(0,123,255,0.1); }
+        .search-container i { position: absolute; left: 18px; color: #aaa; font-size: 16px; }
+
+        .btn-cetak-kartu-main { background: var(--teal); color: white; border: none; padding: 12px 25px; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.3s; }
+        .btn-cetak-kartu-main:hover { background: #006666; transform: translateY(-2px); }
 
         .table-responsive { overflow-x: auto; border-radius: 12px; border: 1px solid #eee; }
         table { width: 100%; border-collapse: collapse; min-width: 1500px; }
@@ -70,12 +75,15 @@
         <span style="font-size: 13px; font-weight: bold; margin-right: 20px;" id="selectedCount">0 Terpilih</span>
         <button class="btn-action" style="background: var(--danger);" onclick="bulkDelete()">Hapus Massal</button>
         <button class="btn-action" style="background: var(--teal);" onclick="generateMemberCards()">Cetak Terpilih</button>
+        <button class="btn-action" style="background: var(--orange);" onclick="extractToPDF()">
+            <i class="fas fa-file-pdf"></i> Extract PDF
+        </button>
     </div>
 
     <div class="table-controls">
-        <div class="search-box">
-            <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Cari jemaat...">
+        <div class="search-container">
             <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Cari berdasarkan nama, NIJ, atau lokasi...">
         </div>
         <button class="btn-cetak-kartu-main" onclick="generateMemberCards()">
             <i class="fas fa-print"></i> CETAK KARTU JEMAAT
@@ -91,7 +99,7 @@
                     <th>Identitas Jemaat</th>
                     <th>Tempat Tanggal Lahir</th> 
                     <th>Kontak</th>
-                     <th>Alamat Domisili</th>
+                    <th>Alamat Domisili</th>
                     <th>Info Keluarga</th>
                     <th>Gereja / Komsel</th>
                     <th>Jabatan</th>
@@ -101,7 +109,7 @@
                 </tr>
             </thead>
             <tbody id="memberData">
-                <tr><td colspan="11" style="text-align:center; padding:50px;">Memuat data jemaat...</td></tr>
+                <tr><td colspan="12" style="text-align:center; padding:50px;">Memuat data jemaat...</td></tr>
             </tbody>
         </table>
     </div>
@@ -109,6 +117,9 @@
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
 <script>
     const firebaseConfig = {
@@ -129,21 +140,16 @@
             if(!tableBody) return;
             tableBody.innerHTML = "";
             
-            // Simpan semua data ke array untuk pencocokan silang (Cross-Reference)
             const allUsers = [];
             snapshot.forEach(doc => {
                 allUsers.push({ id: doc.id, ...doc.data() });
             });
 
             allUsers.forEach(d => {
-                // 1. Logika Nama & Identitas Dasar
                 const namaUser = (d.nama_lengkap || d.nama || "Tanpa Nama").toUpperCase();
                 
-                // 2. Logika Info Keluarga (PENCARIAN PINTAR)
-                // Cari di field sendiri dulu
                 let pasangan = d.nama_pasangan || d.pasangan || d.istri || d.suami || d.nama_istri || d.nama_suami;
                 
-                // Jika kosong, cari siapa jemaat lain yang mencantumkan nama user ini sebagai pasangannya
                 if (!pasangan || pasangan === "-") {
                     const match = allUsers.find(u => 
                         (u.nama_pasangan === d.nama_lengkap || u.pasangan === d.nama_lengkap || u.nama_pasangan === d.nama) && 
@@ -153,8 +159,6 @@
                 }
 
                 const anak = d.jumlah_anak || d.anak || d.total_anak || "0";
-
-                // 3. Logika Lokasi & Tanggal
                 const gereja = (d.lokasi_berjemaat || d.wilayah || d.jemaat || "-").toUpperCase();
                 const alamat = d.alamat || d.alamat_domisili || "-";
                 
@@ -168,7 +172,6 @@
 
                 const statusClass = d.status_akun === 'Aktif' ? 'badge-aktif' : 'badge-pending';
 
-                // 4. Render Row (12 Kolom Sejajar)
                 tableBody.innerHTML += `
                 <tr>
                     <td><input type="checkbox" class="user-checkbox" value="${d.id}" onclick="updateActionMenu()"></td>
@@ -198,7 +201,64 @@
         });
     }
 
-    // --- FUNGSI UTAMA CETAK (MENCEGAH ERROR REFERENCE) ---
+    // Fungsi Utama Extract PDF sesuai instruksi
+    async function extractToPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('l', 'mm', 'a4');
+        const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+        const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+
+        if (selectedIds.length === 0) {
+            alert("Silakan pilih minimal satu jemaat untuk di-extract!");
+            return;
+        }
+
+        const head = [['NIJ', 'Nama Jemaat', 'TTL', 'Kontak', 'Alamat', 'Gereja / Komsel', 'Jabatan']];
+        const body = [];
+
+        for (let id of selectedIds) {
+            const res = await db.collection("users").doc(id).get();
+            if (res.exists) {
+                const d = res.data();
+                const rawDate = d.tanggal_lahir_murni || d.tanggal_lahir;
+                let tglLahir = "-";
+                if (rawDate && rawDate.toDate) tglLahir = rawDate.toDate().toLocaleDateString('id-ID');
+                else if (rawDate) tglLahir = rawDate;
+
+                body.push([
+                    d.nij || '-',
+                    (d.nama_lengkap || d.nama || "Tanpa Nama").toUpperCase(),
+                    `${d.kota || '-'}\n${tglLahir}`,
+                    `${d.whatsapp || '-'}\n${d.email || '-'}`,
+                    d.alamat || d.alamat_domisili || "-",
+                    `${(d.lokasi_berjemaat || '-').toUpperCase()}\nKomsel: ${d.komsel || '-'}`,
+                    d.jabatan || 'Anggota'
+                ]);
+            }
+        }
+
+        doc.setFontSize(16);
+        doc.text("DATA JEMAAT - PONDOK PEMULIHAN PAPUA", 14, 15);
+        doc.setFontSize(10);
+        doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 14, 22);
+
+        doc.autoTable({
+            head: head,
+            body: body,
+            startY: 28,
+            theme: 'grid',
+            headStyles: { fillColor: [0, 51, 102] },
+            styles: { fontSize: 8, cellPadding: 3 },
+            columnStyles: {
+                0: { cellWidth: 30 },
+                1: { cellWidth: 40 },
+                4: { cellWidth: 50 }
+            }
+        });
+
+        doc.save(`Data_Jemaat_Extract_${Date.now()}.pdf`);
+    }
+
     function generateMemberCards() {
         const checkboxes = document.querySelectorAll('.user-checkbox:checked');
         const selectedIds = Array.from(checkboxes).map(cb => cb.value);
@@ -207,13 +267,9 @@
             alert("Silakan pilih minimal satu jemaat untuk dicetak!");
             return;
         }
-
-        console.log("Mencetak ID:", selectedIds);
-        // Arahkan ke halaman cetak Anda (Sesuaikan nama filenya jika berbeda)
         window.location.href = `cetak-kartu-multi.html?ids=${selectedIds.join(',')}`;
     }
 
-    // --- FUNGSI HELPER ---
     function updateActionMenu() {
         const count = document.querySelectorAll('.user-checkbox:checked').length;
         const menu = document.getElementById('actionMenu');
@@ -238,5 +294,6 @@
     function deleteUser(id) { if(confirm("Hapus data ini secara permanen?")) db.collection("users").doc(id).delete(); }
 
     window.onload = loadMembersRealtime;
-</script></body>
+</script>
+</body>
 </html>
