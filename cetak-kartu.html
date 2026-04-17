@@ -9,37 +9,32 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        body { background: #333; display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; padding: 20px; font-family: 'Arial', sans-serif; }
+        body { background: #333; display: flex; flex-direction: column; align-items: center; padding: 20px; font-family: 'Arial', sans-serif; }
         
+        #cardContainer { display: flex; flex-wrap: wrap; gap: 30px; justify-content: center; }
+
+        /* KONTINER KARTU + TOMBOL */
+        .card-wrapper { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+
         /* CARD STYLE */
         .card { 
             width: 480px; height: 305px; background: white; border-radius: 12px; 
             position: relative; overflow: hidden; border: 1px solid #999;
             background-image: linear-gradient(to bottom right, #ffffff, #f0f7ff);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
 
-        /* TOMBOL EDIT DI POJOK KANAN KARTU */
+        /* TOMBOL EDIT KECIL DI KARTU */
         .btn-edit-card {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            z-index: 10;
-            background: rgba(212, 175, 55, 0.8);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 4px 8px;
-            cursor: pointer;
-            font-size: 12px;
+            position: absolute; top: 10px; right: 10px; z-index: 10;
+            background: rgba(212, 175, 55, 0.9); color: white; border: none;
+            border-radius: 5px; padding: 5px 10px; cursor: pointer; font-size: 12px;
         }
-        .btn-edit-card:hover { background: #D4AF37; }
 
         .card-header { 
             background: #003366; color: white; padding: 5px 15px; 
             display: flex; align-items: center; justify-content: space-between;
-            border-top: 4px solid #D4AF37; 
-            border-bottom: 8px solid #D4AF37;
-            height: 75px;
+            border-top: 4px solid #D4AF37; border-bottom: 8px solid #D4AF37; height: 75px;
         }
         
         .header-logo { width: 70px; height: 70px; object-fit: contain; }
@@ -49,96 +44,82 @@
 
         .card-body { padding: 12px 15px; display: flex; gap: 15px; align-items: flex-start; }
         .left-side { display: flex; flex-direction: column; align-items: center; width: 125px; }
-        .photo-frame { 
-            width: 115px; height: 135px; border: 2px solid #003366; 
-            object-fit: cover; border-radius: 5px; background: #fff; margin-bottom: 3px;
-        }
+        .photo-frame { width: 115px; height: 135px; border: 2px solid #003366; object-fit: cover; border-radius: 5px; background: #fff; }
 
-        .validity-text { font-size: 8.5px; font-weight: bold; color: #003366; text-align: center; width: 100%; margin-top: 2px; }
-
-        .right-side { flex: 1; display: flex; flex-direction: column; gap: 4px; position: relative; }
+        .right-side { flex: 1; display: flex; flex-direction: column; gap: 4px; }
         .info-row { display: flex; font-size: 10.5px; border-bottom: 1px solid #eee; padding-bottom: 2px; }
         .label { width: 85px; font-weight: bold; color: #003366; }
-        .value { flex: 1; color: #333; text-transform: uppercase; font-weight: 600; line-height: 1.2; }
+        .value { flex: 1; color: #333; text-transform: uppercase; font-weight: 600; }
 
-        .barcode-container { 
-            width: 200px; height: 40px; background: white; border: 1px solid #ccc; 
-            display: flex; align-items: center; justify-content: center;
-            overflow: hidden; margin-top: 5px; margin-left: auto; margin-right: 5px; align-self: flex-end;
-        }
+        .barcode-container { width: 200px; height: 40px; border: 1px solid #ccc; align-self: flex-end; margin-top: 5px; }
 
-        .card-footer { 
-            position: absolute; bottom: 0; width: 100%; background: #003366; 
-            color: white; font-size: 10px; text-align: center; padding: 4px 0;
-        }
+        .card-footer { position: absolute; bottom: 0; width: 100%; background: #003366; color: white; font-size: 10px; text-align: center; padding: 4px 0; }
 
-        /* POPUP MODAL EDITOR */
+        /* AREA TOMBOL DI BAWAH KARTU */
+        .action-controls { display: none; gap: 10px; width: 480px; }
+        .btn-action { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s; }
+        .btn-save-bottom { background: #28a745; color: white; }
+        .btn-save-bottom:hover { background: #218838; }
+        .btn-cancel-bottom { background: #dc3545; color: white; }
+        .btn-cancel-bottom:hover { background: #c82333; }
+
+        /* MODAL EDITOR TETAP ADA UNTUK INPUT DATA */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;
         }
-        .modal-box {
-            background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 500px;
-        }
-        .modal-box h3 { margin-top: 0; color: #003366; }
-        .form-group { margin-bottom: 10px; }
-        .form-group label { display: block; font-size: 12px; font-weight: bold; }
-        .form-group input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-action { flex: 1; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .btn-save { background: #003366; color: white; }
-        .btn-cancel { background: #ccc; }
+        .modal-box { background: white; padding: 25px; border-radius: 12px; width: 400px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: bold; color: #333; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
 
-        .no-print { position: fixed; bottom: 20px; right: 20px; z-index: 99; }
-        .btn-print { background: #28a745; color: white; border: none; padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+        .no-print-zone { position: fixed; bottom: 20px; right: 20px; z-index: 99; }
+        .btn-print { background: #007bff; color: white; border: none; padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
 
         @media print { 
-            .no-print, .btn-edit-card { display: none !important; } 
+            .no-print-zone, .btn-edit-card, .action-controls { display: none !important; } 
             body { background: white; padding: 0; } 
-            .card { box-shadow: none; border: 1px solid #000; margin: 10px; page-break-inside: avoid; } 
+            .card-wrapper { margin-bottom: 20px; }
         }
     </style>
 </head>
 <body>
 
-<div class="no-print">
-    <button class="btn-print" onclick="window.print()">PRINT KARTU</button>
+<div class="no-print-zone">
+    <button class="btn-print" onclick="window.print()"><i class="fas fa-print"></i> CETAK SEMUA KARTU</button>
 </div>
 
 <div id="cardContainer"></div>
 
 <div id="editModal" class="modal-overlay">
     <div class="modal-box">
-        <h3>Edit Tampilan Kartu</h3>
+        <h3 style="margin-top:0; color:#003366;"><i class="fas fa-user-edit"></i> Edit Data Visual</h3>
         <input type="hidden" id="editCardId">
         <div class="form-group">
             <label>Nama Lengkap</label>
             <input type="text" id="editNama">
         </div>
         <div class="form-group">
-            <label>TTL (Tempat, Tgl Lahir)</label>
+            <label>TTL</label>
             <input type="text" id="editTTL">
         </div>
         <div class="form-group">
-            <label>Jemaat / Wilayah</label>
+            <label>Jemaat</label>
             <input type="text" id="editJemaat">
         </div>
         <div class="form-group">
-            <label>URL Foto (Paste link foto baru)</label>
+            <label>URL Foto</label>
             <input type="text" id="editFoto">
         </div>
-        <div class="form-group">
-            <label>Geser Barcode (Margin Top px)</label>
-            <input type="number" id="editBarcodePos" placeholder="Contoh: 5">
-        </div>
-        <div class="modal-btns">
-            <button class="btn-action btn-cancel" onclick="closeModal()">Batal</button>
-            <button class="btn-action btn-save" onclick="saveEdit()">Terapkan ke Kartu</button>
+        <div style="display:flex; gap:10px;">
+            <button class="btn-action btn-save-bottom" style="flex:1" onclick="applyChanges()">OK</button>
+            <button class="btn-action btn-cancel-bottom" style="flex:1" onclick="closeModal()">Batal</button>
         </div>
     </div>
 </div>
 
 <script>
+    // --- KONFIGURASI FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -150,42 +131,65 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    function formatTanggalIndo(dateObj) {
-        if (!dateObj) return "-";
-        let d = dateObj;
-        if (typeof dateObj === 'object' && dateObj.toDate) d = dateObj.toDate();
-        else d = new Date(dateObj);
-        if (isNaN(d.getTime())) return dateObj; 
-        const tgl = String(d.getDate()).padStart(2, '0');
-        const bulan = String(d.getMonth() + 1).padStart(2, '0');
-        const tahun = d.getFullYear();
-        return `${tgl}-${bulan}-${tahun}`;
-    }
+    // Simpan data asli untuk fungsi Batal
+    const originalData = {};
 
-    // FUNGSI POPUP
     function openEditor(id) {
         document.getElementById('editCardId').value = id;
-        document.getElementById('editNama').value = document.querySelector(`#name-${id}`).innerText.replace(': ', '');
-        document.getElementById('editTTL').value = document.querySelector(`#ttl-${id}`).innerText.replace(': ', '');
-        document.getElementById('editJemaat').value = document.querySelector(`#jemaat-${id}`).innerText.replace(': ', '');
-        document.getElementById('editFoto').value = document.querySelector(`#img-${id}`).src;
+        document.getElementById('editNama').value = document.getElementById(`name-${id}`).innerText.replace(': ', '');
+        document.getElementById('editTTL').value = document.getElementById(`ttl-${id}`).innerText.replace(': ', '');
+        document.getElementById('editJemaat').value = document.getElementById(`jemaat-${id}`).innerText.replace(': ', '');
+        document.getElementById('editFoto').value = document.getElementById(`img-${id}`).src;
         document.getElementById('editModal').style.display = 'flex';
     }
 
     function closeModal() { document.getElementById('editModal').style.display = 'none'; }
 
-    function saveEdit() {
+    // Terapkan perubahan ke visual kartu dan munculkan tombol Simpan/Batal di bawah
+    function applyChanges() {
         const id = document.getElementById('editCardId').value;
-        document.querySelector(`#name-${id}`).innerText = ': ' + document.getElementById('editNama').value;
-        document.querySelector(`#ttl-${id}`).innerText = ': ' + document.getElementById('editTTL').value;
-        document.querySelector(`#jemaat-${id}`).innerText = ': ' + document.getElementById('editJemaat').value;
-        document.querySelector(`#img-${id}`).src = document.getElementById('editFoto').value;
         
-        // Geser Barcode
-        const pos = document.getElementById('editBarcodePos').value;
-        if(pos) document.querySelector(`#barcode-cont-${id}`).style.marginTop = pos + 'px';
+        // Simpan ke originalData jika belum ada (untuk fungsi batal)
+        if (!originalData[id]) {
+            originalData[id] = {
+                nama: document.getElementById(`name-${id}`).innerText,
+                ttl: document.getElementById(`ttl-${id}`).innerText,
+                jemaat: document.getElementById(`jemaat-${id}`).innerText,
+                foto: document.getElementById(`img-${id}`).src
+            };
+        }
+
+        document.getElementById(`name-${id}`).innerText = ': ' + document.getElementById('editNama').value;
+        document.getElementById(`ttl-${id}`).innerText = ': ' + document.getElementById('editTTL').value;
+        document.getElementById(`jemaat-${id}`).innerText = ': ' + document.getElementById('editJemaat').value;
+        document.getElementById(`img-${id}`).src = document.getElementById('editFoto').value;
         
+        // Tampilkan tombol kontrol di bawah kartu
+        document.getElementById(`controls-${id}`).style.display = 'flex';
         closeModal();
+    }
+
+    function saveToDatabase(id) {
+        const nama = document.getElementById(`name-${id}`).innerText.replace(': ', '');
+        const jemaat = document.getElementById(`jemaat-${id}`).innerText.replace(': ', '');
+        
+        db.collection("users").doc(id).update({
+            nama_lengkap: nama,
+            lokasi_berjemaat: jemaat
+        }).then(() => {
+            alert("Data berhasil disimpan ke Database!");
+            document.getElementById(`controls-${id}`).style.display = 'none';
+        });
+    }
+
+    function cancelChanges(id) {
+        if (originalData[id]) {
+            document.getElementById(`name-${id}`).innerText = originalData[id].nama;
+            document.getElementById(`ttl-${id}`).innerText = originalData[id].ttl;
+            document.getElementById(`jemaat-${id}`).innerText = originalData[id].jemaat;
+            document.getElementById(`img-${id}`).src = originalData[id].foto;
+        }
+        document.getElementById(`controls-${id}`).style.display = 'none';
     }
 
     async function drawCards() {
@@ -193,63 +197,58 @@
         const ids = urlParams.get('ids') ? urlParams.get('ids').split(',') : [];
         const container = document.getElementById('cardContainer');
         
-        if (ids.length === 0) {
-            container.innerHTML = "<h2 style='color:white'>Silakan pilih jemaat di Admin Dashboard.</h2>";
-            return;
-        }
-
         for (const id of ids) {
             const doc = await db.collection("users").doc(id).get();
             if (doc.exists) {
                 const d = doc.data();
-                const rawDate = d.tanggal_lahir_murni || d.tanggal_lahir || d.tgl_lahir;
-                const tglLahirFormatted = formatTanggalIndo(rawDate);
-                const nijValue = d.nij || "NO-NIJ";
-                const fotoFinal = d.foto_profil || d.url_foto || d.url_berkas || 'https://via.placeholder.com/115x140?text=FOTO';
-                const tempatLahir = d.kota || d.tempat_lahir || "-";
+                const nij = d.nij || "NO-NIJ";
+                const foto = d.foto_profil || 'https://via.placeholder.com/115x140?text=FOTO';
                 
                 const cardHtml = `
-                    <div class="card" id="card-${id}">
-                        <button class="btn-edit-card" onclick="openEditor('${id}')">
-                            <i class="fas fa-pencil-alt"></i> Edit
-                        </button>
-                        <div class="card-header">
-                            <img src="logo_pondok.png" class="header-logo" onerror="this.src='https://via.placeholder.com/70?text=LOGO'">
-                            <div class="header-text">
-                                <h2>PONDOK PEMULIHAN PAPUA</h2>
-                                <p>KARTU ANGGOTA JEMAAT</p>
+                    <div class="card-wrapper">
+                        <div class="card" id="card-${id}">
+                            <button class="btn-edit-card" onclick="openEditor('${id}')"><i class="fas fa-edit"></i> Edit</button>
+                            <div class="card-header">
+                                <img src="logo_pondok.png" class="header-logo" onerror="this.src='https://via.placeholder.com/70?text=LOGO'">
+                                <div class="header-text">
+                                    <h2>PONDOK PEMULIHAN PAPUA</h2>
+                                    <p>KARTU ANGGOTA JEMAAT</p>
+                                </div>
+                                <img src="gbi.png" class="header-logo" onerror="this.src='https://via.placeholder.com/70?text=GBI'">
                             </div>
-                            <img src="gbi.png" class="header-logo" onerror="this.src='https://via.placeholder.com/70?text=GBI'">
-                        </div>
-                        <div class="card-body">
-                            <div class="left-side">
-                                <img src="${fotoFinal}" class="photo-frame" id="img-${id}">
-                                <div class="validity-text">BERLAKU SEUMUR HIDUP</div> 
-                            </div>
-                            <div class="right-side">
-                                <div class="info-row"><span class="label">NIJ</span><span class="value">: ${nijValue}</span></div>
-                                <div class="info-row"><span class="label">NAMA</span><span class="value" id="name-${id}">: ${d.nama_lengkap || d.nama || '-'}</span></div>
-                                <div class="info-row"><span class="label">TTL</span><span class="value" id="ttl-${id}">: ${tempatLahir}, ${tglLahirFormatted}</span></div>
-                                <div class="info-row"><span class="label">ALAMAT</span><span class="value">: ${d.alamat || '-'}</span></div>
-                                <div class="info-row"><span class="label">JABATAN</span><span class="value">: ${d.jabatan || 'ANGGOTA JEMAAT'}</span></div>
-                                <div class="info-row"><span class="label">JEMAAT</span><span class="value" id="jemaat-${id}">: ${d.lokasi_berjemaat || '-'}</span></div>
-                                <div class="info-row"><span class="label">KOMSEL</span><span class="value">: ${d.komsel || '-'}</span></div>
-                                <div class="barcode-container" id="barcode-cont-${id}">
-                                    <svg class="barcode-svg" id="barcode-${id}"></svg>
+                            <div class="card-body">
+                                <div class="left-side">
+                                    <img src="${foto}" class="photo-frame" id="img-${id}">
+                                    <div style="font-size:8px; font-weight:bold; color:#003366; margin-top:5px;">BERLAKU SEUMUR HIDUP</div>
+                                </div>
+                                <div class="right-side">
+                                    <div class="info-row"><span class="label">NIJ</span><span class="value">: ${nij}</span></div>
+                                    <div class="info-row"><span class="label">NAMA</span><span class="value" id="name-${id}">: ${d.nama_lengkap || '-'}</span></div>
+                                    <div class="info-row"><span class="label">TTL</span><span class="value" id="ttl-${id}">: ${d.tempat_lahir || '-'}, ${d.tanggal_lahir || '-'}</span></div>
+                                    <div class="info-row"><span class="label">ALAMAT</span><span class="value">: ${d.alamat || '-'}</span></div>
+                                    <div class="info-row"><span class="label">JEMAAT</span><span class="value" id="jemaat-${id}">: ${d.lokasi_berjemaat || '-'}</span></div>
+                                    <div class="barcode-container">
+                                        <svg id="barcode-${id}" style="width:100%; height:100%;"></svg>
+                                    </div>
                                 </div>
                             </div>
+                            <div class="card-footer">Pondok Pemulihan Papua - Blessing To The Nations</div>
                         </div>
-                        <div class="card-footer">
-                            Pondok Pemulihan Papua - Blessing To The Nations
+
+                        <div class="action-controls" id="controls-${id}">
+                            <button class="btn-action btn-save-bottom" onclick="saveToDatabase('${id}')">
+                                <i class="fas fa-check"></i> SIMPAN KE DATABASE
+                            </button>
+                            <button class="btn-action btn-cancel-bottom" onclick="cancelChanges('${id}')">
+                                <i class="fas fa-times"></i> BATAL
+                            </button>
                         </div>
                     </div>
                 `;
                 container.innerHTML += cardHtml;
 
                 setTimeout(() => {
-                    JsBarcode(`#barcode-${id}`, nijValue, {
-                        format: "CODE128", width: 1.5, height: 35, displayValue: false, lineColor: "#000", margin: 0
-                    });
+                    JsBarcode(`#barcode-${id}`, nij, { format: "CODE128", displayValue: false, height: 40 });
                 }, 300);
             }
         }
