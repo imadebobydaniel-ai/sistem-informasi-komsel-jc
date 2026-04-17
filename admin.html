@@ -123,43 +123,41 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    // FUNGSI PINTAR: Mencari data di dalam object sedalam apapun
-    function findDeepValue(obj, targetKeys) {
-        for (let key in obj) {
-            if (targetKeys.includes(key.toLowerCase().trim())) {
-                return obj[key];
-            }
-            if (typeof obj[key] === 'object' && obj[key] !== null) {
-                let deep = findDeepValue(obj[key], targetKeys);
-                if (deep) return deep;
-            }
-        }
-        return null;
-    }
-
     function loadMembersRealtime() {
         db.collection("users").onSnapshot(snapshot => {
             const tableBody = document.getElementById("memberData");
             if(!tableBody) return;
             tableBody.innerHTML = "";
             
+            // Simpan semua data ke array untuk pencocokan silang (Cross-Reference)
+            const allUsers = [];
             snapshot.forEach(doc => {
-                const d = doc.data();
-                
-                // Pencarian mendalam untuk Pasangan
-                const keysPasangan = ['pasangan', 'nama_pasangan', 'istri', 'suami', 'nama_istri', 'nama_suami', 'pasangan_hidup'];
-                const namaPasangan = findDeepValue(d, keysPasangan) || "-";
-                
-                // Pencarian mendalam untuk Anak
-                const keysAnak = ['anak', 'jumlah_anak', 'total_anak', 'jml_anak'];
-                const jumlahAnak = findDeepValue(d, keysAnak) || "0";
+                allUsers.push({ id: doc.id, ...doc.data() });
+            });
 
-                const nama = d.nama_lengkap || d.nama || "Tanpa Nama";
-                const gereja = d.lokasi_berjemaat || d.wilayah || d.jemaat || "-";
-                const komsel = d.komsel || "-";
-                const alamatDomisili = d.alamat || d.alamat_domisili || "-";
-                const kotaTinggal = d.kota || d.kabupaten || "-";
+            allUsers.forEach(d => {
+                // 1. Logika Nama & Identitas Dasar
+                const namaUser = (d.nama_lengkap || d.nama || "Tanpa Nama").toUpperCase();
+                
+                // 2. Logika Info Keluarga (PENCARIAN PINTAR)
+                // Cari di field sendiri dulu
+                let pasangan = d.nama_pasangan || d.pasangan || d.istri || d.suami || d.nama_istri || d.nama_suami;
+                
+                // Jika kosong, cari siapa jemaat lain yang mencantumkan nama user ini sebagai pasangannya
+                if (!pasangan || pasangan === "-") {
+                    const match = allUsers.find(u => 
+                        (u.nama_pasangan === d.nama_lengkap || u.pasangan === d.nama_lengkap || u.nama_pasangan === d.nama) && 
+                        (d.nama_lengkap || d.nama)
+                    );
+                    pasangan = match ? (match.nama_lengkap || match.nama) : "-";
+                }
 
+                const anak = d.jumlah_anak || d.anak || d.total_anak || "0";
+
+                // 3. Logika Lokasi & Tanggal
+                const gereja = (d.lokasi_berjemaat || d.wilayah || d.jemaat || "-").toUpperCase();
+                const alamat = d.alamat || d.alamat_domisili || "-";
+                
                 let tglLahir = "-";
                 const rawDate = d.tanggal_lahir_murni || d.tanggal_lahir;
                 if (rawDate) {
@@ -168,55 +166,60 @@
                     } else { tglLahir = rawDate; }
                 }
 
-                const status = d.status_akun || 'Pending';
-                const statusClass = status === 'Aktif' ? 'badge-aktif' : 'badge-pending';
+                const statusClass = d.status_akun === 'Aktif' ? 'badge-aktif' : 'badge-pending';
 
+                // 4. Render Row (12 Kolom Sejajar)
                 tableBody.innerHTML += `
                 <tr>
-                    <td><input type="checkbox" class="user-checkbox" value="${doc.id}" onclick="updateActionMenu()"></td>
+                    <td><input type="checkbox" class="user-checkbox" value="${d.id}" onclick="updateActionMenu()"></td>
                     <td class="nij-col">${d.nij || '-'}</td>
-                    <td>
-                        <strong>${nama.toUpperCase()}</strong><br>
-                        <small style="color:#888;">Darah: ${d.darah || '-'}</small>
-                    </td>
-                    <td>
-                        <i class="fas fa-map-marker-alt" style="font-size:10px;"></i> ${kotaTinggal}<br>
-                        <small>${tglLahir}</small>
-                    </td>
+                    <td><strong>${namaUser}</strong><br><small>Darah: ${d.darah || '-'}</small></td>
+                    <td><i class="fas fa-map-marker-alt"></i> ${d.kota || '-'}<br><small>${tglLahir}</small></td>
                     <td>${d.whatsapp || '-'}<br><small>${d.email || '-'}</small></td>
-                    <td><small style="color: var(--primary); font-weight: 500;">${alamatDomisili}</small></td>
-                    
+                    <td><small style="font-size:11px;">${alamat}</small></td>
                     <td>
-                        <div style="line-height: 1.4;">
-                            <span title="Pasangan"><i class="fas fa-heart" style="font-size: 10px; color: #e74c3c;"></i> P: ${namaPasangan}</span><br>
-                            <span title="Jumlah Anak"><i class="fas fa-child" style="font-size: 10px; color: #3498db;"></i> A: ${jumlahAnak}</span>
+                        <div style="line-height: 1.4; min-width:120px;">
+                            <span style="color:#e74c3c"><i class="fas fa-heart"></i> P: ${pasangan}</span><br>
+                            <span style="color:#3498db"><i class="fas fa-child"></i> A: ${anak}</span>
                         </div>
                     </td>
-
-                    <td>
-                        <strong style="color: var(--primary);"><i class="fas fa-church"></i> ${gereja.toUpperCase()}</strong><br>
-                        <small>Komsel: ${komsel}</small>
-                    </td>
+                    <td><strong><i class="fas fa-church"></i> ${gereja}</strong><br><small>Komsel: ${d.komsel || '-'}</small></td>
                     <td>${d.jabatan || 'Anggota'}</td>
                     <td style="text-align:center;">
-                        ${(d.url_ktp || d.url_berkas) ? `<a href="${d.url_ktp || d.url_berkas}" target="_blank" class="file-link"><i class="fas fa-id-card fa-lg"></i></a>` : '-'}
+                        ${(d.url_ktp || d.url_berkas) ? `<a href="${d.url_ktp || d.url_berkas}" target="_blank"><i class="fas fa-id-card fa-lg"></i></a>` : '-'}
                     </td>
-                    <td><span class="${statusClass}">${status}</span></td>
+                    <td><span class="${statusClass}">${d.status_akun || 'Pending'}</span></td>
                     <td>
-                        <button onclick="openEditModal('${doc.id}')" class="btn-action" style="background:var(--accent)"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteUser('${doc.id}')" class="btn-action" style="background:var(--danger)"><i class="fas fa-trash"></i></button>
+                        <button onclick="openEditModal('${d.id}')" class="btn-action" style="background:var(--accent)"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteUser('${d.id}')" class="btn-action" style="background:var(--danger)"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>`;
             });
         });
     }
 
+    // --- FUNGSI UTAMA CETAK (MENCEGAH ERROR REFERENCE) ---
+    function generateMemberCards() {
+        const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+        const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+        
+        if (selectedIds.length === 0) {
+            alert("Silakan pilih minimal satu jemaat untuk dicetak!");
+            return;
+        }
+
+        console.log("Mencetak ID:", selectedIds);
+        // Arahkan ke halaman cetak Anda (Sesuaikan nama filenya jika berbeda)
+        window.location.href = `cetak-kartu-multi.html?ids=${selectedIds.join(',')}`;
+    }
+
+    // --- FUNGSI HELPER ---
     function updateActionMenu() {
         const count = document.querySelectorAll('.user-checkbox:checked').length;
         const menu = document.getElementById('actionMenu');
         if(menu) menu.style.display = count > 0 ? 'flex' : 'none';
-        const lbl = document.getElementById('selectedCount');
-        if(lbl) lbl.innerText = `${count} Terpilih`;
+        const label = document.getElementById('selectedCount');
+        if(label) label.innerText = `${count} Terpilih`;
     }
 
     function toggleAll(source) {
@@ -232,7 +235,7 @@
     }
 
     function openEditModal(uid) { window.location.href = `edit-jemaat-administrator.html?edit=${uid}`; }
-    function deleteUser(id) { if(confirm("Hapus data ini?")) db.collection("users").doc(id).delete(); }
+    function deleteUser(id) { if(confirm("Hapus data ini secara permanen?")) db.collection("users").doc(id).delete(); }
 
     window.onload = loadMembersRealtime;
 </script></body>
