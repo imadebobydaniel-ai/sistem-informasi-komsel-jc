@@ -202,7 +202,7 @@
             console.log("DEBUG: YouTube API Ready terdeteksi.");
             
             db.collection("settings").doc("video_promo").get().then(doc => {
-                let videoId = "V9p1k5wH3ZE"; 
+               let videoId = "M7lc1UVf-VE"; // Video testing resmi YouTube
                 if(doc.exists && doc.data().url) {
                     const url = doc.data().url;
                     console.log("DEBUG: URL Video ditemukan di Firebase:", url);
