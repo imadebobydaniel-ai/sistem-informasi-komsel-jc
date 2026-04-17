@@ -50,15 +50,16 @@
         .modal-detail { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 5000; justify-content: center; align-items: center; padding: 20px; }
         .btn-logout { background: var(--biru-tua); color: #fff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block; margin-top: 30px; border: 2px solid var(--emas-lux); }
 
-        /* --- CSS KARTU DIGITAL --- */
+        /* --- CSS KARTU DIGITAL (FIX SIMETRIS) --- */
         .modal-card-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; padding: 20px;
+            background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; padding: 10px;
         }
         .digital-card-box {
-            width: 340px; height: 210px; background: linear-gradient(135deg, #f1c40f 0%, #d4af37 50%, #b8860b 100%);
+            width: 90%; max-width: 340px; height: 210px; background: linear-gradient(135deg, #f1c40f 0%, #d4af37 50%, #b8860b 100%);
             border-radius: 15px; position: relative; padding: 18px; box-shadow: 0 15px 35px rgba(0,0,0,0.5);
             color: #fff; font-family: 'Arial', sans-serif; border: 1px solid rgba(255,255,255,0.4); overflow: hidden;
+            margin: 0 auto;
         }
         .card-logo-right { position: absolute; top: 12px; right: 12px; width: 50px; height: 50px; object-fit: contain; }
         .card-header-title { font-size: 11px; font-weight: 800; color: #003366; margin-bottom: 15px; text-transform: uppercase; }
@@ -199,7 +200,7 @@
         const auth = firebase.auth();
         const userEmail = localStorage.getItem("userEmail");
 
-        // --- KARTU DIGITAL LOGIC (DIPERBARUI DENGAN TRY-CATCH) ---
+        // --- KARTU DIGITAL LOGIC (DIPERBARUI DENGAN QR MENUJU PROFIL) ---
         function bukaKartuDigital() {
             try {
                 db.collection("users").where("email", "==", userEmail).get().then(s => {
@@ -213,8 +214,16 @@
                         const qrBox = document.getElementById("qrbox");
                         qrBox.innerHTML = "";
                         
+                        // Menghasilkan link absolut ke profil.html masing-masing user
+                        const profileLink = window.location.origin + window.location.pathname.replace("index.html", "") + "profil.html";
+
                         if (typeof QRCode !== 'undefined') {
-                            new QRCode(qrBox, { text: userEmail, width: 60, height: 60 });
+                            new QRCode(qrBox, { 
+                                text: profileLink, 
+                                width: 60, 
+                                height: 60,
+                                correctLevel : QRCode.CorrectLevel.H
+                            });
                         } else {
                             qrBox.innerHTML = "<small style='color:black'>QR Error</small>";
                         }
@@ -257,7 +266,6 @@
             if(elClock) elClock.innerText = now.toLocaleTimeString('id-ID') + " WIT";
         }
 
-        // --- WINDOW ONLOAD (DIPERBARUI UNTUK FIX SLIDE TOMBOL) ---
         window.onload = () => { 
             updateTime(); 
             setInterval(updateTime, 1000); 
