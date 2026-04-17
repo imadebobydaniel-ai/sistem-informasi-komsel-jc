@@ -123,6 +123,20 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
+    // FUNGSI PINTAR: Mencari data di dalam object sedalam apapun
+    function findDeepValue(obj, targetKeys) {
+        for (let key in obj) {
+            if (targetKeys.includes(key.toLowerCase().trim())) {
+                return obj[key];
+            }
+            if (typeof obj[key] === 'object' && obj[key] !== null) {
+                let deep = findDeepValue(obj[key], targetKeys);
+                if (deep) return deep;
+            }
+        }
+        return null;
+    }
+
     function loadMembersRealtime() {
         db.collection("users").onSnapshot(snapshot => {
             const tableBody = document.getElementById("memberData");
@@ -132,32 +146,26 @@
             snapshot.forEach(doc => {
                 const d = doc.data();
                 
-                // --- LOGIKA DETEKSI OTOMATIS (Mencegah Data Kosong) ---
+                // Pencarian mendalam untuk Pasangan
+                const keysPasangan = ['pasangan', 'nama_pasangan', 'istri', 'suami', 'nama_istri', 'nama_suami', 'pasangan_hidup'];
+                const namaPasangan = findDeepValue(d, keysPasangan) || "-";
+                
+                // Pencarian mendalam untuk Anak
+                const keysAnak = ['anak', 'jumlah_anak', 'total_anak', 'jml_anak'];
+                const jumlahAnak = findDeepValue(d, keysAnak) || "0";
+
                 const nama = d.nama_lengkap || d.nama || "Tanpa Nama";
-                
-                // Deteksi Pasangan: Cek semua kemungkinan field
-                const namaPasangan = d.nama_pasangan || d.pasangan || d.istri || d.suami || d.nama_istri || d.nama_suami || d.couple || "-";
-                
-                // Deteksi Anak: Cek semua kemungkinan field (angka atau string)
-                const jumlahAnak = d.jumlah_anak || d.anak || d.total_anak || d.jml_anak || "0";
+                const gereja = d.lokasi_berjemaat || d.wilayah || d.jemaat || "-";
+                const komsel = d.komsel || "-";
+                const alamatDomisili = d.alamat || d.alamat_domisili || "-";
+                const kotaTinggal = d.kota || d.kabupaten || "-";
 
-                // Deteksi Gereja & Komsel
-                const gereja = d.lokasi_berjemaat || d.wilayah || d.jemaat || d.cabang || "-";
-                const komsel = d.komsel || d.kelompok || "-";
-                
-                // Deteksi Alamat & Kota
-                const alamatDomisili = d.alamat || d.alamat_domisili || d.tempat_tinggal || "-";
-                const kotaTinggal = d.kota || d.kabupaten || d.city || "-";
-
-                // Format Tanggal Lahir
                 let tglLahir = "-";
                 const rawDate = d.tanggal_lahir_murni || d.tanggal_lahir;
                 if (rawDate) {
                     if (typeof rawDate === 'object' && rawDate.toDate) {
                         tglLahir = rawDate.toDate().toLocaleDateString('id-ID');
-                    } else {
-                        tglLahir = rawDate;
-                    }
+                    } else { tglLahir = rawDate; }
                 }
 
                 const status = d.status_akun || 'Pending';
@@ -177,12 +185,14 @@
                     </td>
                     <td>${d.whatsapp || '-'}<br><small>${d.email || '-'}</small></td>
                     <td><small style="color: var(--primary); font-weight: 500;">${alamatDomisili}</small></td>
+                    
                     <td>
                         <div style="line-height: 1.4;">
                             <span title="Pasangan"><i class="fas fa-heart" style="font-size: 10px; color: #e74c3c;"></i> P: ${namaPasangan}</span><br>
                             <span title="Jumlah Anak"><i class="fas fa-child" style="font-size: 10px; color: #3498db;"></i> A: ${jumlahAnak}</span>
                         </div>
                     </td>
+
                     <td>
                         <strong style="color: var(--primary);"><i class="fas fa-church"></i> ${gereja.toUpperCase()}</strong><br>
                         <small>Komsel: ${komsel}</small>
@@ -205,8 +215,8 @@
         const count = document.querySelectorAll('.user-checkbox:checked').length;
         const menu = document.getElementById('actionMenu');
         if(menu) menu.style.display = count > 0 ? 'flex' : 'none';
-        const selectedLabel = document.getElementById('selectedCount');
-        if(selectedLabel) selectedLabel.innerText = `${count} Terpilih`;
+        const lbl = document.getElementById('selectedCount');
+        if(lbl) lbl.innerText = `${count} Terpilih`;
     }
 
     function toggleAll(source) {
@@ -222,12 +232,7 @@
     }
 
     function openEditModal(uid) { window.location.href = `edit-jemaat-administrator.html?edit=${uid}`; }
-    
-    function deleteUser(id) { 
-        if(confirm("Hapus data jemaat ini?")) {
-            db.collection("users").doc(id).delete(); 
-        }
-    }
+    function deleteUser(id) { if(confirm("Hapus data ini?")) db.collection("users").doc(id).delete(); }
 
     window.onload = loadMembersRealtime;
 </script></body>
