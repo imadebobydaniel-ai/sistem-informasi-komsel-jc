@@ -132,16 +132,10 @@
             snapshot.forEach(doc => {
                 const d = doc.data();
                 
-                // 1. Perbaikan Identitas
                 const nama = d.nama_lengkap || d.nama || "Tanpa Nama";
                 const golonganDarah = d.darah || "-";
-                
-                // 2. Perbaikan Gereja & Komsel (Menangani field 'lokasi_berjemaat')
                 const gereja = d.lokasi_berjemaat || d.wilayah || d.jemaat || "-";
                 const komsel = d.komsel || "-";
-
-                // 3. Perbaikan Alamat & TTL
-                // Mengambil field 'alamat' sesuai data JSON yang Anda kirim
                 const alamatDomisili = d.alamat || d.alamat_domisili || "-";
                 const kotaTinggal = d.kota || d.kabupaten || "-";
 
@@ -151,13 +145,14 @@
                     if (typeof rawDate === 'object' && rawDate.toDate) {
                         tglLahir = rawDate.toDate().toLocaleDateString('id-ID');
                     } else {
-                        tglLahir = rawDate; // Jika formatnya string "1982-01-21"
+                        tglLahir = rawDate;
                     }
                 }
 
                 const status = d.status_akun || 'Pending';
                 const statusClass = status === 'Aktif' ? 'badge-aktif' : 'badge-pending';
 
+                // Menyesuaikan urutan <td> dengan <th> (11 Kolom)
                 tableBody.innerHTML += `
                 <tr>
                     <td><input type="checkbox" class="user-checkbox" value="${doc.id}" onclick="updateActionMenu()"></td>
@@ -168,10 +163,10 @@
                     </td>
                     <td>
                         <i class="fas fa-map-marker-alt" style="font-size:10px;"></i> ${kotaTinggal}<br>
-                        <small>${tglLahir}</small><br>
-                        <small style="color: var(--primary); font-weight: 500;">${alamatDomisili}</small>
+                        <small>${tglLahir}</small>
                     </td>
                     <td>${d.whatsapp || '-'}<br><small>${d.email || '-'}</small></td>
+                    <td><small style="color: var(--primary); font-weight: 500;">${alamatDomisili}</small></td>
                     <td><small>P: ${d.nama_pasangan || '-'}<br>A: ${d.jumlah_anak || '0'}</small></td>
                     <td>
                         <strong style="color: var(--primary);"><i class="fas fa-church"></i> ${gereja.toUpperCase()}</strong><br>
@@ -191,7 +186,6 @@
         });
     }
 
-    // Fungsi pendukung lainnya (tetap sama)
     function updateActionMenu() {
         const count = document.querySelectorAll('.user-checkbox:checked').length;
         const menu = document.getElementById('actionMenu');
@@ -215,6 +209,5 @@
     function deleteUser(id) { if(confirm("Hapus data ini?")) db.collection("users").doc(id).delete(); }
 
     window.onload = loadMembersRealtime;
-</script>
-</body>
+</script></body>
 </html>
