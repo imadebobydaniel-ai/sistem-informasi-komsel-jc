@@ -9,22 +9,6 @@
         :root { --primary: #003366; --accent: #007bff; --light: #f4f7f6; --gold: #D4AF37; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--light); padding: 20px; }
         
-        /* Style Preview Kartu */
-        .card-preview-section { 
-            max-width: 800px; margin: 0 auto 30px; background: #fff; padding: 20px; 
-            border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;
-        }
-        .id-card {
-            width: 450px; height: 280px; background: linear-gradient(135deg, #003366 0%, #0055aa 100%);
-            border-radius: 15px; margin: 20px auto; position: relative; color: white;
-            text-align: left; padding: 20px; box-sizing: border-box; border: 3px solid var(--gold);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-        .id-card h2 { margin: 0; font-size: 18px; border-bottom: 1px solid var(--gold); padding-bottom: 5px; }
-        .card-content { margin-top: 15px; font-size: 13px; }
-        .card-content div { margin-bottom: 5px; }
-        .card-content strong { color: var(--gold); display: inline-block; width: 80px; }
-
         /* Style Form CMS */
         .edit-container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .form-group { margin-bottom: 15px; position: relative; } 
@@ -46,34 +30,14 @@
 
 <div id="loading" class="loading-overlay"><p><i class="fas fa-spinner fa-spin"></i> Memuat Data...</p></div>
 
-<div class="card-preview-section">
-    <h3 style="color: var(--primary); margin: 0;">Live Preview Kartu Jemaat</h3>
-    <div class="id-card" id="printArea">
-        <h2>KARTU ANGGOTA JEMAAT</h2>
-        <div class="card-content">
-            <div><strong>NIJ</strong>: <span id="display_nij">-</span></div>
-            <div><strong>NAMA</strong>: <span id="display_nama">-</span></div>
-            <div><strong>TTL</strong>: <span id="display_ttl">-</span></div>
-            <div><strong>ALAMAT</strong>: <span id="display_alamat">-</span></div>
-            <div><strong>JABATAN</strong>: <span id="display_jabatan">-</span></div>
-            <div><strong>WILAYAH</strong>: <span id="display_wilayah">-</span></div>
-            <div><strong>KOMSEL</strong>: <span id="display_komsel">-</span></div>
-        </div>
-        <div style="position: absolute; bottom: 15px; right: 20px; font-size: 10px; color: var(--gold);">
-            Gereja Digital System © 2026
-        </div>
-    </div>
-    <button onclick="window.print()" style="padding: 8px 15px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc;"><i class="fas fa-print"></i> Cetak Kartu Ini</button>
-</div>
-
 <div class="edit-container">
     <a href="admin.html" class="btn-back"><i class="fas fa-arrow-left"></i> Kembali ke Dashboard</a>
     <h2 class="section-title">CMS Edit Profil & Kartu</h2>
     
     <form id="editForm">
         <div class="form-group">
-            <label>Nama Lengkap (Muncul di Kartu)</label>
-            <input type="text" id="nama_lengkap" oninput="syncLive()" required>
+            <label>Nama Lengkap</label>
+            <input type="text" id="nama_lengkap" required>
         </div>
         <div class="form-group">
             <label>NIJ (Nomor Induk Jemaat)</label>
@@ -81,7 +45,7 @@
         </div>
         <div class="form-group">
             <label>Tanggal Lahir</label>
-            <input type="date" id="tanggal_lahir_murni" oninput="syncLive()" required>
+            <input type="date" id="tanggal_lahir_murni" required>
         </div>
         <div class="form-group">
             <label>Golongan Darah</label>
@@ -114,8 +78,8 @@
             <select id="provinsi" onchange="loadKota(this.value)"><option value="">Pilih Provinsi</option></select>
         </div>
         <div class="form-group">
-            <label>Kota / Kabupaten (Muncul di TTL Kartu)</label>
-            <select id="kota" onchange="loadKecamatan(this.value); syncLive()"><option value="">Pilih Kota</option></select>
+            <label>Kota / Kabupaten</label>
+            <select id="kota" onchange="loadKecamatan(this.value)"><option value="">Pilih Kota</option></select>
         </div>
         <div class="form-group">
             <label>Kecamatan</label>
@@ -127,12 +91,12 @@
         </div>
 
         <div class="form-group">
-            <label>Alamat Domisili (Muncul di Kartu)</label>
-            <textarea id="alamat" rows="2" oninput="syncLive()"></textarea>
+            <label>Alamat Domisili</label>
+            <textarea id="alamat" rows="2"></textarea>
         </div>
         <div class="form-group">
             <label>Wilayah Berjemaat</label>
-            <select id="wilayah" onchange="updateKomsel(); syncLive()">
+            <select id="wilayah" onchange="updateKomsel()">
                 <option value="">-- Pilih Wilayah --</option>
                 <option value="Abepura">Abepura</option>
                 <option value="Sentani">Sentani</option>
@@ -143,11 +107,11 @@
         </div>
         <div class="form-group">
             <label>Komsel / Jemaat Cell</label>
-            <select id="komsel" onchange="syncLive()"><option value="">-- Pilih Wilayah Terlebih Dahulu --</option></select>
+            <select id="komsel"><option value="">-- Pilih Wilayah Terlebih Dahulu --</option></select>
         </div>
         <div class="form-group">
             <label>Jabatan Utama</label>
-            <select id="jabatan" onchange="syncLive()">
+            <select id="jabatan">
                 <option value="Anggota Jemaat">Anggota Jemaat</option>
                 <option value="Gembala Sidang">Gembala Sidang</option>
                 <option value="Pemimpin / Koordinator">Pemimpin / Koordinator</option>
@@ -156,18 +120,6 @@
             </select>
         </div>
         <div class="form-group">
-            <label>Sub Bidang Jabatan</label>
-            <select id="sub_bidang" onchange="updateFungsiPelayanan()">
-                <option value="Anggota Jemaat Ordinari">Anggota Jemaat Ordinari</option>
-                <option value="Gembala Sidang Jemaat">Gembala Sidang Jemaat</option>
-                <option value="Pdt. Pembantu">Pdt. Pembantu</option>
-                <option value="Sekretaris Gereja">Sekretaris Gereja</option>
-                <option value="PKS Komsel">PKS Komsel</option>
-                <option value="Fulltimer Gereja">Fulltimer Gereja</option>
-            </select>
-        </div>
-        
-        <div class="form-group">
             <label>Status Akun</label>
             <select id="status_akun">
                 <option value="Pending">Pending</option>
@@ -175,7 +127,7 @@
             </select>
         </div>
 
-        <button type="submit" class="btn-save"><i class="fas fa-save"></i> Simpan Data & Update Kartu</button>
+        <button type="submit" class="btn-save"><i class="fas fa-save"></i> Simpan Perubahan Data</button>
     </form>
 </div>
 
@@ -197,36 +149,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     const userId = urlParams.get('edit'); 
 
-    // 2. LIVE SYNC FUNCTION (PENTING!)
-    // Fungsi ini membuat apa yang diketik di CMS langsung muncul di kartu atas
-    function syncLive() {
-        const nama = document.getElementById('nama_lengkap').value;
-        const nij = document.getElementById('nij').value;
-        const tglMurni = document.getElementById('tanggal_lahir_murni').value;
-        const kotaSelect = document.getElementById('kota');
-        const kota = kotaSelect.selectedIndex > 0 ? kotaSelect.options[kotaSelect.selectedIndex].text : "-";
-        const alamat = document.getElementById('alamat').value;
-        const jabatan = document.getElementById('jabatan').value;
-        const wilayah = document.getElementById('wilayah').value;
-        const komsel = document.getElementById('komsel').value;
-
-        // Format Tanggal untuk Kartu (DD/MM/YYYY)
-        let tglIndo = "-";
-        if(tglMurni) {
-            const [y, m, d] = tglMurni.split("-");
-            tglIndo = `${d}/${m}/${y}`;
-        }
-
-        document.getElementById('display_nama').innerText = nama || "-";
-        document.getElementById('display_nij').innerText = nij || "-";
-        document.getElementById('display_ttl').innerText = `${kota}, ${tglIndo}`;
-        document.getElementById('display_alamat').innerText = alamat || "-";
-        document.getElementById('display_jabatan').innerText = jabatan || "-";
-        document.getElementById('display_wilayah').innerText = wilayah || "-";
-        document.getElementById('display_komsel').innerText = komsel || "-";
-    }
-
-    // 3. MAPPING DATA
+    // 2. MAPPING DATA
     const dataKomsel = { 
         "Abepura": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "Esther 8", "Esther 9", "Esther 10", "Esther 11", "Esther 12", "Komsel Mahasiswa Abe", "Komsel Profesi Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu"],
         "Sentani": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Komsel 5", "Siloam 6", "Siloam 8", "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", "Komsel Remaja Sentani", "Komsel Sekolah Minggu Sentani"],
@@ -247,7 +170,7 @@
         }
     }
 
-    // 4. GEOLOCATION (API Wilayah)
+    // 3. GEOLOCATION (API Wilayah)
     async function loadProvinsi(selectedName = "") {
         const res = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
         const data = await res.json();
@@ -301,7 +224,7 @@
         document.getElementById('desa').innerHTML = options;
     }
 
-    // 5. LOAD DATA FROM FIREBASE
+    // 4. LOAD DATA FROM FIREBASE
     window.onload = async function() {
         if (!userId) return;
         try {
@@ -311,7 +234,6 @@
                 document.getElementById('nama_lengkap').value = data.nama_lengkap || '';
                 document.getElementById('nij').value = data.nij || '';
                 
-                // Handle Tanggal Lahir (Murni YYYY-MM-DD)
                 let tgl = data.tanggal_lahir_murni || data.tanggal_lahir || "";
                 if(tgl && typeof tgl === 'object') tgl = new Date(tgl.seconds * 1000).toISOString().split('T')[0];
                 document.getElementById('tanggal_lahir_murni').value = tgl;
@@ -324,7 +246,6 @@
                 document.getElementById('email').value = data.email || '';
                 document.getElementById('status_akun').value = data.status_akun || 'Pending';
 
-                // Load API Wilayah
                 const provId = await loadProvinsi(data.provinsi);
                 if(provId) {
                     const kotaId = await loadKota(provId, data.kota);
@@ -335,12 +256,11 @@
                 }
 
                 document.getElementById('loading').style.display = 'none';
-                syncLive(); // Jalankan preview pertama kali
             }
         } catch (e) { console.error(e); }
     };
 
-    // 6. SAVE ACTION
+    // 5. SAVE ACTION
     document.getElementById('editForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = e.target.querySelector('button');
@@ -369,7 +289,7 @@
 
         try {
             await db.collection("users").doc(userId).update(updateData);
-            alert("Berhasil! Data Database & Kartu telah sinkron.");
+            alert("Berhasil! Data telah diperbarui.");
             window.location.reload();
         } catch (err) {
             alert("Error: " + err.message);
