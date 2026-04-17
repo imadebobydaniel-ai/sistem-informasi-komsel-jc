@@ -201,10 +201,9 @@
         });
     }
 
-    // Fungsi Utama Extract PDF sesuai instruksi
     async function extractToPDF() {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('l', 'mm', 'a4');
+        const doc = new jsPDF('l', 'mm', 'a4'); 
         const checkboxes = document.querySelectorAll('.user-checkbox:checked');
         const selectedIds = Array.from(checkboxes).map(cb => cb.value);
 
@@ -247,12 +246,12 @@
             body: body,
             startY: 28,
             theme: 'grid',
-            headStyles: { fillColor: [0, 51, 102] },
+            headStyles: { fillColor: [0, 51, 102] }, 
             styles: { fontSize: 8, cellPadding: 3 },
             columnStyles: {
-                0: { cellWidth: 30 },
-                1: { cellWidth: 40 },
-                4: { cellWidth: 50 }
+                0: { cellWidth: 30 }, 
+                1: { cellWidth: 40 }, 
+                4: { cellWidth: 50 }  
             }
         });
 
