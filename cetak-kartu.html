@@ -110,13 +110,37 @@
             return;
         }
 
+        console.log("--- DEBUG START: FETCHING DATA ---");
+
         for (const id of ids) {
             const doc = await db.collection("users").doc(id).get();
             if (doc.exists) {
                 const d = doc.data();
+                
+                // --- BAGIAN DEBUG INSPECT (Cek di Console F12) ---
+                console.log(`User: ${d.nama_lengkap || d.nama}`);
+                console.log(`Raw Field 'tanggal_lahir':`, d.tanggal_lahir);
+                console.log(`Raw Field 'tgl_lahir':`, d.tgl_lahir);
+                console.log(`Raw Field 'tanggal_lahir_murni':`, d.tanggal_lahir_murni);
+
+                // --- LOGIKA PERBAIKAN TANGGAL ---
+                let tglLahir = "-";
+                // Cek berbagai kemungkinan nama field
+                const rawDate = d.tanggal_lahir_murni || d.tanggal_lahir || d.tgl_lahir;
+
+                if (rawDate) {
+                    // Jika formatnya adalah Firebase Timestamp Object
+                    if (typeof rawDate === 'object' && rawDate.toDate) {
+                        tglLahir = rawDate.toDate().toLocaleDateString('id-ID');
+                    } 
+                    // Jika formatnya sudah string (misal: "1982-01-21")
+                    else {
+                        tglLahir = rawDate;
+                    }
+                }
+
                 const nijValue = d.nij || "NO-NIJ";
                 const fotoFinal = d.foto_profil || d.url_foto || d.url_berkas || 'https://via.placeholder.com/115x140?text=FOTO';
-                const tglLahir = d.tanggal_lahir || d.tgl_lahir || "-";
                 const tempatLahir = d.kota || d.tempat_lahir || "-";
                 
                 const cardHtml = `
@@ -170,6 +194,7 @@
                 }, 300);
             }
         }
+        console.log("--- DEBUG END ---");
     }
 
     window.onload = drawCards;
