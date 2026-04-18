@@ -217,9 +217,8 @@
     const statusAdmin = localStorage.getItem("isAdmin");
 
     // --- FUNGSI HELPER: Ekstrak ID YouTube ---
-    // Fungsi ini memastikan jika Anda memasukkan link lengkap, sistem tetap hanya mengambil ID-nya saja.
     function extractVideoID(url) {
-        if (!url) return 'aqz-KE-bpKQ'; // Default jika kosong
+        if (!url) return 'aqz-KE-bpKQ';
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
         const match = url.match(regExp);
         return (match && match[2].length === 11) ? match[2] : url;
@@ -238,13 +237,12 @@
         });
     }
 
-    // --- 3. YOUTUBE MEDIA PLAYER LOGIC (Kombinasi Mujarab) ---
+    // --- 3. YOUTUBE MEDIA PLAYER LOGIC ---
     let player;
     let isPlayerReady = false;
     let pendingVideoId = null;
 
     function onYouTubeIframeAPIReady() {
-        console.log("🎥 Inisialisasi Player...");
         player = new YT.Player('player', {
             height: '100%',
             width: '100%',
@@ -256,20 +254,11 @@
                 'rel': 0,
                 'enablejsapi': 1,
                 'loop': 1,
-                'playlist': 'aqz-KE-bpKQ',
-                // KUNCI MUJARAB: Mengatasi blokir origin
-                'origin': window.location.origin, 
-                'widget_referrer': window.location.href 
+                'origin': window.location.origin
             },
             events: { 
                 'onReady': onPlayerReady,
-                'onError': (e) => {
-                    console.error("❌ YouTube API Error:", e.data);
-                    // Error 150/101: Video dilarang diputar di luar domain YouTube
-                    if(e.data == 150 || e.data == 101) {
-                        console.warn("Video ini tidak mengizinkan pemutaran di luar YouTube.");
-                    }
-                }
+                'onError': (e) => { console.error("❌ YouTube API Error:", e.data); }
             }
         });
     }
@@ -278,7 +267,6 @@
         isPlayerReady = true;
         event.target.playVideo();
         
-        // Cek apakah ada video yang sudah antre di Firestore sebelum player siap
         if (pendingVideoId) {
             player.loadVideoById(pendingVideoId);
             pendingVideoId = null;
@@ -286,7 +274,7 @@
         listenPlaylist(); 
     }
 
-    // SINKRONISASI PLAYLIST
+    // SINKRONISASI PLAYLIST (MENDENGARKAN INPUT DARI PORTAL MEDIA)
     function listenPlaylist() {
         db.collection("config").doc("playlist").onSnapshot((doc) => {
             if (doc.exists) {
@@ -295,8 +283,6 @@
 
                 if (rawId) {
                     const cleanId = extractVideoID(rawId);
-                    console.log("📺 Memutar Video:", cleanId);
-                    
                     if (isPlayerReady && player && player.loadVideoById) {
                         player.loadVideoById(cleanId);
                     } else {
