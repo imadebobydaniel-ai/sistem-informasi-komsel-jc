@@ -238,7 +238,7 @@
         });
     }
 
-    // --- 3. YOUTUBE MEDIA PLAYER LOGIC ---
+    // --- 3. YOUTUBE MEDIA PLAYER LOGIC (Kombinasi Mujarab) ---
     let player;
     let isPlayerReady = false;
     let pendingVideoId = null;
@@ -252,16 +252,23 @@
             playerVars: { 
                 'autoplay': 1, 
                 'mute': 1, 
-                'loop': 1, 
-                'playlist': 'aqz-KE-bpKQ',
-                'origin': window.location.origin, // Otomatis menyesuaikan (localhost/github)
+                'controls': 1,
+                'rel': 0,
                 'enablejsapi': 1,
-                'rel': 0
+                'loop': 1,
+                'playlist': 'aqz-KE-bpKQ',
+                // KUNCI MUJARAB: Mengatasi blokir origin
+                'origin': window.location.origin, 
+                'widget_referrer': window.location.href 
             },
             events: { 
                 'onReady': onPlayerReady,
                 'onError': (e) => {
                     console.error("❌ YouTube API Error:", e.data);
+                    // Error 150/101: Video dilarang diputar di luar domain YouTube
+                    if(e.data == 150 || e.data == 101) {
+                        console.warn("Video ini tidak mengizinkan pemutaran di luar YouTube.");
+                    }
                 }
             }
         });
@@ -271,7 +278,7 @@
         isPlayerReady = true;
         event.target.playVideo();
         
-        // Cek apakah ada video yang sudah antre di Firestore
+        // Cek apakah ada video yang sudah antre di Firestore sebelum player siap
         if (pendingVideoId) {
             player.loadVideoById(pendingVideoId);
             pendingVideoId = null;
@@ -284,7 +291,6 @@
         db.collection("config").doc("playlist").onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
-                // Kita asumsikan activeContentId berisi ID atau URL Video
                 const rawId = data.activeContentId; 
 
                 if (rawId) {
@@ -379,7 +385,7 @@
         syncUser(); 
         listenRunningText(); 
 
-        const btnToggle = document.getElementById('toggleProfile'); 
+        const btnToggle = document.getElementById('toggleProfile');
         const profileCard = document.getElementById('profileCard');
         if(btnToggle && profileCard) {
             btnToggle.addEventListener('click', (e) => {
