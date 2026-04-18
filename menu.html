@@ -237,16 +237,13 @@
         });
     }
 
-    // --- 3. MEDIA PLAYER LOGIC (DETEKSI OTOMATIS) ---
+    // --- 3. MEDIA PLAYER LOGIC ---
     let player;
     let isPlayerReady = false;
     let pendingVideoId = null;
 
     // Fungsi Inisialisasi YouTube API
     function onYouTubeIframeAPIReady() {
-        const playerDiv = document.getElementById('player');
-        if (!playerDiv) return; // Pastikan elemen ada sebelum inisialisasi
-
         player = new YT.Player('player', {
             height: '100%',
             width: '100%',
@@ -270,55 +267,65 @@
     function onPlayerReady(event) {
         isPlayerReady = true;
         event.target.playVideo();
-        
         if (pendingVideoId) {
             player.loadVideoById(pendingVideoId);
             pendingVideoId = null;
         }
     }
 
-    // SINKRONISASI PLAYLIST (Mampu mendeteksi YouTube vs Video File)
+    // --- FUNGSI UPDATE PLAYER (DETEKSI CLOUDINARY VS YOUTUBE) ---
+    function updatePlayer(rawPath) {
+        const videoPlayer = document.getElementById('videoPlayer'); // Pastikan ID ini sesuai di HTML (video tag)
+        const youtubeContainer = document.getElementById('player'); // Container YouTube (div id="player")
+
+        if (!rawPath) return;
+
+        // Cek apakah ini link Cloudinary atau Direct Video
+        const isDirectVideo = rawPath.includes('cloudinary.com') || rawPath.toLowerCase().endsWith('.mp4');
+
+        if (isDirectVideo) {
+            console.log("🎥 Memutar File Video Direct:", rawPath);
+            
+            // Tampilan: Sembunyikan YouTube, Tampilkan Video Tag
+            if(youtubeContainer) youtubeContainer.style.display = 'none';
+            if(videoPlayer) {
+                videoPlayer.style.display = 'block';
+                // Jika sumber berubah, load video baru
+                if (videoPlayer.src !== rawPath) {
+                    videoPlayer.src = rawPath;
+                    videoPlayer.load();
+                    videoPlayer.play().catch(e => console.log("Autoplay blocked"));
+                }
+            }
+            
+            // Matikan suara/stop YouTube jika sedang jalan
+            if (player && player.stopVideo) player.stopVideo();
+        } else {
+            // Jika bukan link, anggap ID YouTube
+            const cleanId = extractVideoID(rawPath);
+            console.log("📺 Memutar YouTube Player:", cleanId);
+
+            // Tampilan: Sembunyikan Video Tag, Tampilkan YouTube
+            if(videoPlayer) {
+                videoPlayer.pause();
+                videoPlayer.style.display = 'none';
+            }
+            if(youtubeContainer) youtubeContainer.style.display = 'block';
+
+            if (isPlayerReady && player && player.loadVideoById) {
+                player.loadVideoById(cleanId);
+            } else {
+                pendingVideoId = cleanId;
+            }
+        }
+    }
+
+    // SINKRONISASI PLAYLIST DARI FIRESTORE
     function listenPlaylist() {
         db.collection("config").doc("playlist").onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
-                const rawPath = data.activeContentId; 
-
-                if (rawPath) {
-                    const mediaArea = document.getElementById('media-display-area');
-                    
-                    // --- KONDISI A: Jika Media adalah Link Video (Cloudinary / Direct MP4) ---
-                    if (rawPath.includes('cloudinary.com') || rawPath.endsWith('.mp4')) {
-                        console.log("📂 Memutar File Video Direct:", rawPath);
-                        
-                        // Render Tag Video HTML5
-                        mediaArea.innerHTML = `
-                            <video id="videoPlayer" width="100%" height="100%" autoplay muted loop playsinline 
-                                style="object-fit: cover; border-radius: 0px; background: black;">
-                                <source src="${rawPath}" type="video/mp4">
-                                Browser Anda tidak mendukung tag video.
-                            </video>`;
-                        
-                        isPlayerReady = false; // Reset status YouTube player
-                    } 
-                    // --- KONDISI B: Jika Media adalah YouTube ID / URL ---
-                    else {
-                        const cleanId = extractVideoID(rawPath);
-                        console.log("📺 Memutar YouTube Player:", cleanId);
-                        
-                        // Kembalikan kontainer ke div player jika sebelumnya adalah video tag
-                        if (!document.getElementById('player')) {
-                            mediaArea.innerHTML = `<div id="player"></div>`;
-                            onYouTubeIframeAPIReady(); // Re-init YouTube
-                        }
-                        
-                        if (isPlayerReady && player && player.loadVideoById) {
-                            player.loadVideoById(cleanId);
-                        } else {
-                            pendingVideoId = cleanId;
-                        }
-                    }
-                }
+                updatePlayer(data.activeContentId);
             }
         }, (err) => {
             console.error("❌ Firestore Playlist Error:", err);
@@ -400,7 +407,7 @@
         setInterval(updateTime, 1000); 
         syncUser(); 
         listenRunningText(); 
-        listenPlaylist(); // Panggil sinkronisasi media di sini
+        listenPlaylist(); 
 
         const btnToggle = document.getElementById('toggleProfile');
         const profileCard = document.getElementById('profileCard');
