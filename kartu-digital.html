@@ -77,69 +77,73 @@
     </div>
 
     <script>
-        // 1. CONFIG FIREBASE
-        const firebaseConfig = { 
-            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
-            authDomain: "boby-apps-project.firebaseapp.com", 
-            projectId: "boby-apps-project", 
-            storageBucket: "boby-apps-project.appspot.com", 
-            messagingSenderId: "125984859692", 
-            appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
-        };
-        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-        const db = firebase.firestore();
+    // 1. CONFIG FIREBASE
+    const firebaseConfig = { 
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
+        authDomain: "boby-apps-project.firebaseapp.com", 
+        projectId: "boby-apps-project", 
+        storageBucket: "boby-apps-project.appspot.com", 
+        messagingSenderId: "125984859692", 
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
+    };
+    
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
 
-        // 2. FUNGSI UTAMA TAMPILKAN KARTU
-        async function showDigitalCard() {
-            const userEmail = localStorage.getItem("userEmail");
-            if(!userEmail) {
-                alert("Silahkan login terlebih dahulu.");
-                return;
-            }
-
-            try {
-                const snapshot = await db.collection("users").where("email", "==", userEmail).get();
-                if(!snapshot.empty) {
-                    const data = snapshot.docs[0].data();
-
-                    // Update Tampilan Kartu
-                    document.getElementById('d-nama').innerText = data.nama || "No Name";
-                    document.getElementById('d-jemaat').innerText = data.lokasi_berjemaat || "-";
-                    document.getElementById('d-komsel').innerText = data.komsel || "-";
-                    document.getElementById('d-nij').innerText = data.nij || "0000 0000 0000";
-
-                    // Update QR Code dinamis ke bio-singkat-jemaat.html
-                    const qrContainer = document.getElementById("qrcode");
-                    qrContainer.innerHTML = "";
-                    
-                    const scanUrl = "https://imadebobydaniel-ai.github.io/sistem-informasi-pondok-pemulihan-papua/bio-singkat-jemaat.html?scan=" + encodeURIComponent(userEmail);
-                    
-                    new QRCode(qrContainer, {
-                        text: scanUrl,
-                        width: 70,
-                        height: 70,
-                        colorDark : "#003366",
-                        colorLight : "#ffffff",
-                        correctLevel : QRCode.CorrectLevel.H
-                    });
-
-                    document.getElementById('cardModal').style.display = 'flex';
-                } else {
-                    alert("Data tidak ditemukan.");
-                }
-            } catch (e) {
-                console.error(e);
-                alert("Gagal memuat data.");
-            }
+    // 2. FUNGSI UTAMA TAMPILKAN KARTU
+    async function showDigitalCard() {
+        const userEmail = localStorage.getItem("userEmail");
+        if(!userEmail) {
+            alert("Silahkan login terlebih dahulu.");
+            window.location.href = "login.html";
+            return;
         }
 
-        function closeDigitalCard() {
-            // Jika ingin kembali ke menu utama
-            window.location.href = "menu.html"; 
-        }
+        try {
+            const snapshot = await db.collection("users").where("email", "==", userEmail).get();
+            if(!snapshot.empty) {
+                const data = snapshot.docs[0].data();
 
-        // Jalankan otomatis saat halaman dibuka
-        window.onload = showDigitalCard;
-    </script>
+                // Update Tampilan Kartu
+                document.getElementById('d-nama').innerText = data.nama || "No Name";
+                document.getElementById('d-jemaat').innerText = data.lokasi_berjemaat || "-";
+                document.getElementById('d-komsel').innerText = data.komsel || "-";
+                document.getElementById('d-nij').innerText = data.nij || "0000 0000 0000";
+
+                // --- LOGIKA QR CODE YANG SUDAH DIPERBAIKI ---
+                const qrContainer = document.getElementById("qrcode");
+                qrContainer.innerHTML = ""; // Bersihkan QR lama agar tidak menumpuk
+
+                // Pastikan URL mengarah ke file bio-singkat-jemaat.html di repo Anda
+                const baseUrl = "https://imadebobydaniel-ai.github.io/sistem-informasi-pondok-pemulihan-papua/bio-singkat-jemaat.html";
+                const scanUrl = baseUrl + "?scan=" + encodeURIComponent(userEmail);
+                
+                new QRCode(qrContainer, {
+                    text: scanUrl,
+                    width: 75,   // Ukuran disesuaikan untuk kartu digital
+                    height: 75,
+                    colorDark : "#003366",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+
+                document.getElementById('cardModal').style.display = 'flex';
+            } else {
+                alert("Data tidak ditemukan di database.");
+            }
+        } catch (e) {
+            console.error("Error memuat kartu:", e);
+            alert("Gagal memuat data kartu digital.");
+        }
+    }
+
+    function closeDigitalCard() {
+        // Kembali ke menu utama setelah menutup kartu
+        window.location.href = "menu.html"; 
+    }
+
+    // Jalankan otomatis saat halaman dibuka
+    window.onload = showDigitalCard;
+</script>
 </body>
 </html>
