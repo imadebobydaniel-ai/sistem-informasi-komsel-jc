@@ -366,41 +366,57 @@
                 'controls': 1, 
                 'rel': 0, 
                 'loop': 1, 
-                'playlist': VIDEO_ID 
+                'playlist': VIDEO_ID,
+                'origin': window.location.origin, // Memperbaiki error postMessage
+                'enablejsapi': 1
             },
             events: { 
                 'onReady': (event) => { 
                     isYtReady = true; 
-                    event.target.playVideo(); 
+                    // Delay kecil agar player benar-benar siap
+                    setTimeout(() => { event.target.playVideo(); }, 500);
                     if (pendingYtId) { 
                         ytPlayer.loadVideoById(pendingYtId); 
                         pendingYtId = null; 
                     } 
-                } 
+                },
+                'onError': (e) => { console.error("YouTube Error:", e.data); }
             }
         });
     }
 
     // 3. Data Listeners (Firestore)
     function listenData() {
+        // Listener Running Text
         db.collection("config").doc("running_text").onSnapshot(doc => {
             if (doc.exists) document.getElementById('rt_display').innerText = doc.data().pesan;
         });
+
+        // Listener Data Profil
         if (userEmail) {
             db.collection("users").where("email", "==", userEmail).onSnapshot(s => {
                 if (!s.empty) {
                     const d = s.docs[0].data();
+                    // Mengganti teks "Memuat..." dengan nama asli
                     document.getElementById('disp_nama').innerText = d.nama || "User";
                     document.getElementById('disp_email').innerText = userEmail;
                     document.getElementById('disp_komsel').innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
+                    
                     if (d.foto_profil) {
                         const img = document.getElementById('user-photo');
                         img.src = d.foto_profil;
                         img.style.display = "block";
                         document.getElementById('default-icon').style.display = "none";
                     }
+                } else {
+                    document.getElementById('disp_nama').innerText = "User Tidak Ditemukan";
                 }
+            }, (error) => {
+                console.error("Firestore Error:", error);
+                document.getElementById('disp_nama').innerText = "Gagal Memuat";
             });
+        } else {
+            window.location.href = "index.html"; // Redirect jika email tidak ada
         }
     }
 
@@ -423,7 +439,6 @@
     function confirmLogout() { document.getElementById('modal-logout').style.display = 'flex'; }
     function closeLogoutModal() { document.getElementById('modal-logout').style.display = 'none'; }
     
-    // PERUBAHAN DI SINI: Diarahkan ke index.html
     function executeLogout() { 
         auth.signOut().then(() => { 
             localStorage.clear(); 
