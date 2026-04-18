@@ -181,175 +181,182 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
 
-    <script>
-        // --- 1. KONFIGURASI FIREBASE ---
-        const firebaseConfig = { 
-            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
-            authDomain: "boby-apps-project.firebaseapp.com", 
-            projectId: "boby-apps-project", 
-            storageBucket: "boby-apps-project.appspot.com", 
-            messagingSenderId: "125984859692", 
-            appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
-        };
+  <script>
+    // --- 1. KONFIGURASI FIREBASE ---
+    const firebaseConfig = { 
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
+        authDomain: "boby-apps-project.firebaseapp.com", 
+        projectId: "boby-apps-project", 
+        storageBucket: "boby-apps-project.appspot.com", 
+        messagingSenderId: "125984859692", 
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
+    };
 
-        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-        const db = firebase.firestore();
-        const auth = firebase.auth();
-        const userEmail = localStorage.getItem("userEmail");
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    const userEmail = localStorage.getItem("userEmail");
 
-        // --- 2. MEDIA PLAYER LOGIC (DITINGKATKAN) ---
-        let ytPlayer;
-        let isYtReady = false;
-        let pendingYtId = null;
+    // --- 2. MEDIA PLAYER LOGIC (INTEGRASI BARU) ---
+    let ytPlayer;
+    let isYtReady = false;
+    let pendingYtId = null;
 
-        function onYouTubeIframeAPIReady() {
-            ytPlayer = new YT.Player('player', {
-                height: '100%',
-                width: '100%',
-                videoId: 'aqz-KE-bpKQ', 
-                playerVars: { 'autoplay': 1, 'mute': 1, 'controls': 1, 'rel': 0, 'loop': 1, 'playlist': 'aqz-KE-bpKQ' },
-                events: { 
-                    'onReady': (event) => {
-                        isYtReady = true;
-                        if (pendingYtId) {
-                            ytPlayer.loadVideoById(pendingYtId);
-                            pendingYtId = null;
-                        }
+    function onYouTubeIframeAPIReady() {
+        ytPlayer = new YT.Player('player', {
+            height: '100%',
+            width: '100%',
+            videoId: 'aqz-KE-bpKQ', 
+            playerVars: { 'autoplay': 1, 'mute': 1, 'controls': 1, 'rel': 0, 'loop': 1, 'playlist': 'aqz-KE-bpKQ' },
+            events: { 
+                'onReady': (event) => {
+                    isYtReady = true;
+                    if (pendingYtId) {
+                        ytPlayer.loadVideoById(pendingYtId);
+                        pendingYtId = null;
                     }
                 }
-            });
-        }
-
-        function updateMedia(rawPath) {
-            const vPlayer = document.getElementById('videoPlayer');
-            const aPlayer = document.getElementById('audioPlayer');
-            const iDisplay = document.getElementById('imageDisplay');
-            const tDisplay = document.getElementById('textDisplay');
-            const ytContainer = document.getElementById('player');
-            
-            if (!rawPath) return;
-
-            // Sembunyikan semua elemen pendukung
-            [vPlayer, aPlayer, iDisplay, tDisplay, ytContainer].forEach(el => el.style.display = 'none');
-            if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
-            vPlayer.pause();
-            if(aPlayer.src) aPlayer.pause();
-
-            const ext = rawPath.split('.').pop().toLowerCase();
-
-            // LOGIC PENDUKUNG FORMAT BARU
-            // 1. VIDEO (MP4, MOV, AVI)
-            if (rawPath.includes('cloudinary.com') || ['mp4', 'mov', 'avi'].includes(ext)) {
-                vPlayer.style.display = 'block';
-                if (vPlayer.src !== rawPath) {
-                    vPlayer.src = rawPath;
-                    vPlayer.load();
-                    vPlayer.play().catch(e => console.log("Autoplay blocked"));
-                }
-            } 
-            // 2. AUDIO (MP3, OGG, WAV)
-            else if (['mp3', 'ogg', 'wav'].includes(ext)) {
-                aPlayer.style.display = 'block';
-                aPlayer.src = rawPath;
-                aPlayer.play().catch(e => console.log("Audio autoplay blocked"));
             }
-            // 3. GAMBAR (JPG, PNG)
-            else if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
-                iDisplay.style.display = 'block';
-                iDisplay.src = rawPath;
+        });
+    }
+
+    // FUNGSI UTAMA UNTUK UPDATE MEDIA BERDASARKAN TIPE DARI ADMIN
+    function updateMedia(url, tipe) {
+        const vPlayer = document.getElementById('videoPlayer');
+        const aPlayer = document.getElementById('audioPlayer');
+        const iDisplay = document.getElementById('imageDisplay');
+        const tDisplay = document.getElementById('textDisplay');
+        const ytContainer = document.getElementById('player');
+        
+        if (!url) return;
+
+        // 1. Matikan dan Sembunyikan semua player lebih dulu
+        [vPlayer, aPlayer, iDisplay, tDisplay, ytContainer].forEach(el => {
+            if(el) el.style.display = 'none';
+        });
+
+        if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+        vPlayer.pause();
+        if(aPlayer.src) aPlayer.pause();
+
+        // 2. Jalankan Player sesuai tipe yang dikirim Admin
+        if (tipe === "video_youtube") {
+            ytContainer.style.display = 'block';
+            const ytId = extractId(url);
+            if (isYtReady && ytPlayer && ytPlayer.loadVideoById) {
+                ytPlayer.loadVideoById(ytId);
+            } else {
+                pendingYtId = ytId;
             }
-            // 4. TEXT (.TEXT / .TXT)
-            else if (ext === 'text' || ext === 'txt') {
-                tDisplay.style.display = 'block';
-                fetch(rawPath).then(r => r.text()).then(t => tDisplay.innerText = t).catch(() => tDisplay.innerText = "Gagal memuat teks.");
-            }
-            // 5. YOUTUBE (DEFAULT)
-            else {
-                ytContainer.style.display = 'block';
-                const ytId = extractId(rawPath);
-                if (isYtReady && ytPlayer && ytPlayer.loadVideoById) {
-                    ytPlayer.loadVideoById(ytId);
-                } else {
-                    pendingYtId = ytId;
-                }
+        } 
+        else if (tipe === "video_player") {
+            vPlayer.style.display = 'block';
+            if (vPlayer.src !== url) {
+                vPlayer.src = url;
+                vPlayer.load();
+                vPlayer.play().catch(e => console.log("Autoplay video blocked"));
             }
         }
-
-        function extractId(url) {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : url;
+        else if (tipe === "audio_player") {
+            aPlayer.style.display = 'block';
+            aPlayer.src = url;
+            aPlayer.play().catch(e => console.log("Audio autoplay blocked"));
         }
+        else if (tipe === "gambar") {
+            iDisplay.style.display = 'block';
+            iDisplay.src = url;
+        }
+        else if (tipe === "teks") {
+            tDisplay.style.display = 'block';
+            fetch(url).then(r => r.text()).then(t => tDisplay.innerText = t).catch(() => tDisplay.innerText = "Gagal memuat teks.");
+        }
+    }
 
-        // --- 3. FIRESTORE LISTENERS ---
-        function listenData() {
-            db.collection("config").doc("running_text").onSnapshot(doc => {
-                if (doc.exists) document.getElementById('rt_display').innerText = doc.data().pesan;
-            });
+    function extractId(url) {
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : url;
+    }
 
-            db.collection("config").doc("playlist").onSnapshot(doc => {
-                if (doc.exists) updateMedia(doc.data().activeContentId);
-            });
+    // --- 3. FIRESTORE LISTENERS ---
+    function listenData() {
+        // Mendengarkan Running Text
+        db.collection("config").doc("running_text").onSnapshot(doc => {
+            if (doc.exists) document.getElementById('rt_display').innerText = doc.data().pesan;
+        });
 
-            if (userEmail) {
-                db.collection("users").where("email", "==", userEmail).onSnapshot(s => {
-                    if (!s.empty) {
-                        const d = s.docs[0].data();
-                        document.getElementById('disp_nama').innerText = d.nama || "User";
-                        document.getElementById('disp_email').innerText = userEmail;
-                        document.getElementById('disp_komsel').innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
-                        
-                        if (d.foto_profil) {
-                            document.getElementById('user-photo').src = d.foto_profil;
-                            document.getElementById('user-photo').style.display = "block";
-                            document.getElementById('default-icon').style.display = "none";
-                        }
-                    }
-                });
+        // Mendengarkan Playlist (Media Aktif)
+        db.collection("config").doc("playlist").onSnapshot(doc => {
+            if (doc.exists) {
+                const data = doc.data();
+                // Memanggil updateMedia dengan parameter URL dan TIPE
+                updateMedia(data.activeContentId, data.tipeAktif);
             }
-        }
+        });
 
-        // --- 4. FUNGSI UI & MODAL ---
-        function updateTime() {
-            const now = new Date();
-            document.getElementById('display-tanggal').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            document.getElementById('digital-clock').innerText = now.toLocaleTimeString('id-ID') + " WIT";
-        }
-
-        function bukaKartuDigital() {
-            db.collection("users").where("email", "==", userEmail).get().then(s => {
-                if(!s.empty) {
+        // Mendengarkan Data User
+        if (userEmail) {
+            db.collection("users").where("email", "==", userEmail).onSnapshot(s => {
+                if (!s.empty) {
                     const d = s.docs[0].data();
-                    document.getElementById('dnama').innerText = d.nama;
-                    document.getElementById('djemaat').innerText = d.lokasi_berjemaat || "-";
-                    document.getElementById('dkomsel').innerText = d.komsel || "-";
-                    document.getElementById('dnij').innerText = d.nij || "0000 0000";
+                    document.getElementById('disp_nama').innerText = d.nama || "User";
+                    document.getElementById('disp_email').innerText = userEmail;
+                    document.getElementById('disp_komsel').innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
                     
-                    const qrBox = document.getElementById("qrbox");
-                    qrBox.innerHTML = "";
-                    new QRCode(qrBox, { text: window.location.origin + "/profil.html", width: 110, height: 110 });
-                    document.getElementById('modalKartuDigital').style.display = 'flex';
+                    if (d.foto_profil) {
+                        document.getElementById('user-photo').src = d.foto_profil;
+                        document.getElementById('user-photo').style.display = "block";
+                        document.getElementById('default-icon').style.display = "none";
+                    }
                 }
             });
         }
+    }
 
-        function tutupKartuDigital() { document.getElementById('modalKartuDigital').style.display = 'none'; }
-        function bukaInbox() { document.getElementById('popup-inbox').style.display = 'flex'; }
-        function tutupInbox() { document.getElementById('popup-inbox').style.display = 'none'; }
-        function confirmLogout() { document.getElementById('modal-logout').style.display = 'flex'; }
-        function closeLogoutModal() { document.getElementById('modal-logout').style.display = 'none'; }
-        function executeLogout() { auth.signOut().then(() => { localStorage.clear(); window.location.href = "index.html"; }); }
+    // --- 4. FUNGSI UI & MODAL ---
+    function updateTime() {
+        const now = new Date();
+        document.getElementById('display-tanggal').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('digital-clock').innerText = now.toLocaleTimeString('id-ID') + " WIT";
+    }
 
-        // --- 5. INIT ---
-        window.onload = () => {
-            setInterval(updateTime, 1000);
-            updateTime();
-            listenData();
+    function bukaKartuDigital() {
+        db.collection("users").where("email", "==", userEmail).get().then(s => {
+            if(!s.empty) {
+                const d = s.docs[0].data();
+                document.getElementById('dnama').innerText = d.nama;
+                document.getElementById('djemaat').innerText = d.lokasi_berjemaat || "-";
+                document.getElementById('dkomsel').innerText = d.komsel || "-";
+                document.getElementById('dnij').innerText = d.nij || "0000 0000";
+                
+                const qrBox = document.getElementById("qrbox");
+                qrBox.innerHTML = "";
+                new QRCode(qrBox, { text: window.location.origin + "/profil.html", width: 110, height: 110 });
+                document.getElementById('modalKartuDigital').style.display = 'flex';
+            }
+        });
+    }
 
-            document.getElementById('toggleProfile').addEventListener('click', () => {
+    function tutupKartuDigital() { document.getElementById('modalKartuDigital').style.display = 'none'; }
+    function bukaInbox() { document.getElementById('popup-inbox').style.display = 'flex'; }
+    function tutupInbox() { document.getElementById('popup-inbox').style.display = 'none'; }
+    function confirmLogout() { document.getElementById('modal-logout').style.display = 'flex'; }
+    function closeLogoutModal() { document.getElementById('modal-logout').style.display = 'none'; }
+    function executeLogout() { auth.signOut().then(() => { localStorage.clear(); window.location.href = "index.html"; }); }
+
+    // --- 5. INIT ---
+    window.onload = () => {
+        setInterval(updateTime, 1000);
+        updateTime();
+        listenData();
+
+        const toggleBtn = document.getElementById('toggleProfile');
+        if(toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
                 document.getElementById('profileCard').classList.toggle('closed');
             });
-        };
-    </script>
+        }
+    };
+</script>
 </body>
 </html>
