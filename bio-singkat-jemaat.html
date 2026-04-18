@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bio Singkat Jemaat - SIPAPUA</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    
+    <style>
+        :root { --biru: #0056b3; --gold: #ffcc00; }
+        body { font-family: sans-serif; background: #f4f4f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; width: 320px; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); overflow: hidden; border: 2px solid var(--biru); }
+        .header { background: var(--biru); color: white; padding: 15px; text-align: center; font-weight: bold; }
+        .foto-container { width: 110px; height: 110px; margin: 20px auto; border-radius: 50%; border: 3px solid var(--gold); overflow: hidden; background: #eee; }
+        .foto-container img { width: 100%; height: 100%; object-fit: cover; }
+        .content { padding: 0 20px 15px; }
+        .box { margin-bottom: 12px; }
+        .label { font-size: 11px; color: #888; display: block; margin-bottom: 2px; }
+        .val { font-size: 15px; font-weight: bold; color: #333; }
+        .footer { display: flex; gap: 10px; padding: 15px; background: #fafafa; border-top: 1px solid #eee; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-add { background: var(--biru); color: white; }
+        .btn-cancel { background: #ddd; color: #555; }
+        #loading { position: fixed; inset: 0; background: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+    </style>
+</head>
+<body>
+
+<div id="loading">Memuat Data...</div>
+
+<div class="card">
+    <div class="header">BIO SINGKAT JEMAAT</div>
+    <div class="foto-container">
+        <img id="b-foto" src="https://via.placeholder.com/110" alt="Foto">
+    </div>
+    <div class="content">
+        <div class="box"><span class="label">NAMA LENGKAP</span><div id="b-nama" class="val">-</div></div>
+        <div class="box"><span class="label">NIJ (NOMOR INDUK JEMAAT)</span><div id="b-nij" class="val">-</div></div>
+        <div class="box"><span class="label">KOMSEL</span><div id="b-komsel" class="val">-</div></div>
+        <div class="box"><span class="label">JEMAAT</span><div id="b-jemaat" class="val">-</div></div>
+    </div>
+    <div class="footer">
+        <button class="btn-cancel" onclick="window.close()">CANCEL</button>
+        <button class="btn-add" onclick="tambahNetworking()">ADD</button>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = { 
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
+        authDomain: "boby-apps-project.firebaseapp.com", 
+        projectId: "boby-apps-project", 
+        storageBucket: "boby-apps-project.appspot.com", 
+        messagingSenderId: "125984859692", 
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetEmail = urlParams.get('scan');
+    const userEmail = localStorage.getItem("userEmail");
+
+    // Load data jemaat dari Firestore
+    if (targetEmail) {
+        db.collection("users").where("email", "==", targetEmail).get().then(s => {
+            if (!s.empty) {
+                const d = s.docs[0].data();
+                document.getElementById('b-foto').src = d.foto_profil || 'https://via.placeholder.com/110';
+                document.getElementById('b-nama').innerText = d.nama || '-';
+                document.getElementById('b-nij').innerText = d.nij || '-';
+                document.getElementById('b-komsel').innerText = d.komsel || '-';
+                document.getElementById('b-jemaat').innerText = d.lokasi_berjemaat || '-';
+                document.getElementById('loading').style.display = 'none';
+            } else {
+                alert("Jemaat tidak ditemukan!");
+            }
+        });
+    }
+
+    function tambahNetworking() {
+        // Logika verifikasi APK SIPAPUA
+        if (!userEmail) {
+            alert("Anda tidak memiliki Aplikasi SIPAPUA Hub Administrator");
+            return;
+        }
+
+        if (userEmail === targetEmail) {
+            alert("Ini adalah profil Anda sendiri.");
+            return;
+        }
+
+        db.collection("networking").add({
+            sender: userEmail,
+            receiver: targetEmail,
+            status: "pending",
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+            alert("Permintaan Networking Berhasil!");
+            window.location.href = "dashboard.html";
+        });
+    }
+</script>
+</body>
+</html>
