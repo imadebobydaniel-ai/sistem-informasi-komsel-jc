@@ -221,227 +221,247 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
 
-    <script>
-        const firebaseConfig = { 
-            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
-            authDomain: "boby-apps-project.firebaseapp.com", 
-            projectId: "boby-apps-project", 
-            storageBucket: "boby-apps-project.appspot.com", 
-            messagingSenderId: "125984859692", 
-            appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
-        };
+  <script>
+    const firebaseConfig = { 
+        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
+        authDomain: "boby-apps-project.firebaseapp.com", 
+        projectId: "boby-apps-project", 
+        storageBucket: "boby-apps-project.appspot.com", 
+        messagingSenderId: "125984859692", 
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
+    };
 
-        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-        const db = firebase.firestore();
-        const auth = firebase.auth();
-        const userEmail = localStorage.getItem("userEmail");
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    const userEmail = localStorage.getItem("userEmail");
 
-        // --- FUNGSI SCAN & NETWORKING ---
-        function openScanModal(targetEmail) {
-            db.collection("users").where("email", "==", targetEmail).get().then(s => {
-                if(!s.empty) {
-                    const data = s.docs[0].data();
-                    document.getElementById('scan-foto').src = data.foto_profil || 'https://via.placeholder.com/100';
-                    document.getElementById('scan-nama').innerText = data.nama || 'Nama Tidak Diketahui';
-                    document.getElementById('scan-nij').innerText = 'NIJ: ' + (data.nij || '0000 0000');
-                    document.getElementById('scan-jemaat').innerText = data.lokasi_berjemaat || '-';
-                    document.getElementById('scan-komsel').innerText = data.komsel || '-';
-                    
-                    document.getElementById('btn-add-networking').onclick = () => sendFriendRequest(targetEmail, data.nama);
-                    document.getElementById('scan-result-modal').style.display = 'flex';
-                }
-            });
+    // --- 1. FUNGSI SCAN & NETWORKING (INTI PERBAIKAN) ---
+    // Fungsi ini dipanggil saat scanner berhasil membaca email dari QR Code
+    function openScanModal(targetEmail) {
+        if(!targetEmail) return;
+
+        // Validasi jika men-scan diri sendiri
+        if (targetEmail === userEmail) {
+            alert("Ini adalah QR Code profil Anda sendiri.");
+            return;
         }
-
-        function closeScanModal() {
-            document.getElementById('scan-result-modal').style.display = 'none';
-        }
-
-        function sendFriendRequest(targetEmail, targetNama) {
-            if (targetEmail === userEmail) return alert("Ini adalah email Anda sendiri.");
-            
-            db.collection("inbox").add({
-                to: targetEmail,
-                from: userEmail,
-                nama_pengirim: document.getElementById('disp_nama').innerText,
-                pesan: `Permintaan Networking dari ${document.getElementById('disp_nama').innerText}`,
-                type: "friend_request",
-                status: "unread",
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => {
-                alert("Permintaan Networking Berhasil Dikirim ke " + targetNama);
-                closeScanModal();
-            });
-        }
-
-        // --- FUNGSI INBOX & BADGE ---
-        function bukaInbox() {
-            document.getElementById('popup-inbox').style.display = 'flex';
-            const listPesan = document.getElementById('list-pesan');
-            listPesan.innerHTML = "Memuat pesan...";
-
-            db.collection("inbox").where("to", "==", userEmail).orderBy("timestamp", "desc").get().then(s => {
-                listPesan.innerHTML = "";
-                if (s.empty) {
-                    listPesan.innerHTML = "<p style='text-align:center; color:#999;'>Tidak ada pesan.</p>";
-                } else {
-                    s.forEach(doc => {
-                        const d = doc.data();
-                        const item = document.createElement('div');
-                        item.className = `pesan-item ${d.status === 'unread' ? 'unread' : ''}`;
-                        item.innerHTML = `
-                            <div style="font-size:12px; color:var(--biru-safir)">${d.nama_pengirim}</div>
-                            <div style="font-size:13px">${d.pesan}</div>
-                        `;
-                        item.onclick = () => {
-                            if(d.status === 'unread') {
-                                db.collection("inbox").doc(doc.id).update({ status: "read" });
-                            }
-                            alert(d.pesan);
-                        };
-                        listPesan.appendChild(item);
-                    });
-                }
-            });
-        }
-
-        function listenInboxBadge() {
-            if (!userEmail) return;
-            db.collection("inbox").where("to", "==", userEmail).where("status", "==", "unread")
-                .onSnapshot(s => {
-                    const badge = document.getElementById('email-badge');
-                    if (s.size > 0) {
-                        badge.innerText = s.size;
-                        badge.style.display = "block";
-                    } else {
-                        badge.style.display = "none";
-                    }
-                });
-        }
-
-        // --- LOGIKA MEDIA & DATA ASLI ---
-        let ytPlayer;
-        let isYtReady = false;
-        let pendingYtId = null;
-
-        function onYouTubeIframeAPIReady() {
-            ytPlayer = new YT.Player('player', {
-                height: '100%',
-                width: '100%',
-                videoId: 'aqz-KE-bpKQ', 
-                playerVars: { 'autoplay': 1, 'mute': 1, 'controls': 1, 'rel': 0, 'loop': 1, 'playlist': 'aqz-KE-bpKQ' },
-                events: { 
-                    'onReady': (event) => {
-                        isYtReady = true;
-                        if (pendingYtId) {
-                            ytPlayer.loadVideoById(pendingYtId);
-                            pendingYtId = null;
-                        }
-                    }
-                }
-            });
-        }
-
-        function updateMedia(rawPath) {
-            const vPlayer = document.getElementById('videoPlayer');
-            const aPlayer = document.getElementById('audioPlayer');
-            const iDisplay = document.getElementById('imageDisplay');
-            const tDisplay = document.getElementById('textDisplay');
-            const ytContainer = document.getElementById('player');
-            if (!rawPath) return;
-            [vPlayer, aPlayer, iDisplay, tDisplay, ytContainer].forEach(el => el.style.display = 'none');
-            if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
-            vPlayer.pause();
-            if(aPlayer.src) aPlayer.pause();
-            const ext = rawPath.split('.').pop().toLowerCase();
-            if (rawPath.includes('cloudinary.com') || ['mp4', 'mov', 'avi'].includes(ext)) {
-                vPlayer.style.display = 'block';
-                if (vPlayer.src !== rawPath) {
-                    vPlayer.src = rawPath;
-                    vPlayer.load();
-                    vPlayer.play().catch(e => console.log("Autoplay blocked"));
-                }
-            } else if (['mp3', 'ogg', 'wav'].includes(ext)) {
-                aPlayer.style.display = 'block'; aPlayer.src = rawPath; aPlayer.play();
-            } else if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
-                iDisplay.style.display = 'block'; iDisplay.src = rawPath;
-            } else if (ext === 'text' || ext === 'txt') {
-                tDisplay.style.display = 'block';
-                fetch(rawPath).then(r => r.text()).then(t => tDisplay.innerText = t);
+        
+        // Ambil data user target dari Firestore
+        db.collection("users").where("email", "==", targetEmail).get().then(s => {
+            if(!s.empty) {
+                const data = s.docs[0].data();
+                
+                // Isi data ke UI Modal Hasil Scan
+                document.getElementById('scan-foto').src = data.foto_profil || 'https://via.placeholder.com/100';
+                document.getElementById('scan-nama').innerText = data.nama || 'Nama Tidak Diketahui';
+                document.getElementById('scan-nij').innerText = 'NIJ: ' + (data.nij || '0000 0000');
+                document.getElementById('scan-jemaat').innerText = data.lokasi_berjemaat || '-';
+                document.getElementById('scan-komsel').innerText = data.komsel || '-';
+                
+                // Pasang fungsi pada tombol Add Networking
+                document.getElementById('btn-add-networking').onclick = () => sendFriendRequest(targetEmail, data.nama);
+                
+                // Tampilkan Modalnya
+                document.getElementById('scan-result-modal').style.display = 'flex';
             } else {
-                ytContainer.style.display = 'block';
-                const ytId = extractId(rawPath);
-                if (isYtReady && ytPlayer) ytPlayer.loadVideoById(ytId); else pendingYtId = ytId;
+                alert("Data jemaat tidak ditemukan atau belum terdaftar.");
             }
-        }
+        }).catch(err => {
+            console.error("Error saat memproses hasil scan:", err);
+            alert("Terjadi kesalahan sistem.");
+        });
+    }
 
-        function extractId(url) {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : url;
-        }
+    function closeScanModal() {
+        document.getElementById('scan-result-modal').style.display = 'none';
+    }
 
-        function listenData() {
-            db.collection("config").doc("running_text").onSnapshot(doc => {
-                if (doc.exists) document.getElementById('rt_display').innerText = doc.data().pesan;
-            });
-            db.collection("config").doc("playlist").onSnapshot(doc => {
-                if (doc.exists) updateMedia(doc.data().activeContentId);
-            });
-            if (userEmail) {
-                db.collection("users").where("email", "==", userEmail).onSnapshot(s => {
-                    if (!s.empty) {
-                        const d = s.docs[0].data();
-                        document.getElementById('disp_nama').innerText = d.nama || "User";
-                        document.getElementById('disp_email').innerText = userEmail;
-                        document.getElementById('disp_komsel').innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
-                        if (d.foto_profil) {
-                            document.getElementById('user-photo').src = d.foto_profil;
-                            document.getElementById('user-photo').style.display = "block";
-                            document.getElementById('default-icon').style.display = "none";
+    function sendFriendRequest(targetEmail, targetNama) {
+        db.collection("inbox").add({
+            to: targetEmail,
+            from: userEmail,
+            nama_pengirim: document.getElementById('disp_nama').innerText,
+            pesan: `Permintaan Networking dari ${document.getElementById('disp_nama').innerText}`,
+            type: "friend_request",
+            status: "unread",
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+            alert("Permintaan Networking Berhasil Dikirim ke " + targetNama);
+            closeScanModal();
+        });
+    }
+
+    // --- 2. FUNGSI INBOX & BADGE ---
+    function bukaInbox() {
+        document.getElementById('popup-inbox').style.display = 'flex';
+        const listPesan = document.getElementById('list-pesan');
+        listPesan.innerHTML = "Memuat pesan...";
+
+        db.collection("inbox").where("to", "==", userEmail).orderBy("timestamp", "desc").get().then(s => {
+            listPesan.innerHTML = "";
+            if (s.empty) {
+                listPesan.innerHTML = "<p style='text-align:center; color:#999;'>Tidak ada pesan.</p>";
+            } else {
+                s.forEach(doc => {
+                    const d = doc.data();
+                    const item = document.createElement('div');
+                    item.className = `pesan-item ${d.status === 'unread' ? 'unread' : ''}`;
+                    item.innerHTML = `
+                        <div style="font-size:12px; color:var(--biru-safir)">${d.nama_pengirim}</div>
+                        <div style="font-size:13px">${d.pesan}</div>
+                    `;
+                    item.onclick = () => {
+                        if(d.status === 'unread') {
+                            db.collection("inbox").doc(doc.id).update({ status: "read" });
                         }
-                    }
+                        alert(d.pesan);
+                    };
+                    listPesan.appendChild(item);
                 });
             }
-        }
+        });
+    }
 
-        function updateTime() {
-            const now = new Date();
-            document.getElementById('display-tanggal').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            document.getElementById('digital-clock').innerText = now.toLocaleTimeString('id-ID') + " WIT";
-        }
+    function listenInboxBadge() {
+        if (!userEmail) return;
+        db.collection("inbox").where("to", "==", userEmail).where("status", "==", "unread")
+            .onSnapshot(s => {
+                const badge = document.getElementById('email-badge');
+                if (s.size > 0) {
+                    badge.innerText = s.size;
+                    badge.style.display = "block";
+                } else {
+                    badge.style.display = "none";
+                }
+            });
+    }
 
-        function bukaKartuDigital() {
-            db.collection("users").where("email", "==", userEmail).get().then(s => {
-                if(!s.empty) {
+    // --- 3. LOGIKA MEDIA & REALTIME DATA ---
+    let ytPlayer;
+    let isYtReady = false;
+    let pendingYtId = null;
+
+    function onYouTubeIframeAPIReady() {
+        ytPlayer = new YT.Player('player', {
+            height: '100%',
+            width: '100%',
+            videoId: 'aqz-KE-bpKQ', 
+            playerVars: { 'autoplay': 1, 'mute': 1, 'controls': 1, 'rel': 0, 'loop': 1, 'playlist': 'aqz-KE-bpKQ' },
+            events: { 
+                'onReady': (event) => {
+                    isYtReady = true;
+                    if (pendingYtId) {
+                        ytPlayer.loadVideoById(pendingYtId);
+                        pendingYtId = null;
+                    }
+                }
+            }
+        });
+    }
+
+    function updateMedia(rawPath) {
+        const vPlayer = document.getElementById('videoPlayer');
+        const aPlayer = document.getElementById('audioPlayer');
+        const iDisplay = document.getElementById('imageDisplay');
+        const tDisplay = document.getElementById('textDisplay');
+        const ytContainer = document.getElementById('player');
+        if (!rawPath) return;
+        [vPlayer, aPlayer, iDisplay, tDisplay, ytContainer].forEach(el => el.style.display = 'none');
+        if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+        vPlayer.pause();
+        if(aPlayer.src) aPlayer.pause();
+        const ext = rawPath.split('.').pop().toLowerCase();
+        if (rawPath.includes('cloudinary.com') || ['mp4', 'mov', 'avi'].includes(ext)) {
+            vPlayer.style.display = 'block';
+            if (vPlayer.src !== rawPath) {
+                vPlayer.src = rawPath;
+                vPlayer.load();
+                vPlayer.play().catch(e => console.log("Autoplay blocked"));
+            }
+        } else if (['mp3', 'ogg', 'wav'].includes(ext)) {
+            aPlayer.style.display = 'block'; aPlayer.src = rawPath; aPlayer.play();
+        } else if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
+            iDisplay.style.display = 'block'; iDisplay.src = rawPath;
+        } else if (ext === 'text' || ext === 'txt') {
+            tDisplay.style.display = 'block';
+            fetch(rawPath).then(r => r.text()).then(t => tDisplay.innerText = t);
+        } else {
+            ytContainer.style.display = 'block';
+            const ytId = extractId(rawPath);
+            if (isYtReady && ytPlayer) ytPlayer.loadVideoById(ytId); else pendingYtId = ytId;
+        }
+    }
+
+    function extractId(url) {
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : url;
+    }
+
+    function listenData() {
+        db.collection("config").doc("running_text").onSnapshot(doc => {
+            if (doc.exists) document.getElementById('rt_display').innerText = doc.data().pesan;
+        });
+        db.collection("config").doc("playlist").onSnapshot(doc => {
+            if (doc.exists) updateMedia(doc.data().activeContentId);
+        });
+        if (userEmail) {
+            db.collection("users").where("email", "==", userEmail).onSnapshot(s => {
+                if (!s.empty) {
                     const d = s.docs[0].data();
-                    document.getElementById('dnama').innerText = d.nama;
-                    document.getElementById('djemaat').innerText = d.lokasi_berjemaat || "-";
-                    document.getElementById('dkomsel').innerText = d.komsel || "-";
-                    document.getElementById('dnij').innerText = d.nij || "0000 0000";
-                    const qrBox = document.getElementById("qrbox");
-                    qrBox.innerHTML = "";
-                    new QRCode(qrBox, { text: userEmail, width: 110, height: 110 });
-                    document.getElementById('modalKartuDigital').style.display = 'flex';
+                    document.getElementById('disp_nama').innerText = d.nama || "User";
+                    document.getElementById('disp_email').innerText = userEmail;
+                    document.getElementById('disp_komsel').innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
+                    if (d.foto_profil) {
+                        document.getElementById('user-photo').src = d.foto_profil;
+                        document.getElementById('user-photo').style.display = "block";
+                        document.getElementById('default-icon').style.display = "none";
+                    }
                 }
             });
         }
+    }
 
-        function tutupKartuDigital() { document.getElementById('modalKartuDigital').style.display = 'none'; }
-        function tutupInbox() { document.getElementById('popup-inbox').style.display = 'none'; }
-        function confirmLogout() { document.getElementById('modal-logout').style.display = 'flex'; }
-        function closeLogoutModal() { document.getElementById('modal-logout').style.display = 'none'; }
-        function executeLogout() { auth.signOut().then(() => { localStorage.clear(); window.location.href = "index.html"; }); }
+    function updateTime() {
+        const now = new Date();
+        document.getElementById('display-tanggal').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('digital-clock').innerText = now.toLocaleTimeString('id-ID') + " WIT";
+    }
 
-        window.onload = () => {
-            setInterval(updateTime, 1000);
-            updateTime();
-            listenData();
-            listenInboxBadge();
-            document.getElementById('toggleProfile').addEventListener('click', () => {
-                document.getElementById('profileCard').classList.toggle('closed');
-            });
-        };
-    </script>
-</body>
+    // --- 4. LOGIKA KARTU DIGITAL ---
+    function bukaKartuDigital() {
+        db.collection("users").where("email", "==", userEmail).get().then(s => {
+            if(!s.empty) {
+                const d = s.docs[0].data();
+                document.getElementById('dnama').innerText = d.nama;
+                document.getElementById('djemaat').innerText = d.lokasi_berjemaat || "-";
+                document.getElementById('dkomsel').innerText = d.komsel || "-";
+                document.getElementById('dnij').innerText = d.nij || "0000 0000";
+                const qrBox = document.getElementById("qrbox");
+                qrBox.innerHTML = "";
+                // Membuat QR Code berisi email saja
+                new QRCode(qrBox, { text: userEmail, width: 110, height: 110 });
+                document.getElementById('modalKartuDigital').style.display = 'flex';
+            }
+        });
+    }
+
+    function tutupKartuDigital() { document.getElementById('modalKartuDigital').style.display = 'none'; }
+    function tutupInbox() { document.getElementById('popup-inbox').style.display = 'none'; }
+    function confirmLogout() { document.getElementById('modal-logout').style.display = 'flex'; }
+    function closeLogoutModal() { document.getElementById('modal-logout').style.display = 'none'; }
+    function executeLogout() { auth.signOut().then(() => { localStorage.clear(); window.location.href = "index.html"; }); }
+
+    // --- 5. INITIALIZATION ---
+    window.onload = () => {
+        setInterval(updateTime, 1000);
+        updateTime();
+        listenData();
+        listenInboxBadge();
+        document.getElementById('toggleProfile').addEventListener('click', () => {
+            document.getElementById('profileCard').classList.toggle('closed');
+        });
+    };
+</script></body>
 </html>
