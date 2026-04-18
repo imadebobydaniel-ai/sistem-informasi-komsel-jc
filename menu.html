@@ -34,57 +34,39 @@
         .running-content { display: inline-block; padding-left: 100%; animation: marqueeTop 30s linear infinite; font-weight: 900; font-size: 13px; color: white; text-transform: uppercase; }
         .container { padding: 20px; max-width: 450px; margin: auto; text-align: center; }
         .top-section-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto 30px auto; height: 220px; overflow: hidden; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); background: #000; }
+        
+        /* Profile Card */
         .profile-card { position: absolute; width: 100%; height: 100%; background: linear-gradient(145deg, #ffffff, #e6e6e6); border-radius: 25px; z-index: 5; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; align-items: center; justify-content: center; border-top: 4px solid var(--biru-safir); }
         .profile-card.closed { transform: translateX(-100%); }
         .btn-toggle-side { position: absolute; left: 0; top: 50%; transform: translateY(-50%); z-index: 10; background: #ff0000; color: white; border: none; width: 30px; height: 60px; border-radius: 0 15px 15px 0; cursor: pointer; transition: 0.3s; opacity: 0.8; }
-        .ultah-active { position: relative; animation: gold-glow 2s infinite alternate; border: 4px solid var(--emas-lux) !important; }
-        @keyframes gold-glow { from { box-shadow: 0 0 5px #D4AF37; } to { box-shadow: 0 0 20px #FFD700, inset 0 0 10px #D4AF37; } }
-        .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 10px; perspective: 1000px; }
-        .menu-box { background: white; padding: 20px 10px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--biru-tua); font-weight: 800; font-size: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.05); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 1px solid transparent; }
+        
+        .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 10px; }
+        .menu-box { background: white; padding: 20px 10px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--biru-tua); font-weight: 800; font-size: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.05); transition: 0.3s; }
         .menu-box i { font-size: 28px; margin-bottom: 10px; background: linear-gradient(135deg, var(--biru-safir), var(--hijau-zamrud)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .email-btn { position: absolute; top: 15px; right: 15px; cursor: pointer; z-index: 20; display: flex; gap: 15px; }
-        .email-icon { font-size: 22px; color: var(--biru-tua); transition: 0.3s; position: relative; }
-        #email-badge { position: absolute; top: -8px; right: -8px; background: red; color: white; font-size: 10px; padding: 2px 6px; border-radius: 50%; font-weight: bold; display: none; }
+        
+        /* Inbox & Popups */
         .popup-inbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center; }
-        .inbox-content { background: white; width: 90%; max-width: 380px; border-radius: 20px; padding: 20px; max-height: 80vh; display: flex; flex-direction: column; }
-        .modal-detail { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 5000; justify-content: center; align-items: center; padding: 20px; }
+        .inbox-content { background: white; width: 90%; max-width: 380px; border-radius: 20px; padding: 20px; max-height: 80vh; overflow-y: auto; }
         .btn-logout { background: var(--biru-tua); color: #fff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block; margin-top: 30px; border: 2px solid var(--emas-lux); }
 
-        /* --- CSS KARTU DIGITAL VERTIKAL (PROPORSI ATM) --- */
-        .modal-card-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; padding: 10px;
-        }
-        .digital-card-box {
-            width: 260px; height: 400px; background: linear-gradient(135deg, #f1c40f 0%, #d4af37 50%, #b8860b 100%);
-            border-radius: 15px; position: relative; padding: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-            color: #fff; font-family: 'Arial', sans-serif; border: 1px solid rgba(255,255,255,0.4); 
-            display: flex; flex-direction: column; align-items: center; text-align: center;
-        }
+        /* Digital Card */
+        .modal-card-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; }
+        .digital-card-box { width: 260px; height: 400px; background: linear-gradient(135deg, #f1c40f 0%, #d4af37 50%, #b8860b 100%); border-radius: 15px; padding: 20px; color: #fff; text-align: center; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.4); }
         .card-logo-top { width: 60px; height: 60px; object-fit: contain; margin-bottom: 10px; }
-        .card-header-title { font-size: 12px; font-weight: 800; color: #003366; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
-        .card-data-group { width: 100%; margin-bottom: 12px; }
-        .card-data-label { font-size: 8px; opacity: 0.9; text-transform: uppercase; color: #fdfdfd; margin-bottom: 2px; }
-        .card-data-value { font-size: 14px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); text-transform: uppercase; }
-        
-        /* QR Code di Tengah */
-        .card-qrcode-box { background: white; padding: 8px; border-radius: 8px; margin: 15px 0; display: inline-block; }
-        
-        /* NIJ di Bawah agar tidak terhalang */
-        .card-nij-bottom { 
-            margin-top: auto; width: 100%; background: rgba(0,0,0,0.15); padding: 8px 0; border-radius: 5px;
-            font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold; letter-spacing: 2px; 
-        }
+        .card-qrcode-box { background: white; padding: 8px; border-radius: 8px; margin: 15px 0; }
+        .card-nij-bottom { margin-top: auto; width: 100%; background: rgba(0,0,0,0.15); padding: 8px 0; border-radius: 5px; font-family: monospace; font-size: 16px; font-weight: bold; letter-spacing: 2px; }
 
-        #media-display-area { width: 100%; height: 100%; }
+        /* Media Area */
+        #media-display-area { width: 100%; height: 100%; background: #000; }
+        #videoPlayer { width: 100%; height: 100%; object-fit: cover; display: none; }
     </style>
 </head>
 <body>
 
-    <div id="modal-logout" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 4000; justify-content: center; align-items: center; padding: 20px;">
-        <div style="background: white; width: 100%; max-width: 320px; border-radius: 15px; text-align: center; padding: 20px;">
+    <div id="modal-logout" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 4000; justify-content: center; align-items: center;">
+        <div style="background: white; width: 90%; max-width: 320px; border-radius: 15px; text-align: center; padding: 20px;">
             <i class="fa-solid fa-right-from-bracket" style="font-size: 40px; color: #dc3545; margin-bottom: 15px;"></i>
-            <h3 style="margin: 0;">Konfirmasi Keluar</h3>
+            <h3>Konfirmasi Keluar</h3>
             <p style="font-size: 14px; color: #666; margin-bottom: 20px;">Apakah Anda yakin ingin keluar?</p>
             <div style="display: flex; gap: 10px;">
                 <button onclick="closeLogoutModal()" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd; background: white;">Batal</button>
@@ -105,29 +87,25 @@
 
     <div id="modalKartuDigital" class="modal-card-overlay">
         <div style="position: relative;">
-            <div onclick="tutupKartuDigital()" style="position:absolute; top:-35px; right:0; color:white; cursor:pointer; font-weight:bold;"><i class="fas fa-times"></i> Tutup</div>
+            <div onclick="tutupKartuDigital()" style="position:absolute; top:-35px; right:0; color:white; cursor:pointer;"><i class="fas fa-times"></i> Tutup</div>
             <div class="digital-card-box">
                 <img src="logo_pondok.png" class="card-logo-top" onerror="this.src='https://via.placeholder.com/60'">
-                <div class="card-header-title">Kartu Digital Jemaat</div>
-                
-                <div class="card-data-group">
-                    <div class="card-data-label">Nama Lengkap</div>
-                    <div class="card-data-value" id="dnama">Memuat...</div>
+                <div style="font-size: 12px; font-weight: 800; color: #003366; margin-bottom: 15px;">Kartu Digital Jemaat</div>
+                <div style="width: 100%; margin-bottom: 10px;">
+                    <div style="font-size: 8px; text-transform: uppercase;">Nama Lengkap</div>
+                    <div id="dnama" style="font-size: 14px; font-weight: bold;">Memuat...</div>
                 </div>
-
                 <div class="card-qrcode-box" id="qrbox"></div>
-
                 <div style="display: flex; width: 100%; justify-content: space-around; margin-top: 5px;">
                     <div>
-                        <div class="card-data-label">Jemaat</div>
-                        <div class="card-data-value" style="font-size: 11px;" id="djemaat">-</div>
+                        <div style="font-size: 8px;">Jemaat</div>
+                        <div id="djemaat" style="font-size: 11px; font-weight: bold;">-</div>
                     </div>
                     <div>
-                        <div class="card-data-label">Komsel</div>
-                        <div class="card-data-value" style="font-size: 11px;" id="dkomsel">-</div>
+                        <div style="font-size: 8px;">Komsel</div>
+                        <div id="dkomsel" style="font-size: 11px; font-weight: bold;">-</div>
                     </div>
                 </div>
-
                 <div class="card-nij-bottom" id="dnij">0000 0000 0000</div>
             </div>
         </div>
@@ -147,14 +125,14 @@
 
         <div class="top-section-container">
             <div id="profileCard" class="profile-card">
-                <div class="email-btn">
-                    <i class="fas fa-id-card email-icon" onclick="bukaKartuDigital()" style="color: var(--emas-lux); font-size: 24px;"></i>
+                <div style="position: absolute; top: 15px; right: 15px; display: flex; gap: 15px;">
+                    <i class="fas fa-id-card" onclick="bukaKartuDigital()" style="color: var(--emas-lux); font-size: 24px; cursor: pointer;"></i>
                     <div style="position: relative;" onclick="bukaInbox()">
-                        <i class="fas fa-envelope email-icon" id="icon-mail"></i>
-                        <span id="email-badge">0</span>
+                        <i class="fas fa-envelope" style="font-size: 22px; color: var(--biru-tua); cursor: pointer;"></i>
+                        <span id="email-badge" style="position: absolute; top: -8px; right: -8px; background: red; color: white; font-size: 10px; padding: 2px 6px; border-radius: 50%; font-weight: bold; display: none;">0</span>
                     </div>
                 </div>
-                <div id="photo-frame" style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 3px solid var(--emas-lux); background: white; display: flex; align-items: center; justify-content: center; position: relative;">
+                <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 3px solid var(--emas-lux); background: white; display: flex; align-items: center; justify-content: center;">
                     <i class="fa-solid fa-circle-user" id="default-icon" style="font-size: 70px; color: var(--biru-safir);"></i>
                     <img id="user-photo" src="" style="display: none; width:100%; height:100%; object-fit:cover;">
                 </div>
@@ -169,9 +147,7 @@
             </button>
 
             <div id="media-display-area">
-                <div id="player"></div> 
-            </div>
-            <canvas id="birthday-canvas"></canvas>
+                <div id="player"></div> <video id="videoPlayer" autoplay muted loop playsinline></video> </div>
         </div>
 
         <div class="menu-grid">
@@ -196,227 +172,165 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
-<script>
-    // --- 1. KONFIGURASI FIREBASE ---
-    const firebaseConfig = { 
-        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
-        authDomain: "boby-apps-project.firebaseapp.com", 
-        projectId: "boby-apps-project", 
-        storageBucket: "boby-apps-project.appspot.com", 
-        messagingSenderId: "125984859692", 
-        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
-    };
 
-    if (!firebase.apps.length) { 
-        firebase.initializeApp(firebaseConfig); 
-    }
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-    
-    const userEmail = localStorage.getItem("userEmail");
-    const statusAdmin = localStorage.getItem("isAdmin");
+    <script>
+        // --- 1. KONFIGURASI FIREBASE ---
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
+            authDomain: "boby-apps-project.firebaseapp.com", 
+            projectId: "boby-apps-project", 
+            storageBucket: "boby-apps-project.appspot.com", 
+            messagingSenderId: "125984859692", 
+            appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
+        };
 
-    // --- FUNGSI HELPER: Ekstrak ID YouTube ---
-    function extractVideoID(url) {
-        if (!url) return 'aqz-KE-bpKQ';
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-        const match = url.match(regExp);
-        return (match && match[2].length === 11) ? match[2] : url;
-    }
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const userEmail = localStorage.getItem("userEmail");
 
-    // --- 2. LOGIKA RUNNING TEXT ---
-    function listenRunningText() {
-        db.collection("config").doc("running_text").onSnapshot((doc) => {
-            if (doc.exists) {
-                const data = doc.data();
-                const rtElement = document.getElementById('rt_display'); 
-                if (rtElement) rtElement.innerText = data.pesan;
-            }
-        }, (error) => {
-            console.error("❌ Firestore RT Error:", error);
-        });
-    }
+        // --- 2. MEDIA PLAYER LOGIC ---
+        let ytPlayer;
+        let isYtReady = false;
+        let pendingYtId = null;
 
-    // --- 3. MEDIA PLAYER LOGIC ---
-    let player;
-    let isPlayerReady = false;
-    let pendingVideoId = null;
-
-    // Fungsi Inisialisasi YouTube API
-    function onYouTubeIframeAPIReady() {
-        player = new YT.Player('player', {
-            height: '100%',
-            width: '100%',
-            videoId: 'aqz-KE-bpKQ', 
-            playerVars: { 
-                'autoplay': 1, 
-                'mute': 1, 
-                'controls': 1,
-                'rel': 0,
-                'enablejsapi': 1,
-                'loop': 1,
-                'origin': window.location.origin
-            },
-            events: { 
-                'onReady': onPlayerReady,
-                'onError': (e) => { console.error("❌ YouTube API Error:", e.data); }
-            }
-        });
-    }
-
-    function onPlayerReady(event) {
-        isPlayerReady = true;
-        event.target.playVideo();
-        if (pendingVideoId) {
-            player.loadVideoById(pendingVideoId);
-            pendingVideoId = null;
-        }
-    }
-
-    // --- FUNGSI UPDATE PLAYER (DETEKSI CLOUDINARY VS YOUTUBE) ---
-    function updatePlayer(rawPath) {
-        const videoPlayer = document.getElementById('videoPlayer'); // Pastikan ID ini sesuai di HTML (video tag)
-        const youtubeContainer = document.getElementById('player'); // Container YouTube (div id="player")
-
-        if (!rawPath) return;
-
-        // Cek apakah ini link Cloudinary atau Direct Video
-        const isDirectVideo = rawPath.includes('cloudinary.com') || rawPath.toLowerCase().endsWith('.mp4');
-
-        if (isDirectVideo) {
-            console.log("🎥 Memutar File Video Direct:", rawPath);
-            
-            // Tampilan: Sembunyikan YouTube, Tampilkan Video Tag
-            if(youtubeContainer) youtubeContainer.style.display = 'none';
-            if(videoPlayer) {
-                videoPlayer.style.display = 'block';
-                // Jika sumber berubah, load video baru
-                if (videoPlayer.src !== rawPath) {
-                    videoPlayer.src = rawPath;
-                    videoPlayer.load();
-                    videoPlayer.play().catch(e => console.log("Autoplay blocked"));
+        // Fungsi inisialisasi YouTube
+        function onYouTubeIframeAPIReady() {
+            ytPlayer = new YT.Player('player', {
+                height: '100%',
+                width: '100%',
+                videoId: 'aqz-KE-bpKQ', 
+                playerVars: { 'autoplay': 1, 'mute': 1, 'controls': 1, 'rel': 0, 'loop': 1, 'playlist': 'aqz-KE-bpKQ' },
+                events: { 
+                    'onReady': (event) => {
+                        isYtReady = true;
+                        if (pendingYtId) {
+                            ytPlayer.loadVideoById(pendingYtId);
+                            pendingYtId = null;
+                        }
+                    }
                 }
-            }
-            
-            // Matikan suara/stop YouTube jika sedang jalan
-            if (player && player.stopVideo) player.stopVideo();
-        } else {
-            // Jika bukan link, anggap ID YouTube
-            const cleanId = extractVideoID(rawPath);
-            console.log("📺 Memutar YouTube Player:", cleanId);
-
-            // Tampilan: Sembunyikan Video Tag, Tampilkan YouTube
-            if(videoPlayer) {
-                videoPlayer.pause();
-                videoPlayer.style.display = 'none';
-            }
-            if(youtubeContainer) youtubeContainer.style.display = 'block';
-
-            if (isPlayerReady && player && player.loadVideoById) {
-                player.loadVideoById(cleanId);
-            } else {
-                pendingVideoId = cleanId;
-            }
+            });
         }
-    }
 
-    // SINKRONISASI PLAYLIST DARI FIRESTORE
-    function listenPlaylist() {
-        db.collection("config").doc("playlist").onSnapshot((doc) => {
-            if (doc.exists) {
-                const data = doc.data();
-                updatePlayer(data.activeContentId);
-            }
-        }, (err) => {
-            console.error("❌ Firestore Playlist Error:", err);
-        });
-    }
+        // Fungsi Utama Update Player (Cloudinary vs YouTube)
+        function updateMedia(rawPath) {
+            const vPlayer = document.getElementById('videoPlayer');
+            const ytContainer = document.getElementById('player');
+            
+            if (!rawPath) return;
 
-    // --- 4. FUNGSI UI & MODAL ---
-    function bukaKartuDigital() {
-        if (!userEmail) return;
-        db.collection("users").where("email", "==", userEmail).get().then(s => {
-            if(!s.empty) {
-                const d = s.docs[0].data();
-                document.getElementById('dnama').innerText = d.nama || "User";
-                document.getElementById('djemaat').innerText = d.lokasi_berjemaat || "-";
-                document.getElementById('dkomsel').innerText = d.komsel || "-";
-                document.getElementById('dnij').innerText = d.nij || "0000 0000";
+            // Deteksi link video langsung (Cloudinary/MP4)
+            if (rawPath.includes('cloudinary.com') || rawPath.toLowerCase().endsWith('.mp4')) {
+                console.log("📂 Memutar Link Video Direct");
                 
-                const qrBox = document.getElementById("qrbox");
-                if (qrBox) {
-                    qrBox.innerHTML = "";
-                    if (typeof QRCode !== 'undefined') {
-                        const profileLink = window.location.origin + window.location.pathname.replace("menu.html", "profil.html");
-                        new QRCode(qrBox, { text: profileLink, width: 110, height: 110 });
-                    }
+                // Switch Tampilan
+                ytContainer.style.display = 'none';
+                vPlayer.style.display = 'block';
+
+                if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+                
+                if (vPlayer.src !== rawPath) {
+                    vPlayer.src = rawPath;
+                    vPlayer.load();
+                    vPlayer.play().catch(e => console.log("Autoplay blocked"));
                 }
-                document.getElementById('modalKartuDigital').style.display = 'flex';
+            } 
+            // Deteksi ID YouTube
+            else {
+                console.log("📺 Memutar YouTube ID");
+                
+                vPlayer.style.display = 'none';
+                vPlayer.pause();
+                ytContainer.style.display = 'block';
+
+                const ytId = extractId(rawPath);
+                if (isYtReady && ytPlayer && ytPlayer.loadVideoById) {
+                    ytPlayer.loadVideoById(ytId);
+                } else {
+                    pendingYtId = ytId;
+                }
             }
-        });
-    }
+        }
 
-    function tutupKartuDigital() { document.getElementById('modalKartuDigital').style.display = 'none'; }
-    function bukaInbox() { document.getElementById('popup-inbox').style.display = 'flex'; }
-    function tutupInbox() { document.getElementById('popup-inbox').style.display = 'none'; }
-    function confirmLogout() { document.getElementById('modal-logout').style.display = 'flex'; }
-    function closeLogoutModal() { document.getElementById('modal-logout').style.display = 'none'; }
-    
-    function executeLogout() { 
-        auth.signOut().then(() => { 
-            localStorage.clear(); 
-            window.location.replace("index.html"); 
-        }); 
-    }
+        function extractId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : url;
+        }
 
-    // --- 5. SINKRONISASI DATA USER ---
-    function syncUser() {
-        if (userEmail) {
-            db.collection("users").where("email", "==", userEmail).onSnapshot(s => {
-                if (!s.empty) {
+        // --- 3. FIRESTORE LISTENERS ---
+        function listenData() {
+            // Running Text
+            db.collection("config").doc("running_text").onSnapshot(doc => {
+                if (doc.exists) document.getElementById('rt_display').innerText = doc.data().pesan;
+            });
+
+            // Playlist Media
+            db.collection("config").doc("playlist").onSnapshot(doc => {
+                if (doc.exists) updateMedia(doc.data().activeContentId);
+            });
+
+            // User Profile Sync
+            if (userEmail) {
+                db.collection("users").where("email", "==", userEmail).onSnapshot(s => {
+                    if (!s.empty) {
+                        const d = s.docs[0].data();
+                        document.getElementById('disp_nama').innerText = d.nama || "User";
+                        document.getElementById('disp_email').innerText = userEmail;
+                        document.getElementById('disp_komsel').innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
+                        
+                        if (d.foto_profil) {
+                            document.getElementById('user-photo').src = d.foto_profil;
+                            document.getElementById('user-photo').style.display = "block";
+                            document.getElementById('default-icon').style.display = "none";
+                        }
+                    }
+                });
+            }
+        }
+
+        // --- 4. FUNGSI UI & MODAL ---
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('display-tanggal').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('digital-clock').innerText = now.toLocaleTimeString('id-ID') + " WIT";
+        }
+
+        function bukaKartuDigital() {
+            db.collection("users").where("email", "==", userEmail).get().then(s => {
+                if(!s.empty) {
                     const d = s.docs[0].data();
-                    if(document.getElementById('disp_nama')) document.getElementById('disp_nama').innerText = d.nama || "User";
-                    if(document.getElementById('disp_email')) document.getElementById('disp_email').innerText = userEmail;
-                    if(document.getElementById('disp_komsel')) document.getElementById('disp_komsel').innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
+                    document.getElementById('dnama').innerText = d.nama;
+                    document.getElementById('djemaat').innerText = d.lokasi_berjemaat || "-";
+                    document.getElementById('dkomsel').innerText = d.komsel || "-";
+                    document.getElementById('dnij').innerText = d.nij || "0000 0000";
                     
-                    const img = document.getElementById('user-photo');
-                    if (d.foto_profil && img) { 
-                        img.src = d.foto_profil; 
-                        img.style.display = "block";
-                        if(document.getElementById('default-icon')) document.getElementById('default-icon').style.display = "none"; 
-                    }
-                    if(statusAdmin === "true" && document.getElementById('admin-badge')) {
-                        document.getElementById('admin-badge').style.display = "block";
-                    }
+                    const qrBox = document.getElementById("qrbox");
+                    qrBox.innerHTML = "";
+                    new QRCode(qrBox, { text: window.location.origin + "/profil.html", width: 110, height: 110 });
+                    document.getElementById('modalKartuDigital').style.display = 'flex';
                 }
             });
         }
-    }
 
-    function updateTime() {
-        const now = new Date();
-        const elTgl = document.getElementById('display-tanggal');
-        const elClock = document.getElementById('digital-clock');
-        if(elTgl) elTgl.innerText = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-        if(elClock) elClock.innerText = now.toLocaleTimeString('id-ID') + " WIT";
-    }
+        function tutupKartuDigital() { document.getElementById('modalKartuDigital').style.display = 'none'; }
+        function bukaInbox() { document.getElementById('popup-inbox').style.display = 'flex'; }
+        function tutupInbox() { document.getElementById('popup-inbox').style.display = 'none'; }
+        function confirmLogout() { document.getElementById('modal-logout').style.display = 'flex'; }
+        function closeLogoutModal() { document.getElementById('modal-logout').style.display = 'none'; }
+        function executeLogout() { auth.signOut().then(() => { localStorage.clear(); window.location.href = "index.html"; }); }
 
-    // --- 6. INISIALISASI ---
-    window.onload = () => { 
-        updateTime(); 
-        setInterval(updateTime, 1000); 
-        syncUser(); 
-        listenRunningText(); 
-        listenPlaylist(); 
+        // --- 5. INIT ---
+        window.onload = () => {
+            setInterval(updateTime, 1000);
+            updateTime();
+            listenData();
 
-        const btnToggle = document.getElementById('toggleProfile');
-        const profileCard = document.getElementById('profileCard');
-        if(btnToggle && profileCard) {
-            btnToggle.addEventListener('click', (e) => {
-                e.preventDefault();
-                profileCard.classList.toggle('closed');
+            document.getElementById('toggleProfile').addEventListener('click', () => {
+                document.getElementById('profileCard').classList.toggle('closed');
             });
-        }
-    };
-</script></body>
+        };
+    </script>
+</body>
 </html>
