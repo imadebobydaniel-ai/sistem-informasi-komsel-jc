@@ -236,7 +236,7 @@
     const auth = firebase.auth();
     const userEmail = localStorage.getItem("userEmail");
 
-    // --- 1. FUNGSI SCAN (PROFIL RINGKAS) ---
+    // --- 1. FUNGSI SCAN (TAMPILAN PROFIL RINGKAS) ---
     function openScanModal(targetEmail) {
         if(!targetEmail) return;
         if (targetEmail === userEmail) {
@@ -248,7 +248,7 @@
             if(!s.empty) {
                 const data = s.docs[0].data();
                 
-                // Tampilan Ringkas: Foto, Nama, NIJ, Jemaat, Komsel
+                // Set data ke UI Modal (Hanya informasi penting)
                 document.getElementById('scan-foto').src = data.foto_profil || 'https://via.placeholder.com/100';
                 document.getElementById('scan-nama').innerText = data.nama || 'Tanpa Nama';
                 document.getElementById('scan-nij').innerText = 'NIJ: ' + (data.nij || '-');
@@ -258,34 +258,35 @@
                 document.getElementById('btn-add-networking').onclick = () => sendFriendRequest(targetEmail, data.nama);
                 document.getElementById('scan-result-modal').style.display = 'flex';
             } else {
-                alert("Data tidak ditemukan.");
+                alert("Data jemaat tidak ditemukan.");
             }
-        });
+        }).catch(err => console.error("Error load profil scan:", err));
     }
 
     function closeScanModal() {
         document.getElementById('scan-result-modal').style.display = 'none';
-        // Bersihkan URL tanpa reload agar tidak muncul profil terus saat refresh
+        // Bersihkan parameter ?scan= di URL tanpa reload halaman
         const cleanURL = window.location.protocol + "//" + window.location.host + window.location.pathname;
         window.history.replaceState({}, document.title, cleanURL);
     }
 
     function sendFriendRequest(targetEmail, targetNama) {
-        if(!userEmail) return alert("Anda harus login.");
+        if(!userEmail) return alert("Silahkan login terlebih dahulu.");
+        
         db.collection("inbox").add({
             to: targetEmail,
             from: userEmail,
-            nama_pengirim: document.getElementById('disp_nama').innerText,
-            pesan: `Permintaan Networking dari ${document.getElementById('disp_nama').innerText}`,
+            nama_pengirim: document.getElementById('disp_nama').innerText || "User",
+            pesan: `Permintaan Networking dari ${document.getElementById('disp_nama').innerText || "Seseorang"}`,
             status: "unread",
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         }).then(() => {
-            alert("Berhasil dikirim ke " + targetNama);
+            alert("Permintaan dikirim ke " + targetNama);
             closeScanModal();
         });
     }
 
-    // --- 4. LOGIKA KARTU DIGITAL (FIX LINK PROFIL.HTML) ---
+    // --- 2. FUNGSI KARTU DIGITAL & GENERATE QR (RESPONSIF TINGGI) ---
     function bukaKartuDigital() {
         db.collection("users").where("email", "==", userEmail).get().then(s => {
             if(!s.empty) {
@@ -298,13 +299,17 @@
                 const qrBox = document.getElementById("qrbox");
                 qrBox.innerHTML = "";
                 
-                // PENGUNCIAN LINK: Langsung arahkan ke profil.html
+                // LINK PENGUNCIAN: Langsung ke profil.html agar tidak terlempar ke index/login
                 const scanUrl = "https://imadebobydaniel-ai.github.io/sistem-informasi-pondok-pemulihan-papua/profil.html?scan=" + encodeURIComponent(userEmail);
                 
+                // Konfigurasi QR Code agar sangat cepat terbaca oleh HP
                 new QRCode(qrBox, { 
                     text: scanUrl, 
-                    width: 110, height: 110,
-                    correctLevel : QRCode.CorrectLevel.H 
+                    width: 180, 
+                    height: 180,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H // Level tertinggi (tahan gangguan/blur)
                 });
                 
                 document.getElementById('modalKartuDigital').style.display = 'flex';
@@ -312,29 +317,37 @@
         });
     }
 
-    // --- Lain-lain tetap sama ---
     function tutupKartuDigital() { document.getElementById('modalKartuDigital').style.display = 'none'; }
+
+    // --- 3. UTILITY (WAKTU & INTERFACE) ---
     function updateTime() {
         const now = new Date();
-        document.getElementById('display-tanggal').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('display-tanggal').innerText = now.toLocaleDateString('id-ID', options);
         document.getElementById('digital-clock').innerText = now.toLocaleTimeString('id-ID') + " WIT";
     }
 
-    // --- INITIALIZATION ---
+    // --- 4. INITIALIZATION (AUTO DETECT SCAN) ---
     window.onload = () => {
+        // Jalankan Jam
         setInterval(updateTime, 1000);
         updateTime();
-        // Cek Parameter Scan
+
+        // Cek apakah ada parameter ?scan= di URL (Hasil scan dari kamera HP)
         const urlParams = new URLSearchParams(window.location.search);
         const targetScan = urlParams.get('scan');
         if (targetScan) {
+            // Beri waktu 1.5 detik agar Firebase siap, lalu munculkan profil
             setTimeout(() => { openScanModal(targetScan); }, 1500);
         }
 
-        document.getElementById('toggleProfile').addEventListener('click', () => {
-            document.getElementById('profileCard').classList.toggle('closed');
-        });
+        // Event listener toggle profil (jika ada)
+        const toggleBtn = document.getElementById('toggleProfile');
+        if(toggleBtn){
+            toggleBtn.addEventListener('click', () => {
+                document.getElementById('profileCard').classList.toggle('closed');
+            });
+        }
     };
-</script>
-</body>
+</script></body>
 </html>
