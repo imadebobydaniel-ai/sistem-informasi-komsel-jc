@@ -286,59 +286,59 @@
     const db = firebase.firestore();
     let runningItems = [];
     let playlistData = [];
-    let isYtReady = false; // Flag untuk status YouTube API
+    let ytPlayer; // Variabel global untuk player
+    let isYtReady = false; 
 
-    // --- 2. KONFIGURASI CLOUDINARY ---
-    const cloudName = "dxzllsbgi";
-    const uploadPreset = "sipapua_preset";
-
-    function bukaWidgetUpload() {
-        const tipeMedia = document.getElementById('tipe_media').value;
-        let resourceType = "auto";
-        if (tipeMedia === "gambar") resourceType = "image";
-        if (tipeMedia === "video_player" || tipeMedia === "audio_player") resourceType = "video";
-
-        if (tipeMedia === "video_youtube") {
-            return alert("Untuk YouTube, silakan masukkan ID Video secara manual di kotak input.");
-        }
-
-        cloudinary.openUploadWidget({
-            cloudName: cloudName,
-            uploadPreset: uploadPreset,
-            sources: ['local', 'url', 'camera'],
-            resourceType: resourceType,
-            multiple: false,
-            clientAllowedFormats: tipeMedia === "gambar" ? ["png", "jpg", "jpeg", "webp"] : ["mp4", "mp3", "mov"]
-        }, (error, result) => {
-            if (!error && result && result.event === "success") {
-                document.getElementById('url_media').value = result.info.secure_url;
-                alert("File berhasil diupload!");
+    // --- 2. KONFIGURASI YOUTUBE PLAYER (DENGAN PERBAIKAN ORIGIN) ---
+    function onYouTubeIframeAPIReady() {
+        ytPlayer = new YT.Player('player', {
+            height: '100%',
+            width: '100%',
+            playerVars: {
+                'autoplay': 1,
+                'controls': 0,
+                'rel': 0,
+                'origin': window.location.origin // MENGATASI ERROR POSTMESSAGE/ORIGIN
+            },
+            events: {
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange
             }
         });
     }
 
-    // --- 3. DATA LISTENERS (VERSI CERDAS) ---
+    function onPlayerReady(event) {
+        isYtReady = true;
+        console.log("✅ YouTube Player Ready");
+    }
+
+    function onPlayerStateChange(event) {
+        // Logika tambahan jika video selesai bisa ditaruh di sini
+    }
+
+    // --- 3. DATA LISTENERS (VERSI CERDAS & TOLERAN) ---
     function listenData() {
-        // Listener Config Playlist (Nakhoda Utama)
+        // Listener Config Playlist
         db.collection("config").doc("playlist").onSnapshot(doc => {
             if (doc.exists) {
                 const config = doc.data();
-                // Akomodasi mode 'play all' dari Firestore agar terbaca sebagai looping
-                const rawMode = config.mode ? config.mode.toLowerCase() : 'looping';
-                const mode = (rawMode === 'play all') ? 'looping' : rawMode;
                 
-                console.log("Mode Aktif:", mode);
-                document.getElementById('currentModeDisplay').innerText = mode.toUpperCase();
+                // Normalisasi mode: "play all" atau "shuffle" dianggap sebagai "looping"
+                const rawMode = config.mode ? config.mode.toLowerCase() : 'looping';
+                const isPlaylistMode = (rawMode === 'looping' || rawMode === 'play all' || rawMode === 'shuffle');
+                
+                console.log("Monitor Logic - Mode Terdeteksi:", rawMode);
+                const displayMode = document.getElementById('currentModeDisplay');
+                if(displayMode) displayMode.innerText = rawMode.toUpperCase();
 
-                // JIKA MODE SINGLE/CUSTOM: Putar hanya satu video
-                if (mode === 'single' || mode === 'custom') {
-                    if (config.activeContentId && typeof ytPlayer !== 'undefined') {
+                if (isPlaylistMode) {
+                    console.log("Memicu Pemutaran Playlist...");
+                    fetchAndPlayPlaylist();
+                } else {
+                    // MODE SINGLE / CUSTOM
+                    if (config.activeContentId && typeof ytPlayer !== 'undefined' && ytPlayer.loadVideoById) {
                         ytPlayer.loadVideoById(config.activeContentId);
                     }
-                } 
-                // JIKA MODE LOOPING: Ambil semua dari portal_media
-                else if (mode === 'looping') {
-                    fetchAndPlayPlaylist();
                 }
             }
         });
@@ -358,14 +358,14 @@
                 const videoIds = [];
                 s.forEach(doc => {
                     const data = doc.data();
-                    // Hanya masukkan ID YouTube yang valid ke array playlist
                     if (data.tipe === 'video_youtube' && data.url) {
                         videoIds.push(data.url.trim());
                     }
                 });
 
-                if (typeof ytPlayer !== 'undefined' && videoIds.length > 0) {
+                if (typeof ytPlayer !== 'undefined' && ytPlayer.cuePlaylist && videoIds.length > 0) {
                     const playlistString = videoIds.join(',');
+                    // Mencegah reload berulang jika playlist tidak berubah
                     if (ytPlayer.lastPlaylistString !== playlistString) {
                         ytPlayer.lastPlaylistString = playlistString;
                         
@@ -376,8 +376,8 @@
                         });
 
                         setTimeout(() => { 
-                            ytPlayer.playVideo(); 
-                            ytPlayer.setLoop(true);
+                            if(ytPlayer.playVideo) ytPlayer.playVideo(); 
+                            if(ytPlayer.setLoop) ytPlayer.setLoop(true);
                         }, 1500);
                     }
                 }
@@ -385,7 +385,7 @@
         });
     }
 
-    // --- 4. FUNGSI UI ---
+    // --- 4. FUNGSI UI & MEDIA MANAGEMENT ---
     function toggleInputFields() {
         const tipe = document.getElementById('tipe_media').value;
         const urlContainer = document.getElementById('input_url_container');
@@ -402,70 +402,6 @@
         }
     }
 
-    function toggleSelectAll() {
-        const checkAll = document.getElementById('checkAll');
-        const checkboxes = document.querySelectorAll('.item-checkbox');
-        checkboxes.forEach(cb => cb.checked = checkAll.checked);
-    }
-
-    // --- 5. LOGIKA RUNNING TEXT ---
-    async function saveRunningTextToCollection() {
-        const text = document.getElementById('rt_input').value;
-        const durasi = document.getElementById('rt_durasi').value;
-        if(!text) return alert("Teks kosong!");
-
-        try {
-            await db.collection("rt_collection").add({
-                text: text, 
-                durasi: parseInt(durasi),
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                isActive: false
-            });
-            document.getElementById('rt_input').value = "";
-        } catch (e) { console.error("❌ Error RT Add:", e); }
-    }
-
-    function loadRTCollection() {
-        db.collection("rt_collection").orderBy("timestamp", "desc").onSnapshot(snapshot => {
-            const list = document.getElementById('rt_history_list');
-            if(!list) return;
-            list.innerHTML = ""; runningItems = [];
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                runningItems.push({ id: doc.id, ...data });
-                list.innerHTML += `
-                    <tr>
-                        <td><span class="status-dot ${data.isActive ? 'active' : ''}"></span> ${data.isActive ? 'Active' : 'Queue'}</td>
-                        <td>${data.text}</td>
-                        <td>${data.durasi}s</td>
-                        <td style="text-align:center;">
-                            <button onclick="playRTManual('${doc.id}')" class="btn-action btn-play-sm"><i class="fas fa-play"></i></button>
-                            <button onclick="deleteRT('${doc.id}')" class="btn-action btn-del-sm"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>`;
-            });
-        });
-    }
-
-    async function playRTManual(id) {
-        const selected = runningItems.find(i => i.id === id);
-        if(!selected) return;
-        const batch = db.batch();
-        runningItems.forEach(item => batch.update(db.collection("rt_collection").doc(item.id), { isActive: false }));
-        batch.update(db.collection("rt_collection").doc(id), { isActive: true });
-        batch.set(db.collection("config").doc("running_text"), { 
-            pesan: selected.text,
-            durasi: selected.durasi,
-            lastUpdate: Date.now() 
-        }, { merge: true });
-        await batch.commit();
-    }
-
-    async function deleteRT(id) {
-        if(confirm("Hapus teks ini?")) await db.collection("rt_collection").doc(id).delete();
-    }
-
-    // --- 6. LOGIKA MEDIA & PLAYLIST ---
     function extractVideoID(url) {
         const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
         const match = url.match(regExp);
@@ -495,7 +431,6 @@
             alert("Konten Berhasil Terbit!");
             document.getElementById('judul').value = "";
             document.getElementById('url_media').value = "";
-            document.getElementById('isi_artikel').value = "";
         } catch (e) { console.error("❌ Upload Error:", e); }
     }
 
@@ -532,56 +467,19 @@
         try {
             await db.collection("config").doc("playlist").set({ 
                 activeContentId: selectedMedia.url, 
-                mode: 'single', // Paksa mode ke single saat tombol desktop ditekan
+                mode: 'single', 
                 triggerChange: Date.now() 
             }, { merge: true });
-            
-            alert("Konten '" + selectedMedia.judul + "' dikirim ke monitor!");
-        } catch (e) {
-            console.error("❌ Error Play:", e);
-        }
-    }
-
-    async function deleteMedia(id) {
-        if(confirm("Hapus konten ini?")) await db.collection("portal_media").doc(id).delete();
-    }
-
-    async function moveItem(id, direction) {
-        const index = playlistData.findIndex(item => item.id === id);
-        if (index < 0) return;
-        const newIndex = index + direction;
-        if (newIndex < 0 || newIndex >= playlistData.length) return;
-
-        const itemA = playlistData[index];
-        const itemB = playlistData[newIndex];
-
-        const batch = db.batch();
-        batch.update(db.collection("portal_media").doc(itemA.id), { urutan: itemB.urutan });
-        batch.update(db.collection("portal_media").doc(itemB.id), { urutan: itemA.urutan });
-        await batch.commit();
-    }
-
-    async function deleteSelected() {
-        const selected = Array.from(document.querySelectorAll('.item-checkbox:checked')).map(cb => cb.value);
-        if(selected.length === 0) return alert("Pilih konten yang akan dihapus!");
-        if(confirm(`Hapus ${selected.length} konten terpilih?`)) {
-            const batch = db.batch();
-            selected.forEach(id => batch.delete(db.collection("portal_media").doc(id)));
-            await batch.commit();
-        }
-    }
-
-    async function updatePlayMode() {
-        const mode = document.getElementById('play_mode').value;
-        await db.collection("config").doc("playlist").update({ mode: mode });
-        document.getElementById('currentModeDisplay').innerText = mode.toUpperCase();
+            alert("Sent to monitor: " + selectedMedia.judul);
+        } catch (e) { console.error("❌ Play Error:", e); }
     }
 
     // --- INIT ---
     window.onload = () => {
-        loadRTCollection();
+        // Cek apakah fungsi loadRTCollection ada di file Anda
+        if(typeof loadRTCollection === 'function') loadRTCollection();
         loadMedia();
-        listenData(); // Mulai mendengarkan perubahan monitor
+        listenData(); 
     };
 </script></body>
 </html>
