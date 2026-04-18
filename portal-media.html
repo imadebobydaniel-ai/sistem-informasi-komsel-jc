@@ -276,7 +276,10 @@
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
 
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    if (!firebase.apps.length) { 
+        firebase.initializeApp(firebaseConfig); 
+        console.log("✅ Firebase Berhasil Diinisialisasi");
+    }
     const db = firebase.firestore();
     let runningItems = [];
     let playlistData = [];
@@ -300,6 +303,7 @@
         }, (error, result) => {
             if (!error && result && result.event === "success") {
                 document.getElementById('url_media').value = result.info.secure_url;
+                console.log("✅ File Berhasil diupload ke Cloudinary:", result.info.secure_url);
             }
         });
     }
@@ -322,11 +326,14 @@
         const text = document.getElementById('rt_input').value;
         const durasi = document.getElementById('rt_durasi').value;
         if(!text) return alert("Teks kosong!");
-        await db.collection("rt_collection").add({
-            text: text, durasi: parseInt(durasi),
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(), isActive: false
-        });
-        document.getElementById('rt_input').value = "";
+        try {
+            await db.collection("rt_collection").add({
+                text: text, durasi: parseInt(durasi),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(), isActive: false
+            });
+            console.log("✅ Running Text disimpan");
+            document.getElementById('rt_input').value = "";
+        } catch (e) { console.error("❌ Gagal simpan RT:", e); }
     }
 
     function loadRTCollection() {
@@ -352,92 +359,6 @@
         const batch = db.batch();
         runningItems.forEach(item => batch.update(db.collection("rt_collection").doc(item.id), { isActive: false }));
         batch.update(db.collection("rt_collection").doc(id), { isActive: true });
-        batch.set(db.collection("config").doc("running_text"), { pesan: selected.text, durasi: selected.durasi, lastUpdate: Date.now() }, { merge: true });
-        await batch.commit();
-    }
-
-    async function deleteRT(id) { if(confirm("Hapus teks?")) await db.collection("rt_collection").doc(id).delete(); }
-
-    // --- 5. LOGIKA MEDIA & PLAYLIST ---
-    function extractVideoID(url) {
-        const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-        const match = url.match(regExp);
-        return (match && match[2].length === 11) ? match[2] : url;
-    }
-
-    async function uploadKePortal() {
-        const judul = document.getElementById('judul').value;
-        const tipe = document.getElementById('tipe_media').value;
-        let url = document.getElementById('url_media').value;
-        if(tipe === 'video_youtube') url = extractVideoID(url);
-
-        await db.collection("portal_media").add({
-            judul: judul, tipe: tipe, url: url,
-            isi_artikel: document.getElementById('isi_artikel').value || "",
-            urutan: Date.now(), timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert("Terbit!");
-    }
-
-    function loadMedia() {
-        db.collection("portal_media").orderBy("urutan", "asc").onSnapshot(s => {
-            const list = document.getElementById('mediaList');
-            list.innerHTML = ""; playlistData = []; let count = 1;
-            s.forEach(doc => {
-                const data = doc.data();
-                playlistData.push({ id: doc.id, ...data });
-                list.innerHTML += `<tr>
-                    <td><input type="checkbox" class="item-checkbox" value="${doc.id}"></td>
-                    <td style="text-align:center;">${count++}</td>
-                    <td>${data.judul}</td><td>${data.tipe}</td>
-                    <td style="text-align:center;">
-                        <button onclick="moveItem('${doc.id}', -1)" class="btn-action btn-up"><i class="fas fa-chevron-up"></i></button>
-                        <button onclick="moveItem('${doc.id}', 1)" class="btn-action btn-down"><i class="fas fa-chevron-down"></i></button>
-                        <button onclick="playSekarang('${doc.id}')" class="btn-action btn-play-sm"><i class="fas fa-desktop"></i></button>
-                        <button onclick="deleteMedia('${doc.id}')" class="btn-action btn-del-sm"><i class="fas fa-trash"></i></button>
-                    </td></tr>`;
-            });
-        });
-    }
-
-    // FUNGSI KRUSIAL: MENGIRIM TIPE MEDIA KE MONITOR
-    async function playSekarang(id) {
-        const selected = playlistData.find(item => item.id === id);
-        if (!selected) return;
-        await db.collection("config").doc("playlist").set({ 
-            activeContentId: selected.url,
-            tipeAktif: selected.tipe, // Memberitahu monitor player mana yang aktif
-            triggerChange: Date.now() 
-        }, { merge: true });
-        alert("Dikirim ke Monitor!");
-    }
-
-    async function deleteMedia(id) { if(confirm("Hapus?")) await db.collection("portal_media").doc(id).delete(); }
-
-    async function moveItem(id, direction) {
-        const index = playlistData.findIndex(item => item.id === id);
-        const newIndex = index + direction;
-        if (newIndex < 0 || newIndex >= playlistData.length) return;
-        const batch = db.batch();
-        batch.update(db.collection("portal_media").doc(playlistData[index].id), { urutan: playlistData[newIndex].urutan });
-        batch.update(db.collection("portal_media").doc(playlistData[newIndex].id), { urutan: playlistData[index].urutan });
-        await batch.commit();
-    }
-
-    async function deleteSelected() {
-        const selected = Array.from(document.querySelectorAll('.item-checkbox:checked')).map(cb => cb.value);
-        const batch = db.batch();
-        selected.forEach(id => batch.delete(db.collection("portal_media").doc(id)));
-        await batch.commit();
-    }
-
-    async function updatePlayMode() {
-        const mode = document.getElementById('play_mode').value;
-        await db.collection("config").doc("playlist").update({ mode: mode });
-        document.getElementById('currentModeDisplay').innerText = mode.toUpperCase();
-    }
-
-    window.onload = () => { loadRTCollection(); loadMedia(); };
-</script>
+        batch.set(db.collection("config").doc("running_text"), { pesan: selected.text, durasi: selected.durasi, lastUpdate:
 </body>
 </html>
