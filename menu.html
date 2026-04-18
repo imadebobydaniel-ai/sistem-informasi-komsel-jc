@@ -27,13 +27,56 @@
             --putih-bg: #f4f7fa; 
         }
 
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--putih-bg); margin: 0; padding: 0; color: #333; overflow-x: hidden; }
+        /* MODIFIKASI: MATIKAN SLIDER UTAMA */
+        body { 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            background-color: var(--putih-bg); 
+            margin: 0; 
+            padding: 0; 
+            color: #333; 
+            overflow: hidden; /* Mematikan scrollbar utama kanan */
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
         @keyframes marqueeTop { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
-        .top-info-bar { background: var(--biru-tua); display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; font-weight: bold; font-size: 11px; border-bottom: 2px solid var(--emas-lux); color: white; }
-        header { background: var(--biru-tua); border-bottom: 3px solid var(--hijau-zamrud); padding: 12px 0; overflow: hidden; white-space: nowrap; display: flex; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        
+        .top-info-bar { background: var(--biru-tua); display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; font-weight: bold; font-size: 11px; border-bottom: 2px solid var(--emas-lux); color: white; flex-shrink: 0; }
+        
+        header { background: var(--biru-tua); border-bottom: 3px solid var(--hijau-zamrud); padding: 12px 0; overflow: hidden; white-space: nowrap; display: flex; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); flex-shrink: 0; }
+        
         .running-content { display: inline-block; padding-left: 100%; animation: marqueeTop 30s linear infinite; font-weight: 900; font-size: 13px; color: white; text-transform: uppercase; }
-        .container { padding: 20px; max-width: 450px; margin: auto; text-align: center; }
-        .top-section-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto 30px auto; height: 220px; overflow: hidden; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); background: #000; }
+
+        /* MODIFIKASI: CONTAINER MENU MENJADI AREA SCROLL INTERNAL */
+        .container { 
+            padding: 20px; 
+            max-width: 450px; 
+            margin: auto; 
+            text-align: center; 
+            flex-grow: 1;
+            overflow-y: auto; /* Hanya area ini yang bisa scroll naik turun */
+            width: 100%;
+            box-sizing: border-box;
+            scrollbar-width: none; /* Sembunyikan batang scroll di Firefox */
+        }
+        .container::-webkit-scrollbar { display: none; } /* Sembunyikan batang scroll di Chrome/APK */
+
+        /* MODIFIKASI: FREEZE PADA TOP SECTION */
+        .top-section-container { 
+            position: sticky; /* Membuat container profil membeku (freeze) */
+            top: 0;
+            z-index: 100;
+            width: 100%; 
+            max-width: 500px; 
+            margin: 0 auto 30px auto; 
+            height: 220px; 
+            overflow: hidden; 
+            border-radius: 25px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+            background: #000; 
+            flex-shrink: 0;
+        }
         
         /* Profile Card */
         .profile-card { position: absolute; width: 100%; height: 100%; background: linear-gradient(145deg, #ffffff, #e6e6e6); border-radius: 25px; z-index: 5; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; align-items: center; justify-content: center; border-top: 4px solid var(--biru-safir); }
@@ -47,7 +90,7 @@
         /* Inbox & Popups */
         .popup-inbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center; }
         .inbox-content { background: white; width: 90%; max-width: 380px; border-radius: 20px; padding: 20px; max-height: 80vh; overflow-y: auto; }
-        .btn-logout { background: var(--biru-tua); color: #fff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block; margin-top: 30px; border: 2px solid var(--emas-lux); }
+        .btn-logout { background: var(--biru-tua); color: #fff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block; margin: 30px 0; border: 2px solid var(--emas-lux); }
 
         /* Digital Card */
         .modal-card-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; }
@@ -56,7 +99,7 @@
         .card-qrcode-box { background: white; padding: 8px; border-radius: 8px; margin: 15px 0; }
         .card-nij-bottom { margin-top: auto; width: 100%; background: rgba(0,0,0,0.15); padding: 8px 0; border-radius: 5px; font-family: monospace; font-size: 16px; font-weight: bold; letter-spacing: 2px; }
 
-        /* Media Area - Tetap menjaga struktur asli Anda */
+        /* Media Area */
         #media-display-area { width: 100%; height: 100%; background: #000; }
         #videoPlayer { width: 100%; height: 100%; object-fit: cover; display: none; }
         #audioPlayer { width: 90%; margin: 80px auto; display: none; }
@@ -182,7 +225,6 @@
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
-        // --- 1. KONFIGURASI FIREBASE ---
         const firebaseConfig = { 
             apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
             authDomain: "boby-apps-project.firebaseapp.com", 
@@ -197,7 +239,6 @@
         const auth = firebase.auth();
         const userEmail = localStorage.getItem("userEmail");
 
-        // --- 2. MEDIA PLAYER LOGIC (DITINGKATKAN) ---
         let ytPlayer;
         let isYtReady = false;
         let pendingYtId = null;
@@ -229,7 +270,6 @@
             
             if (!rawPath) return;
 
-            // Sembunyikan semua elemen pendukung
             [vPlayer, aPlayer, iDisplay, tDisplay, ytContainer].forEach(el => el.style.display = 'none');
             if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
             vPlayer.pause();
@@ -237,8 +277,6 @@
 
             const ext = rawPath.split('.').pop().toLowerCase();
 
-            // LOGIC PENDUKUNG FORMAT BARU
-            // 1. VIDEO (MP4, MOV, AVI)
             if (rawPath.includes('cloudinary.com') || ['mp4', 'mov', 'avi'].includes(ext)) {
                 vPlayer.style.display = 'block';
                 if (vPlayer.src !== rawPath) {
@@ -247,23 +285,19 @@
                     vPlayer.play().catch(e => console.log("Autoplay blocked"));
                 }
             } 
-            // 2. AUDIO (MP3, OGG, WAV)
             else if (['mp3', 'ogg', 'wav'].includes(ext)) {
                 aPlayer.style.display = 'block';
                 aPlayer.src = rawPath;
                 aPlayer.play().catch(e => console.log("Audio autoplay blocked"));
             }
-            // 3. GAMBAR (JPG, PNG)
             else if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
                 iDisplay.style.display = 'block';
                 iDisplay.src = rawPath;
             }
-            // 4. TEXT (.TEXT / .TXT)
             else if (ext === 'text' || ext === 'txt') {
                 tDisplay.style.display = 'block';
                 fetch(rawPath).then(r => r.text()).then(t => tDisplay.innerText = t).catch(() => tDisplay.innerText = "Gagal memuat teks.");
             }
-            // 5. YOUTUBE (DEFAULT)
             else {
                 ytContainer.style.display = 'block';
                 const ytId = extractId(rawPath);
@@ -281,7 +315,6 @@
             return (match && match[2].length === 11) ? match[2] : url;
         }
 
-        // --- 3. FIRESTORE LISTENERS ---
         function listenData() {
             db.collection("config").doc("running_text").onSnapshot(doc => {
                 if (doc.exists) document.getElementById('rt_display').innerText = doc.data().pesan;
@@ -309,7 +342,6 @@
             }
         }
 
-        // --- 4. FUNGSI UI & MODAL ---
         function updateTime() {
             const now = new Date();
             document.getElementById('display-tanggal').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -340,7 +372,6 @@
         function closeLogoutModal() { document.getElementById('modal-logout').style.display = 'none'; }
         function executeLogout() { auth.signOut().then(() => { localStorage.clear(); window.location.href = "index.html"; }); }
 
-        // --- 5. INIT ---
         window.onload = () => {
             setInterval(updateTime, 1000);
             updateTime();
