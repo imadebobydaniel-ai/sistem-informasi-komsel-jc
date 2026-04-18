@@ -333,7 +333,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
 
-    <script>
+ <script>
     // 1. Firebase Configuration
     const firebaseConfig = { 
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
@@ -352,33 +352,28 @@
     // 2. YouTube Player Settings
     let ytPlayer;
     let isYtReady = false;
-    let pendingYtId = null;
-    const VIDEO_ID = 'aqz-KE-bpKQ'; 
+    let currentVideoId = 'aqz-KE-bpKQ'; // Video default awal
 
     function onYouTubeIframeAPIReady() {
         ytPlayer = new YT.Player('player', {
             height: '100%', 
             width: '100%',
-            videoId: VIDEO_ID, 
+            videoId: currentVideoId, 
             playerVars: { 
                 'autoplay': 1, 
                 'mute': 1, 
                 'controls': 1, 
                 'rel': 0, 
                 'loop': 1, 
-                'playlist': VIDEO_ID,
-                'origin': window.location.origin, // Memperbaiki error postMessage
+                'playlist': currentVideoId,
+                'origin': window.location.origin, // PENTING: Untuk GitHub Pages
                 'enablejsapi': 1
             },
             events: { 
                 'onReady': (event) => { 
                     isYtReady = true; 
-                    // Delay kecil agar player benar-benar siap
+                    // Delay kecil agar player benar-benar siap menerima command
                     setTimeout(() => { event.target.playVideo(); }, 500);
-                    if (pendingYtId) { 
-                        ytPlayer.loadVideoById(pendingYtId); 
-                        pendingYtId = null; 
-                    } 
                 },
                 'onError': (e) => { console.error("YouTube Error:", e.data); }
             }
@@ -387,17 +382,11 @@
 
     // 3. Data Listeners (Firestore)
     function listenData() {
-        // Listener Running Text
-        db.collection("config").doc("running_text").onSnapshot(doc => {
-            if (doc.exists) document.getElementById('rt_display').innerText = doc.data().pesan;
-        });
-
-        // Listener Data Profil
+        // Listener Profil (Mengatasi tulisan "Memuat...")
         if (userEmail) {
             db.collection("users").where("email", "==", userEmail).onSnapshot(s => {
                 if (!s.empty) {
                     const d = s.docs[0].data();
-                    // Mengganti teks "Memuat..." dengan nama asli
                     document.getElementById('disp_nama').innerText = d.nama || "User";
                     document.getElementById('disp_email').innerText = userEmail;
                     document.getElementById('disp_komsel').innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
@@ -412,12 +401,35 @@
                     document.getElementById('disp_nama').innerText = "User Tidak Ditemukan";
                 }
             }, (error) => {
-                console.error("Firestore Error:", error);
+                console.error("Firestore Profil Error:", error);
                 document.getElementById('disp_nama').innerText = "Gagal Memuat";
             });
         } else {
-            window.location.href = "index.html"; // Redirect jika email tidak ada
+            window.location.href = "index.html"; 
         }
+
+        // Listener Video Dinamis (portal_media)
+        db.collection("portal_media").orderBy("urutan", "desc").limit(1).onSnapshot(s => {
+            if (!s.empty) {
+                const videoData = s.docs[0].data();
+                const newId = videoData.url; // Mengambil ID dari field 'url' di Firestore
+                
+                if (isYtReady && ytPlayer && currentVideoId !== newId) {
+                    currentVideoId = newId;
+                    ytPlayer.loadVideoById({
+                        videoId: newId,
+                        playlist: newId
+                    });
+                } else {
+                    currentVideoId = newId;
+                }
+            }
+        });
+
+        // Listener Running Text
+        db.collection("config").doc("running_text").onSnapshot(doc => {
+            if (doc.exists) document.getElementById('rt_display').innerText = doc.data().pesan;
+        });
     }
 
     // 4. UI Functions
@@ -450,16 +462,20 @@
     window.onload = () => {
         listenData();
         
+        // Animasi Toggle Profil & Icon Chevron
         const toggleBtn = document.getElementById('toggleProfile');
         if (toggleBtn) {
             toggleBtn.addEventListener('click', () => {
                 document.getElementById('profileCard').classList.toggle('closed');
                 const icon = document.getElementById('toggleIcon');
-                icon.classList.toggle('fa-chevron-left');
-                icon.classList.toggle('fa-chevron-right');
+                if (icon) {
+                    icon.classList.toggle('fa-chevron-left');
+                    icon.classList.toggle('fa-chevron-right');
+                }
             });
         }
 
+        // Mobile Blur effect
         const activeElements = document.querySelectorAll('.menu-box, .nav-item');
         activeElements.forEach(el => {
             el.addEventListener('touchend', () => {
