@@ -28,83 +28,43 @@
         }
 
         body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--putih-bg); margin: 0; padding: 0; color: #333; overflow-x: hidden; }
-        
         @keyframes marqueeTop { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
-        
         .top-info-bar { background: var(--biru-tua); display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; font-weight: bold; font-size: 11px; border-bottom: 2px solid var(--emas-lux); color: white; }
-        
         header { background: var(--biru-tua); border-bottom: 3px solid var(--hijau-zamrud); padding: 12px 0; overflow: hidden; white-space: nowrap; display: flex; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        
         .running-content { display: inline-block; padding-left: 100%; animation: marqueeTop 30s linear infinite; font-weight: 900; font-size: 13px; color: white; text-transform: uppercase; }
+        .container { padding: 20px; max-width: 450px; margin: auto; text-align: center; }
+        .top-section-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto 30px auto; height: 220px; overflow: hidden; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); background: #000; }
         
-        .container { padding: 20px; max-width: 450px; margin: auto; text-align: center; overflow: visible; }
-        
-        .top-section-container { position: -webkit-sticky; position: sticky; top: 10px; z-index: 100; width: 100%; max-width: 500px; margin: 0 auto 30px auto; height: 220px; overflow: hidden; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); background: #000; }
-        
+        /* Profile Card */
         .profile-card { position: absolute; width: 100%; height: 100%; background: linear-gradient(145deg, #ffffff, #e6e6e6); border-radius: 25px; z-index: 5; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; align-items: center; justify-content: center; border-top: 4px solid var(--biru-safir); }
         .profile-card.closed { transform: translateX(-100%); }
         .btn-toggle-side { position: absolute; left: 0; top: 50%; transform: translateY(-50%); z-index: 10; background: #ff0000; color: white; border: none; width: 30px; height: 60px; border-radius: 0 15px 15px 0; cursor: pointer; transition: 0.3s; opacity: 0.8; }
         
         .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 10px; }
-
-        .menu-box { background: linear-gradient(145deg, #ffffff, #f0f0f0); padding: 20px 10px; border-radius: 24px; display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--biru-tua); font-weight: 800; font-size: 11px; box-shadow: 6px 6px 12px #d1d9e6, -6px -6px 12px #ffffff; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 1px solid rgba(255, 255, 255, 0.8); position: relative; overflow: hidden; }
-        .menu-box::before { content: ""; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); transition: 0.5s; }
-        .menu-box:hover::before { left: 100%; }
-        .menu-box:hover { transform: translateY(-8px) scale(1.02); box-shadow: 10px 10px 20px #c2c9d6, -10px -10px 20px #ffffff; background: #ffffff; }
-        .menu-box i { font-size: 32px; margin-bottom: 12px; background: linear-gradient(135deg, var(--biru-safir) 0%, var(--hijau-zamrud) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.2)); transition: 0.3s; }
-        .menu-box:hover i { transform: scale(1.1) rotate(5deg); filter: drop-shadow(4px 8px 10px rgba(0, 0, 0, 0.3)); }
+        .menu-box { background: white; padding: 20px 10px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--biru-tua); font-weight: 800; font-size: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.05); transition: 0.3s; }
+        .menu-box i { font-size: 28px; margin-bottom: 10px; background: linear-gradient(135deg, var(--biru-safir), var(--hijau-zamrud)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
+        /* Inbox & Popups */
         .popup-inbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center; }
         .inbox-content { background: white; width: 90%; max-width: 380px; border-radius: 20px; padding: 20px; max-height: 80vh; overflow-y: auto; }
         .btn-logout { background: var(--biru-tua); color: #fff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block; margin-top: 30px; border: 2px solid var(--emas-lux); }
- 
+
+        /* Digital Card */
         .modal-card-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; }
-        .digital-card-box { width: 260px; min-height: 400px; background: linear-gradient(135deg, #f1c40f 0%, #d4af37 50%, #b8860b 100%); border-radius: 15px; padding: 20px; color: #fff; text-align: center; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.4); }
+        .digital-card-box { width: 260px; height: 400px; background: linear-gradient(135deg, #f1c40f 0%, #d4af37 50%, #b8860b 100%); border-radius: 15px; padding: 20px; color: #fff; text-align: center; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.4); }
         .card-logo-top { width: 60px; height: 60px; object-fit: contain; margin-bottom: 10px; }
         .card-qrcode-box { background: white; padding: 8px; border-radius: 8px; margin: 15px 0; }
         .card-nij-bottom { margin-top: auto; width: 100%; background: rgba(0,0,0,0.15); padding: 8px 0; border-radius: 5px; font-family: monospace; font-size: 16px; font-weight: bold; letter-spacing: 2px; }
- 
+
+        /* Media Area - Tetap menjaga struktur asli Anda */
         #media-display-area { width: 100%; height: 100%; background: #000; }
         #videoPlayer { width: 100%; height: 100%; object-fit: cover; display: none; }
         #audioPlayer { width: 90%; margin: 80px auto; display: none; }
         #imageDisplay { width: 100%; height: 100%; object-fit: contain; display: none; }
         #textDisplay { width: 100%; height: 100%; background: white; color: black; padding: 15px; overflow-y: auto; display: none; font-size: 13px; text-align: left; box-sizing: border-box; }
-        
-        /* CSS Tambahan untuk List Pesan */
-        .pesan-item { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; }
-        .pesan-item:hover { background: #f9f9f9; }
-        .pesan-item.unread { background: #eef7ff; font-weight: bold; }
     </style>
 </head>
 <body>
-
-    <div id="scan-result-modal" class="modal-card-overlay">
-        <div class="digital-card-box" style="height: auto; min-height: 420px; justify-content: flex-start; gap: 10px; position: relative; background: linear-gradient(135deg, var(--biru-tua) 0%, var(--biru-safir) 100%);">
-            
-            <button onclick="closeScanModal()" style="position: absolute; right: 15px; top: 15px; background: none; border: none; color: white; font-size: 20px; cursor: pointer;"><i class="fas fa-times"></i></button>
-
-            <h4 style="margin: 10px 0; font-size: 12px; letter-spacing: 2px; color: var(--emas-lux);">MEMBER PROFILE</h4>
-
-            <div style="width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--emas-lux); overflow: hidden; background: #eee; margin-top: 10px;">
-                <img id="scan-foto" src="https://via.placeholder.com/100" style="width: 100%; height: 100%; object-fit: cover;">
-            </div>
-
-            <div style="text-align: center; width: 100%;">
-                <h2 id="scan-nama" style="margin: 5px 0; font-size: 20px; color: #fff;">Nama Jemaat</h2>
-                <div id="scan-nij" style="font-family: monospace; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 5px; display: inline-block; font-size: 14px; margin-bottom: 15px; color: var(--emas-lux);">NIJ: 20240001</div>
-                
-                <div style="text-align: left; padding: 0 25px; font-size: 13px; color: white;">
-                    <p style="margin: 8px 0;"><i class="fas fa-church" style="width: 20px; color: var(--emas-lux);"></i> <span id="scan-jemaat">Gereja Pusat</span></p>
-                    <p style="margin: 8px 0;"><i class="fas fa-users" style="width: 20px; color: var(--emas-lux);"></i> <span id="scan-komsel">Komsul Joseph 5</span></p>
-                </div>
-            </div>
-
-            <button id="btn-add-networking" class="menu-box" style="width: 85%; margin-top: 25px; background: white; flex-direction: row; justify-content: center; gap: 10px; padding: 15px; border: none;">
-                <i class="fas fa-user-plus" style="font-size: 18px; margin-bottom: 0;"></i>
-                <span style="font-size: 14px; color: var(--biru-tua);">ADD NETWORKING</span>
-            </button>
-        </div>
-    </div>
 
     <div id="modal-logout" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 4000; justify-content: center; align-items: center;">
         <div style="background: white; width: 90%; max-width: 320px; border-radius: 15px; text-align: center; padding: 20px;">
@@ -221,133 +181,175 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
 
-<script>
-    const firebaseConfig = { 
-        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
-        authDomain: "boby-apps-project.firebaseapp.com", 
-        projectId: "boby-apps-project", 
-        storageBucket: "boby-apps-project.appspot.com", 
-        messagingSenderId: "125984859692", 
-        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
-    };
+    <script>
+        // --- 1. KONFIGURASI FIREBASE ---
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
+            authDomain: "boby-apps-project.firebaseapp.com", 
+            projectId: "boby-apps-project", 
+            storageBucket: "boby-apps-project.appspot.com", 
+            messagingSenderId: "125984859692", 
+            appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
+        };
 
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-    const userEmail = localStorage.getItem("userEmail");
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const userEmail = localStorage.getItem("userEmail");
 
-    // --- 1. FUNGSI SCAN (TAMPILAN PROFIL RINGKAS) ---
-    function openScanModal(targetEmail) {
-        if(!targetEmail) return;
-        if (targetEmail === userEmail) {
-            alert("Ini profil Anda sendiri.");
-            return;
-        }
-        
-        db.collection("users").where("email", "==", targetEmail).get().then(s => {
-            if(!s.empty) {
-                const data = s.docs[0].data();
-                
-                // Set data ke UI Modal (Hanya informasi penting)
-                document.getElementById('scan-foto').src = data.foto_profil || 'https://via.placeholder.com/100';
-                document.getElementById('scan-nama').innerText = data.nama || 'Tanpa Nama';
-                document.getElementById('scan-nij').innerText = 'NIJ: ' + (data.nij || '-');
-                document.getElementById('scan-jemaat').innerText = 'Jemaat: ' + (data.lokasi_berjemaat || '-');
-                document.getElementById('scan-komsel').innerText = 'Komsel: ' + (data.komsel || '-');
-                
-                document.getElementById('btn-add-networking').onclick = () => sendFriendRequest(targetEmail, data.nama);
-                document.getElementById('scan-result-modal').style.display = 'flex';
-            } else {
-                alert("Data jemaat tidak ditemukan.");
-            }
-        }).catch(err => console.error("Error load profil scan:", err));
-    }
+        // --- 2. MEDIA PLAYER LOGIC (DITINGKATKAN) ---
+        let ytPlayer;
+        let isYtReady = false;
+        let pendingYtId = null;
 
-    function closeScanModal() {
-        document.getElementById('scan-result-modal').style.display = 'none';
-        // Bersihkan parameter ?scan= di URL tanpa reload halaman
-        const cleanURL = window.location.protocol + "//" + window.location.host + window.location.pathname;
-        window.history.replaceState({}, document.title, cleanURL);
-    }
-
-    function sendFriendRequest(targetEmail, targetNama) {
-        if(!userEmail) return alert("Silahkan login terlebih dahulu.");
-        
-        db.collection("inbox").add({
-            to: targetEmail,
-            from: userEmail,
-            nama_pengirim: document.getElementById('disp_nama').innerText || "User",
-            pesan: `Permintaan Networking dari ${document.getElementById('disp_nama').innerText || "Seseorang"}`,
-            status: "unread",
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
-            alert("Permintaan dikirim ke " + targetNama);
-            closeScanModal();
-        });
-    }
-
-    // --- 2. FUNGSI KARTU DIGITAL & GENERATE QR (RESPONSIF TINGGI) ---
-    function bukaKartuDigital() {
-        db.collection("users").where("email", "==", userEmail).get().then(s => {
-            if(!s.empty) {
-                const d = s.docs[0].data();
-                document.getElementById('dnama').innerText = d.nama;
-                document.getElementById('djemaat').innerText = d.lokasi_berjemaat || "-";
-                document.getElementById('dkomsel').innerText = d.komsel || "-";
-                document.getElementById('dnij').innerText = d.nij || "0000 0000";
-                
-                const qrBox = document.getElementById("qrbox");
-                qrBox.innerHTML = "";
-                
-                // LINK PENGUNCIAN: Langsung ke profil.html agar tidak terlempar ke index/login
-                const scanUrl = "https://imadebobydaniel-ai.github.io/sistem-informasi-pondok-pemulihan-papua/profil.html?scan=" + encodeURIComponent(userEmail);
-                
-                // Konfigurasi QR Code agar sangat cepat terbaca oleh HP
-                new QRCode(qrBox, { 
-                    text: scanUrl, 
-                    width: 180, 
-                    height: 180,
-                    colorDark : "#000000",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.H // Level tertinggi (tahan gangguan/blur)
-                });
-                
-                document.getElementById('modalKartuDigital').style.display = 'flex';
-            }
-        });
-    }
-
-    function tutupKartuDigital() { document.getElementById('modalKartuDigital').style.display = 'none'; }
-
-    // --- 3. UTILITY (WAKTU & INTERFACE) ---
-    function updateTime() {
-        const now = new Date();
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        document.getElementById('display-tanggal').innerText = now.toLocaleDateString('id-ID', options);
-        document.getElementById('digital-clock').innerText = now.toLocaleTimeString('id-ID') + " WIT";
-    }
-
-    // --- 4. INITIALIZATION (AUTO DETECT SCAN) ---
-    window.onload = () => {
-        // Jalankan Jam
-        setInterval(updateTime, 1000);
-        updateTime();
-
-        // Cek apakah ada parameter ?scan= di URL (Hasil scan dari kamera HP)
-        const urlParams = new URLSearchParams(window.location.search);
-        const targetScan = urlParams.get('scan');
-        if (targetScan) {
-            // Beri waktu 1.5 detik agar Firebase siap, lalu munculkan profil
-            setTimeout(() => { openScanModal(targetScan); }, 1500);
-        }
-
-        // Event listener toggle profil (jika ada)
-        const toggleBtn = document.getElementById('toggleProfile');
-        if(toggleBtn){
-            toggleBtn.addEventListener('click', () => {
-                document.getElementById('profileCard').classList.toggle('closed');
+        function onYouTubeIframeAPIReady() {
+            ytPlayer = new YT.Player('player', {
+                height: '100%',
+                width: '100%',
+                videoId: 'aqz-KE-bpKQ', 
+                playerVars: { 'autoplay': 1, 'mute': 1, 'controls': 1, 'rel': 0, 'loop': 1, 'playlist': 'aqz-KE-bpKQ' },
+                events: { 
+                    'onReady': (event) => {
+                        isYtReady = true;
+                        if (pendingYtId) {
+                            ytPlayer.loadVideoById(pendingYtId);
+                            pendingYtId = null;
+                        }
+                    }
+                }
             });
         }
-    };
-</script></body>
+
+        function updateMedia(rawPath) {
+            const vPlayer = document.getElementById('videoPlayer');
+            const aPlayer = document.getElementById('audioPlayer');
+            const iDisplay = document.getElementById('imageDisplay');
+            const tDisplay = document.getElementById('textDisplay');
+            const ytContainer = document.getElementById('player');
+            
+            if (!rawPath) return;
+
+            // Sembunyikan semua elemen pendukung
+            [vPlayer, aPlayer, iDisplay, tDisplay, ytContainer].forEach(el => el.style.display = 'none');
+            if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+            vPlayer.pause();
+            if(aPlayer.src) aPlayer.pause();
+
+            const ext = rawPath.split('.').pop().toLowerCase();
+
+            // LOGIC PENDUKUNG FORMAT BARU
+            // 1. VIDEO (MP4, MOV, AVI)
+            if (rawPath.includes('cloudinary.com') || ['mp4', 'mov', 'avi'].includes(ext)) {
+                vPlayer.style.display = 'block';
+                if (vPlayer.src !== rawPath) {
+                    vPlayer.src = rawPath;
+                    vPlayer.load();
+                    vPlayer.play().catch(e => console.log("Autoplay blocked"));
+                }
+            } 
+            // 2. AUDIO (MP3, OGG, WAV)
+            else if (['mp3', 'ogg', 'wav'].includes(ext)) {
+                aPlayer.style.display = 'block';
+                aPlayer.src = rawPath;
+                aPlayer.play().catch(e => console.log("Audio autoplay blocked"));
+            }
+            // 3. GAMBAR (JPG, PNG)
+            else if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
+                iDisplay.style.display = 'block';
+                iDisplay.src = rawPath;
+            }
+            // 4. TEXT (.TEXT / .TXT)
+            else if (ext === 'text' || ext === 'txt') {
+                tDisplay.style.display = 'block';
+                fetch(rawPath).then(r => r.text()).then(t => tDisplay.innerText = t).catch(() => tDisplay.innerText = "Gagal memuat teks.");
+            }
+            // 5. YOUTUBE (DEFAULT)
+            else {
+                ytContainer.style.display = 'block';
+                const ytId = extractId(rawPath);
+                if (isYtReady && ytPlayer && ytPlayer.loadVideoById) {
+                    ytPlayer.loadVideoById(ytId);
+                } else {
+                    pendingYtId = ytId;
+                }
+            }
+        }
+
+        function extractId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : url;
+        }
+
+        // --- 3. FIRESTORE LISTENERS ---
+        function listenData() {
+            db.collection("config").doc("running_text").onSnapshot(doc => {
+                if (doc.exists) document.getElementById('rt_display').innerText = doc.data().pesan;
+            });
+
+            db.collection("config").doc("playlist").onSnapshot(doc => {
+                if (doc.exists) updateMedia(doc.data().activeContentId);
+            });
+
+            if (userEmail) {
+                db.collection("users").where("email", "==", userEmail).onSnapshot(s => {
+                    if (!s.empty) {
+                        const d = s.docs[0].data();
+                        document.getElementById('disp_nama').innerText = d.nama || "User";
+                        document.getElementById('disp_email').innerText = userEmail;
+                        document.getElementById('disp_komsel').innerText = d.komsel ? "JC " + d.komsel : "KOMSEL JC";
+                        
+                        if (d.foto_profil) {
+                            document.getElementById('user-photo').src = d.foto_profil;
+                            document.getElementById('user-photo').style.display = "block";
+                            document.getElementById('default-icon').style.display = "none";
+                        }
+                    }
+                });
+            }
+        }
+
+        // --- 4. FUNGSI UI & MODAL ---
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('display-tanggal').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('digital-clock').innerText = now.toLocaleTimeString('id-ID') + " WIT";
+        }
+
+        function bukaKartuDigital() {
+            db.collection("users").where("email", "==", userEmail).get().then(s => {
+                if(!s.empty) {
+                    const d = s.docs[0].data();
+                    document.getElementById('dnama').innerText = d.nama;
+                    document.getElementById('djemaat').innerText = d.lokasi_berjemaat || "-";
+                    document.getElementById('dkomsel').innerText = d.komsel || "-";
+                    document.getElementById('dnij').innerText = d.nij || "0000 0000";
+                    
+                    const qrBox = document.getElementById("qrbox");
+                    qrBox.innerHTML = "";
+                    new QRCode(qrBox, { text: window.location.origin + "/profil.html", width: 110, height: 110 });
+                    document.getElementById('modalKartuDigital').style.display = 'flex';
+                }
+            });
+        }
+
+        function tutupKartuDigital() { document.getElementById('modalKartuDigital').style.display = 'none'; }
+        function bukaInbox() { document.getElementById('popup-inbox').style.display = 'flex'; }
+        function tutupInbox() { document.getElementById('popup-inbox').style.display = 'none'; }
+        function confirmLogout() { document.getElementById('modal-logout').style.display = 'flex'; }
+        function closeLogoutModal() { document.getElementById('modal-logout').style.display = 'none'; }
+        function executeLogout() { auth.signOut().then(() => { localStorage.clear(); window.location.href = "index.html"; }); }
+
+        // --- 5. INIT ---
+        window.onload = () => {
+            setInterval(updateTime, 1000);
+            updateTime();
+            listenData();
+
+            document.getElementById('toggleProfile').addEventListener('click', () => {
+                document.getElementById('profileCard').classList.toggle('closed');
+            });
+        };
+    </script>
+</body>
 </html>
