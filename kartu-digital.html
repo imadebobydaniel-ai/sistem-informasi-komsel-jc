@@ -7,82 +7,59 @@
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        /* CSS TETAP MENGGUNAKAN DESAIN MEWAH ANDA */
-        .menu-icons { display: flex; gap: 15px; align-items: center; background: #fff; padding: 10px; }
-        .icon-btn { font-size: 24px; color: #555; cursor: pointer; position: relative; }
-        .icon-btn:hover { color: #003366; }
-
+        body { margin: 0; background: #1a1a1a; font-family: 'Arial', sans-serif; }
         .modal-overlay {
-            display: none; position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 9999;
+            display: flex; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.9); z-index: 9999;
             justify-content: center; align-items: center;
         }
-
         .digital-card {
-            width: 380px; height: 230px;
+            width: 350px; height: 210px;
             background: linear-gradient(135deg, #f1c40f 0%, #d4af37 50%, #b8860b 100%);
             border-radius: 15px; position: relative; padding: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: #fff;
             overflow: hidden; border: 1px solid rgba(255,255,255,0.3);
-            font-family: 'Arial', sans-serif;
         }
-
-        .digital-card::before {
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: url('https://www.transparenttextures.com/patterns/cubes.png');
-            opacity: 0.1; pointer-events: none;
-        }
-
-        .card-logo { position: absolute; top: 15px; right: 15px; width: 50px; height: 50px; object-fit: contain; }
-        .card-title { font-size: 14px; font-weight: bold; margin-bottom: 20px; color: #003366; }
-        .card-info { margin-top: 10px; }
-        .info-label { font-size: 9px; text-transform: uppercase; color: rgba(255,255,255,0.8); margin-bottom: -2px; }
-        .info-value { font-size: 13px; font-weight: bold; margin-bottom: 8px; }
-        .card-nij { position: absolute; bottom: 25px; left: 20px; font-family: 'Courier Prime', monospace; font-size: 22px; letter-spacing: 3px; text-shadow: 2px 2px 2px rgba(0,0,0,0.5); }
-        .card-qr { position: absolute; bottom: 20px; right: 20px; background: white; padding: 5px; border-radius: 5px; }
-        .close-modal { position: absolute; top: -40px; right: 0; color: white; cursor: pointer; }
+        .card-logo { position: absolute; top: 15px; right: 15px; width: 45px; }
+        .card-title { font-size: 12px; font-weight: bold; color: #003366; margin-bottom: 15px; }
+        .info-label { font-size: 8px; text-transform: uppercase; color: rgba(255,255,255,0.8); }
+        .info-value { font-size: 12px; font-weight: bold; margin-bottom: 5px; }
+        .card-nij { position: absolute; bottom: 20px; left: 20px; font-family: 'Courier Prime', monospace; font-size: 18px; letter-spacing: 2px; }
+        .card-qr { position: absolute; bottom: 15px; right: 15px; background: white; padding: 5px; border-radius: 4px; width: 65px; height: 65px; }
+        .loading-text { color: white; position: absolute; }
     </style>
 </head>
 <body>
 
-    <div class="menu-icons">
-        <div class="icon-btn" onclick="showDigitalCard()">
-            <i class="fas fa-id-card"></i> 
-        </div>
+    <div id="loading" class="modal-overlay">
+        <div class="loading-text">Menyiapkan Kartu Digital...</div>
     </div>
 
-    <div id="cardModal" class="modal-overlay">
-        <div style="position: relative;">
-            <div class="close-modal" onclick="closeDigitalCard()">
-                <i class="fas fa-times"></i> Tutup
+    <div id="cardModal" class="modal-overlay" style="display: none;">
+        <div class="digital-card">
+            <img src="logo_pondok.png" class="card-logo" onerror="this.src='https://via.placeholder.com/50'">
+            <div class="card-title">KARTU DIGITAL ANGGOTA</div>
+            <div class="card-info">
+                <div class="info-label">Nama Lengkap</div>
+                <div id="d-nama" class="info-value">...</div>
+                <div class="info-label">Jemaat</div>
+                <div id="d-jemaat" class="info-value">...</div>
+                <div class="info-label">Komsel</div>
+                <div id="d-komsel" class="info-value">...</div>
             </div>
-            <div class="digital-card">
-                <img src="logo_pondok.png" class="card-logo" onerror="this.src='https://via.placeholder.com/50'">
-                <div class="card-title">KARTU DIGITAL ANGGOTA</div>
-                <div class="card-info">
-                    <div class="info-label">Nama Lengkap</div>
-                    <div class="info-value" id="d-nama">MEMUAT...</div>
-                    <div class="info-label">Jemaat</div>
-                    <div class="info-value" id="d-jemaat">-</div>
-                    <div class="info-label">Komsel</div>
-                    <div class="info-value" id="d-komsel">-</div>
-                </div>
-                <div class="card-nij" id="d-nij">0000 0000 0000</div>
-                <div class="card-qr" id="qrcode"></div>
-            </div>
+            <div id="d-nij" class="card-nij">0000 0000 0000</div>
+            <div id="qrcode" class="card-qr"></div>
         </div>
     </div>
 
     <script>
-        // --- 1. CONFIG FIREBASE ---
         const firebaseConfig = { 
             apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
             authDomain: "boby-apps-project.firebaseapp.com", 
@@ -91,70 +68,57 @@
             messagingSenderId: "125984859692", 
             appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
         };
+        
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
-        const userEmail = localStorage.getItem("userEmail");
 
-        // --- 2. FUNGSI TAMPILKAN KARTU ---
-        function showDigitalCard() {
-            if(!userEmail) return alert("Silahkan login ulang.");
-
-            db.collection("users").where("email", "==", userEmail).get().then(s => {
-                if(!s.empty) {
-                    const d = s.docs[0].data();
-                    
-                    document.getElementById('d-nama').innerText = d.nama || "No Name";
-                    document.getElementById('d-jemaat').innerText = d.lokasi_berjemaat || "-";
-                    document.getElementById('d-komsel').innerText = d.komsel || "-";
-                    document.getElementById('d-nij').innerText = d.nij || "0000 0000 0000";
-
-                    const qrContainer = document.getElementById("qrcode");
-                    qrContainer.innerHTML = "";
-                    
-                    const scanUrl = "https://imadebobydaniel-ai.github.io/sistem-informasi-pondok-pemulihan-papua/bio-singkat-jemaat.html?scan=" + encodeURIComponent(userEmail);
-                    
-                    new QRCode(qrContainer, {
-                        text: scanUrl,
-                        width: 75,
-                        height: 75,
-                        colorDark : "#003366",
-                        colorLight : "#ffffff",
-                        correctLevel : QRCode.Level.H
-                    });
-
-                    // Tampilkan modal
-                    document.getElementById('cardModal').style.display = 'flex';
-                } else {
-                    alert("Data jemaat tidak ditemukan.");
-                }
-            }).catch(err => {
-                console.error("Error fetching data:", err);
-            });
-        }
-
-        function closeDigitalCard() {
-            document.getElementById('cardModal').style.display = 'none';
-        }
-
-        // --- 3. LOGIKA OTOMATIS & DETEKSI SCAN ---
-        window.onload = () => {
-            // Langsung panggil fungsi tampil kartu saat halaman dibuka
-            showDigitalCard(); 
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const targetScan = urlParams.get('scan');
-
-            if (targetScan) {
-                window.location.href = "bio-singkat-jemaat.html?scan=" + targetScan;
+        async function initCard() {
+            const userEmail = localStorage.getItem("userEmail");
+            
+            if(!userEmail) {
+                alert("Sesi habis, silakan login kembali.");
+                window.location.href = "login.html";
+                return;
             }
-        };
 
-        // Close modal saat klik luar area kartu
-        window.onclick = function(event) {
-            const modal = document.getElementById('cardModal');
-            if (event.target == modal) closeDigitalCard();
+            try {
+                const snapshot = await db.collection("users").where("email", "==", userEmail).get();
+                
+                if(!snapshot.empty) {
+                    const data = snapshot.docs[0].data();
+                    
+                    // Isi Data
+                    document.getElementById('d-nama').innerText = data.nama || "-";
+                    document.getElementById('d-jemaat').innerText = data.lokasi_berjemaat || "-";
+                    document.getElementById('d-komsel').innerText = data.komsel || "-";
+                    document.getElementById('d-nij').innerText = data.nij || "NIJ-PENDING";
+
+                    // Sembunyikan Loading, Tampilkan Kartu
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('cardModal').style.display = 'flex';
+
+                    // Generate QR Code dengan Delay agar Library siap
+                    setTimeout(() => {
+                        const scanUrl = "https://imadebobydaniel-ai.github.io/sistem-informasi-pondok-pemulihan-papua/bio-singkat-jemaat.html?scan=" + encodeURIComponent(userEmail);
+                        new QRCode(document.getElementById("qrcode"), {
+                            text: scanUrl,
+                            width: 65,
+                            height: 65,
+                            correctLevel: QRCode.Level.M // Level M lebih stabil untuk ukuran kecil
+                        });
+                    }, 300);
+
+                } else {
+                    alert("Data jemaat tidak ditemukan di database.");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Gagal mengambil data.");
+            }
         }
-    </script>
 
+        // Jalankan saat halaman siap
+        window.onload = initCard;
+    </script>
 </body>
 </html>
