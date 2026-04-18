@@ -221,7 +221,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
 
-  <script>
+ <script>
     const firebaseConfig = { 
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
         authDomain: "boby-apps-project.firebaseapp.com", 
@@ -236,48 +236,45 @@
     const auth = firebase.auth();
     const userEmail = localStorage.getItem("userEmail");
 
-    // --- 1. FUNGSI SCAN & NETWORKING (INTI PERBAIKAN) ---
-    // Fungsi ini dipanggil saat scanner berhasil membaca email dari QR Code
+    // --- 1. FUNGSI SCAN & NETWORKING ---
     function openScanModal(targetEmail) {
         if(!targetEmail) return;
 
-        // Validasi jika men-scan diri sendiri
         if (targetEmail === userEmail) {
-            alert("Ini adalah QR Code profil Anda sendiri.");
+            alert("Ini adalah profil Anda sendiri.");
             return;
         }
         
-        // Ambil data user target dari Firestore
         db.collection("users").where("email", "==", targetEmail).get().then(s => {
             if(!s.empty) {
                 const data = s.docs[0].data();
                 
-                // Isi data ke UI Modal Hasil Scan
                 document.getElementById('scan-foto').src = data.foto_profil || 'https://via.placeholder.com/100';
                 document.getElementById('scan-nama').innerText = data.nama || 'Nama Tidak Diketahui';
                 document.getElementById('scan-nij').innerText = 'NIJ: ' + (data.nij || '0000 0000');
                 document.getElementById('scan-jemaat').innerText = data.lokasi_berjemaat || '-';
                 document.getElementById('scan-komsel').innerText = data.komsel || '-';
                 
-                // Pasang fungsi pada tombol Add Networking
                 document.getElementById('btn-add-networking').onclick = () => sendFriendRequest(targetEmail, data.nama);
-                
-                // Tampilkan Modalnya
                 document.getElementById('scan-result-modal').style.display = 'flex';
             } else {
-                alert("Data jemaat tidak ditemukan atau belum terdaftar.");
+                alert("Data jemaat tidak ditemukan.");
             }
         }).catch(err => {
-            console.error("Error saat memproses hasil scan:", err);
-            alert("Terjadi kesalahan sistem.");
+            console.error("Error scan:", err);
         });
     }
 
     function closeScanModal() {
         document.getElementById('scan-result-modal').style.display = 'none';
+        // Membersihkan URL dari parameter scan setelah modal ditutup
+        const newURL = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, newURL);
     }
 
     function sendFriendRequest(targetEmail, targetNama) {
+        if(!userEmail) return alert("Silahkan login terlebih dahulu untuk menambah networking.");
+        
         db.collection("inbox").add({
             to: targetEmail,
             from: userEmail,
@@ -287,7 +284,7 @@
             status: "unread",
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         }).then(() => {
-            alert("Permintaan Networking Berhasil Dikirim ke " + targetNama);
+            alert("Permintaan Networking Terkirim ke " + targetNama);
             closeScanModal();
         });
     }
@@ -337,26 +334,17 @@
             });
     }
 
-    // --- 3. LOGIKA MEDIA & REALTIME DATA ---
+    // --- 3. LOGIKA MEDIA & DATA ---
     let ytPlayer;
     let isYtReady = false;
     let pendingYtId = null;
 
     function onYouTubeIframeAPIReady() {
         ytPlayer = new YT.Player('player', {
-            height: '100%',
-            width: '100%',
+            height: '100%', width: '100%',
             videoId: 'aqz-KE-bpKQ', 
             playerVars: { 'autoplay': 1, 'mute': 1, 'controls': 1, 'rel': 0, 'loop': 1, 'playlist': 'aqz-KE-bpKQ' },
-            events: { 
-                'onReady': (event) => {
-                    isYtReady = true;
-                    if (pendingYtId) {
-                        ytPlayer.loadVideoById(pendingYtId);
-                        pendingYtId = null;
-                    }
-                }
-            }
+            events: { 'onReady': () => { isYtReady = true; if (pendingYtId) { ytPlayer.loadVideoById(pendingYtId); pendingYtId = null; } } }
         });
     }
 
@@ -370,22 +358,13 @@
         [vPlayer, aPlayer, iDisplay, tDisplay, ytContainer].forEach(el => el.style.display = 'none');
         if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
         vPlayer.pause();
-        if(aPlayer.src) aPlayer.pause();
         const ext = rawPath.split('.').pop().toLowerCase();
         if (rawPath.includes('cloudinary.com') || ['mp4', 'mov', 'avi'].includes(ext)) {
-            vPlayer.style.display = 'block';
-            if (vPlayer.src !== rawPath) {
-                vPlayer.src = rawPath;
-                vPlayer.load();
-                vPlayer.play().catch(e => console.log("Autoplay blocked"));
-            }
+            vPlayer.style.display = 'block'; vPlayer.src = rawPath; vPlayer.load(); vPlayer.play().catch(e => {});
         } else if (['mp3', 'ogg', 'wav'].includes(ext)) {
             aPlayer.style.display = 'block'; aPlayer.src = rawPath; aPlayer.play();
         } else if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
             iDisplay.style.display = 'block'; iDisplay.src = rawPath;
-        } else if (ext === 'text' || ext === 'txt') {
-            tDisplay.style.display = 'block';
-            fetch(rawPath).then(r => r.text()).then(t => tDisplay.innerText = t);
         } else {
             ytContainer.style.display = 'block';
             const ytId = extractId(rawPath);
@@ -400,12 +379,8 @@
     }
 
     function listenData() {
-        db.collection("config").doc("running_text").onSnapshot(doc => {
-            if (doc.exists) document.getElementById('rt_display').innerText = doc.data().pesan;
-        });
-        db.collection("config").doc("playlist").onSnapshot(doc => {
-            if (doc.exists) updateMedia(doc.data().activeContentId);
-        });
+        db.collection("config").doc("running_text").onSnapshot(doc => { if (doc.exists) document.getElementById('rt_display').innerText = doc.data().pesan; });
+        db.collection("config").doc("playlist").onSnapshot(doc => { if (doc.exists) updateMedia(doc.data().activeContentId); });
         if (userEmail) {
             db.collection("users").where("email", "==", userEmail).onSnapshot(s => {
                 if (!s.empty) {
@@ -429,7 +404,7 @@
         document.getElementById('digital-clock').innerText = now.toLocaleTimeString('id-ID') + " WIT";
     }
 
-    // --- 4. LOGIKA KARTU DIGITAL ---
+    // --- 4. LOGIKA KARTU DIGITAL (QR LINK UPDATE) ---
     function bukaKartuDigital() {
         db.collection("users").where("email", "==", userEmail).get().then(s => {
             if(!s.empty) {
@@ -438,10 +413,14 @@
                 document.getElementById('djemaat').innerText = d.lokasi_berjemaat || "-";
                 document.getElementById('dkomsel').innerText = d.komsel || "-";
                 document.getElementById('dnij').innerText = d.nij || "0000 0000";
+                
                 const qrBox = document.getElementById("qrbox");
                 qrBox.innerHTML = "";
-                // Membuat QR Code berisi email saja
-                new QRCode(qrBox, { text: userEmail, width: 110, height: 110 });
+                
+                // Membuat Link URL agar bisa di-scan kamera HP biasa
+                const scanUrl = window.location.origin + window.location.pathname + "?scan=" + encodeURIComponent(userEmail);
+                new QRCode(qrBox, { text: scanUrl, width: 110, height: 110 });
+                
                 document.getElementById('modalKartuDigital').style.display = 'flex';
             }
         });
@@ -453,12 +432,21 @@
     function closeLogoutModal() { document.getElementById('modal-logout').style.display = 'none'; }
     function executeLogout() { auth.signOut().then(() => { localStorage.clear(); window.location.href = "index.html"; }); }
 
-    // --- 5. INITIALIZATION ---
+    // --- 5. INITIALIZATION & AUTO-SCAN DETECTOR ---
     window.onload = () => {
         setInterval(updateTime, 1000);
         updateTime();
         listenData();
         listenInboxBadge();
+
+        // Cek apakah ada parameter ?scan= di URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetScan = urlParams.get('scan');
+        if (targetScan) {
+            // Tunggu 1.5 detik agar data Firebase siap lalu buka profil
+            setTimeout(() => { openScanModal(targetScan); }, 1500);
+        }
+
         document.getElementById('toggleProfile').addEventListener('click', () => {
             document.getElementById('profileCard').classList.toggle('closed');
         });
