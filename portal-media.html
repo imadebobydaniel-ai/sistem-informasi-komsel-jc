@@ -286,6 +286,7 @@
     const db = firebase.firestore();
     let runningItems = [];
     let playlistData = [];
+    let isYtReady = false; // Flag untuk status YouTube API
 
     // --- 2. KONFIGURASI CLOUDINARY ---
     const cloudName = "dxzllsbgi";
@@ -293,7 +294,6 @@
 
     function bukaWidgetUpload() {
         const tipeMedia = document.getElementById('tipe_media').value;
-        
         let resourceType = "auto";
         if (tipeMedia === "gambar") resourceType = "image";
         if (tipeMedia === "video_player" || tipeMedia === "audio_player") resourceType = "video";
@@ -317,7 +317,75 @@
         });
     }
 
-    // --- 3. FUNGSI UI ---
+    // --- 3. DATA LISTENERS (VERSI CERDAS) ---
+    function listenData() {
+        // Listener Config Playlist (Nakhoda Utama)
+        db.collection("config").doc("playlist").onSnapshot(doc => {
+            if (doc.exists) {
+                const config = doc.data();
+                // Akomodasi mode 'play all' dari Firestore agar terbaca sebagai looping
+                const rawMode = config.mode ? config.mode.toLowerCase() : 'looping';
+                const mode = (rawMode === 'play all') ? 'looping' : rawMode;
+                
+                console.log("Mode Aktif:", mode);
+                document.getElementById('currentModeDisplay').innerText = mode.toUpperCase();
+
+                // JIKA MODE SINGLE/CUSTOM: Putar hanya satu video
+                if (mode === 'single' || mode === 'custom') {
+                    if (config.activeContentId && typeof ytPlayer !== 'undefined') {
+                        ytPlayer.loadVideoById(config.activeContentId);
+                    }
+                } 
+                // JIKA MODE LOOPING: Ambil semua dari portal_media
+                else if (mode === 'looping') {
+                    fetchAndPlayPlaylist();
+                }
+            }
+        });
+
+        // Listener Running Text
+        db.collection("config").doc("running_text").onSnapshot(doc => {
+            if (doc.exists) {
+                const rtDisplay = document.getElementById('rt_display');
+                if(rtDisplay) rtDisplay.innerText = doc.data().pesan;
+            }
+        });
+    }
+
+    function fetchAndPlayPlaylist() {
+        db.collection("portal_media").orderBy("urutan", "asc").get().then(s => {
+            if (!s.empty) {
+                const videoIds = [];
+                s.forEach(doc => {
+                    const data = doc.data();
+                    // Hanya masukkan ID YouTube yang valid ke array playlist
+                    if (data.tipe === 'video_youtube' && data.url) {
+                        videoIds.push(data.url.trim());
+                    }
+                });
+
+                if (typeof ytPlayer !== 'undefined' && videoIds.length > 0) {
+                    const playlistString = videoIds.join(',');
+                    if (ytPlayer.lastPlaylistString !== playlistString) {
+                        ytPlayer.lastPlaylistString = playlistString;
+                        
+                        ytPlayer.cuePlaylist({
+                            playlist: videoIds,
+                            listType: 'playlist',
+                            index: 0
+                        });
+
+                        setTimeout(() => { 
+                            ytPlayer.playVideo(); 
+                            ytPlayer.setLoop(true);
+                        }, 1500);
+                    }
+                }
+            }
+        });
+    }
+
+    // --- 4. FUNGSI UI ---
     function toggleInputFields() {
         const tipe = document.getElementById('tipe_media').value;
         const urlContainer = document.getElementById('input_url_container');
@@ -340,7 +408,7 @@
         checkboxes.forEach(cb => cb.checked = checkAll.checked);
     }
 
-    // --- 4. LOGIKA RUNNING TEXT ---
+    // --- 5. LOGIKA RUNNING TEXT ---
     async function saveRunningTextToCollection() {
         const text = document.getElementById('rt_input').value;
         const durasi = document.getElementById('rt_durasi').value;
@@ -397,14 +465,13 @@
         if(confirm("Hapus teks ini?")) await db.collection("rt_collection").doc(id).delete();
     }
 
-    // --- 5. LOGIKA MEDIA & PLAYLIST ---
+    // --- 6. LOGIKA MEDIA & PLAYLIST ---
     function extractVideoID(url) {
         const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
         const match = url.match(regExp);
         return (match && match[2].length === 11) ? match[2] : url;
     }
 
-    // --- PERBAIKAN FUNGSI UPLOAD ---
     async function uploadKePortal() {
         const judul = document.getElementById('judul').value;
         const tipe = document.getElementById('tipe_media').value;
@@ -412,7 +479,6 @@
 
         if(!judul) return alert("Judul wajib diisi!");
         
-        // Jika YouTube, ambil ID-nya. Jika Cloudinary/MP4, simpan URL lengkap.
         if(tipe === 'video_youtube' && url.includes("http")) {
             url = extractVideoID(url);
         }
@@ -459,23 +525,20 @@
         });
     }
 
-    // --- PERBAIKAN FUNGSI PLAY SEKARANG ---
     async function playSekarang(id) {
         const selectedMedia = playlistData.find(item => item.id === id);
         if (!selectedMedia) return alert("Data tidak ditemukan!");
 
-        const contentToPlay = selectedMedia.url;
-
         try {
             await db.collection("config").doc("playlist").set({ 
-                activeContentId: contentToPlay, 
+                activeContentId: selectedMedia.url, 
+                mode: 'single', // Paksa mode ke single saat tombol desktop ditekan
                 triggerChange: Date.now() 
             }, { merge: true });
             
             alert("Konten '" + selectedMedia.judul + "' dikirim ke monitor!");
         } catch (e) {
             console.error("❌ Error Play:", e);
-            alert("Gagal mengirim ke monitor.");
         }
     }
 
@@ -514,10 +577,11 @@
         document.getElementById('currentModeDisplay').innerText = mode.toUpperCase();
     }
 
+    // --- INIT ---
     window.onload = () => {
         loadRTCollection();
         loadMedia();
+        listenData(); // Mulai mendengarkan perubahan monitor
     };
-</script>
-</body>
+</script></body>
 </html>
