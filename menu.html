@@ -372,7 +372,7 @@
             events: { 
                 'onReady': (event) => { 
                     isYtReady = true; 
-                    // Delay kecil agar player benar-benar siap menerima command
+                    // Delay kecil agar player benar-benar siap
                     setTimeout(() => { event.target.playVideo(); }, 500);
                 },
                 'onError': (e) => { console.error("YouTube Error:", e.data); }
@@ -408,20 +408,32 @@
             window.location.href = "index.html"; 
         }
 
-        // Listener Video Dinamis (portal_media)
-        db.collection("portal_media").orderBy("urutan", "desc").limit(1).onSnapshot(s => {
+        // PERBAIKAN: Listener Video Dinamis (Mengambil daftar video untuk dijadikan playlist)
+        db.collection("portal_media").orderBy("urutan", "asc").onSnapshot(s => {
             if (!s.empty) {
-                const videoData = s.docs[0].data();
-                const newId = videoData.url; // Mengambil ID dari field 'url' di Firestore
-                
-                if (isYtReady && ytPlayer && currentVideoId !== newId) {
-                    currentVideoId = newId;
-                    ytPlayer.loadVideoById({
-                        videoId: newId,
-                        playlist: newId
-                    });
-                } else {
-                    currentVideoId = newId;
+                const videoIds = [];
+                s.forEach(doc => {
+                    const data = doc.data();
+                    if (data.url) videoIds.push(data.url);
+                });
+
+                if (isYtReady && ytPlayer && videoIds.length > 0) {
+                    // Mengecek apakah ada perubahan pada daftar video
+                    const playlistString = videoIds.join(',');
+                    if (ytPlayer.playlistString !== playlistString) {
+                        ytPlayer.playlistString = playlistString;
+                        
+                        // Memuat daftar video sebagai playlist baru
+                        ytPlayer.loadPlaylist({
+                            playlist: videoIds,
+                            listType: 'playlist',
+                            index: 0,
+                            startSeconds: 0
+                        });
+                        
+                        // Set agar otomatis mengulang (loop) seluruh playlist
+                        ytPlayer.setLoop(true);
+                    }
                 }
             }
         });
@@ -462,7 +474,6 @@
     window.onload = () => {
         listenData();
         
-        // Animasi Toggle Profil & Icon Chevron
         const toggleBtn = document.getElementById('toggleProfile');
         if (toggleBtn) {
             toggleBtn.addEventListener('click', () => {
@@ -475,7 +486,6 @@
             });
         }
 
-        // Mobile Blur effect
         const activeElements = document.querySelectorAll('.menu-box, .nav-item');
         activeElements.forEach(el => {
             el.addEventListener('touchend', () => {
