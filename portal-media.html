@@ -285,7 +285,7 @@
     const db = firebase.firestore();
     let playlistData = [];
 
-    // --- 2. FITUR RUNNING TEXT (PERBAIKAN ERROR) ---
+    // --- 2. FITUR RUNNING TEXT ---
     async function saveRunningTextToCollection() {
         const pesan = document.getElementById('rt_input').value;
         const durasi = document.getElementById('rt_durasi').value;
@@ -293,14 +293,12 @@
         if(!pesan) return alert("Pesan tidak boleh kosong!");
 
         try {
-            // Update teks yang aktif saat ini ke monitor
             await db.collection("config").doc("running_text").set({
                 pesan: pesan,
                 durasi: parseInt(durasi),
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
             
-            // Simpan ke riwayat koleksi
             await db.collection("running_text_history").add({
                 pesan: pesan,
                 durasi: parseInt(durasi),
@@ -340,7 +338,7 @@
         alert("Pesan diaktifkan kembali!");
     }
 
-    // --- 3. FITUR PLAYLIST (MOVE UP / DOWN) ---
+    // --- 3. FITUR PLAYLIST REORDERING ---
     async function moveItem(id, direction) {
         const index = playlistData.findIndex(item => item.id === id);
         if (index < 0) return;
@@ -348,7 +346,6 @@
         const newIndex = index + direction;
         if (newIndex < 0 || newIndex >= playlistData.length) return;
 
-        // Tukar posisi urutan (timestamp/urutan)
         const currentItem = playlistData[index];
         const targetItem = playlistData[newIndex];
 
@@ -362,7 +359,7 @@
         await batch.commit();
     }
 
-    // --- 4. FITUR PLAY MODE (LOOPING, SHUFFLE, CUSTOM) ---
+    // --- 4. PLAY MODE CONFIG ---
     async function updatePlayMode() {
         const mode = document.getElementById('play_mode').value;
         try {
@@ -370,6 +367,7 @@
                 mode: mode,
                 triggerChange: Date.now()
             }, { merge: true });
+            document.getElementById('currentModeDisplay').innerText = mode.toUpperCase();
             alert("Mode pemutaran diganti ke: " + mode.toUpperCase());
         } catch (e) { alert("Gagal update mode"); }
     }
@@ -410,6 +408,7 @@
             alert("Konten Berhasil Terbit!");
             document.getElementById('judul').value = "";
             document.getElementById('url_media').value = "";
+            document.getElementById('isi_artikel').value = "";
         } catch (e) { console.error(e); }
     }
 
@@ -490,7 +489,6 @@
     window.onload = () => {
         loadRTCollection();
         loadMedia();
-        // Ambil mode saat ini dari Firebase untuk sinkronisasi UI
         db.collection("config").doc("playlist").get().then(doc => {
             if(doc.exists && doc.data().mode) {
                 document.getElementById('play_mode').value = doc.data().mode;
@@ -498,5 +496,6 @@
             }
         });
     };
-</script></body>
+</script>
+</body>
 </html>
