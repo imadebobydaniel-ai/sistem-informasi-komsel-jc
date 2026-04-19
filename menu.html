@@ -159,7 +159,7 @@
 
         .nav-item span { font-size: 9px; font-weight: 800; }
 
-        /* --- MODAL KARTU DIGITAL (DESAIN BARU) --- */
+        /* --- MODAL KARTU DIGITAL (DESAIN TERBARU) --- */
         .modal-card-overlay { 
             display: none; 
             position: fixed; 
@@ -170,44 +170,82 @@
             justify-content: center; 
             align-items: center; 
         }
-        
-        .digital-card-box { 
-            width: 290px; 
-            height: 440px; 
-            background: linear-gradient(135deg, #FFD700, #b8860b); 
-            border-radius: 20px; 
-            padding: 20px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            border: 4px solid #003366; 
-            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
-            box-sizing: border-box;
-        }
-        
-        .card-header-title {
-            background: #003366;
-            color: white;
-            width: 100%;
-            padding: 5px 0;
-            font-weight: bold;
-            margin-bottom: 15px;
-            border-radius: 5px;
+
+        /* Digital Card Container */
+        .digital-card {
+            width: 300px;
+            background: linear-gradient(135deg, #003366, #0056b3);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             text-align: center;
-            font-size: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            border: 2px solid var(--emas-lux);
         }
 
-        .card-logo-top { width: 60px; margin-bottom: 10px; }
-        .card-qrcode-box { background: white; padding: 10px; border-radius: 10px; margin: 5px 0; }
-        .card-nij-container { 
-            margin-top: auto; 
-            background: #003366; 
-            color: #FFD700; 
-            width: 100%; 
-            padding: 10px 0; 
-            border-radius: 10px; 
-            font-weight: bold; 
-            text-align: center;
+        .card-header-title {
+            padding: 0;
+            color: #ffffff;
+            background: none;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .logo-small {
+            width: 60px;
+            margin-bottom: 15px;
+        }
+
+        .label {
+            color: #d1d1d1;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .member-name {
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: 900;
+            margin-bottom: 15px;
+        }
+
+        .qr-section {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            width: 80%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Bagian didalam QR Box */
+        .qr-section #qrbox { margin-bottom: 10px; }
+
+        .qr-footer {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            color: #003366;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .nij-container {
+            margin-top: 15px;
+            padding: 0;
+            color: #ffffff;
+            background: none;
+            font-weight: bold;
+            letter-spacing: 1px;
+            font-size: 13px;
         }
 
         /* --- Media Display Areas --- */
@@ -284,17 +322,26 @@
     <div id="modalKartuDigital" class="modal-card-overlay">
         <div style="position: relative;">
             <div onclick="tutupKartuDigital()" style="position:absolute; top:-35px; right:0; color:white; cursor:pointer; font-weight: bold;"><i class="fas fa-times"></i> Tutup</div>
-            <div class="digital-card-box">
+            
+            <div class="digital-card">
                 <div class="card-header-title">KARTU JEMAAT DIGITAL</div>
-                <img src="logo_pondok.png" class="card-logo-top" onerror="this.src='https://via.placeholder.com/60'">
                 
-                <div style="font-size: 10px; color: #003366; font-weight: bold; text-transform: uppercase;">Nama Lengkap:</div>
-                <div id="dnama" style="font-size: 18px; font-weight: 900; margin-bottom: 10px; color: #003366;">Memuat...</div>
+                <img src="logo-pondok-pemulihan.png" class="logo-small" onerror="this.src='https://via.placeholder.com/60'">
                 
-                <div class="card-qrcode-box" id="qrbox"></div>
+                <div class="label">NAMA LENGKAP:</div>
+                <div class="member-name" id="dnama">Memuat...</div>
                 
-                <div class="card-nij-container">
-                    <div id="dnij" style="font-size: 16px; letter-spacing: 2px;">NIJ-XXX-XXX</div>
+                <div class="qr-section">
+                    <div id="qrbox"></div>
+                    
+                    <div class="qr-footer">
+                        <span id="dkomsel">KOMSEL</span>
+                        <span id="dcabang">CABANG</span>
+                    </div>
+                </div>
+                
+                <div class="nij-container" id="dnij">
+                    NI-XXX-XXX
                 </div>
             </div>
         </div>
@@ -371,10 +418,13 @@
                 if(!s.empty) {
                     const d = s.docs[0].data();
                     document.getElementById('dnama').innerText = d.nama;
-                    document.getElementById('dnij').innerText = d.nij || "0000 0000";
+                    document.getElementById('dnij').innerText = d.nij || "NIJ-PPP-2026";
+                    document.getElementById('dkomsel').innerText = d.komsel ? "JOSEPH " + d.komsel : "KOMSEL";
+                    document.getElementById('dcabang').innerText = d.cabang || "JAYAPURA";
+                    
                     const qrBox = document.getElementById("qrbox");
                     qrBox.innerHTML = "";
-                    new QRCode(qrBox, { text: userEmail, width: 110, height: 110 });
+                    new QRCode(qrBox, { text: userEmail, width: 140, height: 140 });
                     document.getElementById('modalKartuDigital').style.display = 'flex';
                 }
             });
