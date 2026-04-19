@@ -117,32 +117,121 @@
         .nav-item { text-decoration: none; display: flex; flex-direction: column; align-items: center; color: #888; flex: 1; }
         .nav-item span { font-size: 9px; font-weight: 800; margin-top: 4px; }
 
-        /* --- CSS KARTU DIGITAL PERBAIKAN --- */
-        .modal-card-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        
+        /* --- UPDATE DESAIN KARTU DIGITAL --- */
+        .modal-card-overlay { 
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.8); 
+            z-index: 10000; 
+            justify-content: center; 
+            align-items: center; 
+            backdrop-filter: blur(5px); 
+        }
+
         .digital-card-box { 
-            width: 300px; 
-            height: 480px; 
+            width: 320px; 
+            height: 500px; 
             background: linear-gradient(135deg, #f1c40f 0%, #d4af37 50%, #b8860b 100%); 
             border-radius: 25px; 
-            padding: 25px; 
-            color: #003366; 
+            padding: 25px 0; 
+            color: #ffffff; 
             text-align: center; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
             border: 3px solid #fff; 
             box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            position: relative;
+            box-sizing: border-box;
+            overflow: hidden; 
+        }
+
+        .card-logo-top { 
+            width: 100px; 
+            height: 100px; 
+            object-fit: contain; 
+            margin-bottom: 10px; 
+            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2));
+        }
+
+        .card-title-text { 
+            font-size: 16px; 
+            font-weight: 900; 
+            color: #ffffff !important; 
+            margin-bottom: 20px; 
+            text-transform: uppercase; 
+            border-bottom: 2px solid #ffffff;
+            padding-bottom: 5px;
+            width: 80%; 
+        }
+
+        .card-info-group { width: 100%; margin-bottom: 15px; padding: 0 25px; box-sizing: border-box; }
+        
+        .card-label { 
+            font-size: 10px; 
+            text-transform: uppercase; 
+            font-weight: bold; 
+            color: rgba(255,255,255,0.8) !important; 
+        }
+        
+        .card-value { 
+            font-size: 26px; 
+            font-weight: 900; 
+            color: #ffffff !important; 
+            line-height: 1.2; 
+        }
+
+        .card-sub-info-group { 
+            display: flex; 
+            justify-content: space-between; 
+            width: 100%; 
+            padding: 0 25px; 
+            box-sizing: border-box;
+            margin-bottom: 15px;
+        }
+
+        .card-sub-label {
+            font-size: 10px; 
+            text-transform: uppercase; 
+            font-weight: bold; 
+            color: rgba(255,255,255,0.8) !important; 
+        }
+
+        .card-sub-value {
+            font-size: 16px; 
+            font-weight: 900; 
+            color: #ffffff !important; 
+        }
+
+        .card-qrcode-box { 
+            background: white; 
+            padding: 12px; 
+            border-radius: 15px; 
+            margin: 10px 0; 
+            border: 3px solid #003366;
+            display: inline-block; 
+        }
+
+        .card-nij-container {
+            margin-top: auto; 
+            width: 100%; 
+            background: #003366; 
+            padding: 15px 0; 
+            border-top: 2px solid #fff;
             box-sizing: border-box;
         }
 
-        .card-logo-top { width: 80px; height: 80px; object-fit: contain; margin-bottom: 10px; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2)); }
-        .card-title-text { font-size: 16px; font-weight: 900; color: #003366; margin-bottom: 20px; text-transform: uppercase; border-bottom: 2px solid #003366; padding-bottom: 5px; width: 100%; }
-        .card-info-group { width: 100%; margin-bottom: 12px; }
-        .card-label { font-size: 10px; text-transform: uppercase; font-weight: bold; color: #333; }
-        .card-value { font-size: 18px; font-weight: 900; color: #003366; line-height: 1.2; }
-        .card-qrcode-box { background: white; padding: 12px; border-radius: 15px; margin: 10px 0; border: 3px solid #003366; }
-        .card-nij-bottom { margin-top: auto; width: 100%; background: #003366; color: #f1c40f; padding: 12px 0; border-radius: 15px; font-family: monospace; font-size: 18px; font-weight: bold; letter-spacing: 2px; }
+        .nij-text-bottom { 
+            color: #f1c40f !important; 
+            font-family: 'Courier Prime', monospace; 
+            font-size: 18px; 
+            font-weight: bold; 
+            letter-spacing: 2px; 
+            margin: 0;
+            padding: 0;
+        }
 
         #media-display-area { width: 100%; height: 100%; background: #000; }
         #player { width: 100%; height: 100%; }
@@ -223,11 +312,12 @@
 
     <div id="modalKartuDigital" class="modal-card-overlay">
         <div style="position: relative;">
-            <div onclick="tutupKartuDigital()" style="position:absolute; top:-40px; right:0; color:white; cursor:pointer; font-weight:bold; font-size:16px;">
+            <div onclick="tutupKartuDigital()" style="position:absolute; top:-45px; right:10px; color:white; cursor:pointer; font-weight:bold; font-size:16px; z-index:10001;">
                 <i class="fas fa-times-circle"></i> TUTUP
             </div>
+            
             <div class="digital-card-box">
-                <img src="logo_pondok.png" class="card-logo-top" onerror="this.src='https://via.placeholder.com/80'">
+                <img src="logo_pondok.png" class="card-logo-top" onerror="this.src='https://via.placeholder.com/100'">
                 <div class="card-title-text">Kartu Digital Jemaat</div>
                 
                 <div class="card-info-group">
@@ -235,21 +325,23 @@
                     <div id="dnama" class="card-value">Memuat...</div>
                 </div>
 
-                <div class="card-info-group" style="display: flex; justify-content: space-around;">
+                <div class="card-sub-info-group">
                     <div>
-                        <div class="card-label">Komsel</div>
-                        <div id="dkomsel_card" class="card-value">-</div>
+                        <div class="card-sub-label">Komsel</div>
+                        <div id="dkomsel_card" class="card-sub-value">-</div>
                     </div>
                     <div>
-                        <div class="card-label">Jemaat</div>
-                        <div id="dcabang_card" class="card-value">-</div>
+                        <div class="card-sub-label">Jemaat</div>
+                        <div id="dcabang_card" class="card-sub-value">-</div>
                     </div>
                 </div>
 
                 <div class="card-qrcode-box" id="qrbox"></div>
 
-                <div class="card-label" style="margin-top:5px;">Nomor Induk Jemaat</div>
-                <div class="card-nij-bottom" id="dnij">0000 0000 0000</div>
+                <div class="card-nij-container">
+                    <div class="card-label" style="color: rgba(255,255,255,0.6) !important; margin-bottom: 3px;">Nomor Induk Jemaat</div>
+                    <div class="nij-text-bottom" id="dnij">0000 0000 0000</div>
+                </div>
             </div>
         </div>
     </div>
@@ -332,7 +424,14 @@
                 
                 const qrBox = document.getElementById("qrbox");
                 qrBox.innerHTML = "";
-                new QRCode(qrBox, { text: userEmail, width: 130, height: 130 });
+                new QRCode(qrBox, { 
+                    text: userEmail, 
+                    width: 140, 
+                    height: 140,
+                    colorDark : "#003366",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
                 document.getElementById('modalKartuDigital').style.display = 'flex';
             }
         });
