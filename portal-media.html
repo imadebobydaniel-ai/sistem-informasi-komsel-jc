@@ -140,7 +140,7 @@
     <div class="header">
         <div>
             <h1 style="margin:0; font-size: 26px; font-weight: 800; background: linear-gradient(to right, #1e3a8a, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Portal Media</h1>
-            <p style="margin:5px 0 0; color:#64748b; font-size: 14px;"><i class="fa-solid fa-layer-group"></i> Smart CMS</p>
+            <p style="margin:5px 0 0; color:#64748b; font-size: 14px;"><i class="fa-solid fa-layer-group"></i> Smart CMS Papua</p>
         </div>
         <a href="admin.html" class="btn-back"><i class="fas fa-arrow-left"></i> Dashboard</a>
     </div>
@@ -152,12 +152,12 @@
         <div class="card-body">
             <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                 <div style="flex: 2; min-width: 300px;">
-                    <label>Input Teks Baru & Koleksi</label>
+                    <label>Input Teks Baru & Kirim ke Monitor</label>
                     <div style="display: flex; gap: 10px;">
                         <input type="text" id="rt_input" placeholder="Tulis pengumuman baru...">
                         <input type="number" id="rt_durasi" placeholder="Detik" style="max-width: 90px;" value="15">
                         <button onclick="saveRunningTextToCollection()" class="btn-submit" style="width: auto;">
-                            <i class="fas fa-plus"></i> Simpan
+                            <i class="fas fa-paper-plane"></i> Kirim
                         </button>
                     </div>
                 </div>
@@ -168,7 +168,7 @@
                     <thead>
                         <tr>
                             <th style="width: 100px;">Status</th>
-                            <th>Isi Pesan</th>
+                            <th>Isi Pesan Terakhir</th>
                             <th style="width: 80px;">Durasi</th>
                             <th style="width: 100px; text-align: center;">Kontrol</th>
                         </tr>
@@ -220,7 +220,7 @@
             </div>
 
             <button onclick="uploadKePortal()" id="btnPublish" class="btn-submit" style="width: 100%;">
-                <i class="fa-solid fa-paper-plane"></i> Publikasikan Konten
+                <i class="fa-solid fa-paper-plane"></i> Publikasikan Konten ke Playlist
             </button>
         </div>
     </div>
@@ -255,7 +255,7 @@
                             <th style="width: 60px; text-align: center;">No</th>
                             <th>Judul Konten</th>
                             <th>Tipe</th>
-                            <th style="text-align: center; width: 180px;">Aksi</th>
+                            <th style="text-align: center; width: 180px;">Aksi & Urutan</th>
                         </tr>
                     </thead>
                     <tbody id="mediaList"></tbody>
@@ -285,7 +285,7 @@
     const db = firebase.firestore();
     let playlistData = [];
 
-    // --- 2. FITUR RUNNING TEXT ---
+    // --- 2. LOGIKA RUNNING TEXT ---
     async function saveRunningTextToCollection() {
         const pesan = document.getElementById('rt_input').value;
         const durasi = document.getElementById('rt_durasi').value;
@@ -293,12 +293,14 @@
         if(!pesan) return alert("Pesan tidak boleh kosong!");
 
         try {
+            // Update Konfig Aktif
             await db.collection("config").doc("running_text").set({
                 pesan: pesan,
                 durasi: parseInt(durasi),
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
             
+            // Simpan ke Riwayat
             await db.collection("running_text_history").add({
                 pesan: pesan,
                 durasi: parseInt(durasi),
@@ -308,8 +310,7 @@
             alert("Running Text Berhasil Dikirim ke Monitor!");
             document.getElementById('rt_input').value = "";
         } catch (e) {
-            console.error("Error RT:", e);
-            alert("Gagal menyimpan Running Text");
+            alert("Gagal menyimpan: " + e.message);
         }
     }
 
@@ -322,11 +323,11 @@
                 const data = doc.data();
                 list.innerHTML += `
                     <tr>
-                        <td><span class="status-dot active"></span> Arsip</td>
+                        <td><span class="status-dot"></span> Arsip</td>
                         <td>${data.pesan}</td>
                         <td>${data.durasi}s</td>
                         <td style="text-align:center;">
-                            <button onclick="setRTActive('${data.pesan}', ${data.durasi})" class="btn-action btn-play-sm"><i class="fas fa-paper-plane"></i></button>
+                            <button onclick="setRTActive('${data.pesan.replace(/'/g, "\\'")}', ${data.durasi})" class="btn-action btn-play-sm" title="Kirim Ulang"><i class="fas fa-paper-plane"></i></button>
                         </td>
                     </tr>`;
             });
@@ -334,45 +335,11 @@
     }
 
     async function setRTActive(pesan, durasi) {
-        await db.collection("config").doc("running_text").set({ pesan, durasi });
-        alert("Pesan diaktifkan kembali!");
+        await db.collection("config").doc("running_text").set({ pesan, durasi, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+        alert("Running text diaktifkan kembali!");
     }
 
-    // --- 3. FITUR PLAYLIST REORDERING ---
-    async function moveItem(id, direction) {
-        const index = playlistData.findIndex(item => item.id === id);
-        if (index < 0) return;
-
-        const newIndex = index + direction;
-        if (newIndex < 0 || newIndex >= playlistData.length) return;
-
-        const currentItem = playlistData[index];
-        const targetItem = playlistData[newIndex];
-
-        const batch = db.batch();
-        const ref1 = db.collection("portal_media").doc(currentItem.id);
-        const ref2 = db.collection("portal_media").doc(targetItem.id);
-
-        batch.update(ref1, { urutan: targetItem.urutan });
-        batch.update(ref2, { urutan: currentItem.urutan });
-
-        await batch.commit();
-    }
-
-    // --- 4. PLAY MODE CONFIG ---
-    async function updatePlayMode() {
-        const mode = document.getElementById('play_mode').value;
-        try {
-            await db.collection("config").doc("playlist").set({
-                mode: mode,
-                triggerChange: Date.now()
-            }, { merge: true });
-            document.getElementById('currentModeDisplay').innerText = mode.toUpperCase();
-            alert("Mode pemutaran diganti ke: " + mode.toUpperCase());
-        } catch (e) { alert("Gagal update mode"); }
-    }
-
-    // --- 5. MEDIA MANAGEMENT ---
+    // --- 3. LOGIKA MANAJEMEN PLAYLIST & MEDIA ---
     function toggleInputFields() {
         const tipe = document.getElementById('tipe_media').value;
         const urlContainer = document.getElementById('input_url_container');
@@ -389,10 +356,23 @@
         }
     }
 
+    function bukaWidgetUpload() {
+        cloudinary.openUploadWidget({
+            cloudName: 'dcvv88vzh', 
+            uploadPreset: 'ml_default'
+        }, (error, result) => {
+            if (!error && result && result.event === "success") {
+                document.getElementById('url_media').value = result.info.secure_url;
+                alert("File berhasil diupload!");
+            }
+        });
+    }
+
     async function uploadKePortal() {
         const judul = document.getElementById('judul').value;
         const tipe = document.getElementById('tipe_media').value;
-        let url = document.getElementById('url_media').value || "";
+        const url = document.getElementById('url_media').value;
+        const isi = document.getElementById('isi_artikel').value;
 
         if(!judul) return alert("Judul wajib diisi!");
 
@@ -400,16 +380,17 @@
             await db.collection("portal_media").add({
                 judul: judul,
                 tipe: tipe,
-                url: url, 
-                isi_artikel: document.getElementById('isi_artikel').value || "",
+                url: url || "", 
+                isi_artikel: isi || "",
                 urutan: Date.now(),
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
-            alert("Konten Berhasil Terbit!");
+            alert("Konten Berhasil Ditambahkan!");
+            // Reset Form
             document.getElementById('judul').value = "";
             document.getElementById('url_media').value = "";
             document.getElementById('isi_artikel').value = "";
-        } catch (e) { console.error(e); }
+        } catch (e) { alert("Error: " + e.message); }
     }
 
     function loadMedia() {
@@ -431,7 +412,7 @@
                         <td style="text-align:center;">
                             <button onclick="moveItem('${doc.id}', -1)" class="btn-action btn-up"><i class="fas fa-chevron-up"></i></button>
                             <button onclick="moveItem('${doc.id}', 1)" class="btn-action btn-down"><i class="fas fa-chevron-down"></i></button>
-                            <button onclick="playSekarang('${doc.id}')" class="btn-action btn-play-sm"><i class="fas fa-desktop"></i></button>
+                            <button onclick="playSekarang('${doc.id}')" class="btn-action btn-play-sm" title="Putar Paksa Sekarang"><i class="fas fa-desktop"></i></button>
                             <button onclick="deleteMedia('${doc.id}')" class="btn-action btn-del-sm"><i class="fas fa-trash"></i></button>
                         </td>
                     </tr>`;
@@ -439,6 +420,45 @@
         });
     }
 
+    // --- 4. LOGIKA REORDERING & MODE ---
+    async function moveItem(id, direction) {
+        const index = playlistData.findIndex(item => item.id === id);
+        if (index < 0) return;
+        const newIndex = index + direction;
+        if (newIndex < 0 || newIndex >= playlistData.length) return;
+
+        const current = playlistData[index];
+        const target = playlistData[newIndex];
+
+        const batch = db.batch();
+        batch.update(db.collection("portal_media").doc(current.id), { urutan: target.urutan });
+        batch.update(db.collection("portal_media").doc(target.id), { urutan: current.urutan });
+        await batch.commit();
+    }
+
+    async function updatePlayMode() {
+        const mode = document.getElementById('play_mode').value;
+        await db.collection("config").doc("playlist").set({
+            mode: mode,
+            triggerChange: Date.now()
+        }, { merge: true });
+        document.getElementById('currentModeDisplay').innerText = mode.toUpperCase();
+        alert("Mode Pemutaran: " + mode.toUpperCase());
+    }
+
+    async function playSekarang(id) {
+        const item = playlistData.find(i => i.id === id);
+        await db.collection("config").doc("playlist").set({
+            mode: 'single',
+            activeContentId: item.url || item.id,
+            activeTipe: item.tipe,
+            activeTitle: item.judul,
+            triggerChange: Date.now()
+        }, { merge: true });
+        alert("Monitor diinstruksikan memutar: " + item.judul);
+    }
+
+    // --- 5. HAPUS DATA ---
     async function deleteMedia(id) {
         if(confirm("Hapus konten ini?")) {
             await db.collection("portal_media").doc(id).delete();
@@ -447,12 +467,10 @@
 
     async function deleteSelected() {
         const checked = document.querySelectorAll('.item-checkbox:checked');
-        if(checked.length === 0) return alert("Pilih item dulu!");
-        if(confirm(`Hapus ${checked.length} item?`)) {
+        if(checked.length === 0) return alert("Pilih item yang ingin dihapus!");
+        if(confirm(`Hapus ${checked.length} item pilihan?`)) {
             const batch = db.batch();
-            checked.forEach(box => {
-                batch.delete(db.collection("portal_media").doc(box.value));
-            });
+            checked.forEach(box => batch.delete(db.collection("portal_media").doc(box.value)));
             await batch.commit();
         }
     }
@@ -462,33 +480,11 @@
         document.querySelectorAll('.item-checkbox').forEach(box => box.checked = master.checked);
     }
 
-    async function playSekarang(id) {
-        const item = playlistData.find(i => i.id === id);
-        await db.collection("config").doc("playlist").set({
-            mode: 'single',
-            activeContentId: item.url,
-            activeTipe: item.tipe,
-            activeTitle: item.judul,
-            triggerChange: Date.now()
-        }, { merge: true });
-        alert("Monitor memutar: " + item.judul);
-    }
-
-    // --- CLOUDINARY WIDGET ---
-    function bukaWidgetUpload() {
-        cloudinary.openUploadWidget({
-            cloudName: 'dcvv88vzh', 
-            uploadPreset: 'ml_default'
-        }, (error, result) => {
-            if (!error && result && result.event === "success") {
-                document.getElementById('url_media').value = result.info.secure_url;
-            }
-        });
-    }
-
+    // --- INITIALIZE ---
     window.onload = () => {
         loadRTCollection();
         loadMedia();
+        // Load Current Play Mode from DB
         db.collection("config").doc("playlist").get().then(doc => {
             if(doc.exists && doc.data().mode) {
                 document.getElementById('play_mode').value = doc.data().mode;
