@@ -352,7 +352,6 @@
     // 2. YouTube Player Settings
     let ytPlayer;
     let isYtReady = false;
-    let currentVideoId = ''; // Kosongkan agar menunggu data Firestore
 
     function onYouTubeIframeAPIReady() {
         ytPlayer = new YT.Player('player', {
@@ -371,7 +370,6 @@
             events: { 
                 'onReady': (event) => { 
                     isYtReady = true; 
-                    // Jalankan listener data HANYA setelah player siap
                     listenData();
                 },
                 'onStateChange': onPlayerStateChange,
@@ -380,7 +378,6 @@
         });
     }
 
-    // Penanganan loop playlist manual jika sistem YouTube Playlist API delay
     function onPlayerStateChange(event) {
         if (event.data === YT.PlayerState.ENDED) {
             ytPlayer.nextVideo();
@@ -404,48 +401,31 @@
                         img.style.display = "block";
                         document.getElementById('default-icon').style.display = "none";
                     }
-                } else {
-                    document.getElementById('disp_nama').innerText = "User Tidak Ditemukan";
                 }
-            }, (error) => {
-                console.error("Firestore Profil Error:", error);
             });
-        } else {
-            window.location.href = "index.html"; 
         }
 
-        // PERBAIKAN UTAMA: Listener Playlist Dinamis
+        // Listener Playlist Dinamis
         db.collection("portal_media").orderBy("urutan", "asc").onSnapshot(s => {
             if (!s.empty) {
                 const videoIds = [];
                 s.forEach(doc => {
                     const data = doc.data();
-                    if (data.url) {
-                        const cleanId = data.url.trim();
-                        videoIds.push(cleanId);
-                    }
+                    if (data.url) videoIds.push(data.url.trim());
                 });
 
                 if (isYtReady && ytPlayer && videoIds.length > 0) {
                     const newPlaylistString = videoIds.join(',');
-                    
-                    // Verifikasi apakah daftar video benar-benar berubah
                     if (ytPlayer.lastPlaylist !== newPlaylistString) {
                         ytPlayer.lastPlaylist = newPlaylistString;
                         
-                        // Gunakan cuePlaylist untuk buffering data agar tidak crash
-                        ytPlayer.cuePlaylist({
+                        ytPlayer.loadPlaylist({
                             playlist: videoIds,
                             listType: 'playlist',
                             index: 0,
                             startSeconds: 0
                         });
-
-                        // Jeda 1 detik sebelum mulai putar untuk stabilitas API
-                        setTimeout(() => {
-                            ytPlayer.playVideo();
-                            ytPlayer.setLoop(true);
-                        }, 1000);
+                        ytPlayer.setLoop(true);
                     }
                 }
             }
@@ -485,8 +465,6 @@
 
     // 5. Window Init
     window.onload = () => {
-        // listenData dipanggil di dalam onYouTubeIframeAPIReady -> onReady
-        
         const toggleBtn = document.getElementById('toggleProfile');
         if (toggleBtn) {
             toggleBtn.addEventListener('click', () => {
