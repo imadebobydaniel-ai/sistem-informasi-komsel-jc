@@ -7,35 +7,90 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --biru-tua: #003366; --biru-safir: #0056b3; --hijau-zamrud: #2ecc71; --emas-lux: #D4AF37; --putih-bg: #f4f7fa; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--putih-bg); margin: 0; padding: 20px; display: flex; justify-content: center; color: #333; }
-        .profile-container { background: white; width: 100%; max-width: 400px; border-radius: 25px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); padding-bottom: 25px; border-top: 6px solid var(--biru-safir); position: relative; }
-        .profile-header { background: var(--biru-tua); color: white; padding: 25px; text-align: center; font-weight: 900; text-transform: uppercase; border-bottom: 3px solid var(--emas-lux); }
-        .photo-section { text-align: center; padding: 35px 0 20px; position: relative; background: linear-gradient(180deg, var(--biru-tua) 0%, white 100%); }
+        
+        /* Menghilangkan scrollbar di body tapi tetap bisa scroll */
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background-color: var(--putih-bg); 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            justify-content: center; 
+            color: #333;
+            overflow-y: scroll;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        body::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+        }
+
+        .profile-container { 
+            background: white; 
+            width: 100%; 
+            max-width: 400px; 
+            min-height: 100vh;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            padding-bottom: 25px; 
+            position: relative; 
+        }
+
+        /* FREEZE AREA: Header dan Foto */
+        .sticky-wrapper {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: white;
+            border-top: 6px solid var(--biru-safir);
+        }
+
+        .profile-header { 
+            background: var(--biru-tua); 
+            color: white; 
+            padding: 20px; 
+            text-align: center; 
+            font-weight: 900; 
+            text-transform: uppercase; 
+            border-bottom: 3px solid var(--emas-lux); 
+        }
+
+        .photo-section { 
+            text-align: center; 
+            padding: 25px 0 15px; 
+            position: relative; 
+            background: linear-gradient(180deg, var(--biru-tua) 0%, white 100%); 
+        }
+
         .btn-setting { position: absolute; top: 15px; right: 15px; z-index: 100; color: white; text-decoration: none; transition: 0.3s; }
-        .photo-circle { width: 140px; height: 140px; border-radius: 50%; border: 4px solid var(--emas-lux); margin: 0 auto; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #eee; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+        .photo-circle { width: 130px; height: 130px; border-radius: 50%; border: 4px solid var(--emas-lux); margin: 0 auto; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #eee; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
         .photo-circle img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* AREA SCROLL: Informasi */
         .info-section { padding: 10px 25px 20px; }
         .data-box { margin-bottom: 12px; padding: 12px 15px; background: #f8f9fa; border-radius: 12px; border-left: 4px solid var(--biru-safir); transition: 0.3s; }
         .data-label { font-size: 10px; font-weight: 800; color: var(--biru-safir); text-transform: uppercase; margin-bottom: 4px; }
         .data-value { font-size: 15px; color: var(--biru-tua); font-weight: 700; }
-        .btn-back { background: var(--biru-tua); color: white; border: 2px solid var(--emas-lux); padding: 15px; border-radius: 50px; font-weight: 800; cursor: pointer; text-align: center; text-decoration: none; display: block; width: 85%; margin: 10px auto 0; }
+        
+        .btn-back { background: var(--biru-tua); color: white; border: 2px solid var(--emas-lux); padding: 15px; border-radius: 50px; font-weight: 800; cursor: pointer; text-align: center; text-decoration: none; display: block; width: 85%; margin: 10px auto 20px; }
         #debug-msg { font-size: 12px; text-align: center; padding: 5px; font-weight: bold; min-height: 20px; }
     </style>
 </head>
 <body>
 
 <div class="profile-container">
-    <div class="profile-header">Biodata Anggota Jemaat</div>
-    
-    <div class="photo-section">
-        <a href="setting.html" class="btn-setting"><i class="fas fa-cog" style="font-size: 22px;"></i></a>
-        <div class="photo-circle" onclick="document.getElementById('inputFoto').click()">
-            <img id="view-foto" src="https://via.placeholder.com/150" alt="Foto Profil">
+    <div class="sticky-wrapper">
+        <div class="profile-header">Biodata Anggota Jemaat</div>
+        
+        <div class="photo-section">
+            <a href="setting.html" class="btn-setting"><i class="fas fa-cog" style="font-size: 22px;"></i></a>
+            <div class="photo-circle" onclick="document.getElementById('inputFoto').click()">
+                <img id="view-foto" src="https://via.placeholder.com/150" alt="Foto Profil">
+            </div>
+            <input type="file" id="inputFoto" hidden accept="image/*" onchange="uploadFoto(this)">
         </div>
-        <input type="file" id="inputFoto" hidden accept="image/*" onchange="uploadFoto(this)">
+        <div id="debug-msg"></div>
     </div>
-
-    <div id="debug-msg"></div>
 
     <div class="info-section">
         <div class="data-box"><div class="data-label">Nomor Induk Jemaat (NIJ)</div><div id="no_komsel" class="data-value">...</div></div>
@@ -72,60 +127,23 @@
     const userEmail = rawEmail ? rawEmail.toLowerCase().trim() : null;
     const debug = document.getElementById("debug-msg");
 
-    // --- LOGIKA SINKRONISASI DATA USER ---
     if (userEmail) {
         db.collection("users").where("email", "==", userEmail)
         .onSnapshot((querySnapshot) => {
             if (!querySnapshot.empty) {
                 const d = querySnapshot.docs[0].data();
-                
-                // Sinkronisasi data ke elemen profil
-                const elNama = document.getElementById("nama_lengkap"); 
-                const elNIJ = document.getElementById("no_komsel");
-                const elJemaat = document.getElementById("lokasi_berjemaat");
-                const elKomsel = document.getElementById("lokasi_komsel");
-                const elFoto = document.getElementById('view-foto');
-
-                if(elNama) elNama.innerText = d.nama_lengkap || d.nama || "Tanpa Nama";
-                if(elNIJ) elNIJ.innerText = d.nij || "-";
-                if(elJemaat) elJemaat.innerText = d.lokasi_berjemaat || "-";
-                if(elKomsel) elKomsel.innerText = d.komsel || "-";
-                if(elFoto) elFoto.src = d.foto_profil || d.url_berkas || "https://via.placeholder.com/150";
-
-                // Update field tambahan
-                if(document.getElementById("jabatan")) document.getElementById("jabatan").innerText = d.jabatan || "-";
-                if(document.getElementById("email_aktif")) document.getElementById("email_aktif").innerText = d.email || "-";
-                if(document.getElementById("no_hp")) document.getElementById("no_hp").innerText = d.whatsapp || "-";
-                if(document.getElementById("gol_darah")) document.getElementById("gol_darah").innerText = d.darah || "-";
-                if(document.getElementById("alamat")) document.getElementById("alamat").innerText = d.alamat || "-";
-
-                // Update Header Menu jika ada selector terkait
-                const menuNama = document.querySelector(".header-user-name");
-                const menuKomsel = document.querySelector(".header-komsel-name");
-                if(menuNama) menuNama.innerText = d.nama_lengkap || d.nama;
-                if(menuKomsel) menuKomsel.innerText = d.komsel || "-";
-
+                document.getElementById("nama_lengkap").innerText = d.nama_lengkap || d.nama || "Tanpa Nama";
+                document.getElementById("no_komsel").innerText = d.nij || "-";
+                document.getElementById("lokasi_berjemaat").innerText = d.lokasi_berjemaat || "-";
+                document.getElementById("lokasi_komsel").innerText = d.komsel || "-";
+                document.getElementById('view-foto').src = d.foto_profil || d.url_berkas || "https://via.placeholder.com/150";
+                document.getElementById("jabatan").innerText = d.jabatan || "-";
+                document.getElementById("email_aktif").innerText = d.email || "-";
+                document.getElementById("no_hp").innerText = d.whatsapp || "-";
+                document.getElementById("gol_darah").innerText = d.darah || "-";
+                document.getElementById("alamat").innerText = d.alamat || "-";
                 if(debug) debug.innerText = "";
-                console.log("Data Identitas Berhasil Disinkronkan");
-            } else {
-                if(debug) debug.innerHTML = `<span style='color:orange'>ℹ️ Akun tidak terdaftar.</span>`;
             }
-        }, (error) => {
-            console.error("Error Firestore:", error);
-            if(debug) debug.innerHTML = `<span style='color:red'>❌ Error: ${error.message}</span>`;
-        });
-    } else {
-        if(debug) debug.innerHTML = "<span style='color:red'>⚠️ Sesi Habis. Silakan Login Kembali.</span>";
-    }
-
-    // --- LOGIKA APRIL 2026 ---
-    const skrg = new Date();
-    const bulanIni = skrg.getMonth(); 
-    const tahunIni = skrg.getFullYear();
-    if (bulanIni === 3 && tahunIni === 2026) {
-        document.querySelectorAll(".persentase-box").forEach(el => {
-            el.innerText = "0%";
-            el.style.backgroundColor = "#e0e0e0"; 
         });
     }
 
