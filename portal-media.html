@@ -281,111 +281,100 @@
 
     if (!firebase.apps.length) { 
         firebase.initializeApp(firebaseConfig); 
-        console.log("✅ Firebase Initialized");
     }
     const db = firebase.firestore();
-    let runningItems = [];
     let playlistData = [];
-    let ytPlayer; // Variabel global untuk player
-    let isYtReady = false; 
 
-    // --- 2. KONFIGURASI YOUTUBE PLAYER (DENGAN PERBAIKAN ORIGIN) ---
-    function onYouTubeIframeAPIReady() {
-        ytPlayer = new YT.Player('player', {
-            height: '100%',
-            width: '100%',
-            playerVars: {
-                'autoplay': 1,
-                'controls': 0,
-                'rel': 0,
-                'origin': window.location.origin // MENGATASI ERROR POSTMESSAGE/ORIGIN
-            },
-            events: {
-                'onReady': onPlayerReady,
-                'onStateChange': onPlayerStateChange
-            }
+    // --- 2. FITUR RUNNING TEXT (PERBAIKAN ERROR) ---
+    async function saveRunningTextToCollection() {
+        const pesan = document.getElementById('rt_input').value;
+        const durasi = document.getElementById('rt_durasi').value;
+
+        if(!pesan) return alert("Pesan tidak boleh kosong!");
+
+        try {
+            // Update teks yang aktif saat ini ke monitor
+            await db.collection("config").doc("running_text").set({
+                pesan: pesan,
+                durasi: parseInt(durasi),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // Simpan ke riwayat koleksi
+            await db.collection("running_text_history").add({
+                pesan: pesan,
+                durasi: parseInt(durasi),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            alert("Running Text Berhasil Dikirim ke Monitor!");
+            document.getElementById('rt_input').value = "";
+        } catch (e) {
+            console.error("Error RT:", e);
+            alert("Gagal menyimpan Running Text");
+        }
+    }
+
+    function loadRTCollection() {
+        db.collection("running_text_history").orderBy("timestamp", "desc").limit(5).onSnapshot(snap => {
+            const list = document.getElementById('rt_history_list');
+            if(!list) return;
+            list.innerHTML = "";
+            snap.forEach(doc => {
+                const data = doc.data();
+                list.innerHTML += `
+                    <tr>
+                        <td><span class="status-dot active"></span> Arsip</td>
+                        <td>${data.pesan}</td>
+                        <td>${data.durasi}s</td>
+                        <td style="text-align:center;">
+                            <button onclick="setRTActive('${data.pesan}', ${data.durasi})" class="btn-action btn-play-sm"><i class="fas fa-paper-plane"></i></button>
+                        </td>
+                    </tr>`;
+            });
         });
     }
 
-    function onPlayerReady(event) {
-        isYtReady = true;
-        console.log("✅ YouTube Player Ready");
+    async function setRTActive(pesan, durasi) {
+        await db.collection("config").doc("running_text").set({ pesan, durasi });
+        alert("Pesan diaktifkan kembali!");
     }
 
-    function onPlayerStateChange(event) {
-        // Logika tambahan jika video selesai bisa ditaruh di sini
+    // --- 3. FITUR PLAYLIST (MOVE UP / DOWN) ---
+    async function moveItem(id, direction) {
+        const index = playlistData.findIndex(item => item.id === id);
+        if (index < 0) return;
+
+        const newIndex = index + direction;
+        if (newIndex < 0 || newIndex >= playlistData.length) return;
+
+        // Tukar posisi urutan (timestamp/urutan)
+        const currentItem = playlistData[index];
+        const targetItem = playlistData[newIndex];
+
+        const batch = db.batch();
+        const ref1 = db.collection("portal_media").doc(currentItem.id);
+        const ref2 = db.collection("portal_media").doc(targetItem.id);
+
+        batch.update(ref1, { urutan: targetItem.urutan });
+        batch.update(ref2, { urutan: currentItem.urutan });
+
+        await batch.commit();
     }
 
-    // --- 3. DATA LISTENERS (VERSI CERDAS & TOLERAN) ---
-    function listenData() {
-        // Listener Config Playlist
-        db.collection("config").doc("playlist").onSnapshot(doc => {
-            if (doc.exists) {
-                const config = doc.data();
-                
-                // Normalisasi mode: "play all" atau "shuffle" dianggap sebagai "looping"
-                const rawMode = config.mode ? config.mode.toLowerCase() : 'looping';
-                const isPlaylistMode = (rawMode === 'looping' || rawMode === 'play all' || rawMode === 'shuffle');
-                
-                console.log("Monitor Logic - Mode Terdeteksi:", rawMode);
-                const displayMode = document.getElementById('currentModeDisplay');
-                if(displayMode) displayMode.innerText = rawMode.toUpperCase();
-
-                if (isPlaylistMode) {
-                    console.log("Memicu Pemutaran Playlist...");
-                    fetchAndPlayPlaylist();
-                } else {
-                    // MODE SINGLE / CUSTOM
-                    if (config.activeContentId && typeof ytPlayer !== 'undefined' && ytPlayer.loadVideoById) {
-                        ytPlayer.loadVideoById(config.activeContentId);
-                    }
-                }
-            }
-        });
-
-        // Listener Running Text
-        db.collection("config").doc("running_text").onSnapshot(doc => {
-            if (doc.exists) {
-                const rtDisplay = document.getElementById('rt_display');
-                if(rtDisplay) rtDisplay.innerText = doc.data().pesan;
-            }
-        });
+    // --- 4. FITUR PLAY MODE (LOOPING, SHUFFLE, CUSTOM) ---
+    async function updatePlayMode() {
+        const mode = document.getElementById('play_mode').value;
+        try {
+            await db.collection("config").doc("playlist").set({
+                mode: mode,
+                triggerChange: Date.now()
+            }, { merge: true });
+            alert("Mode pemutaran diganti ke: " + mode.toUpperCase());
+        } catch (e) { alert("Gagal update mode"); }
     }
 
-    function fetchAndPlayPlaylist() {
-        db.collection("portal_media").orderBy("urutan", "asc").get().then(s => {
-            if (!s.empty) {
-                const videoIds = [];
-                s.forEach(doc => {
-                    const data = doc.data();
-                    if (data.tipe === 'video_youtube' && data.url) {
-                        videoIds.push(data.url.trim());
-                    }
-                });
-
-                if (typeof ytPlayer !== 'undefined' && ytPlayer.cuePlaylist && videoIds.length > 0) {
-                    const playlistString = videoIds.join(',');
-                    // Mencegah reload berulang jika playlist tidak berubah
-                    if (ytPlayer.lastPlaylistString !== playlistString) {
-                        ytPlayer.lastPlaylistString = playlistString;
-                        
-                        ytPlayer.cuePlaylist({
-                            playlist: videoIds,
-                            listType: 'playlist',
-                            index: 0
-                        });
-
-                        setTimeout(() => { 
-                            if(ytPlayer.playVideo) ytPlayer.playVideo(); 
-                            if(ytPlayer.setLoop) ytPlayer.setLoop(true);
-                        }, 1500);
-                    }
-                }
-            }
-        });
-    }
-
-    // --- 4. FUNGSI UI & MEDIA MANAGEMENT ---
+    // --- 5. MEDIA MANAGEMENT ---
     function toggleInputFields() {
         const tipe = document.getElementById('tipe_media').value;
         const urlContainer = document.getElementById('input_url_container');
@@ -402,22 +391,12 @@
         }
     }
 
-    function extractVideoID(url) {
-        const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-        const match = url.match(regExp);
-        return (match && match[2].length === 11) ? match[2] : url;
-    }
-
     async function uploadKePortal() {
         const judul = document.getElementById('judul').value;
         const tipe = document.getElementById('tipe_media').value;
         let url = document.getElementById('url_media').value || "";
 
         if(!judul) return alert("Judul wajib diisi!");
-        
-        if(tipe === 'video_youtube' && url.includes("http")) {
-            url = extractVideoID(url);
-        }
 
         try {
             await db.collection("portal_media").add({
@@ -431,14 +410,15 @@
             alert("Konten Berhasil Terbit!");
             document.getElementById('judul').value = "";
             document.getElementById('url_media').value = "";
-        } catch (e) { console.error("❌ Upload Error:", e); }
+        } catch (e) { console.error(e); }
     }
 
     function loadMedia() {
         db.collection("portal_media").orderBy("urutan", "asc").onSnapshot(snapshot => {
             const list = document.getElementById('mediaList');
             if(!list) return;
-            list.innerHTML = ""; playlistData = [];
+            list.innerHTML = ""; 
+            playlistData = [];
             let count = 1;
             snapshot.forEach(doc => {
                 const data = doc.data();
@@ -460,26 +440,63 @@
         });
     }
 
-    async function playSekarang(id) {
-        const selectedMedia = playlistData.find(item => item.id === id);
-        if (!selectedMedia) return alert("Data tidak ditemukan!");
-
-        try {
-            await db.collection("config").doc("playlist").set({ 
-                activeContentId: selectedMedia.url, 
-                mode: 'single', 
-                triggerChange: Date.now() 
-            }, { merge: true });
-            alert("Sent to monitor: " + selectedMedia.judul);
-        } catch (e) { console.error("❌ Play Error:", e); }
+    async function deleteMedia(id) {
+        if(confirm("Hapus konten ini?")) {
+            await db.collection("portal_media").doc(id).delete();
+        }
     }
 
-    // --- INIT ---
+    async function deleteSelected() {
+        const checked = document.querySelectorAll('.item-checkbox:checked');
+        if(checked.length === 0) return alert("Pilih item dulu!");
+        if(confirm(`Hapus ${checked.length} item?`)) {
+            const batch = db.batch();
+            checked.forEach(box => {
+                batch.delete(db.collection("portal_media").doc(box.value));
+            });
+            await batch.commit();
+        }
+    }
+
+    function toggleSelectAll() {
+        const master = document.getElementById('checkAll');
+        document.querySelectorAll('.item-checkbox').forEach(box => box.checked = master.checked);
+    }
+
+    async function playSekarang(id) {
+        const item = playlistData.find(i => i.id === id);
+        await db.collection("config").doc("playlist").set({
+            mode: 'single',
+            activeContentId: item.url,
+            activeTipe: item.tipe,
+            activeTitle: item.judul,
+            triggerChange: Date.now()
+        }, { merge: true });
+        alert("Monitor memutar: " + item.judul);
+    }
+
+    // --- CLOUDINARY WIDGET ---
+    function bukaWidgetUpload() {
+        cloudinary.openUploadWidget({
+            cloudName: 'dcvv88vzh', 
+            uploadPreset: 'ml_default'
+        }, (error, result) => {
+            if (!error && result && result.event === "success") {
+                document.getElementById('url_media').value = result.info.secure_url;
+            }
+        });
+    }
+
     window.onload = () => {
-        // Cek apakah fungsi loadRTCollection ada di file Anda
-        if(typeof loadRTCollection === 'function') loadRTCollection();
+        loadRTCollection();
         loadMedia();
-        listenData(); 
+        // Ambil mode saat ini dari Firebase untuk sinkronisasi UI
+        db.collection("config").doc("playlist").get().then(doc => {
+            if(doc.exists && doc.data().mode) {
+                document.getElementById('play_mode').value = doc.data().mode;
+                document.getElementById('currentModeDisplay').innerText = doc.data().mode.toUpperCase();
+            }
+        });
     };
 </script></body>
 </html>
