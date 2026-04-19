@@ -442,7 +442,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
-
 <script>
     // 1. Firebase Configuration
     const firebaseConfig = { 
@@ -579,7 +578,6 @@
         document.getElementById('modalInbox').style.display = 'none';
     }
 
-    // FUNGSI BARU: POPUP EFEK MENGHAYAL (SWEETALERT2)
     function tampilkanDetailPesan(judul, isi) {
         Swal.fire({
             title: judul,
@@ -587,15 +585,11 @@
             icon: 'info',
             confirmButtonText: 'Tutup',
             confirmButtonColor: '#003366',
-            heightAuto: false, // Penting untuk aplikasi mobile/APK
+            heightAuto: false,
             scrollbarPadding: false,
             background: '#ffffff',
-            showClass: {
-                popup: 'animate__animated animate__fadeInDown'
-            },
-            hideClass: {
-                popup: 'animate__animated animate__fadeOutUp'
-            }
+            showClass: { popup: 'animate__animated animate__fadeInDown' },
+            hideClass: { popup: 'animate__animated animate__fadeOutUp' }
         });
     }
 
@@ -617,7 +611,6 @@
                     const div = document.createElement('div');
                     div.className = 'pesan-item';
                     
-                    // Mengganti alert browser dengan SweetAlert2 kustom
                     div.onclick = (e) => {
                         if(e.target.type !== 'checkbox') {
                             tampilkanDetailPesan(d.judul, d.isi);
@@ -646,12 +639,7 @@
     async function hapusTerpilih() {
         const checkboxes = document.querySelectorAll('.pilih-pesan:checked');
         if (checkboxes.length === 0) {
-            Swal.fire({
-                title: 'Peringatan',
-                text: 'Pilih pesan yang ingin dihapus',
-                icon: 'warning',
-                heightAuto: false
-            });
+            Swal.fire({ title: 'Peringatan', text: 'Pilih pesan yang ingin dihapus', icon: 'warning', heightAuto: false });
             return;
         }
 
@@ -672,12 +660,7 @@
                 });
                 await batch.commit();
                 document.getElementById('selectAll').checked = false;
-                Swal.fire({
-                    title: 'Terhapus!',
-                    text: 'Pesan berhasil dibersihkan.',
-                    icon: 'success',
-                    heightAuto: false
-                });
+                Swal.fire({ title: 'Terhapus!', text: 'Pesan berhasil dibersihkan.', icon: 'success', heightAuto: false });
             }
         });
     }
@@ -706,6 +689,12 @@
             localStorage.clear(); 
             window.location.href = "index.html"; 
         }); 
+    }
+
+    // --- FUNGSI BARU UNTUK NAVIGASI SCANNER ---
+    function bukaScanner() {
+        // Memastikan transisi halaman lancar ke qrcode.html
+        window.location.href = "qrcode.html";
     }
 
     window.onload = () => {
