@@ -103,8 +103,8 @@
             bottom: 25px;
             left: 20px;
             font-family: 'Courier Prime', monospace;
-            font-size: 22px;
-            letter-spacing: 3px;
+            font-size: 18px; /* Ukuran font disesuaikan agar NIJ panjang tidak terpotong */
+            letter-spacing: 1px;
             color: #fff;
             text-shadow: 2px 2px 2px rgba(0,0,0,0.5);
         }
@@ -173,41 +173,45 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
-        // Inisialisasi Firebase & Variabel Global (Gunakan config Anda)
+        // Catatan: Pastikan 'db' dan 'userEmail' sudah diinisialisasi di script utama Anda
         // const db = firebase.firestore();
         // const userEmail = localStorage.getItem("userEmail");
 
         function bukaKartuDigital() {
-            // Menampilkan modal terlebih dahulu
+            // 1. Tampilkan Modal dengan status memuat
             document.getElementById('cardModal').style.display = 'flex';
+            document.getElementById('d-nama').innerText = "Memuat data...";
 
+            // 2. Ambil data dari Firestore
             db.collection("users").where("email", "==", userEmail).get().then(s => {
                 if(!s.empty) {
                     const d = s.docs[0].data();
                     
-                    // Mengisi elemen sesuai ID pada desain kartu baru
-                    document.getElementById('d-nama').innerText = d.nama || "USER";
-                    document.getElementById('d-nij').innerText = d.nij || "0000 0000";
-                    document.getElementById('d-komsel').innerText = d.komsel || "JC";
-                    document.getElementById('d-jemaat').innerText = d.cabang || "ABE";
+                    // 3. Masukkan data ke elemen kartu
+                    document.getElementById('d-nama').innerText = d.nama || "I MADE BOBY";
+                    document.getElementById('d-nij').innerText = d.nij || "NIJ-PPP-ABE-001-2026";
+                    document.getElementById('d-komsel').innerText = d.komsel || "-";
+                    document.getElementById('d-jemaat').innerText = d.cabang || "ABEPURA";
                     
+                    // 4. Generate QR Code
                     const qrBox = document.getElementById("qrcode");
-                    qrBox.innerHTML = "";
-                    
-                    // Generate QR Code
+                    qrBox.innerHTML = ""; // Bersihkan QR sebelumnya
                     new QRCode(qrBox, { 
                         text: userEmail, 
-                        width: 60, 
-                        height: 60,
+                        width: 80, // Ukuran disesuaikan agar pas di kotak kartu
+                        height: 80,
                         colorDark : "#003366",
                         colorLight : "#ffffff",
                         correctLevel : QRCode.CorrectLevel.H
                     });
                 } else {
-                    document.getElementById('d-nama').innerText = "DATA TIDAK DITEMUKAN";
+                    alert("Data jemaat tidak ditemukan.");
+                    closeDigitalCard();
                 }
-            }).catch(error => {
-                console.error("Error fetching user data: ", error);
+            }).catch(err => {
+                console.error("Error mengambil data kartu: ", err);
+                alert("Gagal mengambil data. Silakan coba lagi.");
+                closeDigitalCard();
             });
         }
 
@@ -215,7 +219,7 @@
             document.getElementById('cardModal').style.display = 'none';
         }
 
-        // Menutup modal jika klik area luar kartu
+        // Menutup modal jika klik area hitam (overlay)
         window.onclick = function(event) {
             const modal = document.getElementById('cardModal');
             if (event.target == modal) {
