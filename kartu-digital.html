@@ -8,89 +8,91 @@
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-  <style>
-    /* --- CSS BARU UNTUK KARTU DIGITAL --- */
-    .modal-card-overlay { 
-        display: none; 
-        position: fixed; 
-        top: 0; left: 0; 
-        width: 100%; height: 100%; 
-        background: rgba(0, 20, 40, 0.9); /* Biru gelap transparan */
-        z-index: 10000; 
-        justify-content: center; 
-        align-items: center; 
-        backdrop-filter: blur(8px); 
-    }
-    
-    .digital-card-box { 
-        width: 300px; 
-        height: 460px; 
-        background: linear-gradient(135deg, #FFD700 0%, #D4AF37 50%, #B8860B 100%); 
-        border-radius: 25px; 
-        padding: 20px; 
-        color: #003366; 
-        text-align: center; 
-        display: flex; 
-        flex-direction: column; 
-        align-items: center; 
-        border: 3px solid #fff;
-        box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-        position: relative;
-        overflow: hidden;
-    }
+    <style>
+        /* --- CSS KARTU DIGITAL --- */
+        .modal-card-overlay { 
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(0, 20, 40, 0.9); 
+            z-index: 10000; 
+            justify-content: center; 
+            align-items: center; 
+            backdrop-filter: blur(8px); 
+        }
+        
+        .digital-card-box { 
+            width: 300px; 
+            height: 480px; /* Sedikit ditambah untuk menampung info tambahan */
+            background: linear-gradient(135deg, #FFD700 0%, #D4AF37 50%, #B8860B 100%); 
+            border-radius: 25px; 
+            padding: 20px; 
+            color: #003366; 
+            text-align: center; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            border: 3px solid #fff;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
 
-    /* Efek Kilau pada Kartu */
-    .digital-card-box::before {
-        content: "";
-        position: absolute;
-        top: -50%; left: -50%;
-        width: 200%; height: 200%;
-        background: rgba(255,255,255,0.1);
-        transform: rotate(30deg);
-        pointer-events: none;
-    }
+        .digital-card-box::before {
+            content: "";
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: rgba(255,255,255,0.1);
+            transform: rotate(30deg);
+            pointer-events: none;
+        }
 
-    .card-logo-top { 
-        width: 65px; 
-        height: 65px; 
-        margin-bottom: 10px; 
-        filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2)); 
-    }
-    
-    .card-header-text {
-        font-size: 14px;
-        font-weight: 900;
-        text-transform: uppercase;
-        border-bottom: 2px solid #003366;
-        margin-bottom: 15px;
-        padding-bottom: 5px;
-    }
+        .card-logo-top { 
+            width: 65px; 
+            height: 65px; 
+            margin-bottom: 10px; 
+            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2)); 
+        }
+        
+        .card-header-text {
+            font-size: 14px;
+            font-weight: 900;
+            text-transform: uppercase;
+            border-bottom: 2px solid #003366;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            width: 100%;
+        }
 
-    .card-label { font-size: 10px; text-transform: uppercase; font-weight: bold; color: #555; margin-top: 10px; }
-    .card-value { font-size: 18px; font-weight: 900; margin-bottom: 5px; color: #003366; }
+        .card-label { font-size: 9px; text-transform: uppercase; font-weight: bold; color: #444; margin-top: 5px; }
+        .card-value { font-size: 16px; font-weight: 900; margin-bottom: 2px; color: #003366; }
 
-    .card-qrcode-box { 
-        background: white; 
-        padding: 10px; 
-        border-radius: 15px; 
-        margin: 15px 0; 
-        border: 3px solid #003366;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
+        .card-qrcode-box { 
+            background: white; 
+            padding: 10px; 
+            border-radius: 15px; 
+            margin: 10px 0; 
+            border: 3px solid #003366;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
 
-    .card-nij-bottom { 
-        margin-top: auto; 
-        width: 100%; 
-        background: #003366; 
-        color: #FFD700;
-        padding: 12px 0; 
-        border-radius: 15px; 
-        font-family: 'Courier New', monospace; 
-        font-size: 16px; 
-        font-weight: bold; 
-        letter-spacing: 1px;
-    }
-</style>
+        .card-nij-bottom { 
+            margin-top: auto; 
+            width: 100%; 
+            background: #003366; 
+            color: #FFD700;
+            padding: 12px 0; 
+            border-radius: 15px; 
+            font-family: 'Courier Prime', monospace; 
+            font-size: 14px; 
+            font-weight: bold; 
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
 
 <div id="modalKartuDigital" class="modal-card-overlay">
     <div style="text-align: center;">
@@ -101,63 +103,74 @@
             <div class="card-label">Nama Lengkap</div>
             <div id="dnama" class="card-value">Memuat...</div>
             
+            <div class="card-label">Komsel / Cabang</div>
+            <div class="card-value">
+                <span id="dkomsel">-</span> / <span id="dcabang">-</span>
+            </div>
+            
             <div class="card-qrcode-box" id="qrbox"></div>
             
             <div class="card-label">Nomor Induk Jemaat</div>
             <div class="card-nij-bottom" id="dnij">NIJ-000-000</div>
         </div>
-        <button onclick="tutupKartuDigital()" style="margin-top: 20px; background: #ff4444; color: white; border: none; padding: 10px 30px; border-radius: 20px; font-weight: bold; cursor: pointer;">
+
+        <button onclick="tutupKartuDigital()" style="margin-top: 20px; background: #ff4444; color: white; border: none; padding: 10px 30px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.3s;">
             <i class="fas fa-times-circle"></i> TUTUP KARTU
         </button>
     </div>
 </div>
-    <script>
-        // Logika untuk menampilkan data (Integrasikan dengan Firebase Anda)
-        // Saya asumsikan data jemaat sudah tersedia setelah login
-        
-        function showDigitalCard() {
-            document.getElementById('cardModal').style.display = 'flex';
-            
-            // Contoh pengisian data (Nanti arahkan ke variabel dataFirebase Anda)
-            const dataJemaat = {
-                nama: "Jhon Doe",
-                jemaat: "PP Papua Pusat",
-                komsel: "Bethel",
-                nij: "221005001" // NIJ Jemaat
-            };
 
-            document.getElementById('d-nama').innerText = dataJemaat.nama;
-            document.getElementById('d-jemaat').innerText = dataJemaat.jemaat;
-            document.getElementById('d-komsel').innerText = dataJemaat.komsel;
-            
-            // Format NIJ agar seperti nomor ATM (Berjarak setiap 4 digit jika perlu)
-            document.getElementById('d-nij').innerText = dataJemaat.nij;
+<script>
+    // --- INTEGRASI FIREBASE & FUNGSI BUKA KARTU ---
+    
+    function bukaKartuDigital() {
+        // Pastikan variabel db dan userEmail sudah didefinisikan sebelumnya di script utama Anda
+        db.collection("users").where("email", "==", userEmail).get().then(s => {
+            if(!s.empty) {
+                const d = s.docs[0].data();
+                
+                // Update Nama & NIJ
+                document.getElementById('dnama').innerText = d.nama || "I MADE BOBY";
+                document.getElementById('dnij').innerText = d.nij || "NIJ-PPP-ABE-001-2026";
+                
+                // Update Komsel & Cabang
+                document.getElementById('dkomsel').innerText = d.komsel ? "JOSEPH " + d.komsel : "JOSEPH 5";
+                document.getElementById('dcabang').innerText = d.cabang || "ABEPURA";
+                
+                // Generate QR Code
+                const qrBox = document.getElementById("qrbox");
+                qrBox.innerHTML = "";
+                new QRCode(qrBox, { 
+                    text: userEmail, 
+                    width: 160, 
+                    height: 160,
+                    colorDark : "#003366",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
 
-            // Generate QR Code mengarah ke profil.html dengan parameter ID
-            const qrContainer = document.getElementById("qrcode");
-            qrContainer.innerHTML = ""; // Bersihkan QR sebelumnya
-            new QRCode(qrContainer, {
-                text: "https://domainanda.com/profil.html?id=" + dataJemaat.nij,
-                width: 60,
-                height: 60,
-                colorDark : "#003366",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H
-            });
-        }
-
-        function closeDigitalCard() {
-            document.getElementById('cardModal').style.display = 'none';
-        }
-
-        // Menutup modal jika klik area luar kartu
-        window.onclick = function(event) {
-            const modal = document.getElementById('cardModal');
-            if (event.target == modal) {
-                closeDigitalCard();
+                // Tampilkan Modal
+                document.getElementById('modalKartuDigital').style.display = 'flex';
+            } else {
+                alert("Data jemaat tidak ditemukan.");
             }
+        }).catch(err => {
+            console.error("Error mengambil data: ", err);
+        });
+    }
+
+    function tutupKartuDigital() {
+        document.getElementById('modalKartuDigital').style.display = 'none';
+    }
+
+    // Menutup modal jika klik area luar kartu (overlay)
+    window.onclick = function(event) {
+        const modal = document.getElementById('modalKartuDigital');
+        if (event.target == modal) {
+            tutupKartuDigital();
         }
-    </script>
+    }
+</script>
 
 </body>
 </html>
