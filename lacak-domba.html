@@ -89,6 +89,7 @@
             border-radius: 50%;
             border: 2px solid var(--radar-green);
             background: #fff;
+            object-fit: cover;
         }
 
         .user-name {
@@ -131,14 +132,14 @@
 <div class="radar-box" id="radarScreen">
     <div class="radar-sweep"></div>
     <div class="center-dot"></div>
-    </div>
+</div>
 
 <div class="status-info" id="statusScan">Mencari domba di sekitar...</div>
 
 <a href="menu.html" class="btn-back"><i class="fas fa-arrow-left"></i> Kembali ke Menu</a>
 
 <script>
-    // 1. Firebase Config (Gunakan config Anda)
+    // 1. Firebase Config
     const firebaseConfig = { 
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
         authDomain: "boby-apps-project.firebaseapp.com", 
@@ -151,10 +152,11 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
     const myEmail = localStorage.getItem("userEmail");
+    let myCurrentPos = { lat: 0, lon: 0 };
 
     // Fungsi Hitung Jarak (Haversine Formula)
     function getDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371; // Radius Bumi dalam KM
+        const R = 6371; 
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLon = (lon2 - lon1) * Math.PI / 180;
         const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -170,37 +172,34 @@
         }
 
         navigator.geolocation.watchPosition(async (pos) => {
-            const myLat = pos.coords.latitude;
-            const myLon = pos.coords.longitude;
+            myCurrentPos.lat = pos.coords.latitude;
+            myCurrentPos.lon = pos.coords.longitude;
 
-            // Update Lokasi Saya di Firebase
             if (myEmail) {
                 const userRef = db.collection("users").where("email", "==", myEmail);
                 userRef.get().then(s => {
-                    if(!s.empty) s.docs[0].ref.update({ lat: myLat, lon: myLon, lastActive: new Date() });
+                    if(!s.empty) s.docs[0].ref.update({ 
+                        lat: myCurrentPos.lat, 
+                        lon: myCurrentPos.lon, 
+                        lastActive: new Date() 
+                    });
                 });
             }
 
-            // Ambil Semua User untuk di-scan
             db.collection("users").onSnapshot(snapshot => {
-                // Bersihkan dots lama kecuali sweep & center
-                const radar = document.getElementById('radarScreen');
                 document.querySelectorAll('.user-dot').forEach(dot => dot.remove());
-
                 let count = 0;
 
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     if (data.email !== myEmail && data.lat && data.lon) {
-                        const dist = getDistance(myLat, myLon, data.lat, data.lon);
-
-                        if (dist <= 5) { // Radius 5 KM
+                        const dist = getDistance(myCurrentPos.lat, myCurrentPos.lon, data.lat, data.lon);
+                        if (dist <= 5) { 
                             count++;
-                            renderUserOnRadar(data, dist, myLat, myLon);
+                            renderUserOnRadar(data, dist);
                         }
                     }
                 });
-
                 document.getElementById('statusScan').innerText = count + " Domba terdeteksi di sekitar Anda";
             });
 
@@ -209,15 +208,13 @@
         }, { enableHighAccuracy: true });
     }
 
-    function renderUserOnRadar(userData, dist, myLat, myLon) {
+    function renderUserOnRadar(userData, dist) {
         const radar = document.getElementById('radarScreen');
         const dot = document.createElement('div');
         dot.className = 'user-dot';
 
-        // Kalkulasi posisi dot berdasarkan koordinat (skala radar 320px)
-        // Ini adalah simulasi posisi relatif
-        const angle = Math.atan2(userData.lon - myLon, userData.lat - myLat);
-        const radiusInPx = (dist / 5) * 150; // 150px adalah radius maksimal radar
+        const angle = Math.atan2(userData.lon - myCurrentPos.lon, userData.lat - myCurrentPos.lat);
+        const radiusInPx = (dist / 5) * 150; 
         
         const x = 160 + radiusInPx * Math.sin(angle);
         const y = 160 - radiusInPx * Math.cos(angle);
@@ -232,29 +229,23 @@
         `;
 
         dot.onclick = () => {
-            cekStatusPertemanan(userData);
+            cekStatusPertemanan(userData, dist);
         };
 
         radar.appendChild(dot);
     }
 
-    async function cekStatusPertemanan(targetUser) {
-        // Logika sederhana: Cek ke koleksi friends
+    async function cekStatusPertemanan(targetUser, dist) {
         const friendCheck = await db.collection("friends")
             .where("user_a", "==", myEmail)
             .where("user_b", "==", targetUser.email).get();
 
-        let btnText = "Kirim Permintaan Pertemanan";
-        let isFriend = false;
-
-        if (!friendCheck.empty) {
-            btnText = "Sudah Teman Anda";
-            isFriend = true;
-        }
+        let isFriend = !friendCheck.empty;
+        let btnText = isFriend ? "Sudah Teman Anda" : "Kirim Permintaan Pertemanan";
 
         Swal.fire({
             title: targetUser.nama,
-            text: `Berjarak sekitar ${(getDistance(0,0,0,0)).toFixed(2)} km dari lokasi Anda`,
+            text: `Berjarak sekitar ${dist.toFixed(2)} km dari lokasi Anda`,
             imageUrl: targetUser.foto_profil || 'https://via.placeholder.com/150',
             imageWidth: 100,
             imageHeight: 100,
@@ -264,10 +255,31 @@
             cancelButtonText: 'Tutup'
         }).then((result) => {
             if (result.isConfirmed && !isFriend) {
-                // Fungsi kirim request pertemanan bisa ditaruh di sini
-                Swal.fire("Terkirim!", "Permintaan pertemanan telah dikirim.", "success");
+                kirimPermintaan(targetUser);
             }
         });
+    }
+
+    // FUNGSI KIRIM PERMINTAAN (UPDATE BARU)
+    async function kirimPermintaan(targetUser) {
+        const myName = localStorage.getItem("userName"); 
+        const myFoto = localStorage.getItem("userFoto");
+
+        try {
+            await db.collection("friend_requests").add({
+                from_email: myEmail,
+                from_name: myName || "User SIPAPUA",
+                from_photo: myFoto || "",
+                to_email: targetUser.email,
+                status: "pending",
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            Swal.fire("Terkirim!", `Permintaan koneksi dikirim ke ${targetUser.nama}`, "success");
+        } catch (error) {
+            console.error("Error kirim request:", error);
+            Swal.fire("Gagal", "Tidak dapat mengirim permintaan.", "error");
+        }
     }
 
     window.onload = startScanning;
