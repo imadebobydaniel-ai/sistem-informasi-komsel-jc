@@ -721,31 +721,37 @@
     }
 
     function bukaKartuDigital() {
+        // 1. Ambil data user yang sedang login dari Firestore
         db.collection("users").where("email", "==", userEmail).get().then(s => {
             if(!s.empty) {
                 const d = s.docs[0].data();
-                document.getElementById('dnama').innerText = d.nama;
+                
+                // 2. Update tampilan nama dan NIJ di modal kartu
+                document.getElementById('dnama').innerText = d.nama || "User";
                 document.getElementById('dnij').innerText = d.nij || "0000 0000";
                 
                 const qrBox = document.getElementById("qrbox");
                 qrBox.innerHTML = "";
 
-                const baseUrl = window.location.origin + window.location.pathname.replace("menu.html", "bio-singkat-jemaat.html");
-                const fullLink = `${baseUrl}?scan=${userEmail}`;
+                // 3. LOGIKA GLOBAL: Gunakan Deep Link sipapua://
+                // Siapapun jemaat yang login, QR Code-nya akan berisi link unik mereka
+                // yang hanya bisa dibuka oleh APK SIPAPUA.
+                const appLink = `sipapua://scan?email=${userEmail}`;
 
-                // --- PERBAIKAN: UKURAN DAN KOREKSI LEVEL ---
+                // 4. Generate QR Code
                 new QRCode(qrBox, { 
-                    text: fullLink, 
-                    width: 180,           // Diperbesar sesuai perintah
-                    height: 180,          // Diperbesar sesuai perintah
-                    colorDark : "#000000",
+                    text: appLink, 
+                    width: 200, 
+                    height: 200, 
+                    colorDark : "#003366", // Menggunakan warna identitas SIPAPUA
                     colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.H // Level H agar lebih responsif
+                    correctLevel : QRCode.CorrectLevel.H 
                 });
-                // ------------------------------------------
 
                 document.getElementById('modalKartuDigital').style.display = 'flex';
             }
+        }).catch(err => {
+            console.error("Gagal memuat kartu digital:", err);
         });
     }
 
