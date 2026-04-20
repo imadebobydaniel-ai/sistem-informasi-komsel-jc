@@ -211,6 +211,105 @@
     }
 
     .swal2-popup { border-radius: 25px !important; font-family: 'Segoe UI', Roboto, sans-serif !important; }
+
+    /* --- TAMBAHAN CSS UNTUK INBOX (TANPA MENGUBAH KODE DI ATAS) --- */
+    .inbox-header {
+        background: var(--biru-tua);
+        color: white;
+        padding: 15px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .inbox-header h3 {
+        margin: 0;
+        font-size: 18px;
+        flex-grow: 1;
+        text-align: center;
+    }
+
+    .btn-back-inbox {
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 10px;
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-delete-mass {
+        background: #ff4757;
+        border: none;
+        color: white;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .inbox-body {
+        padding: 15px;
+        flex-grow: 1;
+        overflow-y: auto;
+        background: #f8f9fa;
+    }
+
+    .pesan-item {
+        background: white;
+        margin-bottom: 12px;
+        padding: 15px;
+        border-radius: 15px;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        border-left: 5px solid var(--biru-safir);
+        transition: 0.2s;
+    }
+
+    .pesan-item:active {
+        transform: scale(0.98);
+    }
+
+    .pesan-content {
+        flex-grow: 1;
+        text-align: left;
+    }
+
+    .pesan-title {
+        font-weight: bold;
+        font-size: 14px;
+        color: var(--biru-tua);
+        margin-bottom: 3px;
+    }
+
+    .pesan-text {
+        font-size: 12px;
+        color: #666;
+        line-height: 1.4;
+    }
+
+    .pilih-pesan {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--biru-safir);
+    }
+
+    #selectAll {
+        width: 16px;
+        height: 16px;
+    }
 </style>
 </head>
 <body>
