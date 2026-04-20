@@ -81,7 +81,10 @@
                 document.getElementById('p-nama').innerText = data.nama || "-";
                 document.getElementById('p-komsel').innerText = data.komsel || "-";
                 document.getElementById('p-jemaat').innerText = data.lokasi_berjemaat || "-";
-                if(data.fotoUrl) document.getElementById('p-foto').src = data.fotoUrl;
+                
+                // --- PERBAIKAN UNTUK KONSISTENSI FOTO ---
+                if(data.foto_profil) document.getElementById('p-foto').src = data.foto_profil;
+                // ----------------------------------------
                 
                 document.getElementById('popupBio').style.display = 'block';
 
