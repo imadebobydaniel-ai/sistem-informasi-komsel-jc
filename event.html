@@ -169,6 +169,20 @@
     const eventRef = ref(db, 'events');
     const absenRef = ref(db, 'absensi_event');
 
+    // Pastikan fungsi shareWhatsApp bisa diakses oleh tombol (global scope)
+    window.shareWhatsApp = function() {
+        const nama = document.getElementById('namaEvent').value;
+        const lokasi = document.getElementById('lokasiEvent').value;
+        const isi = document.getElementById('isiEvent').value;
+        
+        if(!nama) return Swal.fire('Info', 'Isi data dulu', 'info');
+        
+        const teks = `*EVENT JEMAAT*\n*Kegiatan:* ${nama}\n*Lokasi:* ${lokasi}\n\n${isi}`;
+        
+        // Perbaikan utama: Menggunakan wa.me dan location.href agar tidak diblokir APK
+        window.location.href = `https://wa.me/?text=${encodeURIComponent(teks)}`;
+    };
+
     onValue(eventRef, (snapshot) => {
         const data = snapshot.val();
         const list = [];
@@ -223,7 +237,6 @@
         }
     };
 
-    // 3. PERBAIKAN TAMPILAN PASSWORD HAPUS BERITA
     window.hapusBerita = async function(id) {
         const { value: pass } = await Swal.fire({
             title: 'Sandi Admin',
@@ -241,160 +254,6 @@
             Swal.fire('Gagal', 'Sandi Salah', 'error');
         }
     };
-</script>
-
-<script>
-    const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dxzllsbgi/image/upload";
-    const CLOUDINARY_PRESET = "sipapua_preset";
-    window.cloudinaryImages = [];
-    let html5QrCode;
-
-    // 1. PERBAIKAN UPLOAD FOTO (KHUSUS APK)
-    document.getElementById('fotoEvent').onchange = async function(e) {
-        const files = Array.from(e.target.files);
-        if (files.length === 0) return;
-
-        const statusLabel = document.getElementById('uploadStatus');
-        statusLabel.innerText = "⏳ Memproses " + files.length + " foto...";
-        
-        try {
-            for (let file of files) {
-                const formData = new FormData();
-                formData.append("file", file);
-                formData.append("upload_preset", CLOUDINARY_PRESET);
-
-                const res = await fetch(CLOUDINARY_URL, { 
-                    method: "POST", 
-                    body: formData 
-                });
-
-                const data = await res.json();
-                if (data.secure_url) {
-                    window.cloudinaryImages.push(data.secure_url);
-                } else {
-                    throw new Error(data.error ? data.error.message : "Gagal ke Cloudinary");
-                }
-            }
-            statusLabel.innerText = "✅ Selesai. " + window.cloudinaryImages.length + " foto siap.";
-        } catch (err) { 
-            statusLabel.innerText = "❌ Error: " + err.message;
-            Swal.fire('Gagal', 'Coba satu per satu jika file terlalu besar.', 'error');
-        }
-    };
-
-    function toggleLoginSlider() {
-        const box = document.getElementById('loginBox');
-        box.style.display = (box.style.display === "block") ? "none" : "block";
-    }
-
-    function togglePassword() {
-        const pInput = document.getElementById('passAdmin');
-        pInput.type = (pInput.type === "password") ? "text" : "password";
-    }
-
-    function loginEvent() {
-        const u = document.getElementById('userAdmin').value;
-        const p = document.getElementById('passAdmin').value;
-        if(u === "admin" && p === "admin123") {
-            document.getElementById('adminSection').style.display = 'block';
-            document.getElementById('newsList').style.display = 'none';
-            document.getElementById('loginBox').style.display = 'none';
-            document.getElementById('btnToggle').style.display = 'none';
-            document.getElementById('btnPortalBack').style.display = 'none';
-            document.getElementById('btnBack').style.display = 'flex';
-        } else {
-            Swal.fire('Gagal', 'Akses Ditolak', 'error');
-        }
-    }
-
-    function renderList(list) {
-        const container = document.getElementById('newsList');
-        container.innerHTML = list.map(item => `
-            <div class="event-item" onclick="detailEvent('${item.id}')">
-                <img src="${item.fotos ? item.fotos[0] : ''}" class="event-thumb">
-                <div class="event-content">
-                    <h3>${item.nama}</h3>
-                    <div class="date-badge"><i class="fas fa-calendar"></i> ${item.tgl}</div>
-                </div>
-            </div>`).join('');
-    }
-
-    function detailEvent(id) {
-        const item = window.currentEvents.find(x => x.id === id);
-        if(!item) return;
-        let photoHTML = item.fotos.length > 1 ? `<div class="image-grid">` + item.fotos.map(img => `<img src="${img}">`).join('') + `</div>` : `<img src="${item.fotos[0]}" class="single-image">`;
-        Swal.fire({
-            title: item.nama,
-            html: `<div style="text-align:left;">${photoHTML}<p><b>Lokasi:</b> ${item.lokasi}</p><p class="news-text-large">${item.isi}</p></div>`,
-            width: '95%', confirmButtonText: 'TUTUP', confirmButtonColor: '#d33'
-        });
-    }
-
-    function updateLogActivity(list) {
-        const logBox = document.getElementById('logContent');
-        logBox.innerHTML = list.map(item => `
-            <div class="log-item">
-                <span>${item.nama}</span>
-                <button onclick="hapusBerita('${item.id}')" style="border:none; color:red; background:none;"><i class="fas fa-trash"></i></button>
-            </div>`).join('');
-    }
-
-    function startScanner() {
-        document.getElementById('reader').style.display = 'block';
-        html5QrCode = new Html5Qrcode("reader");
-        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (decodedText) => {
-            html5QrCode.stop();
-            document.getElementById('reader').style.display = 'none';
-            window.prosesAbsenDigital(decodedText); 
-        });
-    }
-
-    // 2. PERBAIKAN SHARE WA (MENGATASI ERR_UNKNOWN_URL_SCHEME)
-    function shareWhatsApp() {
-        const nama = document.getElementById('namaEvent').value;
-        const lokasi = document.getElementById('lokasiEvent').value;
-        const isi = document.getElementById('isiEvent').value;
-        
-        if(!nama) return Swal.fire('Info', 'Isi data terlebih dahulu', 'info');
-        
-        const teks = `*EVENT JEMAAT*\n*Kegiatan:* ${nama}\n*Lokasi:* ${lokasi}\n\n${isi}`;
-        const encodedText = encodeURIComponent(teks);
-        
-        // Gunakan link API standar agar tidak diblokir WebView APK
-        const url = `https://api.whatsapp.com/send?text=${encodedText}`;
-        window.open(url, '_blank');
-    }
-
-    async function generatePDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const nama = document.getElementById('namaEvent').value || "Event";
-        const fotos = window.cloudinaryImages;
-
-        if(fotos.length === 0) return Swal.fire('Info', 'Wajib ada foto untuk PDF', 'info');
-
-        Swal.fire({ title: 'Menyiapkan PDF...', didOpen: () => Swal.showLoading() });
-
-        doc.text("LAPORAN EVENT", 20, 20);
-        doc.text("Kegiatan: " + nama, 20, 30);
-        
-        let y = 40;
-        for(let url of fotos) {
-            const img = new Image();
-            img.crossOrigin = "Anonymous";
-            img.src = url;
-            await new Promise(res => {
-                img.onload = () => {
-                    if(y > 220) { doc.addPage(); y = 20; }
-                    doc.addImage(img, 'JPEG', 20, y, 80, 60);
-                    y += 70;
-                    res();
-                }
-            });
-        }
-        doc.save(nama + ".pdf");
-        Swal.close();
-    }
 </script>
 </body>
 </html>
