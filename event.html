@@ -3,216 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Event Manager - SIPAPUA</title>
+    <title>Rubrik Kegiatan Event - SIPAPUA</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
-        :root { --primary: #003366; --accent: #D4AF37; --bg: #f4f7fa; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 0; }
-        .header { background: var(--primary); color: white; padding: 15px; text-align: center; border-bottom: 3px solid #2ecc71; }
-        .container { padding: 20px; max-width: 500px; margin: auto; }
+        :root { --primary: #003366; --accent: #2ecc71; --bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 0; }
         
-        /* Form & Input */
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        input, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-share { background: #25D366; color: white; } 
-        .btn-pdf { background: #e74c3c; color: white; }
+        /* Header & Login Pojok Kanan Atas */
+        .header { background: var(--primary); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; border-bottom: 3px solid var(--accent); }
+        .login-mini { display: flex; gap: 5px; }
+        .login-mini input { padding: 5px; border-radius: 4px; border: none; font-size: 12px; width: 80px; }
+        .login-mini button { padding: 5px 10px; background: var(--accent); border: none; color: white; border-radius: 4px; cursor: pointer; font-size: 12px; }
+
+        .container { padding: 15px; max-width: 800px; margin: auto; }
+
+        /* List Berita Digital Style */
+        .event-item { background: white; border-radius: 12px; overflow: hidden; display: flex; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; transition: 0.2s; }
+        .event-item:hover { transform: translateY(-3px); }
+        .event-thumb { width: 100px; height: 100px; object-fit: cover; background: #ddd; }
+        .event-content { padding: 12px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .event-title { font-weight: bold; color: var(--primary); font-size: 16px; margin: 0 0 5px 0; }
+        .event-meta { font-size: 12px; color: #777; margin-bottom: 5px; }
+        .event-meta i { margin-right: 5px; }
+
+        /* Admin Panel Card */
+        #adminSection { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 2px solid var(--primary); display: none; }
+        input[type="text"], input[type="date"], textarea { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn-action { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; color: white; }
         
-        /* Scan Section */
-        .scan-area { background: #e8f4fd; border: 2px dashed var(--primary); padding: 15px; text-align: center; border-radius: 10px; }
-        #reader { width: 100%; border-radius: 10px; margin-top: 10px; display: none; }
-        #totalHadir { font-size: 50px; font-weight: bold; color: var(--primary); margin: 10px 0; }
-        
-        #adminSection, #viewSection { display: none; }
-        .img-preview { width: 100%; border-radius: 10px; margin-top: 10px; }
+        .scan-box { background: #e8f4fd; border: 2px dashed var(--primary); padding: 15px; text-align: center; border-radius: 10px; margin: 15px 0; }
+        #reader { width: 100%; border-radius: 10px; display: none; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1 style="font-size: 1.2rem; margin: 0;">KEGIATAN EVENT</h1>
+    <h1 style="font-size: 1rem; margin: 0;">KEGIATAN EVENT</h1>
+    <div class="login-mini" id="loginBox">
+        <input type="text" id="userAdmin" placeholder="User">
+        <input type="password" id="passAdmin" placeholder="Pass">
+        <button onclick="loginEvent()">Masuk</button>
+    </div>
+    <button id="btnLogout" style="display:none; background:#e74c3c; border:none; color:white; padding:5px 10px; border-radius:4px;" onclick="logout()">Logout</button>
 </div>
 
 <div class="container">
-    <div id="loginSection" class="card">
-        <h3>Login Admin Event</h3>
-        <input type="text" id="userAdmin" placeholder="Username">
-        <input type="password" id="passAdmin" placeholder="Password">
-        <button class="btn-primary" onclick="loginEvent()">Masuk</button>
-        <button style="background: #ddd; color: #333;" onclick="showPublicView()">Lihat Hasil Kegiatan</button>
-    </div>
-
     <div id="adminSection">
-        <div class="card">
-            <h3>Input Data Kegiatan</h3>
-            <input type="text" id="namaEvent" placeholder="Nama Kegiatan">
-            <input type="text" id="lokasiEvent" placeholder="Lokasi">
-            <input type="date" id="tglEvent">
-            <textarea id="isiEvent" placeholder="Deskripsi Kegiatan" rows="3"></textarea>
-            <label>Lampirkan Foto Kegiatan:</label>
-            <input type="file" id="fotoEvent" accept="image/*" onchange="previewImage(event)">
-            <img id="outputPreview" class="img-preview" style="display:none;">
-        </div>
-
-        <div class="card scan-area">
-            <h3>Absensi QR Code</h3>
+        <h3><i class="fas fa-edit"></i> CMS Input Kegiatan</h3>
+        <input type="text" id="namaEvent" placeholder="Nama Kegiatan (Contoh: Ibadah Arso)">
+        <input type="text" id="lokasiEvent" placeholder="Lokasi">
+        <input type="date" id="tglEvent">
+        <textarea id="isiEvent" placeholder="Isi detail kegiatan..." rows="4"></textarea>
+        <input type="file" id="fotoEvent" accept="image/*" onchange="previewImage(event)">
+        
+        <div class="scan-box">
+            <h4><i class="fas fa-qrcode"></i> Absensi Jemaat</h4>
             <div id="reader"></div>
-            <button id="btnStartScan" class="btn-primary" onclick="mulaiScan()">
-                <i class="fas fa-camera"></i> BUKA SCANNER
-            </button>
-            <button id="btnStopScan" style="background:#e74c3c; color:white; display:none;" onclick="stopScan()">
-                TUTUP KAMERA
-            </button>
-            <hr>
-            <p>Total Kehadiran Saat Ini:</p>
-            <div id="totalHadir">0</div>
+            <button class="btn-action" style="background:var(--primary)" id="btnScan" onclick="mulaiScan()">BUKA KAMERA SCAN</button>
+            <p>Terabsen: <span id="totalHadir" style="font-size:20px; font-weight:bold;">0</span></p>
         </div>
 
-        <button class="btn-primary" onclick="simpanEvent()">SIMPAN DATA</button>
-        <button class="btn-pdf" onclick="generatePDF()">DOWNLOAD PDF</button>
-        <button class="btn-share" onclick="shareWA()">SHARE VIA WHATSAPP</button>
-        <button style="background:#888; color:white;" onclick="logoutEvent()">LOGOUT</button>
+        <button class="btn-action" style="background:var(--accent)" onclick="simpanData()">SIMPAN & PUBLIKASIKAN</button>
     </div>
 
-    <div id="viewSection">
-        <div class="card">
-            <h2 id="viewNama" style="color: var(--primary); margin-top:0;"></h2>
-            <p><strong>Lokasi:</strong> <span id="viewLokasi"></span></p>
-            <p><strong>Tanggal:</strong> <span id="viewTgl"></span></p>
-            <hr>
-            <p id="viewIsi"></p>
-            <div class="scan-area">
-                <small>Total Kehadiran</small>
-                <div id="viewHadir" style="font-size: 30px; font-weight: bold; color: var(--primary);">0</div>
-            </div>
-            <div id="viewFoto"></div>
-            <button class="btn-primary" onclick="location.reload()">KEMBALI KE LOGIN</button>
+    <div id="newsList">
         </div>
-    </div>
 </div>
 
 <script>
     let html5QrCode;
     let jumlahPeserta = 0;
-    let imageData = null;
+    let imageBase64 = "";
 
-    // --- FUNGSI LOGIN ---
+    // Muat data saat halaman dibuka
+    window.onload = function() {
+        renderList();
+    };
+
     function loginEvent() {
-        const user = document.getElementById('userAdmin').value;
-        const pass = document.getElementById('passAdmin').value;
-
-        if(user === "admin" && pass === "admin123") {
-            document.getElementById('loginSection').style.display = 'none';
+        const u = document.getElementById('userAdmin').value;
+        const p = document.getElementById('passAdmin').value;
+        if(u === "admin" && p === "admin123") {
             document.getElementById('adminSection').style.display = 'block';
-            Swal.fire('Berhasil', 'Selamat Bekerja Panitia!', 'success');
+            document.getElementById('loginBox').style.display = 'none';
+            document.getElementById('btnLogout').style.display = 'block';
+            Swal.fire('Login Berhasil', 'Mode Admin Aktif', 'success');
         } else {
-            Swal.fire('Error', 'User/Pass Salah', 'error');
+            Swal.fire('Gagal', 'Username/Password salah', 'error');
         }
     }
 
-    // --- FUNGSI SCANNER ---
+    function logout() { location.reload(); }
+
+    function previewImage(e) {
+        const reader = new FileReader();
+        reader.onload = function() { imageBase64 = reader.result; };
+        reader.readAsDataURL(e.target.files[0]);
+    }
+
     function mulaiScan() {
         document.getElementById('reader').style.display = 'block';
-        document.getElementById('btnStartScan').style.display = 'none';
-        document.getElementById('btnStopScan').style.display = 'block';
-
         html5QrCode = new Html5Qrcode("reader");
-        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-
-        html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (txt) => {
             jumlahPeserta++;
             document.getElementById('totalHadir').innerText = jumlahPeserta;
             new Audio('https://www.soundjay.com/buttons/beep-01a.mp3').play();
-            
-            Swal.fire({ title: 'Absen Berhasil!', text: 'ID: ' + decodedText, icon: 'success', timer: 800, showConfirmButton: false });
-            
-            stopScan();
-            setTimeout(() => { mulaiScan(); }, 1200);
+            Swal.fire({ title: 'Berhasil!', text: 'Peserta terdata', icon: 'success', timer: 700, showConfirmButton: false });
         });
     }
 
-    function stopScan() {
-        if (html5QrCode) {
-            html5QrCode.stop().then(() => {
-                document.getElementById('reader').style.display = 'none';
-                document.getElementById('btnStartScan').style.display = 'block';
-                document.getElementById('btnStopScan').style.display = 'none';
-            });
-        }
-    }
+    function simpanData() {
+        const nama = document.getElementById('namaEvent').value;
+        const lokasi = document.getElementById('lokasiEvent').value;
+        const tgl = document.getElementById('tglEvent').value;
+        const isi = document.getElementById('isiEvent').value;
 
-    // --- FUNGSI CMS & MEDIA ---
-    function previewImage(event) {
-        const reader = new FileReader();
-        reader.onload = function() {
-            const output = document.getElementById('outputPreview');
-            output.src = reader.result;
-            output.style.display = 'block';
-            imageData = reader.result; // Simpan untuk PDF & View
-        }
-        reader.readAsDataURL(event.target.files[0]);
-    }
+        if(!nama || !lokasi) return Swal.fire('Error', 'Nama & Lokasi wajib diisi', 'warning');
 
-    function simpanEvent() {
-        const data = {
-            nama: document.getElementById('namaEvent').value,
-            lokasi: document.getElementById('lokasiEvent').value,
-            tgl: document.getElementById('tglEvent').value,
-            isi: document.getElementById('isiEvent').value,
+        const newEntry = {
+            id: Date.now(),
+            nama, lokasi, tgl, isi,
             hadir: jumlahPeserta,
-            foto: imageData
+            foto: imageBase64 || 'https://via.placeholder.com/100'
         };
 
-        if(!data.nama) return Swal.fire('Maaf', 'Isi nama kegiatan dulu', 'warning');
-        
-        localStorage.setItem('lastEvent', JSON.stringify(data));
-        Swal.fire('Berhasil!', 'Data Kegiatan Telah Tersimpan', 'success');
+        // Simpan ke LocalStorage
+        let list = JSON.parse(localStorage.getItem('eventList')) || [];
+        list.unshift(newEntry);
+        localStorage.setItem('eventList', JSON.stringify(list));
+
+        Swal.fire('Tersimpan!', 'Kegiatan telah dipublikasikan ke list depan', 'success');
+        renderList();
+        document.getElementById('adminSection').style.display = 'none'; // Sembunyikan panel setelah simpan
     }
 
-    // --- FUNGSI OUTPUT (PDF & WA) ---
-    function generatePDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const nama = document.getElementById('namaEvent').value;
-        
-        doc.text("LAPORAN KEGIATAN EVENT", 10, 10);
-        doc.text(`Nama Kegiatan: ${nama}`, 10, 20);
-        doc.text(`Total Hadir: ${jumlahPeserta}`, 10, 30);
-        doc.save(`Laporan_${nama}.pdf`);
+    function renderList() {
+        const list = JSON.parse(localStorage.getItem('eventList')) || [];
+        const container = document.getElementById('newsList');
+        container.innerHTML = "";
+
+        list.forEach(item => {
+            container.innerHTML += `
+                <div class="event-item" onclick="showPopup(${item.id})">
+                    <img src="${item.foto}" class="event-thumb">
+                    <div class="event-content">
+                        <p class="event-meta"><i class="fas fa-calendar-alt"></i> ${item.tgl} | <i class="fas fa-map-marker-alt"></i> ${item.lokasi}</p>
+                        <h3 class="event-title">${item.nama}</h3>
+                        <p class="event-meta"><i class="fas fa-users"></i> ${item.hadir} Orang Hadir</p>
+                    </div>
+                </div>
+            `;
+        });
     }
 
-    function shareWA() {
-        const nama = document.getElementById('namaEvent').value;
-        const text = `LAPORAN EVENT SIPAPUA%0A%0ANama: ${nama}%0ATotal Hadir: ${jumlahPeserta} Orang`;
-        window.open(`https://wa.me/?text=${text}`);
-    }
+    function showPopup(id) {
+        const list = JSON.parse(localStorage.getItem('eventList'));
+        const data = list.find(x => x.id === id);
 
-    // --- FUNGSI VIEW HASIL ---
-    function showPublicView() {
-        const data = JSON.parse(localStorage.getItem('lastEvent'));
-        if(!data) return Swal.fire('Kosong', 'Belum ada data kegiatan yang diinput', 'info');
-
-        document.getElementById('loginSection').style.display = 'none';
-        document.getElementById('viewSection').style.display = 'block';
-
-        document.getElementById('viewNama').innerText = data.nama;
-        document.getElementById('viewLokasi').innerText = data.lokasi;
-        document.getElementById('viewTgl').innerText = data.tgl;
-        document.getElementById('viewIsi').innerText = data.isi;
-        document.getElementById('viewHadir').innerText = data.hadir;
-        
-        if(data.foto) {
-            document.getElementById('viewFoto').innerHTML = `<img src="${data.foto}" class="img-preview">`;
-        }
-    }
-
-    function logoutEvent() {
-        location.reload();
+        Swal.fire({
+            title: data.nama,
+            html: `
+                <img src="${data.foto}" style="width:100%; border-radius:10px; margin-bottom:10px;">
+                <p style="text-align:left;"><b>Lokasi:</b> ${data.lokasi}<br><b>Tanggal:</b> ${data.tgl}</p>
+                <p style="text-align:justify; border-top:1px solid #ddd; padding-top:10px;">${data.isi}</p>
+                <div style="background:#f4f7fa; padding:10px; border-radius:8px; font-weight:bold;">
+                    Total Kehadiran: ${data.hadir} Jemaat
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: '<i class="fab fa-whatsapp"></i> Share WA',
+            cancelButtonText: 'Tutup',
+            confirmButtonColor: '#25D366'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const text = `LAPORAN KEGIATAN SIPAPUA%0A%0ANama: ${data.nama}%0ALokasi: ${data.lokasi}%0AHadir: ${data.hadir} Orang`;
+                window.open(`https://wa.me/?text=${text}`);
+            }
+        });
     }
 </script>
 
