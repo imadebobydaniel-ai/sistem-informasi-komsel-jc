@@ -14,6 +14,13 @@
         :root { --primary: #003366; --accent: #2ecc71; --bg: #f0f2f5; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
         
+        /* CSS FIX: Menangani kolom agar tidak over garis container */
+        input, textarea, select {
+            box-sizing: border-box; /* Sangat penting */
+            width: 100% !important;  /* Mengikuti lebar container */
+            max-width: 100%;        /* Mencegah overflow */
+        }
+
         .header { 
             background: var(--primary); 
             color: white; 
@@ -49,7 +56,6 @@
         
         .login-logo { display: block; margin: 0 auto 5px auto; max-width: 80px; height: auto; }
         .login-label { text-align: center; font-size: 12px; font-weight: bold; color: var(--primary); margin-bottom: 15px; display: block; }
-        .login-dropdown input { width: 100%; height: 42px; margin-bottom: 12px; padding: 0 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
 
         .pass-container { position: relative; width: 100%; }
         .toggle-pass { position: absolute; right: 12px; top: 13px; color: #888; cursor: pointer; z-index: 10; }
@@ -97,7 +103,7 @@
 
 <div class="header">
     <div class="nav-left">
-        <button id="btnLogout" style="display:none; background:#e74c3c; border:none; color:white; height: 38px; padding:0 15px; border-radius:19px; font-weight:bold; cursor:pointer;" onclick="confirmLogout()">LOGOUT</button>
+        <a href="index.html" id="btnBack" style="display:none; text-decoration:none; background:#555; color:white; height: 38px; padding:0 20px; border-radius:19px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center;">KEMBALI</a>
     </div>
     <h1 style="font-size: 1.1rem; margin: 0; letter-spacing: 1px;">EVENT JEMAAT</h1>
     <div class="nav-admin">
@@ -122,10 +128,10 @@
         </button>
 
         <h3><i class="fas fa-edit"></i> CMS Input Kegiatan</h3>
-        <input type="text" id="namaEvent" placeholder="Nama Kegiatan" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
-        <input type="text" id="lokasiEvent" placeholder="Lokasi" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
-        <input type="date" id="tglEvent" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
-        <textarea id="isiEvent" placeholder="Isi detail kegiatan..." rows="4" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;"></textarea>
+        <input type="text" id="namaEvent" placeholder="Nama Kegiatan" style="padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
+        <input type="text" id="lokasiEvent" placeholder="Lokasi" style="padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
+        <input type="date" id="tglEvent" style="padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
+        <textarea id="isiEvent" placeholder="Isi detail kegiatan..." rows="4" style="padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;"></textarea>
         
         <p style="font-size: 12px; margin: 0;">Upload Foto ke Cloudinary (Maks 4 untuk layout rapi):</p>
         <input type="file" id="fotoEvent" accept="image/*" multiple onchange="uploadToCloudinary(event)">
@@ -177,7 +183,6 @@
         updateLogActivity();
     };
 
-    // Formatter Tanggal DD-MM-YYYY
     function formatTglIndo(dateStr) {
         if(!dateStr) return "-";
         const [y, m, d] = dateStr.split('-');
@@ -203,16 +208,17 @@
         if(u === "admin" && p === "admin123") {
             isAdmin = true;
             document.getElementById('adminSection').style.display = 'block';
-            document.getElementById('newsList').style.display = 'none'; // Sembunyikan list berita sesuai instruksi
+            document.getElementById('newsList').style.display = 'none'; 
             document.getElementById('loginBox').style.display = 'none';
             document.getElementById('btnToggle').style.display = 'none';
-            document.getElementById('btnLogout').style.display = 'block';
+            document.getElementById('btnBack').style.display = 'flex'; // Tampilkan tombol kembali saat admin masuk
             renderList(); 
         } else {
             Swal.fire('Gagal', 'Akses Ditolak', 'error');
         }
     }
 
+    // Fungsi konfirmasi tetap ada namun navigasi diarahkan ke tombol kembali
     function confirmLogout() {
         Swal.fire({
             title: 'Konfirmasi Keluar',
@@ -401,7 +407,6 @@
         const logBox = document.getElementById('logContent');
         logBox.innerHTML = "";
         list.forEach(item => {
-            // LOG ACTIVITY DILENGKAPI DENGAN TANGGAL BULAN TAHUN
             logBox.innerHTML += `
                 <div class="log-item">
                     <div>
