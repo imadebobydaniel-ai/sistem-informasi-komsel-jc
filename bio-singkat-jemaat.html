@@ -6,7 +6,6 @@
     <title>Bio Singkat Jemaat</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body { font-family: sans-serif; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
@@ -60,56 +59,84 @@
         messagingSenderId: "125984859692", 
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
     };
-    firebase.initializeApp(firebaseConfig);
+    
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
-    const auth = firebase.auth();
 
-    // Integrasi Logika Auth untuk sinkronisasi antar device
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            // Jika login terdeteksi, pastikan email tersimpan di localStorage HP
-            localStorage.setItem("userEmail", user.email);
-            checkScan(); 
-        } else {
-            // Jika tidak ada user login di Firebase, tampilkan pesan error
-            document.getElementById('msg-error').style.display = 'block';
-            document.getElementById('errorText').innerText = "Anda Sedang Logout dari SIPAPUA / Anda tidak memiliki aplikasi SIPAPUA. Silahkan Hubungi Administrator";
-        }
-    });
-
-    async function checkScan() {
+    // Logika Utama: Deteksi Scan langsung di dalam APK
+    window.onload = async () => {
         const urlParams = new URLSearchParams(window.location.search);
-        const targetEmail = urlParams.get('scan');
+        
+        // Cek parameter 'email' (sesuai protokol baru sipapua://scan?email=...)
+        // atau 'scan' (jika masih menggunakan link lama)
+        const targetEmail = urlParams.get('email') || urlParams.get('scan'); 
+        
+        // Karena ini dijalankan di dalam APK, kita asumsikan user sudah login 
+        // saat mengakses scanner di menu aplikasi.
         const myEmail = localStorage.getItem("userEmail");
 
-        if (!myEmail) return; // double check keamanan
+        if (!myEmail) {
+            document.getElementById('msg-error').style.display = 'block';
+            document.getElementById('errorText').innerText = "Sesi Tidak Ditemukan. Silakan Login di Aplikasi SIPAPUA.";
+            return;
+        }
 
+        if (targetEmail) {
+            muatDataProfil(targetEmail);
+        } else {
+            document.getElementById('msg-error').style.display = 'block';
+            document.getElementById('errorText').innerText = "Data Scan Tidak Valid.";
+        }
+    };
+
+    async function muatDataProfil(email) {
         try {
-            const snap = await db.collection("users").where("email", "==", targetEmail).get();
+            const snap = await db.collection("users").where("email", "==", email).get();
             if (!snap.empty) {
                 const data = snap.docs[0].data();
-                document.getElementById('p-nij').innerText = data.nij || "-";
+                
+                // Isi Data ke UI
+                document.getElementById('p-nij').innerText = data.nij || "0000 0000";
                 document.getElementById('p-nama').innerText = data.nama || "-";
-                document.getElementById('p-komsel').innerText = data.komsel || "-";
-                document.getElementById('p-jemaat').innerText = data.lokasi_berjemaat || "-";
+                document.getElementById('p-komsel').innerText = data.komsel ? "JC " + data.komsel : "-";
+                document.getElementById('p-jemaat').innerText = data.lokasi_berjemaat || "Pondok Pemulihan Papua";
                 
-                if(data.foto_profil) document.getElementById('p-foto').src = data.foto_profil;
+                if(data.foto_profil) {
+                    document.getElementById('p-foto').src = data.foto_profil;
+                }
                 
+                // Tampilkan Pop-up
                 document.getElementById('popupBio').style.display = 'block';
 
-                // Fungsi ADD
+                // Logika Tombol Tambah (Koneksi)
                 document.getElementById('btnAdd').onclick = async () => {
+                    const myEmail = localStorage.getItem("userEmail");
+                    if (myEmail === email) {
+                        Swal.fire("Info", "Ini adalah kartu Anda sendiri.", "info");
+                        return;
+                    }
+                    
+                    // Contoh logika simpan pertemanan sederhana
+                    await db.collection("friend_requests").add({
+                        from_email: myEmail,
+                        to_email: email,
+                        status: "pending",
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
                     Swal.fire({
                         title: 'Berhasil!',
-                        text: 'Berhasil Menambahkan Jemaat ke Daftar Anda!',
+                        text: 'Permintaan koneksi telah dikirim!',
                         icon: 'success',
                         confirmButtonColor: '#003366'
                     });
                 };
+            } else {
+                Swal.fire("Error", "Data jemaat tidak ditemukan.", "error");
             }
-        } catch (e) { 
+        } catch (e) {
             console.error(e);
-            alert("Sistem Error"); 
+            Swal.fire("Error", "Gagal mengambil data dari server.", "error");
         }
     }
 </script>
