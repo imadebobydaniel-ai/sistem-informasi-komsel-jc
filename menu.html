@@ -41,7 +41,6 @@
         flex-direction: column;
     }
 
-    /* Memaksa SweetAlert2 berada di lapisan paling atas */
     .swal2-container {
         z-index: 99999 !important;
     }
@@ -100,6 +99,15 @@
         position: relative;
         flex-shrink: 0;
     }
+
+    /* PERBAIKAN: Menjaga ukuran Iframe YouTube tetap penuh di container */
+    #player {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
     
     .profile-card { position: absolute; width: 100%; height: 100%; background: linear-gradient(145deg, #ffffff, #e6e6e6); border-radius: 25px; z-index: 5; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; align-items: center; justify-content: center; border-top: 4px solid var(--biru-safir); }
     .profile-card.closed { transform: translateX(-100%); }
@@ -107,50 +115,15 @@
 
     /* --- MENU GRID --- */
     .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 10px; }
-
-    .menu-box { 
-        background: white; 
-        padding: 20px 10px; 
-        border-radius: 20px; 
-        display: flex; 
-        flex-direction: column; 
-        align-items: center; 
-        text-decoration: none; 
-        color: var(--biru-tua); 
-        font-weight: 800; 
-        font-size: 12px; 
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-        position: relative;
-        overflow: hidden;
-        border: 1px solid rgba(0,0,0,0.05);
-        -webkit-tap-highlight-color: transparent;
-    }
+    .menu-box { background: white; padding: 20px 10px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--biru-tua); font-weight: 800; font-size: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; border: 1px solid rgba(0,0,0,0.05); -webkit-tap-highlight-color: transparent; }
 
     @media (hover: hover) {
-        .menu-box:hover {
-            transform: translateY(-8px);
-            border-color: var(--emas-lux);
-            box-shadow: 0 15px 30px rgba(0, 51, 102, 0.15);
-        }
+        .menu-box:hover { transform: translateY(-8px); border-color: var(--emas-lux); box-shadow: 0 15px 30px rgba(0, 51, 102, 0.15); }
         .menu-box:hover i { transform: scale(1.1) rotate(3deg); }
     }
 
-    .menu-box:active {
-        transform: translateY(2px) scale(0.95);
-        background-color: #f9f9f9;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        transition: all 0.1s;
-    }
-
-    .menu-box i { 
-        font-size: 32px; 
-        margin-bottom: 12px; 
-        background: linear-gradient(135deg, var(--biru-safir), var(--hijau-zamrud)); 
-        -webkit-background-clip: text; 
-        -webkit-text-fill-color: transparent; 
-        transition: transform 0.3s ease;
-    }
+    .menu-box:active { transform: translateY(2px) scale(0.95); background-color: #f9f9f9; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: all 0.1s; }
+    .menu-box i { font-size: 32px; margin-bottom: 12px; background: linear-gradient(135deg, var(--biru-safir), var(--hijau-zamrud)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; transition: transform 0.3s ease; }
 
     /* --- MODERN BOTTOM NAVIGATION --- */
     .bottom-nav {
@@ -181,7 +154,7 @@
         cursor: pointer;
     }
 
-    /* SEMUA IKON TERMASUK QR CODE SEKARANG SERAGAM LINGKARAN EMAS */
+    /* PERBAIKAN: Lingkaran Emas Seragam */
     .icon-circle {
         width: 50px;
         height: 50px;
@@ -197,14 +170,12 @@
         box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
 
-    /* MEMAKSA IKON DI DALAMNYA TETAP KECIL DAN RAPI */
     .icon-circle i, .icon-circle img {
         font-size: 20px;
         max-width: 24px;
         max-height: 24px;
     }
 
-    /* EFEK MELOMPAT SERAGAM UNTUK SEMUA IKON */
     .nav-item:hover .icon-circle,
     .nav-item:active .icon-circle {
         transform: translateY(-15px) scale(1.1);
@@ -219,7 +190,6 @@
         transition: 0.3s; 
     }
 
-    /* KHUSUS LOGOUT TETAP MERAH */
     .nav-item.logout-btn .icon-circle { 
         background: linear-gradient(135deg, #dc3545, #a71d2a); 
         color: white;
@@ -232,40 +202,15 @@
     .card-qrcode-box { background: white; padding: 8px; border-radius: 8px; margin: 15px 0; }
     .card-nij-bottom { margin-top: auto; width: 100%; background: rgba(0,0,0,0.15); padding: 8px 0; border-radius: 5px; font-family: monospace; font-size: 16px; font-weight: bold; letter-spacing: 2px; }
 
-    .modal-dreamy {
-        display: none;
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        z-index: 10002;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .modal-content-inbox {
-        background: rgba(255, 255, 255, 0.85);
-        width: 90%;
-        max-width: 400px;
-        height: 65vh;
-        border-radius: 25px;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        animation: munculMimpi 0.6s ease-out;
-    }
+    .modal-dreamy { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 10002; justify-content: center; align-items: center; }
+    .modal-content-inbox { background: rgba(255, 255, 255, 0.85); width: 90%; max-width: 400px; height: 65vh; border-radius: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; animation: munculMimpi 0.6s ease-out; }
 
     @keyframes munculMimpi {
         0% { opacity: 0; transform: scale(0.8) translateY(30px); filter: blur(10px); }
         100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
     }
 
-    .swal2-popup {
-        border-radius: 25px !important;
-        font-family: 'Segoe UI', Roboto, sans-serif !important;
-    }
+    .swal2-popup { border-radius: 25px !important; font-family: 'Segoe UI', Roboto, sans-serif !important; }
 </style>
 </head>
 <body>
@@ -333,10 +278,10 @@
 
             <div id="media-display-area">
                 <div id="player"></div> 
-                <video id="videoPlayer" autoplay muted loop playsinline></video>
-                <audio id="audioPlayer" controls></audio>
-                <img id="imageDisplay">
-                <div id="textDisplay"></div>
+                <video id="videoPlayer" autoplay muted loop playsinline style="display:none;"></video>
+                <audio id="audioPlayer" controls style="display:none;"></audio>
+                <img id="imageDisplay" style="display:none;">
+                <div id="textDisplay" style="display:none;"></div>
             </div>
         </div>
     </div>
@@ -358,34 +303,27 @@
 
     <nav class="bottom-nav">
         <a href="javascript:location.reload()" class="nav-item">
-            <div class="icon-circle">
-                <i class="fa-solid fa-arrows-rotate"></i>
-            </div>
+            <div class="icon-circle"><i class="fa-solid fa-arrows-rotate"></i></div>
             <span>REFRESH</span>
         </a>
 
         <a href="lacak-domba.html" class="nav-item">
-            <div class="icon-circle">
-                <i class="fa-solid fa-wifi"></i>
-            </div>
+            <div class="icon-circle"><i class="fa-solid fa-wifi"></i></div>
             <span>LACAK DOMBA</span>
         </a>
-        <div class="nav-item scanner-active" onclick="window.location.href='qrcode.html'">
-        <i class="fas fa-qrcode"></i>
-        <span>Scan QR</span>
-    </div>
+
+        <a href="qrcode.html" class="nav-item">
+            <div class="icon-circle"><i class="fas fa-qrcode"></i></div>
+            <span>SCAN QR</span>
+        </a>
 
         <a href="kontak.html" class="nav-item">
-            <div class="icon-circle">
-                <i class="fa-solid fa-address-book"></i>
-            </div>
+            <div class="icon-circle"><i class="fa-solid fa-address-book"></i></div>
             <span>KONTAK</span>
         </a>
 
         <a href="javascript:void(0)" onclick="confirmLogout()" class="nav-item logout-btn">
-            <div class="icon-circle">
-                <i class="fa-solid fa-power-off"></i>
-            </div>
+            <div class="icon-circle"><i class="fa-solid fa-power-off"></i></div>
             <span>KELUAR</span>
         </a>
     </nav>
@@ -411,7 +349,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
 <script>
-    // 1. Firebase Configuration
     const firebaseConfig = { 
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
         authDomain: "boby-apps-project.firebaseapp.com", 
@@ -481,7 +418,6 @@
                     }
                 }
             });
-            
             listenForRequests();
         }
 
@@ -524,11 +460,9 @@
             });
 
             const badge = document.getElementById('email-badge');
-
             if (count > 0) {
                 badge.innerText = count;
                 badge.style.display = 'block';
-                
                 if (count > totalPesanLama) {
                     badge.classList.remove('jump-animation');
                     void badge.offsetWidth; 
@@ -543,7 +477,6 @@
 
     function listenForRequests() {
         if (!userEmail) return;
-
         db.collection("friend_requests")
             .where("to_email", "==", userEmail)
             .where("status", "==", "pending")
@@ -552,25 +485,17 @@
                     if (change.type === "added") {
                         const data = change.doc.data();
                         const requestId = change.doc.id;
-
                         Swal.fire({
                             title: 'Permintaan Pertemanan',
-                            text: `Domba ${data.from_name} ingin menjadi koneksi pertemanan dengan anda, apakah anda mau menerimanya?`,
+                            text: `Domba ${data.from_name} ingin menjadi koneksi pertemanan dengan anda...`,
                             imageUrl: data.from_photo || 'https://via.placeholder.com/100',
-                            imageWidth: 80,
-                            imageHeight: 80,
-                            showCancelButton: true,
-                            confirmButtonText: 'Yes',
-                            cancelButtonText: 'No',
-                            confirmButtonColor: '#2ecc71',
-                            cancelButtonColor: '#dc2626',
-                            heightAuto: false
+                            imageWidth: 80, imageHeight: 80,
+                            showCancelButton: true, confirmButtonText: 'Yes',
+                            cancelButtonText: 'No', confirmButtonColor: '#2ecc71',
+                            cancelButtonColor: '#dc2626', heightAuto: false
                         }).then((result) => {
-                            if (result.isConfirmed) {
-                                terimaPertemanan(requestId, data);
-                            } else {
-                                tolakPertemanan(requestId);
-                            }
+                            if (result.isConfirmed) { terimaPertemanan(requestId, data); }
+                            else { tolakPertemanan(requestId); }
                         });
                     }
                 });
@@ -581,73 +506,31 @@
         try {
             await db.collection("friend_requests").doc(requestId).update({ status: "accepted" });
             await db.collection("friends").add({
-                user_a: data.from_email,
-                user_b: userEmail,
+                user_a: data.from_email, user_b: userEmail,
                 connected_at: firebase.firestore.FieldValue.serverTimestamp()
             });
             Swal.fire({ title: "Diterima!", text: "Sekarang kalian berteman.", icon: "success", heightAuto: false });
         } catch (e) { console.error(e); }
     }
 
-    async function tolakPertemanan(requestId) {
-        await db.collection("friend_requests").doc(requestId).update({ status: "rejected" });
-    }
-
-    function bukaInbox() {
-        document.getElementById('modalInbox').style.display = 'flex';
-        muatPesanInbox();
-    }
-
-    function tutupInbox() {
-        document.getElementById('modalInbox').style.display = 'none';
-    }
-
-    function tampilkanDetailPesan(judul, isi) {
-        Swal.fire({
-            title: judul,
-            text: isi,
-            icon: 'info',
-            confirmButtonText: 'Tutup',
-            confirmButtonColor: '#003366',
-            heightAuto: false,
-            scrollbarPadding: false,
-            background: '#ffffff',
-            showClass: { popup: 'animate__animated animate__fadeInDown' },
-            hideClass: { popup: 'animate__animated animate__fadeOutUp' }
-        });
-    }
+    async function tolakPertemanan(requestId) { await db.collection("friend_requests").doc(requestId).update({ status: "rejected" }); }
+    function bukaInbox() { document.getElementById('modalInbox').style.display = 'flex'; muatPesanInbox(); }
+    function tutupInbox() { document.getElementById('modalInbox').style.display = 'none'; }
+    function tampilkanDetailPesan(judul, isi) { Swal.fire({ title: judul, text: isi, icon: 'info', confirmButtonText: 'Tutup', confirmButtonColor: '#003366', heightAuto: false }); }
 
     function muatPesanInbox() {
         const userKomsel = localStorage.getItem("userKomsel") || "Semua JC";
         const daftarPesan = document.getElementById('daftarPesan');
-        daftarPesan.innerHTML = "<p style='text-align:center; font-size:12px;'>Mencari pesan...</p>";
-
         db.collection("pengumuman_komsel").orderBy("timestamp", "desc").onSnapshot(s => {
             daftarPesan.innerHTML = "";
-            if(s.empty) {
-                daftarPesan.innerHTML = "<p style='text-align:center; color:#aaa; font-size:12px; margin-top:30px;'>Inbox Kosong</p>";
-                return;
-            }
-
+            if(s.empty) { daftarPesan.innerHTML = "<p style='text-align:center; color:#aaa; font-size:12px; margin-top:30px;'>Inbox Kosong</p>"; return; }
             s.forEach(doc => {
                 const d = doc.data();
                 if (d.target_jc === "Semua JC" || d.target_jc === userKomsel) {
                     const div = document.createElement('div');
                     div.className = 'pesan-item';
-                    
-                    div.onclick = (e) => {
-                        if(e.target.type !== 'checkbox') {
-                            tampilkanDetailPesan(d.judul, d.isi);
-                        }
-                    };
-
-                    div.innerHTML = `
-                        <input type="checkbox" class="pilih-pesan" value="${doc.id}">
-                        <div class="pesan-content">
-                            <div class="pesan-title">${d.judul}</div>
-                            <div class="pesan-text">${d.isi.substring(0, 45)}...</div>
-                        </div>
-                    `;
+                    div.onclick = (e) => { if(e.target.type !== 'checkbox') tampilkanDetailPesan(d.judul, d.isi); };
+                    div.innerHTML = `<input type="checkbox" class="pilih-pesan" value="${doc.id}"><div class="pesan-content"><div class="pesan-title">${d.judul}</div><div class="pesan-text">${d.isi.substring(0, 45)}...</div></div>`;
                     daftarPesan.appendChild(div);
                 }
             });
@@ -656,84 +539,40 @@
 
     function toggleSelectAll() {
         const isChecked = document.getElementById('selectAll').checked;
-        const checkboxes = document.querySelectorAll('.pilih-pesan');
-        checkboxes.forEach(cb => cb.checked = isChecked);
+        document.querySelectorAll('.pilih-pesan').forEach(cb => cb.checked = isChecked);
     }
 
     async function hapusTerpilih() {
         const checkboxes = document.querySelectorAll('.pilih-pesan:checked');
-        if (checkboxes.length === 0) {
-            Swal.fire({ title: 'Peringatan', text: 'Pilih pesan yang ingin dihapus', icon: 'warning', heightAuto: false });
-            return;
-        }
-
-        Swal.fire({
-            title: 'Konfirmasi Hapus',
-            text: `Hapus ${checkboxes.length} pesan terpilih?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#888',
-            confirmButtonText: 'Ya, Hapus!',
-            heightAuto: false
-        }).then(async (result) => {
+        if (checkboxes.length === 0) return;
+        Swal.fire({ title: 'Konfirmasi Hapus', text: `Hapus ${checkboxes.length} pesan terpilih?`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', confirmButtonText: 'Ya, Hapus!', heightAuto: false }).then(async (result) => {
             if (result.isConfirmed) {
                 const batch = db.batch();
-                checkboxes.forEach(cb => {
-                    batch.delete(db.collection("pengumuman_komsel").doc(cb.value));
-                });
+                checkboxes.forEach(cb => batch.delete(db.collection("pengumuman_komsel").doc(cb.value)));
                 await batch.commit();
-                document.getElementById('selectAll').checked = false;
-                Swal.fire({ title: 'Terhapus!', text: 'Pesan berhasil dibersihkan.', icon: 'success', heightAuto: false });
+                Swal.fire({ title: 'Terhapus!', icon: 'success', heightAuto: false });
             }
         });
     }
 
     function bukaKartuDigital() {
-        // 1. Ambil data user yang sedang login dari Firestore
         db.collection("users").where("email", "==", userEmail).get().then(s => {
             if(!s.empty) {
                 const d = s.docs[0].data();
-                
-                // 2. Update tampilan nama dan NIJ di modal kartu
                 document.getElementById('dnama').innerText = d.nama || "User";
                 document.getElementById('dnij').innerText = d.nij || "0000 0000";
-                
                 const qrBox = document.getElementById("qrbox");
                 qrBox.innerHTML = "";
-
-                // 3. LOGIKA GLOBAL: Gunakan Deep Link sipapua://
-                // Siapapun jemaat yang login, QR Code-nya akan berisi link unik mereka
-                // yang hanya bisa dibuka oleh APK SIPAPUA.
-                const appLink = `sipapua://scan?email=${userEmail}`;
-
-                // 4. Generate QR Code
-                new QRCode(qrBox, { 
-                    text: appLink, 
-                    width: 200, 
-                    height: 200, 
-                    colorDark : "#003366", // Menggunakan warna identitas SIPAPUA
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.H 
-                });
-
+                new QRCode(qrBox, { text: `sipapua://scan?email=${userEmail}`, width: 200, height: 200, colorDark : "#003366", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
                 document.getElementById('modalKartuDigital').style.display = 'flex';
             }
-        }).catch(err => {
-            console.error("Gagal memuat kartu digital:", err);
         });
     }
 
     function tutupKartuDigital() { document.getElementById('modalKartuDigital').style.display = 'none'; }
     function confirmLogout() { document.getElementById('modal-logout').style.display = 'flex'; }
     function closeLogoutModal() { document.getElementById('modal-logout').style.display = 'none'; }
-    
-    function executeLogout() { 
-        auth.signOut().then(() => { 
-            localStorage.clear(); 
-            window.location.href = "index.html"; 
-        }); 
-    }
+    function executeLogout() { auth.signOut().then(() => { localStorage.clear(); window.location.href = "index.html"; }); }
 
     window.onload = () => {
         const toggleBtn = document.getElementById('toggleProfile');
@@ -741,10 +580,7 @@
             toggleBtn.addEventListener('click', () => {
                 document.getElementById('profileCard').classList.toggle('closed');
                 const icon = document.getElementById('toggleIcon');
-                if (icon) {
-                    icon.classList.toggle('fa-chevron-left');
-                    icon.classList.toggle('fa-chevron-right');
-                }
+                if (icon) { icon.classList.toggle('fa-chevron-left'); icon.classList.toggle('fa-chevron-right'); }
             });
         }
     };
