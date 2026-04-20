@@ -274,18 +274,39 @@
         } catch (err) { statusLabel.innerText = "❌ Error"; }
     };
 
-    function loginEvent() {
+    // --- PERBAIKAN TOMBOL LOGIN ---
+    window.toggleLoginSlider = function() {
+        const box = document.getElementById('loginBox');
+        if (box) {
+            // Jika display kosong atau none, ubah ke block. Jika block, ubah ke none.
+            if (box.style.display === "none" || box.style.display === "") {
+                box.style.display = "block";
+            } else {
+                box.style.display = "none";
+            }
+        } else {
+            console.error("Elemen loginBox tidak ditemukan!");
+        }
+    };
+
+    window.loginEvent = function() {
         const u = document.getElementById('userAdmin').value;
         const p = document.getElementById('passAdmin').value;
         if(u === "admin" && p === "admin123") {
             document.getElementById('adminSection').style.display = 'block';
             document.getElementById('newsList').style.display = 'none';
             document.getElementById('btnBack').style.display = 'flex';
-        } else { Swal.fire('Gagal', 'Akses Ditolak', 'error'); }
-    }
+            document.getElementById('loginBox').style.display = 'none'; // Sembunyikan box setelah login
+        } else { 
+            Swal.fire('Gagal', 'Akses Ditolak', 'error'); 
+        }
+    };
 
-    function renderList(list) {
-        document.getElementById('newsList').innerHTML = list.map(item => `
+    // --- FUNGSI DISPLAY ---
+    window.renderList = function(list) {
+        const container = document.getElementById('newsList');
+        if (!container) return;
+        container.innerHTML = list.map(item => `
             <div class="event-item" onclick="detailEvent('${item.id}')">
                 <img src="${item.fotos ? item.fotos[0] : ''}" class="event-thumb">
                 <div class="event-content">
@@ -293,36 +314,45 @@
                     <div class="date-badge">${item.tgl}</div>
                 </div>
             </div>`).join('');
-    }
+    };
 
-    function detailEvent(id) {
+    window.detailEvent = function(id) {
         const item = window.currentEvents.find(x => x.id === id);
         if(!item) return;
-        let photoHTML = item.fotos.length > 1 ? `<div class="image-grid">` + item.fotos.map(img => `<img src="${img}" style="width:100%">`).join('') + `</div>` : `<img src="${item.fotos[0]}" style="width:100%">`;
+        let photoHTML = (item.fotos && item.fotos.length > 1) 
+            ? `<div class="image-grid">` + item.fotos.map(img => `<img src="${img}" style="width:100%; margin-bottom:5px;">`).join('') + `</div>` 
+            : `<img src="${item.fotos ? item.fotos[0] : ''}" style="width:100%">`;
+        
         Swal.fire({
             title: item.nama,
             html: `<div style="text-align:left;">${photoHTML}<p><b>Lokasi:</b> ${item.lokasi}</p><p>${item.isi}</p></div>`,
             width: '95%'
         });
-    }
+    };
 
-    function updateLogActivity(list) {
-        document.getElementById('logContent').innerHTML = list.map(item => `
+    window.updateLogActivity = function(list) {
+        const logCont = document.getElementById('logContent');
+        if (!logCont) return;
+        logCont.innerHTML = list.map(item => `
             <div class="log-item">
                 <span>${item.nama}</span>
                 <button onclick="hapusBerita('${item.id}')" style="color:red; background:none; border:none;"><i class="fas fa-trash"></i></button>
             </div>`).join('');
-    }
+    };
 
-    function startScanner() {
-        document.getElementById('reader').style.display = 'block';
+    window.startScanner = function() {
+        const reader = document.getElementById('reader');
+        if (reader) reader.style.display = 'block';
+        
         html5QrCode = new Html5Qrcode("reader");
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (decodedText) => {
             html5QrCode.stop();
             document.getElementById('reader').style.display = 'none';
             window.prosesAbsenDigital(decodedText); 
+        }).catch(err => {
+            Swal.fire('Kamera Error', 'Pastikan izin kamera diberikan', 'error');
         });
-    }
+    };
 </script>
 </body>
 </html>
