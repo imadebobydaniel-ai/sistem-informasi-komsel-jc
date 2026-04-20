@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rubrik Kegiatan Event - SIPAPUA</title>
+    <title>Event Jemaat - SIPAPUA</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -27,7 +27,10 @@
             border-bottom: 3px solid var(--accent); 
         }
 
+        /* Navigasi Kiri & Kanan */
+        .nav-left { position: absolute; left: 15px; bottom: 15px; }
         .nav-admin { position: absolute; right: 15px; bottom: 15px; }
+        
         .btn-toggle-login { background: var(--accent); color: white; border: none; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
         .login-dropdown { 
@@ -53,9 +56,27 @@
         .btn-masuk-dropdown { width: 100%; height: 42px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
         .container { padding: 15px; max-width: 800px; margin: auto; }
-        .event-item { background: white; border-radius: 12px; overflow: hidden; display: flex; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; cursor: pointer; }
-        .event-thumb { width: 100px; height: 100px; object-fit: cover; }
-        .event-content { padding: 12px; flex: 1; }
+
+        /* Headline List Unik */
+        .event-item { 
+            background: white; border-radius: 16px; overflow: hidden; display: flex; margin-bottom: 20px; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05); position: relative; cursor: pointer; 
+            transition: all 0.3s ease; border: 1px solid rgba(0,0,0,0.03);
+        }
+        .event-item:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+        .event-thumb { width: 120px; height: 120px; object-fit: cover; }
+        .event-content { padding: 15px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .event-content h3 { margin: 0; font-size: 1.15rem; color: var(--primary); line-height: 1.3; font-weight: 800; }
+        
+        .date-badge {
+            display: inline-block; background: #e8f4fd; color: #0055aa; padding: 4px 10px; 
+            border-radius: 6px; font-size: 11px; font-weight: bold; margin-top: 8px; align-self: flex-start;
+        }
+
+        /* Mosaic Grid untuk Detail Berita */
+        .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px; }
+        .photo-main { grid-column: span 3; width: 100%; border-radius: 12px; object-fit: cover; max-height: 300px; }
+        .photo-sub { width: 100%; height: 80px; object-fit: cover; border-radius: 8px; }
         
         #adminSection { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 2px solid var(--primary); display: none; }
         .btn-action { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; color: white; }
@@ -63,13 +84,9 @@
         .extra-tools { display: flex; gap: 10px; margin: 10px 0; }
         .btn-tool { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; cursor: pointer; font-size: 11px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px; }
         
-        .absensi-box, .log-activity-box { 
-            background: white; border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-top: 15px;
-        }
+        .absensi-box, .log-activity-box { background: white; border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-top: 15px; }
         .absensi-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px; }
-        
-        .total-counter { background: var(--primary); color: white; padding: 2px 10px; border-radius: 20px; font-size: 14px; cursor: pointer; transition: 0.3s; }
-        .total-counter:hover { background: #0055aa; transform: scale(1.05); }
+        .total-counter { background: var(--primary); color: white; padding: 2px 10px; border-radius: 20px; font-size: 14px; cursor: pointer; }
         
         #reader { width: 100%; border-radius: 10px; overflow: hidden; margin: 10px 0; display: none; border: 2px dashed var(--accent); }
         .btn-close-scanner { width: 100%; padding: 10px; background: #666; color: white; border: none; border-radius: 8px; margin-top: 5px; display: none; font-weight: bold; }
@@ -79,6 +96,9 @@
 <body>
 
 <div class="header">
+    <div class="nav-left">
+        <button id="btnLogout" style="display:none; background:#e74c3c; border:none; color:white; height: 38px; padding:0 15px; border-radius:19px; font-weight:bold; cursor:pointer;" onclick="confirmLogout()">LOGOUT</button>
+    </div>
     <h1 style="font-size: 1.1rem; margin: 0; letter-spacing: 1px;">EVENT JEMAAT</h1>
     <div class="nav-admin">
         <button id="btnToggle" class="btn-toggle-login" onclick="toggleLoginSlider()"><i class="fas fa-user-shield"></i></button>
@@ -92,7 +112,6 @@
             </div>
             <button class="btn-masuk-dropdown" onclick="loginEvent()">MASUK</button>
         </div>
-        <button id="btnLogout" style="display:none; background:#e74c3c; border:none; color:white; height: 38px; padding:0 15px; border-radius:19px; font-weight:bold;" onclick="confirmLogout()">LOGOUT</button>
     </div>
 </div>
 
@@ -104,7 +123,7 @@
         <input type="date" id="tglEvent" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
         <textarea id="isiEvent" placeholder="Isi detail kegiatan..." rows="4" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;"></textarea>
         
-        <p style="font-size: 12px; margin: 0;">Upload Foto ke Cloudinary:</p>
+        <p style="font-size: 12px; margin: 0;">Upload Foto ke Cloudinary (Maks 4 untuk layout rapi):</p>
         <input type="file" id="fotoEvent" accept="image/*" multiple onchange="uploadToCloudinary(event)">
         <div id="uploadStatus" style="font-size: 11px; color: var(--primary); margin: 5px 0;"></div>
 
@@ -153,6 +172,13 @@
         renderList(); 
         updateLogActivity();
     };
+
+    // Formatter Tanggal DD-MM-YYYY
+    function formatTglIndo(dateStr) {
+        if(!dateStr) return "-";
+        const [y, m, d] = dateStr.split('-');
+        return `${d}-${m}-${y}`;
+    }
 
     function toggleLoginSlider() {
         const box = document.getElementById('loginBox');
@@ -231,7 +257,6 @@
         list.unshift(newEntry);
         localStorage.setItem('eventList', JSON.stringify(list));
         
-        // Reset form
         document.getElementById('namaEvent').value = "";
         document.getElementById('lokasiEvent').value = "";
         document.getElementById('isiEvent').value = "";
@@ -251,8 +276,8 @@
                 <div class="event-item" onclick="detailEvent(${item.id})">
                     <img src="${item.fotos[0]}" class="event-thumb">
                     <div class="event-content">
-                        <h3 style="margin:0; font-size:1rem;">${item.nama}</h3>
-                        <p style="margin:5px 0; font-size:0.8rem; color:#666;"><i class="fas fa-calendar"></i> ${item.tgl}</p>
+                        <h3>${item.nama}</h3>
+                        <div class="date-badge"><i class="fas fa-calendar-alt"></i> ${formatTglIndo(item.tgl)}</div>
                     </div>
                 </div>`;
         });
@@ -263,30 +288,43 @@
         const item = list.find(x => x.id === id);
         if(!item) return;
 
+        // Layout Foto Mosaic
+        let photoHtml = `<img src="${item.fotos[0]}" class="photo-main">`;
+        if(item.fotos.length > 1) {
+            photoHtml = `<div class="photo-grid"><img src="${item.fotos[0]}" class="photo-main">`;
+            for(let i=1; i < Math.min(item.fotos.length, 4); i++) {
+                photoHtml += `<img src="${item.fotos[i]}" class="photo-sub">`;
+            }
+            photoHtml += `</div>`;
+        }
+
         Swal.fire({
-            title: item.nama,
+            title: `<span style="color:#003366; font-size:1.4rem;">${item.nama}</span>`,
             html: `
-                <div style="text-align:left; font-size:14px;">
-                    <img src="${item.fotos[0]}" style="width:100%; border-radius:10px; margin-bottom:10px;">
-                    <p><b><i class="fas fa-map-marker-alt"></i> Lokasi:</b> ${item.lokasi}</p>
-                    <p><b><i class="fas fa-calendar-alt"></i> Tanggal:</b> ${item.tgl}</p>
-                    <hr>
-                    <p style="white-space: pre-line;">${item.isi}</p>
+                <div style="text-align:left; font-size:14px; line-height:1.6;">
+                    ${photoHtml}
+                    <div style="background:#f8f9fa; padding:10px; border-radius:8px; margin:10px 0;">
+                        <p style="margin:2px 0;"><b><i class="fas fa-map-marker-alt" style="color:#e74c3c"></i> Lokasi:</b> ${item.lokasi}</p>
+                        <p style="margin:2px 0;"><b><i class="fas fa-calendar-day" style="color:#3498db"></i> Waktu:</b> ${formatTglIndo(item.tgl)}</p>
+                    </div>
+                    <div style="padding:5px; font-size:15px; color:#333; text-align:justify;">
+                        <p style="white-space: pre-line;">${item.isi}</p>
+                    </div>
                 </div>
             `,
-            confirmButtonText: 'Tutup',
-            width: '90%'
+            confirmButtonText: 'Tutup Halaman',
+            confirmButtonColor: '#003366',
+            width: '95%'
         });
     }
 
     function shareWhatsApp() {
         const nama = document.getElementById('namaEvent').value;
         const lokasi = document.getElementById('lokasiEvent').value;
-        const tgl = document.getElementById('tglEvent').value;
+        const tgl = formatTglIndo(document.getElementById('tglEvent').value);
         const isi = document.getElementById('isiEvent').value;
         
         if(!nama) return Swal.fire('Info', 'Isi data event dulu', 'info');
-
         const text = encodeURIComponent(`*BERITA EVENT - SIPAPUA*\n\n*Kegiatan:* ${nama}\n*Lokasi:* ${lokasi}\n*Tanggal:* ${tgl}\n\n*Detail:* \n${isi}\n\n_Dibuat via Sistem SIPAPUA_`);
         window.open(`https://wa.me/?text=${text}`, '_blank');
     }
@@ -294,27 +332,23 @@
     function generatePDF() {
         const nama = document.getElementById('namaEvent').value;
         const lokasi = document.getElementById('lokasiEvent').value;
-        const tgl = document.getElementById('tglEvent').value;
+        const tgl = formatTglIndo(document.getElementById('tglEvent').value);
         const isi = document.getElementById('isiEvent').value;
 
         if(!nama || cloudinaryImages.length === 0) return Swal.fire('Info', 'Lengkapi data dan foto untuk buat PDF', 'info');
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        
         doc.setFontSize(18);
         doc.text("LAPORAN EVENT SIPAPUA", 105, 20, { align: "center" });
-        
         doc.setFontSize(12);
         doc.text(`Nama Kegiatan : ${nama}`, 20, 40);
         doc.text(`Lokasi        : ${lokasi}`, 20, 50);
         doc.text(`Tanggal       : ${tgl}`, 20, 60);
-        
         doc.text("Detail Kegiatan:", 20, 80);
         const splitText = doc.splitTextToSize(isi, 170);
         doc.text(splitText, 20, 90);
 
-        // Menambahkan Foto ke PDF
         const img = new Image();
         img.crossOrigin = "Anonymous"; 
         img.src = cloudinaryImages[0];
@@ -324,7 +358,6 @@
         };
     }
 
-    // Fungsi Absensi & Log (Tetap sesuai aslinya)
     function startScanner() {
         document.getElementById('reader').style.display = 'block';
         document.getElementById('btnCloseScanner').style.display = 'block';
@@ -364,7 +397,7 @@
         const logBox = document.getElementById('logContent');
         logBox.innerHTML = "";
         list.forEach(item => {
-            logBox.innerHTML += `<div class="log-item"><span>${item.nama}</span><button onclick="hapusBerita(${item.id})" style="border:none; color:red; background:none;"><i class="fas fa-trash"></i></button></div>`;
+            logBox.innerHTML += `<div class="log-item"><span>${item.nama}</span><button onclick="hapusBerita(${item.id})" style="border:none; color:red; background:none; cursor:pointer;"><i class="fas fa-trash"></i></button></div>`;
         });
     }
 
@@ -378,8 +411,6 @@
             updateLogActivity();
         }
     }
-
-    function logout() { confirmLogout(); }
 </script>
 </body>
 </html>
