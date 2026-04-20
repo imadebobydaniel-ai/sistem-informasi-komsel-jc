@@ -6,6 +6,8 @@
     <title>Bio Singkat Jemaat</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body { font-family: sans-serif; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         
@@ -46,7 +48,7 @@
 
     <div id="msg-error">
         <p id="errorText" style="font-weight: bold; color: #cc0000;"></p>
-        <button onclick="window.location.href='login.html'" style="padding: 10px 20px;">LOG IN</button>
+        <button onclick="window.location.href='index.html'" style="padding: 10px 20px;">LOG IN</button>
     </div>
 
 <script>
@@ -60,18 +62,27 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    // Integrasi Logika Auth untuk sinkronisasi antar device
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            // Jika login terdeteksi, pastikan email tersimpan di localStorage HP
+            localStorage.setItem("userEmail", user.email);
+            checkScan(); 
+        } else {
+            // Jika tidak ada user login di Firebase, tampilkan pesan error
+            document.getElementById('msg-error').style.display = 'block';
+            document.getElementById('errorText').innerText = "Anda Sedang Logout dari SIPAPUA / Anda tidak memiliki aplikasi SIPAPUA. Silahkan Hubungi Administrator";
+        }
+    });
 
     async function checkScan() {
         const urlParams = new URLSearchParams(window.location.search);
         const targetEmail = urlParams.get('scan');
-        const myEmail = localStorage.getItem("userEmail"); // Cek apakah scanner sudah login
+        const myEmail = localStorage.getItem("userEmail");
 
-        // LOGIKA: Jika tidak login atau tidak punya aplikasi (data local empty)
-        if (!myEmail) {
-            document.getElementById('msg-error').style.display = 'block';
-            document.getElementById('errorText').innerText = "Anda Sedang Logout dari SIPAPUA / Anda tidak memiliki aplikasi SIPAPUA. Silahkan Hubungi Administartor";
-            return;
-        }
+        if (!myEmail) return; // double check keamanan
 
         try {
             const snap = await db.collection("users").where("email", "==", targetEmail).get();
@@ -82,21 +93,25 @@
                 document.getElementById('p-komsel').innerText = data.komsel || "-";
                 document.getElementById('p-jemaat').innerText = data.lokasi_berjemaat || "-";
                 
-                // --- PERBAIKAN UNTUK KONSISTENSI FOTO ---
                 if(data.foto_profil) document.getElementById('p-foto').src = data.foto_profil;
-                // ----------------------------------------
                 
                 document.getElementById('popupBio').style.display = 'block';
 
                 // Fungsi ADD
                 document.getElementById('btnAdd').onclick = async () => {
-                    alert("Berhasil Menambahkan Jemaat ke Daftar Anda!");
-                    // Tambahkan logika simpan ke koleksi 'teman' jika diperlukan
+                    Swal.fire({
+                        title: 'Berhasil!',
+                        text: 'Berhasil Menambahkan Jemaat ke Daftar Anda!',
+                        icon: 'success',
+                        confirmButtonColor: '#003366'
+                    });
                 };
             }
-        } catch (e) { alert("Sistem Error"); }
+        } catch (e) { 
+            console.error(e);
+            alert("Sistem Error"); 
+        }
     }
-    window.onload = checkScan;
 </script>
 </body>
 </html>
