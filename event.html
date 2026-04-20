@@ -98,6 +98,35 @@
         #reader { width: 100%; border-radius: 10px; overflow: hidden; margin: 10px 0; display: none; border: 2px dashed var(--accent); }
         .btn-close-scanner { width: 100%; padding: 10px; background: #666; color: white; border: none; border-radius: 8px; margin-top: 5px; display: none; font-weight: bold; }
         .log-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f1f1f1; font-size: 12px; }
+
+        /* PENYESUAIAN BARU: Grid Gambar & Style Modal */
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Default 2 kolom */
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .image-grid img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        /* Jika foto cuma 1, buat full width */
+        .single-image { width: 100%; border-radius: 10px; margin-bottom: 10px; }
+        
+        .news-text-large {
+            font-size: 18px !important; /* Memperbesar tulisan berita */
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+
+        .swal2-confirm.btn-custom-close {
+            background-color: #d33 !important; /* Warna merah agar tombol tutup terlihat jelas */
+            color: #fff !important;
+            padding: 10px 30px !important;
+            font-weight: bold !important;
+        }
     </style>
 </head>
 <body>
@@ -269,19 +298,34 @@
         const item = list.find(x => x.id === id);
         if(!item) return;
 
+        // Logika Grid Foto: Jika lebih dari 1 foto, gunakan grid.
+        let photoHTML = "";
+        if (item.fotos.length > 1) {
+            photoHTML = `<div class="image-grid">`;
+            item.fotos.forEach(img => {
+                photoHTML += `<img src="${img}">`;
+            });
+            photoHTML += `</div>`;
+        } else {
+            photoHTML = `<img src="${item.fotos[0]}" class="single-image">`;
+        }
+
         Swal.fire({
             title: item.nama,
             html: `
-                <div style="text-align:left; font-size:14px;">
-                    <img src="${item.fotos[0]}" style="width:100%; border-radius:10px; margin-bottom:10px;">
-                    <p><b><i class="fas fa-map-marker-alt"></i> Lokasi:</b> ${item.lokasi}</p>
-                    <p><b><i class="fas fa-calendar-alt"></i> Tanggal:</b> ${item.tgl}</p>
+                <div style="text-align:left;">
+                    ${photoHTML}
+                    <p style="font-size:14px;"><b><i class="fas fa-map-marker-alt"></i> Lokasi:</b> ${item.lokasi}</p>
+                    <p style="font-size:14px;"><b><i class="fas fa-calendar-alt"></i> Tanggal:</b> ${item.tgl}</p>
                     <hr>
-                    <p style="white-space: pre-line;">${item.isi}</p>
+                    <p class="news-text-large">${item.isi}</p>
                 </div>
             `,
-            confirmButtonText: 'Tutup',
-            width: '90%'
+            confirmButtonText: 'TUTUP BERITA',
+            customClass: {
+                confirmButton: 'btn-custom-close'
+            },
+            width: '95%'
         });
     }
 
