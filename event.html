@@ -113,7 +113,7 @@
         <textarea id="isiEvent" placeholder="Isi detail kegiatan..." rows="4"></textarea>
         
         <p style="font-size: 12px; margin: 0;">Upload Foto ke Cloudinary:</p>
-        <input type="file" id="fotoEvent" accept="image/*" multiple onchange="uploadToCloudinary(event)">
+        <input type="file" id="fotoEvent" accept="image/*" multiple capture="environment">
         <div id="uploadStatus" style="font-size: 11px; color: var(--primary); margin: 5px 0;"></div>
 
         <div class="extra-tools">
@@ -121,7 +121,7 @@
             <button class="btn-tool" onclick="generatePDF()"><i class="fas fa-file-pdf" style="color:#e74c3c"></i> PDF</button>
         </div>
 
-        <button class="btn-action" style="background:var(--accent)" id="btnSimpan" onclick="window.triggerSimpan()">SIMPAN & SINNKRONKAN</button>
+        <button class="btn-action" style="background:var(--accent)" id="btnSimpan">SIMPAN & SINNKRONKAN</button>
 
         <div class="absensi-box">
             <div class="absensi-header">
@@ -143,13 +143,13 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, push, onValue, remove, get, set, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // --- CONFIG FIREBASE (HARAP ISI DATA ASLI ANDA) ---
+    // --- CONFIG FIREBASE (WAJIB SESUAIKAN URL DATABASE ANDA) ---
     const firebaseConfig = {
         apiKey: "AIzaSy...",
         authDomain: "sipapua-xxxx.firebaseapp.com",
-        databaseURL: "https://sipapua-xxxx-default-rtdb.firebaseio.com",
+        databaseURL: "ISI_URL_DATABASE_REALTIME_ANDA_DISINI", 
         projectId: "sipapua-xxxx",
         storageBucket: "sipapua-xxxx.appspot.com",
         messagingSenderId: "...",
@@ -159,20 +159,20 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const eventRef = ref(db, 'events');
+    const absenRef = ref(db, 'absensi_event');
 
+    // Listener Data Event
     onValue(eventRef, (snapshot) => {
         const data = snapshot.val();
         const list = [];
-        for (let id in data) {
-            list.unshift({ id, ...data[id] });
-        }
+        for (let id in data) { list.unshift({ id, ...data[id] }); }
         window.currentEvents = list;
         renderList(list);
         updateLogActivity(list);
     });
 
-    // Perbaikan Tombol Simpan agar terhubung dengan Firebase Modul
-    window.triggerSimpan = function() {
+    // Perbaikan Tombol Simpan (Koneksi Modul)
+    document.getElementById('btnSimpan').onclick = function() {
         const nama = document.getElementById('namaEvent').value;
         const lokasi = document.getElementById('lokasiEvent').value;
         const tgl = document.getElementById('tglEvent').value;
@@ -187,24 +187,41 @@
             fotos: window.cloudinaryImages,
             createdAt: Date.now()
         }).then(() => {
-            Swal.fire('Tersinkron', 'Data berhasil dikirim ke Cloud', 'success');
-            document.getElementById('namaEvent').value = "";
-            document.getElementById('lokasiEvent').value = "";
-            document.getElementById('tglEvent').value = "";
-            document.getElementById('isiEvent').value = "";
-            document.getElementById('fotoEvent').value = "";
+            Swal.fire('Tersinkron', 'Data berhasil disimpan', 'success');
+            // Reset Form
+            ['namaEvent','lokasiEvent','tglEvent','isiEvent','fotoEvent'].forEach(id => document.getElementById(id).value = "");
             window.cloudinaryImages = [];
             document.getElementById('uploadStatus').innerText = "";
-        }).catch((err) => {
-            Swal.fire('Error', 'Gagal kirim ke database: ' + err.message, 'error');
-        });
+        }).catch(err => Swal.fire('Error', 'Koneksi Gagal: ' + err.message, 'error'));
+    };
+
+    // Logika Absen 1x 24 Jam
+    window.prosesAbsenDigital = async function(userId) {
+        const now = Date.now();
+        const userAbsenRef = child(absenRef, userId);
+        
+        try {
+            const snapshot = await get(userAbsenRef);
+            if (snapshot.exists()) {
+                const lastAbsen = snapshot.val().last_timestamp;
+                const selisihJam = (now - lastAbsen) / (1000 * 60 * 60);
+                
+                if (selisihJam < 24) {
+                    return Swal.fire({ icon: 'error', title: 'Absen Tidak Boleh Dobel', text: 'Silahkan absen lagi besok.', confirmButtonColor: '#d33' });
+                }
+            }
+            
+            await set(userAbsenRef, { last_timestamp: now, date: new Date().toLocaleString() });
+            Swal.fire({ icon: 'success', title: 'Absen Berhasil', text: 'ID: ' + userId });
+            
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     window.hapusBerita = async function(id) {
         const { value: pass } = await Swal.fire({ title: 'Sandi Admin', input: 'password' });
-        if (pass === 'admin123') {
-            remove(ref(db, `events/${id}`));
-        }
+        if (pass === 'admin123') { remove(ref(db, `events/${id}`)); }
     };
 </script>
 
@@ -213,6 +230,28 @@
     const CLOUDINARY_PRESET = "sipapua_preset";
     window.cloudinaryImages = [];
     let html5QrCode;
+
+    // Perbaikan Upload HP (Trigger Manual)
+    document.getElementById('fotoEvent').onchange = async function(e) {
+        const files = Array.from(e.target.files);
+        const statusLabel = document.getElementById('uploadStatus');
+        statusLabel.innerText = "⏳ Mengunggah...";
+        
+        try {
+            for (let file of files) {
+                const formData = new FormData();
+                formData.append("file", file);
+                formData.append("upload_preset", CLOUDINARY_PRESET);
+                const res = await fetch(CLOUDINARY_URL, { method: "POST", body: formData });
+                const data = await res.json();
+                if(data.secure_url) window.cloudinaryImages.push(data.secure_url);
+            }
+            statusLabel.innerText = "✅ " + window.cloudinaryImages.length + " Foto siap.";
+        } catch (err) { 
+            statusLabel.innerText = "❌ Gagal Upload";
+            Swal.fire('Error', 'Gagal kirim gambar ke server', 'error');
+        }
+    };
 
     function toggleLoginSlider() {
         const box = document.getElementById('loginBox');
@@ -239,28 +278,11 @@
         }
     }
 
-    async function uploadToCloudinary(e) {
-        const files = Array.from(e.target.files);
-        const statusLabel = document.getElementById('uploadStatus');
-        statusLabel.innerText = "⏳ Mengunggah...";
-        try {
-            for (let file of files) {
-                const formData = new FormData();
-                formData.append("file", file);
-                formData.append("upload_preset", CLOUDINARY_PRESET);
-                const res = await fetch(CLOUDINARY_URL, { method: "POST", body: formData });
-                const data = await res.json();
-                window.cloudinaryImages.push(data.secure_url);
-            }
-            statusLabel.innerText = "✅ Selesai.";
-        } catch (err) { statusLabel.innerText = "❌ Gagal."; }
-    }
-
     function renderList(list) {
         const container = document.getElementById('newsList');
         container.innerHTML = list.map(item => `
             <div class="event-item" onclick="detailEvent('${item.id}')">
-                <img src="${item.fotos[0]}" class="event-thumb">
+                <img src="${item.fotos ? item.fotos[0] : ''}" class="event-thumb">
                 <div class="event-content">
                     <h3>${item.nama}</h3>
                     <div class="date-badge"><i class="fas fa-calendar"></i> ${item.tgl}</div>
@@ -292,75 +314,57 @@
         document.getElementById('reader').style.display = 'block';
         html5QrCode = new Html5Qrcode("reader");
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (decodedText) => {
-            Swal.fire('Absen Berhasil', 'User ID: ' + decodedText, 'success');
             html5QrCode.stop();
             document.getElementById('reader').style.display = 'none';
+            window.prosesAbsenDigital(decodedText); // Memanggil fungsi validasi 24 jam
         });
     }
 
-    // Perbaikan Tombol WhatsApp
+    // Perbaikan Share WhatsApp (Encoding & Mobile Link)
     function shareWhatsApp() {
         const nama = document.getElementById('namaEvent').value;
         const lokasi = document.getElementById('lokasiEvent').value;
         const isi = document.getElementById('isiEvent').value;
-        if(!nama) return Swal.fire('Info', 'Isi nama kegiatan dulu', 'info');
+        if(!nama) return Swal.fire('Info', 'Isi data terlebih dahulu', 'info');
         
-        const pesan = `*SIPAPUA EVENT*\n\n*Kegiatan:* ${nama}\n*Lokasi:* ${lokasi}\n\n*Detail:* \n${isi}`;
-        window.open(`https://wa.me/?text=${encodeURIComponent(pesan)}`, '_blank');
+        const teks = `*EVENT JEMAAT*\n*Kegiatan:* ${nama}\n*Lokasi:* ${lokasi}\n\n${isi}`;
+        const encodedText = encodeURIComponent(teks);
+        const url = /Android|iPhone|iPad/i.test(navigator.userAgent) 
+                    ? `whatsapp://send?text=${encodedText}` 
+                    : `https://web.whatsapp.com/send?text=${encodedText}`;
+        
+        window.location.href = url;
     }
 
-    // Perbaikan PDF dengan Foto
     async function generatePDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        const nama = document.getElementById('namaEvent').value || "Event Jemaat";
-        const lokasi = document.getElementById('lokasiEvent').value || "-";
-        const tgl = document.getElementById('tglEvent').value || "-";
-        const isi = document.getElementById('isiEvent').value || "";
+        const nama = document.getElementById('namaEvent').value || "Event";
+        const fotos = window.cloudinaryImages;
 
-        if(window.cloudinaryImages.length === 0) {
-            return Swal.fire('Info', 'Wajib upload foto untuk menyertakannya di PDF', 'info');
+        if(fotos.length === 0) return Swal.fire('Info', 'Wajib ada foto untuk PDF', 'info');
+
+        Swal.fire({ title: 'Menyiapkan PDF...', didOpen: () => Swal.showLoading() });
+
+        doc.text("LAPORAN EVENT", 20, 20);
+        doc.text("Kegiatan: " + nama, 20, 30);
+        
+        let y = 40;
+        for(let url of fotos) {
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.src = url;
+            await new Promise(res => {
+                img.onload = () => {
+                    if(y > 220) { doc.addPage(); y = 20; }
+                    doc.addImage(img, 'JPEG', 20, y, 80, 60);
+                    y += 70;
+                    res();
+                }
+            });
         }
-
-        Swal.fire({ title: 'Sedang Membuat PDF...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-
-        try {
-            doc.setFontSize(18);
-            doc.text("LAPORAN EVENT JEMAAT - SIPAPUA", 20, 20);
-            doc.setFontSize(12);
-            doc.text(`Nama Kegiatan : ${nama}`, 20, 40);
-            doc.text(`Lokasi        : ${lokasi}`, 20, 50);
-            doc.text(`Tanggal       : ${tgl}`, 20, 60);
-            
-            let yPos = 75;
-            doc.text("Detail Kegiatan:", 20, yPos);
-            doc.setFontSize(10);
-            const lines = doc.splitTextToSize(isi, 170);
-            doc.text(lines, 20, yPos + 10);
-            
-            yPos += (lines.length * 5) + 20;
-
-            // Masukkan Foto ke PDF
-            for (let i = 0; i < window.cloudinaryImages.length; i++) {
-                if (yPos > 240) { doc.addPage(); yPos = 20; }
-                const img = new Image();
-                img.crossOrigin = "Anonymous";
-                img.src = window.cloudinaryImages[i];
-                
-                await new Promise((resolve) => {
-                    img.onload = () => {
-                        doc.addImage(img, 'JPEG', 20, yPos, 80, 60);
-                        yPos += 70;
-                        resolve();
-                    };
-                });
-            }
-
-            doc.save(`Laporan_${nama}.pdf`);
-            Swal.close();
-        } catch (err) {
-            Swal.fire('Error', 'Gagal memuat gambar ke PDF', 'error');
-        }
+        doc.save(nama + ".pdf");
+        Swal.close();
     }
 </script>
 </body>
