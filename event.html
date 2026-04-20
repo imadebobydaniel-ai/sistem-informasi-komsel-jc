@@ -96,25 +96,30 @@
         <button id="btnPortalBack" class="btn-header-back" onclick="window.history.back()">
             <i class="fas fa-chevron-left"></i> &nbsp;KEMBALI
         </button>
-        <button id="btnBack" onclick="location.reload()" style="display:none; border:none; background:#d33; color:white; height: 38px; padding:0 20px; border-radius:19px; font-weight:bold; cursor:pointer;">LOGOUT</button>
+        <button id="btnBack" onclick="window.location.reload()" style="display:none; border:none; background:#d33; color:white; height: 38px; padding:0 20px; border-radius:19px; font-weight:bold; cursor:pointer;">LOGOUT</button>
     </div>
+
     <h1 style="font-size: 1.1rem; margin: 0; letter-spacing: 1px;">EVENT JEMAAT</h1>
+
     <div class="nav-admin">
-        <button id="btnToggle" class="btn-toggle-login" onclick="toggleLoginSlider()"><i class="fas fa-user-shield"></i></button>
-        <div id="loginBox" class="login-dropdown">
+        <button id="btnToggle" class="btn-toggle-login" onclick="window.toggleLoginSlider()">
+            <i class="fas fa-user-shield"></i>
+        </button>
+
+        <div id="loginBox" class="login-dropdown" style="display: none;">
             <span class="login-label">LOGIN ADMIN</span>
             <input type="text" id="userAdmin" placeholder="Username">
             <div class="pass-container">
                 <input type="password" id="passAdmin" placeholder="Password">
-                <i class="fas fa-eye toggle-pass" id="eyeIcon" onclick="togglePassword()"></i>
+                <i class="fas fa-eye toggle-pass" id="eyeIcon" onclick="window.togglePassword()"></i>
             </div>
-            <button class="btn-masuk-dropdown" onclick="loginEvent()">MASUK</button>
+            <button class="btn-masuk-dropdown" onclick="window.loginEvent()">MASUK</button>
         </div>
     </div>
 </div>
 
 <div class="container">
-    <div id="adminSection">
+    <div id="adminSection" style="display: none;">
         <h3><i class="fas fa-edit"></i> CMS Input Kegiatan</h3>
         <input type="text" id="namaEvent" placeholder="Nama Kegiatan">
         <input type="text" id="lokasiEvent" placeholder="Lokasi">
@@ -126,8 +131,8 @@
         <div id="uploadStatus" style="font-size: 11px; color: var(--primary); margin: 5px 0;"></div>
 
         <div class="extra-tools">
-            <button class="btn-tool" onclick="shareWhatsApp()"><i class="fab fa-whatsapp" style="color:#25D366"></i> SHARE WA</button>
-            <button class="btn-tool" onclick="generatePDF()"><i class="fas fa-file-pdf" style="color:#e74c3c"></i> PDF</button>
+            <button class="btn-tool" onclick="window.shareWhatsApp()"><i class="fab fa-whatsapp" style="color:#25D366"></i> SHARE WA</button>
+            <button class="btn-tool" onclick="window.generatePDF()"><i class="fas fa-file-pdf" style="color:#e74c3c"></i> PDF</button>
         </div>
 
         <button class="btn-action" style="background:var(--accent)" id="btnSimpan">SIMPAN & SINNKRONKAN</button>
@@ -137,7 +142,7 @@
                 <span style="font-weight:bold; font-size:13px;"><i class="fas fa-qrcode"></i> ABSENSI</span>
                 <span class="total-counter">Total: <span id="totalAbsen">0</span></span>
             </div>
-            <button class="btn-action" style="background: var(--primary);" onclick="startScanner()">SCAN QR</button>
+            <button class="btn-action" style="background: var(--primary);" onclick="window.startScanner()">SCAN QR</button>
             <div id="reader"></div>
         </div>
 
@@ -150,164 +155,79 @@
     <div id="newsList"></div>
 </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, onValue, remove, get, set, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSy...", // Pastikan API Key Anda lengkap di sini
-        authDomain: "boby-apps-project.firebaseapp.com",
-        databaseURL: "https://boby-apps-project-default-rtdb.firebaseio.com/", 
-        projectId: "boby-apps-project",
-        storageBucket: "boby-apps-project.appspot.com",
-        messagingSenderId: "...",
-        appId: "..."
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const eventRef = ref(db, 'events');
-    const absenRef = ref(db, 'absensi_event');
-
-    // FIX SHARE WA: Agar tidak error di APK
-    window.shareWhatsApp = function() {
-        const nama = document.getElementById('namaEvent').value;
-        const lokasi = document.getElementById('lokasiEvent').value;
-        const isi = document.getElementById('isiEvent').value;
-        
-        if(!nama) return Swal.fire('Info', 'Isi data dulu', 'info');
-        
-        const teks = `*EVENT JEMAAT*\n*Kegiatan:* ${nama}\n*Lokasi:* ${lokasi}\n\n${isi}`;
-        window.location.href = `https://wa.me/?text=${encodeURIComponent(teks)}`;
-    };
-
-    // AMBIL DATA DARI FIREBASE
-    onValue(eventRef, (snapshot) => {
-        const data = snapshot.val();
-        const list = [];
-        for (let id in data) { list.unshift({ id, ...data[id] }); }
-        window.currentEvents = list;
-        renderList(list);
-        updateLogActivity(list);
-    });
-
-    // SIMPAN DATA KE FIREBASE
-    document.getElementById('btnSimpan').onclick = function() {
-        const nama = document.getElementById('namaEvent').value;
-        const lokasi = document.getElementById('lokasiEvent').value;
-        const tgl = document.getElementById('tglEvent').value;
-        const isi = document.getElementById('isiEvent').value;
-
-        if(!nama || window.cloudinaryImages.length === 0) {
-            return Swal.fire('Peringatan', 'Nama kegiatan dan foto wajib diisi!', 'warning');
-        }
-
-        push(eventRef, {
-            nama, lokasi, tgl, isi,
-            fotos: window.cloudinaryImages,
-            createdAt: Date.now()
-        }).then(() => {
-            Swal.fire('Tersinkron', 'Data berhasil disimpan', 'success');
-            ['namaEvent','lokasiEvent','tglEvent','isiEvent','fotoEvent'].forEach(id => document.getElementById(id).value = "");
-            window.cloudinaryImages = [];
-            document.getElementById('uploadStatus').innerText = "";
-        }).catch(err => Swal.fire('Error', 'Gagal: ' + err.message, 'error'));
-    };
-
-    // FUNGSI ABSEN QR
-    window.prosesAbsenDigital = async function(userId) {
-        const now = Date.now();
-        const userAbsenRef = child(absenRef, userId);
-        try {
-            const snapshot = await get(userAbsenRef);
-            if (snapshot.exists()) {
-                const lastAbsen = snapshot.val().last_timestamp;
-                if ((now - lastAbsen) / (1000 * 60 * 60) < 24) {
-                    return Swal.fire('Error', 'Silahkan absen lagi besok.', 'error');
-                }
-            }
-            await set(userAbsenRef, { last_timestamp: now, date: new Date().toLocaleString() });
-            Swal.fire('Berhasil', 'Absen ID: ' + userId, 'success');
-        } catch (error) { console.error(error); }
-    };
-
-    // HAPUS DATA (ADMIN)
-    window.hapusBerita = async function(id) {
-        const { value: pass } = await Swal.fire({
-            title: 'Sandi Admin',
-            html: `<input type="password" id="swal-input-pass" class="swal2-input" placeholder="Sandi">`,
-            preConfirm: () => document.getElementById('swal-input-pass').value
-        });
-
-        if (pass === 'admin123') {
-            remove(ref(db, `events/${id}`)); 
-            Swal.fire('Terhapus', 'Data dihapus', 'success');
-        } else if (pass !== undefined) {
-            Swal.fire('Gagal', 'Sandi Salah', 'error');
-        }
-    };
-</script>
-
 <script>
     const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dxzllsbgi/image/upload";
     const CLOUDINARY_PRESET = "sipapua_preset";
     window.cloudinaryImages = [];
     let html5QrCode;
 
-    // FIX UPLOAD: Proses upload ke Cloudinary
-    document.getElementById('fotoEvent').onchange = async function(e) {
-        const files = Array.from(e.target.files);
-        if (files.length === 0) return;
-        const statusLabel = document.getElementById('uploadStatus');
-        statusLabel.innerText = "⏳ Memproses...";
-        
-        try {
-            for (let file of files) {
-                const formData = new FormData();
-                formData.append("file", file);
-                formData.append("upload_preset", CLOUDINARY_PRESET);
-                const res = await fetch(CLOUDINARY_URL, { method: "POST", body: formData });
-                const data = await res.json();
-                if (data.secure_url) window.cloudinaryImages.push(data.secure_url);
-            }
-            statusLabel.innerText = "✅ Selesai. " + window.cloudinaryImages.length + " foto siap.";
-        } catch (err) { statusLabel.innerText = "❌ Error"; }
-    };
+    // Pastikan DOM sudah siap sebelum menjalankan fungsi
+    document.addEventListener("DOMContentLoaded", function() {
+        console.log("DOM Ready - SIPAPUA System Active");
+    });
 
-    // --- PERBAIKAN TOMBOL LOGIN ---
+    // FUNGSI BUKA/TUTUP LOGIN (Dibuat Global agar bisa diklik di HP)
     window.toggleLoginSlider = function() {
         const box = document.getElementById('loginBox');
         if (box) {
-            // Jika display kosong atau none, ubah ke block. Jika block, ubah ke none.
+            // Logika toggle yang lebih kuat
             if (box.style.display === "none" || box.style.display === "") {
                 box.style.display = "block";
+                console.log("Login Box Opened");
             } else {
                 box.style.display = "none";
+                console.log("Login Box Closed");
             }
         } else {
-            console.error("Elemen loginBox tidak ditemukan!");
+            alert("Error: Elemen loginBox tidak ditemukan di HTML");
         }
     };
 
+    // FUNGSI PROSES LOGIN
     window.loginEvent = function() {
         const u = document.getElementById('userAdmin').value;
         const p = document.getElementById('passAdmin').value;
+        
         if(u === "admin" && p === "admin123") {
             document.getElementById('adminSection').style.display = 'block';
             document.getElementById('newsList').style.display = 'none';
             document.getElementById('btnBack').style.display = 'flex';
-            document.getElementById('loginBox').style.display = 'none'; // Sembunyikan box setelah login
+            document.getElementById('loginBox').style.display = 'none';
+            Swal.fire({ icon: 'success', title: 'Admin Login', timer: 1000, showConfirmButton: false });
         } else { 
             Swal.fire('Gagal', 'Akses Ditolak', 'error'); 
         }
     };
 
-    // --- FUNGSI DISPLAY ---
+    // Fungsi Upload Cloudinary
+    const fotoInput = document.getElementById('fotoEvent');
+    if(fotoInput) {
+        fotoInput.onchange = async function(e) {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+            const statusLabel = document.getElementById('uploadStatus');
+            statusLabel.innerText = "⏳ Memproses...";
+            
+            try {
+                for (let file of files) {
+                    const formData = new FormData();
+                    formData.append("file", file);
+                    formData.append("upload_preset", CLOUDINARY_PRESET);
+                    const res = await fetch(CLOUDINARY_URL, { method: "POST", body: formData });
+                    const data = await res.json();
+                    if (data.secure_url) window.cloudinaryImages.push(data.secure_url);
+                }
+                statusLabel.innerText = "✅ Selesai. " + window.cloudinaryImages.length + " foto siap.";
+            } catch (err) { statusLabel.innerText = "❌ Error"; }
+        };
+    }
+
+    // Fungsi Render & Detail tetap seperti sebelumnya (ditambah window.)
     window.renderList = function(list) {
         const container = document.getElementById('newsList');
         if (!container) return;
         container.innerHTML = list.map(item => `
-            <div class="event-item" onclick="detailEvent('${item.id}')">
+            <div class="event-item" onclick="window.detailEvent('${item.id}')">
                 <img src="${item.fotos ? item.fotos[0] : ''}" class="event-thumb">
                 <div class="event-content">
                     <h3>${item.nama}</h3>
@@ -320,24 +240,15 @@
         const item = window.currentEvents.find(x => x.id === id);
         if(!item) return;
         let photoHTML = (item.fotos && item.fotos.length > 1) 
-            ? `<div class="image-grid">` + item.fotos.map(img => `<img src="${img}" style="width:100%; margin-bottom:5px;">`).join('') + `</div>` 
-            : `<img src="${item.fotos ? item.fotos[0] : ''}" style="width:100%">`;
+            ? `<div class="image-grid">` + item.fotos.map(img => `<img src="${img}" style="width:100%; margin-bottom:5px; border-radius:8px;">`).join('') + `</div>` 
+            : `<img src="${item.fotos ? item.fotos[0] : ''}" style="width:100%; border-radius:8px;">`;
         
         Swal.fire({
             title: item.nama,
-            html: `<div style="text-align:left;">${photoHTML}<p><b>Lokasi:</b> ${item.lokasi}</p><p>${item.isi}</p></div>`,
-            width: '95%'
+            html: `<div style="text-align:left; font-size:14px;">${photoHTML}<p style="margin-top:10px;"><b>📍 Lokasi:</b> ${item.lokasi}</p><p>${item.isi}</p></div>`,
+            width: '95%',
+            confirmButtonColor: '#3085d6'
         });
-    };
-
-    window.updateLogActivity = function(list) {
-        const logCont = document.getElementById('logContent');
-        if (!logCont) return;
-        logCont.innerHTML = list.map(item => `
-            <div class="log-item">
-                <span>${item.nama}</span>
-                <button onclick="hapusBerita('${item.id}')" style="color:red; background:none; border:none;"><i class="fas fa-trash"></i></button>
-            </div>`).join('');
     };
 
     window.startScanner = function() {
@@ -350,7 +261,7 @@
             document.getElementById('reader').style.display = 'none';
             window.prosesAbsenDigital(decodedText); 
         }).catch(err => {
-            Swal.fire('Kamera Error', 'Pastikan izin kamera diberikan', 'error');
+            Swal.fire('Kamera Error', 'Izin kamera ditolak atau sedang digunakan aplikasi lain', 'error');
         });
     };
 </script>
