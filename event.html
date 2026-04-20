@@ -39,7 +39,7 @@
         }
 
         /* Navigasi */
-        .nav-left { position: absolute; left: 15px; bottom: 15px; }
+        .nav-left { position: absolute; left: 15px; bottom: 15px; display: flex; gap: 10px; }
         .nav-admin { position: absolute; right: 15px; bottom: 15px; }
         
         .btn-toggle-login { background: var(--accent); color: white; border: none; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
@@ -119,13 +119,23 @@
             font-size: 18px !important; /* Memperbesar tulisan berita */
             line-height: 1.6;
             white-space: pre-line;
+            margin-bottom: 20px; /* Jarak agar tidak terlalu rapat ke tombol tutup */
         }
 
         .swal2-confirm.btn-custom-close {
             background-color: #d33 !important; /* Warna merah agar tombol tutup terlihat jelas */
             color: #fff !important;
-            padding: 10px 30px !important;
+            padding: 12px 40px !important;
             font-weight: bold !important;
+            border-radius: 30px !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
+        }
+
+        /* Tombol Kembali di Halaman Utama */
+        .btn-header-back { 
+            border:none; background:#555; color:white; height: 38px; padding:0 15px; 
+            border-radius:19px; font-weight:bold; cursor:pointer; display:flex; 
+            align-items:center; justify-content:center; font-size: 12px;
         }
     </style>
 </head>
@@ -133,7 +143,10 @@
 
 <div class="header">
     <div class="nav-left">
-        <button id="btnBack" onclick="location.reload()" style="display:none; border:none; background:#555; color:white; height: 38px; padding:0 20px; border-radius:19px; font-weight:bold; cursor:pointer; align-items:center; justify-content:center;">KEMBALI</button>
+        <button id="btnPortalBack" class="btn-header-back" onclick="window.history.back()">
+            <i class="fas fa-chevron-left"></i> &nbsp;KEMBALI
+        </button>
+        <button id="btnBack" onclick="location.reload()" style="display:none; border:none; background:#d33; color:white; height: 38px; padding:0 20px; border-radius:19px; font-weight:bold; cursor:pointer; align-items:center; justify-content:center;">LOGOUT</button>
     </div>
     <h1 style="font-size: 1.1rem; margin: 0; letter-spacing: 1px;">EVENT JEMAAT</h1>
     <div class="nav-admin">
@@ -232,7 +245,8 @@
             document.getElementById('newsList').style.display = 'none';
             document.getElementById('loginBox').style.display = 'none';
             document.getElementById('btnToggle').style.display = 'none';
-            document.getElementById('btnBack').style.display = 'flex';
+            document.getElementById('btnPortalBack').style.display = 'none'; // Sembunyikan tombol kembali portal
+            document.getElementById('btnBack').style.display = 'flex'; // Munculkan tombol logout
         } else {
             Swal.fire('Gagal', 'Akses Ditolak', 'error');
         }
@@ -274,7 +288,17 @@
         list.unshift(newEntry);
         localStorage.setItem('eventList', JSON.stringify(list));
         
-        location.reload(); 
+        // Perbaikan: Tidak reload/logout, hanya reset form dan update log
+        Swal.fire('Berhasil', 'Berita telah dipublikasikan', 'success');
+        document.getElementById('namaEvent').value = "";
+        document.getElementById('lokasiEvent').value = "";
+        document.getElementById('tglEvent').value = "";
+        document.getElementById('isiEvent').value = "";
+        document.getElementById('fotoEvent').value = "";
+        document.getElementById('uploadStatus').innerText = "";
+        cloudinaryImages = [];
+        updateLogActivity();
+        renderList(); 
     }
 
     function renderList() {
@@ -298,7 +322,6 @@
         const item = list.find(x => x.id === id);
         if(!item) return;
 
-        // Logika Grid Foto: Jika lebih dari 1 foto, gunakan grid.
         let photoHTML = "";
         if (item.fotos.length > 1) {
             photoHTML = `<div class="image-grid">`;
@@ -313,7 +336,7 @@
         Swal.fire({
             title: item.nama,
             html: `
-                <div style="text-align:left;">
+                <div style="text-align:left; padding-bottom: 10px;">
                     ${photoHTML}
                     <p style="font-size:14px;"><b><i class="fas fa-map-marker-alt"></i> Lokasi:</b> ${item.lokasi}</p>
                     <p style="font-size:14px;"><b><i class="fas fa-calendar-alt"></i> Tanggal:</b> ${item.tgl}</p>
@@ -325,7 +348,8 @@
             customClass: {
                 confirmButton: 'btn-custom-close'
             },
-            width: '95%'
+            width: '95%',
+            padding: '1em'
         });
     }
 
@@ -385,7 +409,8 @@
             let list = JSON.parse(localStorage.getItem('eventList'));
             list = list.filter(x => x.id !== id);
             localStorage.setItem('eventList', JSON.stringify(list));
-            location.reload();
+            updateLogActivity();
+            renderList();
         }
     }
 </script>
