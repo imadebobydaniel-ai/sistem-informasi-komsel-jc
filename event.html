@@ -11,133 +11,57 @@
 
     <style>
         :root { --primary: #003366; --accent: #2ecc71; --bg: #f0f2f5; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
         
-        /* HEADER */
-        .header { 
-            background: var(--primary); 
-            color: white; 
-            padding: 10px 15px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            position: sticky; 
-            top: 0; 
-            z-index: 1000; 
-            border-bottom: 3px solid var(--accent); 
-        }
-
-        /* Navigasi Admin & Dropdown Slider */
+        .header { background: var(--primary); color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; border-bottom: 3px solid var(--accent); }
         .nav-admin { position: relative; }
-        
-        .btn-toggle-login {
-            background: var(--accent);
-            color: white;
-            border: none;
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
+        .btn-toggle-login { background: var(--accent); color: white; border: none; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-        .login-dropdown {
-            display: none; 
-            position: absolute;
-            top: 50px;
-            right: 0;
-            width: 240px;
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-            z-index: 2000;
-            border: 1px solid #eee;
-            animation: slideDown 0.3s ease-out;
-        }
-
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .login-dropdown h4 { margin: 0 0 15px 0; color: var(--primary); font-size: 15px; text-align: center; }
-
-        /* Input di dalam Dropdown */
-        .login-dropdown input {
-            width: 100%;
-            height: 42px;
-            margin-bottom: 12px;
-            padding: 0 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 14px;
-        }
-
-        /* Password Wrapper & Eye Icon */
+        /* Slider Dropdown */
+        .login-dropdown { display: none; position: absolute; top: 50px; right: 0; width: 240px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); z-index: 2000; border: 1px solid #eee; }
+        .login-dropdown input { width: 100%; height: 42px; margin-bottom: 12px; padding: 0 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         .pass-wrapper { position: relative; width: 100%; }
-        .toggle-password {
-            position: absolute;
-            right: 12px;
-            top: 13px;
-            color: #999;
-            cursor: pointer;
-            z-index: 10;
-        }
+        .toggle-password { position: absolute; right: 12px; top: 13px; color: #999; cursor: pointer; }
+        .btn-masuk-dropdown { width: 100%; height: 42px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        .btn-masuk-dropdown {
-            width: 100%;
-            height: 42px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        /* Container & Card Style */
         .container { padding: 15px; max-width: 800px; margin: auto; }
+        
+        /* List Style */
         .event-item { background: white; border-radius: 12px; overflow: hidden; display: flex; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; }
         .event-thumb { width: 100px; height: 100px; object-fit: cover; background: #ddd; }
         .event-content { padding: 12px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
         .event-title { font-weight: bold; color: var(--primary); font-size: 16px; margin: 0; }
-        .event-meta { font-size: 11px; color: #777; margin-bottom: 3px; }
 
+        /* CMS Form */
         #adminSection { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 2px solid var(--primary); display: none; }
+        input, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
+        .preview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 10px; }
+        .preview-grid img { width: 100%; height: 60px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd; }
+
         .btn-action { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; color: white; }
         .scan-box { background: #e8f4fd; border: 2px dashed var(--primary); padding: 15px; text-align: center; border-radius: 10px; margin: 15px 0; }
-        #reader { width: 100%; border-radius: 10px; display: none; }
+        #reader { width: 100%; border-radius: 10px; display: none; margin-bottom: 10px; }
+
+        /* Popup Image Gallery */
+        .popup-gallery { display: flex; gap: 5px; overflow-x: auto; margin-bottom: 15px; padding-bottom: 5px; }
+        .popup-gallery img { width: 150px; height: 100px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1 style="font-size: 1rem; margin: 0; letter-spacing: 1px;">EVENT</h1>
-    
+    <h1 style="font-size: 1rem; margin: 0;">KEGIATAN EVENT</h1>
     <div class="nav-admin">
-        <button id="btnToggle" class="btn-toggle-login" onclick="toggleLoginSlider()">
-            <i class="fas fa-user-shield"></i>
-        </button>
-
+        <button id="btnToggle" class="btn-toggle-login" onclick="toggleLoginSlider()"><i class="fas fa-user-shield"></i></button>
         <div id="loginBox" class="login-dropdown">
             <h4>Admin Login</h4>
             <input type="text" id="userAdmin" placeholder="Username">
-            
             <div class="pass-wrapper">
                 <input type="password" id="passAdmin" placeholder="Password">
                 <i class="fas fa-eye toggle-password" id="eyeIcon" onclick="toggleEye()"></i>
             </div>
-            
             <button class="btn-masuk-dropdown" onclick="loginEvent()">MASUK</button>
         </div>
-
         <button id="btnLogout" style="display:none; background:#e74c3c; border:none; color:white; height: 38px; padding:0 15px; border-radius:19px; font-weight:bold;" onclick="logout()">LOGOUT</button>
     </div>
 </div>
@@ -148,8 +72,11 @@
         <input type="text" id="namaEvent" placeholder="Nama Kegiatan">
         <input type="text" id="lokasiEvent" placeholder="Lokasi">
         <input type="date" id="tglEvent">
-        <textarea id="isiEvent" placeholder="Isi detail kegiatan..." rows="4" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;"></textarea>
-        <input type="file" id="fotoEvent" accept="image/*" onchange="previewImage(event)" style="margin-top:10px;">
+        <textarea id="isiEvent" placeholder="Isi detail kegiatan..." rows="4"></textarea>
+        
+        <p style="font-size: 12px; margin: 0;">Upload Foto (Maks 4):</p>
+        <input type="file" id="fotoEvent" accept="image/*" multiple onchange="handleMultipleImages(event)">
+        <div id="imagePreviewGrid" class="preview-grid"></div>
         
         <div class="scan-box">
             <h4><i class="fas fa-qrcode"></i> Absensi Jemaat</h4>
@@ -157,7 +84,6 @@
             <button class="btn-action" style="background:var(--primary)" id="btnScan" onclick="mulaiScan()">BUKA SCANNER</button>
             <p>Terabsen: <span id="totalHadir" style="font-size:20px; font-weight:bold;">0</span></p>
         </div>
-
         <button class="btn-action" style="background:var(--accent)" onclick="simpanData()">SIMPAN & PUBLIKASIKAN</button>
     </div>
 
@@ -166,16 +92,14 @@
 
 <script>
     let html5QrCode;
-    let jumlahPeserta = 0;
-    let imageBase64 = "";
+    let listPeserta = []; // Untuk cegah dobel scan
+    let multiImages = [];
 
     window.onload = function() { renderList(); };
 
-    // --- LOGIKA LOGIN & SLIDER ---
     function toggleLoginSlider() {
         const box = document.getElementById('loginBox');
         box.style.display = (box.style.display === "block") ? "none" : "block";
-        if(box.style.display === "block") document.getElementById('userAdmin').focus();
     }
 
     function toggleEye() {
@@ -198,37 +122,45 @@
             document.getElementById('loginBox').style.display = 'none';
             document.getElementById('btnToggle').style.display = 'none';
             document.getElementById('btnLogout').style.display = 'block';
-            Swal.fire('Login Berhasil', 'Mode Admin Aktif', 'success');
         } else {
-            Swal.fire('Gagal', 'Username/Password salah', 'error');
+            Swal.fire('Gagal', 'Akses Ditolak', 'error');
         }
     }
 
-    // Tutup dropdown jika klik di luar
-    window.addEventListener('click', function(e) {
-        const box = document.getElementById('loginBox');
-        const btn = document.getElementById('btnToggle');
-        if (box.style.display === "block" && !box.contains(e.target) && !btn.contains(e.target)) {
-            box.style.display = "none";
+    function handleMultipleImages(e) {
+        const files = Array.from(e.target.files);
+        if (files.length > 4) {
+            Swal.fire('Peringatan', 'Maximal 4 Foto', 'warning');
+            e.target.value = "";
+            return;
         }
-    });
-
-    function logout() { location.reload(); }
-
-    // --- LOGIKA CMS & SCAN ---
-    function previewImage(e) {
-        const reader = new FileReader();
-        reader.onload = function() { imageBase64 = reader.result; };
-        reader.readAsDataURL(e.target.files[0]);
+        multiImages = [];
+        const previewGrid = document.getElementById('imagePreviewGrid');
+        previewGrid.innerHTML = "";
+        
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                multiImages.push(event.target.result);
+                const img = document.createElement('img');
+                img.src = event.target.result;
+                previewGrid.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        });
     }
 
     function mulaiScan() {
         document.getElementById('reader').style.display = 'block';
         html5QrCode = new Html5Qrcode("reader");
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (txt) => {
-            jumlahPeserta++;
-            document.getElementById('totalHadir').innerText = jumlahPeserta;
-            new Audio('https://www.soundjay.com/buttons/beep-01a.mp3').play();
+            if (listPeserta.includes(txt)) {
+                Swal.fire({ icon: 'error', title: 'X', text: 'Tidak bisa Absen Dobel', showConfirmButton: false, timer: 1500 });
+            } else {
+                listPeserta.push(txt);
+                document.getElementById('totalHadir').innerText = listPeserta.length;
+                new Audio('https://www.soundjay.com/buttons/beep-01a.mp3').play();
+            }
         });
     }
 
@@ -238,38 +170,35 @@
         const tgl = document.getElementById('tglEvent').value;
         const isi = document.getElementById('isiEvent').value;
 
-        if(!nama || !lokasi) return Swal.fire('Peringatan', 'Data belum lengkap', 'warning');
+        if(!nama || !lokasi || multiImages.length === 0) return Swal.fire('Gagal', 'Data & Foto wajib ada', 'warning');
 
         const newEntry = {
             id: Date.now(),
             nama, lokasi, tgl, isi,
-            hadir: jumlahPeserta,
-            foto: imageBase64 || 'https://via.placeholder.com/100'
+            hadir: listPeserta.length,
+            fotos: multiImages
         };
 
         let list = JSON.parse(localStorage.getItem('eventList')) || [];
         list.unshift(newEntry);
         localStorage.setItem('eventList', JSON.stringify(list));
 
-        Swal.fire('Berhasil!', 'Kegiatan dipublikasikan', 'success');
-        renderList();
-        document.getElementById('adminSection').style.display = 'none';
-        document.getElementById('btnLogout').style.display = 'block';
+        Swal.fire('Berhasil!', 'Kegiatan dipublikasikan', 'success').then(() => location.reload());
     }
 
     function renderList() {
         const list = JSON.parse(localStorage.getItem('eventList')) || [];
         const container = document.getElementById('newsList');
-        container.innerHTML = list.length ? "" : "<p style='text-align:center; color:#888; margin-top:50px;'>Belum ada kegiatan.</p>";
+        container.innerHTML = list.length ? "" : "<p style='text-align:center;'>Belum ada kegiatan.</p>";
 
         list.forEach(item => {
             container.innerHTML += `
                 <div class="event-item" onclick="showPopup(${item.id})">
-                    <img src="${item.foto}" class="event-thumb">
+                    <img src="${item.fotos[0]}" class="event-thumb">
                     <div class="event-content">
-                        <p class="event-meta"><b>${item.tgl}</b> | ${item.lokasi}</p>
+                        <p style="font-size:11px; color:#777; margin:0;">${item.tgl} | ${item.lokasi}</p>
                         <h3 class="event-title">${item.nama}</h3>
-                        <p class="event-meta"><i class="fas fa-users"></i> ${item.hadir} Hadir</p>
+                        <p style="font-size:11px; margin:0;"><i class="fas fa-users"></i> ${item.hadir} Hadir</p>
                     </div>
                 </div>
             `;
@@ -280,20 +209,54 @@
         const list = JSON.parse(localStorage.getItem('eventList'));
         const data = list.find(x => x.id === id);
 
+        let imgHtml = '<div class="popup-gallery">';
+        data.fotos.forEach(f => imgHtml += `<img src="${f}">`);
+        imgHtml += '</div>';
+
         Swal.fire({
             title: data.nama,
             html: `
-                <img src="${data.foto}" style="width:100%; border-radius:10px; margin-bottom:10px;">
-                <p style="text-align:left; font-size:14px;"><b>Lokasi:</b> ${data.lokasi}<br><b>Tanggal:</b> ${data.tgl}</p>
-                <div style="text-align:justify; font-size:14px; border-top:1px solid #eee; padding-top:10px;">${data.isi}</div>
-                <div style="background:#e8f4fd; padding:10px; margin-top:15px; border-radius:8px; font-weight:bold; color:#003366;">
-                    Total Kehadiran: ${data.hadir} Jemaat
+                ${imgHtml}
+                <div style="text-align:left; font-size:14px; margin-bottom:10px;">
+                    <b>Lokasi:</b> ${data.lokasi} | <b>Tgl:</b> ${data.tgl}<br>
+                    <b>Peserta:</b> ${data.hadir} Orang
                 </div>
+                <div style="text-align:justify; font-size:13px; border-top:1px solid #eee; padding-top:10px;">${data.isi}</div>
             `,
-            confirmButtonText: 'Tutup'
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: '<i class="fab fa-whatsapp"></i> Share WA',
+            denyButtonText: '<i class="fas fa-file-pdf"></i> PDF',
+            confirmButtonColor: '#25D366',
+            denyButtonColor: '#e74c3c'
+        }).then((result) => {
+            if (result.isConfirmed) shareWA(data);
+            else if (result.isDenied) extractPDF(data);
         });
     }
-</script>
 
+    function shareWA(data) {
+        const text = `*BERITA KEGIATAN SIPAPUA*%0A%0A*Judul:* ${data.nama}%0A*Lokasi:* ${data.lokasi}%0A*Tanggal:* ${data.tgl}%0A*Kehadiran:* ${data.hadir} Jemaat%0A%0A*Isi Laporan:*%0A${data.isi}`;
+        window.open(`https://wa.me/?text=${text}`);
+    }
+
+    function extractPDF(data) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFontSize(18);
+        doc.text("LAPORAN KEGIATAN SIPAPUA", 105, 20, { align: 'center' });
+        doc.setFontSize(12);
+        doc.text(`Judul: ${data.nama}`, 20, 40);
+        doc.text(`Lokasi: ${data.lokasi}`, 20, 50);
+        doc.text(`Tanggal: ${data.tgl}`, 20, 60);
+        doc.text(`Jumlah Hadir: ${data.hadir} Orang`, 20, 70);
+        doc.line(20, 75, 190, 75);
+        const splitText = doc.splitTextToSize(data.isi, 170);
+        doc.text(splitText, 20, 85);
+        doc.save(`Laporan_${data.nama}.pdf`);
+    }
+
+    function logout() { location.reload(); }
+</script>
 </body>
 </html>
