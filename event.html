@@ -3,161 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Portal Event Jemaat - SIPAPUA</title>
+    <title>Event Jemaat - SIPAPUA</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
-        :root { --primary: #003366; --accent: #2ecc71; }
-        body {
-            margin: 0; font-family: 'Segoe UI', sans-serif;
-            background-color: #f4f7f6; color: #333;
-        }
+        :root { --primary: #003366; --accent: #2ecc71; --bg: #f0f4f8; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: #333; }
 
-        /* HEADER & NAVIGATION */
+        /* HEADER */
         .header {
-            background: var(--primary); color: white; padding: 15px 20px;
+            background: var(--primary); color: white; padding: 12px 20px;
             display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 1000;
+            position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
-        /* CONTAINER UTAMA */
-        .main-container { padding: 20px; max-width: 800px; margin: auto; }
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        
+        .btn-admin-login {
+            background: rgba(255,255,255,0.2); border: 1px solid white;
+            color: white; padding: 6px 12px; border-radius: 20px;
+            cursor: pointer; font-size: 13px; transition: 0.3s;
+        }
+        .btn-admin-login:hover { background: white; color: var(--primary); }
 
-        /* SECTION BERITA (Page Depan) */
-        .news-section { margin-bottom: 30px; }
-        .card-news {
-            background: white; border-radius: 12px; overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px;
+        /* LIST BERITA DIGITAL */
+        .main-content { padding: 20px; max-width: 600px; margin: auto; }
+        .news-item {
+            background: white; border-radius: 12px; display: flex; 
+            margin-bottom: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            cursor: pointer; border: 1px solid #e1e8ed;
         }
-        .card-news img { width: 100%; height: 180px; object-fit: cover; }
-        .card-news-body { padding: 15px; }
+        .news-img { width: 100px; height: 100px; object-fit: cover; background: #ddd; }
+        .news-info { padding: 12px; flex: 1; }
+        .news-info h4 { margin: 0 0 5px 0; color: var(--primary); font-size: 15px; }
+        .news-date { font-size: 11px; color: #999; background: #f0f0f0; padding: 2px 8px; border-radius: 10px; }
 
-        /* LOGIN CONTAINER */
-        .login-container {
-            background: white; padding: 25px; border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-top: 20px;
+        /* LOGIN SLIDER (Pojok Kanan Atas) */
+        #login-slider {
+            position: fixed; top: 60px; right: -320px; width: 280px;
+            background: white; padding: 20px; border-radius: 15px 0 0 15px;
+            box-shadow: -5px 5px 15px rgba(0,0,0,0.1); transition: 0.4s; z-index: 999;
         }
-        .form-group { margin-bottom: 15px; }
-        .form-group input {
-            width: 100%; padding: 12px; border: 1px solid #ddd;
-            border-radius: 8px; box-sizing: border-box;
+        #login-slider.active { right: 0; }
+        .login-input {
+            width: 100%; padding: 10px; margin: 8px 0;
+            border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;
         }
-        .btn-login {
-            width: 100%; padding: 12px; background: var(--primary);
-            color: white; border: none; border-radius: 8px; font-weight: bold;
+        .btn-masuk {
+            width: 100%; padding: 10px; background: var(--primary);
+            color: white; border: none; border-radius: 8px; cursor: pointer;
         }
 
-        /* MODAL / OVERLAY SCANNER (Hanya muncul saat tombol absen diklik) */
-        #scanner-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 2000; flex-direction: column;
-        }
-        #reader { width: 100%; max-width: 400px; margin: auto; }
-        .scanner-tools { padding: 20px; display: flex; justify-content: center; gap: 10px; }
-
-        .fab-absen {
-            position: fixed; bottom: 20px; right: 20px;
-            background: var(--accent); color: white; width: 60px; height: 60px;
+        /* FLOATING ACTION BUTTON (SCAN) */
+        .fab-scan {
+            position: fixed; bottom: 25px; right: 25px;
+            background: var(--accent); color: white; width: 55px; height: 55px;
             border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer;
+            font-size: 22px; box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4); cursor: pointer; z-index: 100;
+        }
+
+        /* SCANNER OVERLAY */
+        #scanner-view {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: black; z-index: 2000; flex-direction: column;
         }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h2 style="margin:0; font-size: 18px;">Portal SIPAPUA</h2>
-        <div id="user-info"><i class="fas fa-user-circle"></i> Guest</div>
-    </div>
-
-    <div class="main-container">
-        <div id="page-berita" class="news-section">
-            <h3>Berita Jemaat Terbaru</h3>
-            <div class="card-news">
-                <div class="card-news-body">
-                    <h4>Ibadah Raya Minggu & Perjamuan Kudus</h4>
-                    <p style="font-size: 13px; color: #666;">Dilaksanakan pada Minggu besok pukul 09.00 WIT. Diharapkan seluruh jemaat membawa kartu digital...</p>
-                </div>
-            </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button style="background:none; border:none; color:white; cursor:pointer;" onclick="history.back()"><i class="fas fa-chevron-left"></i> KEMBALI</button>
+            <span style="font-weight: bold; letter-spacing: 1px;">EVENT JEMAAT</span>
         </div>
-
-        <div id="page-login" class="login-container">
-            <h3 style="text-align: center; margin-top: 0;">Portal Input Kegiatan</h3>
-            <div class="form-group">
-                <input type="text" placeholder="Username / Email">
-            </div>
-            <div class="form-group">
-                <input type="password" placeholder="Password">
-            </div>
-            <button class="btn-login" onclick="Swal.fire('Login Berhasil', 'Silakan input berita jemaat', 'success')">Masuk Portal</button>
+        <div class="header-right">
+            <button class="btn-admin-login" onclick="toggleLoginSlider()">
+                <i class="fas fa-lock"></i> Admin
+            </button>
+            <i class="fas fa-user-circle" style="font-size: 24px;"></i>
         </div>
     </div>
 
-    <div class="fab-absen" onclick="openScanner()">
+    <div id="login-slider">
+        <h4 style="margin: 0 0 15px 0; text-align: center;">Portal Input Kegiatan</h4>
+        <input type="text" class="login-input" placeholder="Username">
+        <input type="password" class="login-input" placeholder="Password">
+        <button class="btn-masuk" onclick="handleLogin()">Masuk Portal</button>
+    </div>
+
+    <div class="main-content">
+        <div class="news-item">
+            <img src="https://via.placeholder.com/100" class="news-img" alt="Ibadah">
+            <div class="news-info">
+                <h4>IBADAH ARSO 1</h4>
+                <span class="news-date">2026-04-20</span>
+            </div>
+        </div>
+        
+        <div class="news-item">
+            <img src="https://via.placeholder.com/100" class="news-img" alt="Rapat">
+            <div class="news-info">
+                <h4>RAPAT PANITIA PEMBANGUNAN</h4>
+                <span class="news-date">2026-04-21</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="fab-scan" onclick="startQR()">
         <i class="fas fa-qrcode"></i>
     </div>
 
-    <div id="scanner-overlay">
-        <div style="padding: 20px; display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="color: white; margin: 0;">Scan Kehadiran</h3>
-            <button onclick="closeScanner()" style="background:none; border:none; color:white; font-size: 24px;">&times;</button>
+    <div id="scanner-view">
+        <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; background: var(--primary);">
+            <h4 style="color: white; margin: 0;">Scan Kartu Jemaat</h4>
+            <button onclick="stopQR()" style="background:none; border:none; color:white; font-size: 24px;">&times;</button>
         </div>
-        <div id="reader"></div>
-        <div class="scanner-tools">
-            <button class="btn-login" style="background:#e67e22;" onclick="simpanKePDF()">Simpan PDF</button>
-            <button class="btn-login" style="background:#3498db;" onclick="sinkronData()">Sinkron</button>
-        </div>
-        <div style="text-align: center; padding: 10px;">
-            <span id="count-label" style="color: #2ecc71; font-weight: bold;">Terdata: 0 Orang</span>
+        <div id="reader" style="flex: 1;"></div>
+        <div style="padding: 20px; background: white; display: flex; gap: 10px;">
+            <button onclick="generatePDF()" style="flex: 1; padding: 12px; background: #e67e22; color: white; border: none; border-radius: 8px;">Simpan PDF</button>
+            <button onclick="syncData()" style="flex: 1; padding: 12px; background: #3498db; color: white; border: none; border-radius: 8px;">Sinkron</button>
         </div>
     </div>
 
     <script>
-        let html5QrCode;
-        let dataAbsensi = [];
+        let scanner;
+        let logAbsensi = [];
 
-        function openScanner() {
-            document.getElementById('scanner-overlay').style.display = 'flex';
-            html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, onScanSuccess);
+        // FUNGSI TOGGLE LOGIN (MEMPERBAIKI ERROR REFERENCE)
+        function toggleLoginSlider() {
+            const slider = document.getElementById('login-slider');
+            slider.classList.toggle('active');
         }
 
-        function closeScanner() {
-            if(html5QrCode) {
-                html5QrCode.stop().then(() => {
-                    document.getElementById('scanner-overlay').style.display = 'none';
-                });
-            } else {
-                document.getElementById('scanner-overlay').style.display = 'none';
-            }
+        function handleLogin() {
+            Swal.fire('Sukses', 'Mengarahkan ke Portal Input...', 'success');
+            toggleLoginSlider();
         }
 
-        function onScanSuccess(decodedText) {
-            let nama = decodedText.split('@')[0]; // Simple logic ambil nama
-            const exists = dataAbsensi.find(x => x.nama === nama);
-            if (!exists) {
+        // FUNGSI QR CODE
+        function startQR() {
+            document.getElementById('scanner-view').style.display = 'flex';
+            scanner = new Html5Qrcode("reader");
+            scanner.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (text) => {
                 if (navigator.vibrate) navigator.vibrate(100);
-                dataAbsensi.push({ nama: nama, jam: new Date().toLocaleTimeString() });
-                document.getElementById('count-label').innerText = `Terdata: ${dataAbsensi.length} Orang`;
-                Swal.fire({ title: 'Berhasil', text: nama + ' terabsen', timer: 1000, showConfirmButton: false });
-            }
+                let nama = text.split('@')[0]; 
+                if(!logAbsensi.includes(nama)) {
+                    logAbsensi.push({nama: nama, jam: new Date().toLocaleTimeString()});
+                    Swal.fire({ title: 'Tercatat', text: nama, timer: 800, showConfirmButton: false });
+                }
+            });
         }
 
-        function simpanKePDF() {
-            if (dataAbsensi.length === 0) return Swal.fire('Data Kosong', '', 'error');
+        function stopQR() {
+            if(scanner) scanner.stop().then(() => { document.getElementById('scanner-view').style.display = 'none'; });
+        }
+
+        // REDAKSI BERITA DALAM PDF
+        function generatePDF() {
+            if(logAbsensi.length === 0) return Swal.fire('Kosong', 'Belum ada data scan', 'warning');
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            doc.text("BERITA ACARA EVENT JEMAAT", 105, 20, { align: "center" });
-            const tableData = dataAbsensi.map((item, i) => [i + 1, item.nama, item.jam]);
-            doc.autoTable({ head: [['No', 'Nama', 'Jam']], body: tableData, startY: 30 });
-            doc.save("Berita_Acara.pdf");
+            doc.setFontSize(16);
+            doc.text("BERITA ACARA KEHADIRAN EVENT", 105, 20, { align: "center" });
+            doc.setFontSize(10);
+            doc.text("Lokasi: Jayapura, Papua | Tanggal: " + new Date().toLocaleDateString(), 20, 30);
+            
+            const rows = logAbsensi.map((item, i) => [i+1, item.nama, item.jam, "HADIR"]);
+            doc.autoTable({ head: [['No', 'Nama Jemaat', 'Waktu Kehadiran', 'Keterangan']], body: rows, startY: 35 });
+            
+            doc.save("Berita_Acara_Event.pdf");
         }
 
-        function sinkronData() {
-            Swal.fire('Sinkronisasi', 'Data sedang dikirim ke database portal...', 'info');
+        function syncData() {
+            Swal.fire('Sinkron', 'Data berhasil dikirim ke portal jemaat', 'success');
         }
     </script>
 </body>
