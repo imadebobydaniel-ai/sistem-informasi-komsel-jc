@@ -176,79 +176,125 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
-    // Pastikan variabel global agar bisa diakses semua fungsi
+    // --- MODE DEBUG ---
+    function debugLog(pesan, data = "") {
+        console.log(`[DEBUG] ${pesan}`, data);
+    }
+
+    let beritaJemaat = [];
     let beritaAktif = null;
     let indexAktif = null;
 
-    // --- 1. Fungsi Dropdown (DIPERBAIKI) ---
-    window.toggleDropdownShare = function() {
-        const menu = document.getElementById('menuShare');
-        if (menu) {
-            menu.style.display = (menu.style.display === 'none' || menu.style.display === '') ? 'block' : 'none';
+    // --- 1. AMBIL DATA DENGAN VALIDASI KETAT ---
+    function muatDataAman() {
+        try {
+            const raw = localStorage.getItem('beritaJemaat');
+            if (!raw) return [];
+            
+            const parsed = JSON.parse(raw);
+            // Validasi: pastikan data adalah Array
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+            debugLog("Gagal parse data localStorage. Membersihkan data...");
+            localStorage.removeItem('beritaJemaat');
+            return [];
         }
-    };
+    }
 
-    // --- 2. Fungsi WhatsApp (Hanya Teks) ---
-    window.kirimKeWA = function() {
-        if (!beritaAktif) return;
-        const pesan = `*BERITA JEMAAT*%0A%0A*${beritaAktif.nama}*%0A${beritaAktif.isi}`;
-        window.open(`https://wa.me/?text=${pesan}`, '_blank');
-        toggleDropdownShare();
-    };
+    // --- 2. TAMPILKAN DAFTAR (CEK FOTO) ---
+    window.refreshBerita = function() {
+        const container = document.getElementById('list-berita-jemaat');
+        if (!container) return;
 
-    // --- 3. Fungsi PDF (Teks + Foto) ---
-    window.simpanKePDF = async function() {
-        if (!beritaAktif) return;
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+        beritaJemaat = muatDataAman();
+        debugLog("Memuat berita, jumlah:", beritaJemaat.length);
         
-        doc.text(beritaAktif.nama, 10, 10);
-        doc.setFontSize(10);
-        doc.text(doc.splitTextToSize(beritaAktif.isi, 180), 10, 20);
+        container.innerHTML = '';
 
-        if (beritaAktif.urls && beritaAktif.urls.length > 0) {
-            // Logika tambah foto di sini
+        if (beritaJemaat.length === 0) {
+            container.innerHTML = '<div class="card-berita"><div class="info-berita"><h4>Belum Ada Berita</h4><p>Gunakan portal admin untuk input.</p></div></div>';
+            return;
         }
-        doc.save(`${beritaAktif.nama}.pdf`);
-        toggleDropdownShare();
-    };
 
-    // --- 4. Fungsi Hapus (DIPERBAIKI) ---
-    window.hapusBeritaSekarang = function() {
-        Swal.fire({
-            title: 'Hapus Berita?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Hapus'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                let data = JSON.parse(localStorage.getItem('beritaJemaat')) || [];
-                data.splice(indexAktif, 1);
-                localStorage.setItem('beritaJemaat', JSON.stringify(data));
-                location.reload(); 
-            }
+        beritaJemaat.forEach((item, index) => {
+            // ANTI UNDEFINED: Jika field kosong, beri teks pengganti
+            const namaBerita = item.nama || "Judul Tidak Tersedia";
+            const tglBerita = item.tgl || "Tanggal Tidak Set";
+            const fotoUtama = (item.urls && item.urls.length > 0) ? item.urls[0] : null;
+
+            const card = document.createElement('div');
+            card.className = 'card-berita';
+            card.innerHTML = `
+                <div class="img-area">
+                    ${fotoUtama ? `<img src="${fotoUtama}" style="width:100%; height:100%; object-fit:cover;">` : `<div style="background:#003366; width:100%; height:100%; display:flex; align-items:center; justify-content:center;"><i class="fas fa-church" style="color:white;"></i></div>`}
+                </div>
+                <div class="info-berita">
+                    <h4 style="margin:0;">${namaBerita}</h4>
+                    <p style="font-size:11px; color:#888;">${tglBerita}</p>
+                </div>
+            `;
+            card.onclick = () => bukaDetailBerita(index);
+            container.appendChild(card);
         });
-    };
+    }
 
-    // --- Fungsi Pembuka Modal ---
-    window.bukaBerita = function(data, index) {
-        beritaAktif = data;
+    // --- 3. BUKA MODAL DENGAN DEBUG ---
+    window.bukaDetailBerita = function(index) {
         indexAktif = index;
-        document.getElementById('popup-title').innerText = data.nama;
-        document.getElementById('popup-text').innerText = data.isi;
+        beritaAktif = beritaJemaat[index];
+        debugLog("Membuka berita index:", index);
+
+        if (!beritaAktif) {
+            alert("Error: Data berita tidak ditemukan.");
+            return;
+        }
+
+        document.getElementById('popup-title').innerText = beritaAktif.nama || "Tanpa Judul";
+        document.getElementById('popup-text').innerText = beritaAktif.isi || "Tidak ada detail.";
         
-        // Tampilkan foto di container modal
-        const containerFoto = document.getElementById('news-gallery-container');
-        if (containerFoto) {
-            containerFoto.innerHTML = '';
-            if (data.urls) {
-                data.urls.forEach(url => {
-                    containerFoto.innerHTML += `<img src="${url}" style="width:100%; margin-bottom:10px; border-radius:8px;">`;
+        // Render Galeri Foto
+        const galeri = document.getElementById('news-gallery-container');
+        if (galeri) {
+            galeri.innerHTML = '';
+            if (beritaAktif.urls && beritaAktif.urls.length > 0) {
+                beritaAktif.urls.forEach(u => {
+                    galeri.innerHTML += `<img src="${u}" style="width:100%; margin-bottom:10px; border-radius:8px;">`;
                 });
             }
         }
+
         document.getElementById('modalBerita').style.display = 'block';
     };
+
+    // --- 4. FUNGSI SHARE & HAPUS (EXPLICIT WINDOW OBJECT) ---
+    window.toggleDropdownShare = function() {
+        const menu = document.getElementById('menuShare');
+        if(menu) menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    }
+
+    window.kirimKeWA = function() {
+        const teks = `*${beritaAktif.nama}*%0A%0A${beritaAktif.isi}`;
+        window.open(`https://wa.me/?text=${teks}`, '_blank');
+    }
+
+    window.hapusBeritaSekarang = function() {
+        if (confirm("Anda yakin ingin menghapus berita ini?")) {
+            beritaJemaat.splice(indexAktif, 1);
+            localStorage.setItem('beritaJemaat', JSON.stringify(beritaJemaat));
+            debugLog("Berita dihapus. Sisa:", beritaJemaat.length);
+            tutupModal();
+            refreshBerita();
+        }
+    }
+
+    window.tutupModal = function() {
+        document.getElementById('modalBerita').style.display = 'none';
+        const menu = document.getElementById('menuShare');
+        if(menu) menu.style.display = 'none';
+    }
+
+    // Jalankan saat load
+    document.addEventListener('DOMContentLoaded', refreshBerita);
 </script>
 </body>
 </html>
