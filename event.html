@@ -203,12 +203,10 @@
     }
 
     // --- MANAJEMEN BERITA (RENDER & DETAIL) ---
+    // SUDAH DIPERBAIKI: Menggunakan closure untuk mengunci data pada setiap card
     function renderBeritaBaru(data) {
         const list = document.getElementById('list-berita-jemaat');
-        if (!list) {
-            console.error("Elemen 'list-berita-jemaat' tidak ditemukan!");
-            return;
-        }
+        if (!list) return;
 
         const card = document.createElement('div');
         card.className = 'card-berita';
@@ -228,7 +226,11 @@
             </div>
         `;
 
-        card.onclick = () => bukaBerita(data.nama, dateStr, data.isi, data.lokasi, data.subtema, data.urls);
+        // LOCK DATA: Memastikan parameter yang dikirim ke bukaBerita adalah data unik milik card ini
+        card.onclick = () => {
+            bukaBerita(data.nama, dateStr, data.isi, data.lokasi, data.subtema, data.urls);
+        };
+
         list.prepend(card);
     }
 
@@ -236,7 +238,6 @@
         const modal = document.getElementById('modalBerita');
         if (!modal) return;
 
-        // Isi Konten Teks
         document.getElementById('popup-title').innerText = judul;
         document.getElementById('popup-date').innerText = "Diterbitkan pada: " + tgl;
         document.getElementById('popup-text').innerText = isi;
@@ -247,7 +248,6 @@
         const locElem = document.getElementById('popup-location');
         if(locElem) locElem.querySelector('span').innerText = lokasi || '';
 
-        // Penanganan Gallery Foto
         const gallery = document.getElementById('news-gallery-container');
         gallery.innerHTML = ''; 
 
@@ -261,7 +261,6 @@
                 gallery.appendChild(img);
             });
         } else {
-            // Sembunyikan gallery jika tidak ada foto agar tidak ada whitespace
             gallery.style.display = 'none';
         }
 
@@ -338,39 +337,43 @@
     }
 
     // --- INPUT BERITA (ADMIN) ---
+    // SUDAH DIPERBAIKI: Mengambil dan memvalidasi data SEBELUM proses render
     function inputBeritaBaru() {
         Swal.fire({
             title: 'Input Berita Baru',
             html: `
                 <input type="text" id="nb-nama" class="swal2-input" placeholder="Nama Kegiatan">
                 <input type="text" id="nb-subtema" class="swal2-input" placeholder="Sub Tema">
-                <input type="text" id="nb-lokasi" class="swal2-input" placeholder="Lokasi (Contoh: Arso 1)">
+                <input type="text" id="nb-lokasi" class="swal2-input" placeholder="Lokasi">
                 <input type="date" id="nb-tgl" class="swal2-input">
                 <textarea id="nb-isi" class="swal2-textarea" placeholder="Deskripsi Lengkap..."></textarea>
                 <input type="file" id="nb-foto" class="swal2-file" accept="image/*" multiple>
             `,
             confirmButtonText: 'Publish',
             showCancelButton: true,
+            focusConfirm: false,
             preConfirm: async () => {
                 const nama = document.getElementById('nb-nama').value;
+                const subtema = document.getElementById('nb-subtema').value;
+                const lokasi = document.getElementById('nb-lokasi').value;
                 const tgl = document.getElementById('nb-tgl').value;
                 const isi = document.getElementById('nb-isi').value;
-                if (!nama || !tgl || !isi) return Swal.showValidationMessage("Data wajib diisi!");
+                const files = document.getElementById('nb-foto').files;
+
+                if (!nama || !tgl || !isi) {
+                    return Swal.showValidationMessage("Data wajib diisi (Nama, Tgl, Deskripsi)!");
+                }
 
                 Swal.showLoading();
-                const files = document.getElementById('nb-foto').files;
-                const urls = await uploadKeCloudinary(files);
-                return { 
-                    nama, 
-                    subtema: document.getElementById('nb-subtema').value,
-                    lokasi: document.getElementById('nb-lokasi').value, 
-                    tgl, 
-                    isi, 
-                    urls 
-                };
+                let urls = [];
+                if (files.length > 0) {
+                    urls = await uploadKeCloudinary(files);
+                }
+
+                return { nama, subtema, lokasi, tgl, isi, urls };
             }
         }).then(res => {
-            if (res.isConfirmed) {
+            if (res.isConfirmed && res.value) {
                 renderBeritaBaru(res.value);
                 newsLogs.unshift({ 
                     activity: "Input Berita: " + res.value.nama, 
