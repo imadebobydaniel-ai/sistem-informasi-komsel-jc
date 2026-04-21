@@ -172,11 +172,11 @@
         <button onclick="simpanLaporan()" style="padding: 15px; background: #e67e22; color: white; border: none; cursor: pointer; font-weight: bold;">SIMPAN LAPORAN PDF</button>
     </div>
 
- <script>
+<script>
     // --- KONFIGURASI ---
     const CLOUDINARY_CLOUD_NAME = "dxzllsbgj";
     const CLOUDINARY_UPLOAD_PRESET = "sipapua_preset";
-    const ADMIN_PASSWORD = "admin123"; // Ganti sesuai keinginan
+    const ADMIN_PASSWORD = "admin123"; 
 
     let html5QrCode;
     let dataScan = [];
@@ -204,7 +204,10 @@
     // --- MANAJEMEN BERITA (RENDER & DETAIL) ---
     function renderBeritaBaru(data) {
         const list = document.getElementById('list-berita-jemaat');
-        if (!list) return;
+        if (!list) {
+            console.error("Elemen 'list-berita-jemaat' tidak ditemukan!");
+            return;
+        }
 
         const card = document.createElement('div');
         card.className = 'card-berita';
@@ -213,8 +216,8 @@
         const dateStr = d.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
         
         const thumb = (data.urls && data.urls.length > 0) 
-            ? `<img src="${data.urls[0]}">` 
-            : `<i class="fas fa-image"></i>`;
+            ? `<img src="${data.urls[0]}" style="width:100%; height:100%; object-fit:cover;">` 
+            : `<div style="width:100%; height:100%; background:#f0f0f0; display:flex; align-items:center; justify-content:center;"><i class="fas fa-image" style="color:#ccc;"></i></div>`;
         
         card.innerHTML = `
             <div class="img-area">${thumb}</div>
@@ -230,20 +233,27 @@
 
     function bukaBerita(judul, tgl, isi, lokasi, subtema, urls) {
         const modal = document.getElementById('modalBerita');
+        if (!modal) return;
+
         document.getElementById('popup-title').innerText = judul;
         document.getElementById('popup-date').innerText = "Diterbitkan pada: " + tgl;
         document.getElementById('popup-text').innerText = isi;
         
-        if(document.getElementById('popup-subtheme')) document.getElementById('popup-subtheme').innerText = subtema || '';
+        // Memastikan Subtema ditampilkan kembali
+        const subElem = document.getElementById('popup-subtheme');
+        if(subElem) subElem.innerText = subtema || '';
+        
         const locElem = document.getElementById('popup-location');
         if(locElem) locElem.querySelector('span').innerText = lokasi || '';
 
         const gallery = document.getElementById('news-gallery-container');
         gallery.innerHTML = '';
+
         if (urls && urls.length > 0) {
             urls.forEach(url => {
                 const img = document.createElement('img');
                 img.src = url;
+                img.style.borderRadius = "8px";
                 gallery.appendChild(img);
             });
         }
@@ -298,13 +308,14 @@
         });
     }
 
-    // --- CLOUDINARY & INPUT ---
+    // --- UPLOAD KE CLOUDINARY ---
     async function uploadKeCloudinary(files) {
         const uploadedUrls = [];
         for (let i = 0; i < Math.min(files.length, 4); i++) {
             const formData = new FormData();
             formData.append('file', files[i]);
             formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+            
             try {
                 const resp = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
                     method: 'POST',
@@ -312,19 +323,23 @@
                 });
                 const result = await resp.json();
                 if (result.secure_url) uploadedUrls.push(result.secure_url);
-            } catch (err) { console.error("Upload Error:", err); }
+            } catch (err) {
+                console.error("Cloudinary Error:", err);
+            }
         }
         return uploadedUrls;
     }
 
+    // --- INPUT BERITA (ADMIN) ---
     function inputBeritaBaru() {
         Swal.fire({
             title: 'Input Berita Baru',
             html: `
                 <input type="text" id="nb-nama" class="swal2-input" placeholder="Nama Kegiatan">
-                <input type="text" id="nb-lokasi" class="swal2-input" placeholder="Lokasi">
+                <input type="text" id="nb-subtema" class="swal2-input" placeholder="Sub Tema">
+                <input type="text" id="nb-lokasi" class="swal2-input" placeholder="Lokasi (Contoh: Arso 1)">
                 <input type="date" id="nb-tgl" class="swal2-input">
-                <textarea id="nb-isi" class="swal2-textarea" placeholder="Deskripsi..."></textarea>
+                <textarea id="nb-isi" class="swal2-textarea" placeholder="Deskripsi Lengkap..."></textarea>
                 <input type="file" id="nb-foto" class="swal2-file" accept="image/*" multiple>
             `,
             confirmButtonText: 'Publish',
@@ -334,17 +349,28 @@
                 const tgl = document.getElementById('nb-tgl').value;
                 const isi = document.getElementById('nb-isi').value;
                 if (!nama || !tgl || !isi) return Swal.showValidationMessage("Data wajib diisi!");
-                
+
                 Swal.showLoading();
                 const files = document.getElementById('nb-foto').files;
                 const urls = await uploadKeCloudinary(files);
-                return { nama, lokasi: document.getElementById('nb-lokasi').value, tgl, isi, urls };
+                return { 
+                    nama, 
+                    subtema: document.getElementById('nb-subtema').value,
+                    lokasi: document.getElementById('nb-lokasi').value, 
+                    tgl, 
+                    isi, 
+                    urls 
+                };
             }
         }).then(res => {
             if (res.isConfirmed) {
                 renderBeritaBaru(res.value);
-                newsLogs.unshift({ activity: "Input: " + res.value.nama, user: "admin", time: new Date().toLocaleString() });
-                Swal.fire("Berhasil", "Berita diterbitkan.", "success");
+                newsLogs.unshift({ 
+                    activity: "Input Berita: " + res.value.nama, 
+                    user: "admin", 
+                    time: new Date().toLocaleString() 
+                });
+                Swal.fire("Berhasil", "Berita sudah diterbitkan.", "success");
             }
         });
     }
@@ -361,9 +387,9 @@
         document.getElementById('share-menu').classList.toggle('show');
     }
     
-    // Klik di luar untuk menutup dropdown/share
     window.onclick = function() {
-        document.getElementById('share-menu').classList.remove('show');
+        const shareMenu = document.getElementById('share-menu');
+        if (shareMenu) shareMenu.classList.remove('show');
     }
 </script>
 </body>
