@@ -405,6 +405,8 @@
             await window.prosesAbsenDigital(text);
             stopScanner();
         });
+        // Contoh perubahan simpan absen agar per-event
+const userAbsenRef = child(absenRef, `${idEvent}/${safePath}`);
     }
     window.stopScanner = function() {
         if(html5QrCode) html5QrCode.stop().then(() => {
