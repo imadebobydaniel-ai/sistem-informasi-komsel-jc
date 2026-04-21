@@ -17,7 +17,7 @@
         .header {
             background: var(--primary); color: white; padding: 12px 20px;
             display: flex; justify-content: space-between; align-items: center;
-            position: relative;
+            position: relative; z-index: 100;
         }
 
         .admin-dropdown { position: relative; }
@@ -45,9 +45,10 @@
         .img-area { width: 100px; min-width: 100px; background: #ddd; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #999; }
         .info-berita { padding: 15px; }
 
+        /* CRITICAL FIX: Z-INDEX diturunkan agar SweetAlert2 tampil di depan */
         .modal-news {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto;
+            background: rgba(0,0,0,0.8); z-index: 1050; overflow-y: auto;
         }
         .modal-news-content {
             background: white; width: 90%; max-width: 600px; margin: 30px auto;
@@ -70,11 +71,11 @@
         .btn-delete { background: var(--danger); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 13px; }
         
         .share-menu {
-            display: none; position: absolute; bottom: 40px; left: 0;
+            display: none; position: absolute; bottom: 45px; left: 0;
             background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            border-radius: 8px; z-index: 10; min-width: 150px;
+            border-radius: 8px; z-index: 10; min-width: 160px;
         }
-        .share-menu button { width: 100%; text-align: left; padding: 10px; border: none; background: none; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
+        .share-menu button { width: 100%; text-align: left; padding: 12px; border: none; background: none; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
         .share-menu button:hover { background: #f9f9f9; }
         .share-menu.show { display: block; }
 
@@ -83,6 +84,7 @@
         .list-menu-admin li {
             background: white; padding: 15px; margin-bottom: 10px; 
             border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
         #scanner-container { display: none; flex-direction: column; height: 100vh; background: #000; position: fixed; top: 0; left: 0; width: 100%; z-index: 3000; }
@@ -117,10 +119,10 @@
     <div id="modalBerita" class="modal-news">
         <div class="modal-news-content">
             <div id="news-gallery-container" class="news-gallery">
-                <img src="https://via.placeholder.com/300x200?text=Foto+1" alt="img1" id="img1">
-                <img src="https://via.placeholder.com/300x200?text=Foto+2" alt="img2" id="img2">
-                <img src="https://via.placeholder.com/300x200?text=Foto+3" alt="img3" id="img3">
-                <img src="https://via.placeholder.com/300x200?text=Foto+4" alt="img4" id="img4">
+                <img src="https://via.placeholder.com/300x200?text=Foto+1" alt="img1">
+                <img src="https://via.placeholder.com/300x200?text=Foto+2" alt="img2">
+                <img src="https://via.placeholder.com/300x200?text=Foto+3" alt="img3">
+                <img src="https://via.placeholder.com/300x200?text=Foto+4" alt="img4">
             </div>
             <div class="news-article">
                 <button class="btn-close-modal" onclick="tutupBerita()"><i class="fas fa-times"></i></button>
@@ -130,7 +132,7 @@
 
                 <div class="news-actions">
                     <div class="dropdown-share">
-                        <button class="btn-share" onclick="toggleShare()"><i class="fas fa-share-alt"></i> Bagikan</button>
+                        <button class="btn-share" onclick="toggleShare(event)"><i class="fas fa-share-alt"></i> Bagikan</button>
                         <div id="share-menu" class="share-menu">
                             <button onclick="shareWA()"><i class="fab fa-whatsapp"></i> WhatsApp</button>
                             <button onclick="sharePDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
@@ -143,9 +145,9 @@
     </div>
 
     <div id="portal-internal">
-        <div style="display: flex; justify-content: space-between;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3>Portal Admin</h3>
-            <button onclick="location.reload()" style="border:none; background:none; color:red; cursor:pointer;">Logout</button>
+            <button onclick="location.reload()" style="border:none; background:none; color:red; cursor:pointer; font-weight:bold;">Logout</button>
         </div>
         <ul class="list-menu-admin">
             <li><i class="fas fa-edit"></i> Input Berita</li>
@@ -161,7 +163,7 @@
             <button onclick="tutupScanner()" style="background:none; border:none; color:white; font-size: 20px;">&times;</button>
         </div>
         <div id="reader" style="flex: 1;"></div>
-        <button onclick="simpanLaporan()" style="padding: 15px; background: #e67e22; color: white; border: none; cursor: pointer;">SIMPAN PDF</button>
+        <button onclick="simpanLaporan()" style="padding: 15px; background: #e67e22; color: white; border: none; cursor: pointer; font-weight: bold;">SIMPAN LAPORAN PDF</button>
     </div>
 
     <script>
@@ -169,7 +171,11 @@
         let dataScan = [];
 
         function toggleDropdown() { document.getElementById('login-dropdown').classList.toggle('show'); }
-        function toggleShare() { document.getElementById('share-menu').classList.toggle('show'); }
+        
+        function toggleShare(e) { 
+            e.stopPropagation();
+            document.getElementById('share-menu').classList.toggle('show'); 
+        }
 
         window.onclick = function(event) {
             if (!event.target.matches('.btn-admin') && !event.target.closest('.dropdown-content')) {
@@ -210,20 +216,21 @@
             const isi = document.getElementById('popup-text').innerText;
             const tgl = document.getElementById('popup-date').innerText;
 
-            // Header Gambar (4 Susun Foto sesuai tampilan)
-            // Menambahkan gambar placeholder ke PDF
-            doc.addImage("https://via.placeholder.com/300x200?text=Foto+1", 'JPEG', 15, 15, 85, 55);
-            doc.addImage("https://via.placeholder.com/300x200?text=Foto+2", 'JPEG', 105, 15, 85, 55);
-            doc.addImage("https://via.placeholder.com/300x200?text=Foto+3", 'JPEG', 15, 75, 85, 55);
-            doc.addImage("https://via.placeholder.com/300x200?text=Foto+4", 'JPEG', 105, 75, 85, 55);
+            // Placeholder gambar (Simulasi 4 Susun Foto)
+            const imgW = 85; const imgH = 55;
+            doc.setFillColor(230, 230, 230);
+            doc.rect(15, 15, imgW, imgH, 'F'); doc.text("FOTO 1", 45, 45);
+            doc.rect(105, 15, imgW, imgH, 'F'); doc.text("FOTO 2", 135, 45);
+            doc.rect(15, 75, imgW, imgH, 'F'); doc.text("FOTO 3", 45, 105);
+            doc.rect(105, 75, imgW, imgH, 'F'); doc.text("FOTO 4", 135, 105);
 
-            // Redaksi di bawah (Mulai koordinat y = 145)
+            // Redaksi
             doc.setFontSize(10);
-            doc.setTextColor(100);
+            doc.setTextColor(120);
             doc.text(tgl, 15, 145);
 
             doc.setFontSize(16);
-            doc.setTextColor(0, 51, 102); // Primary color
+            doc.setTextColor(0, 51, 102);
             doc.setFont(undefined, 'bold');
             doc.text(judul, 15, 155);
 
@@ -233,10 +240,11 @@
             const splitContent = doc.splitTextToSize(isi, 180);
             doc.text(splitContent, 15, 165);
 
-            doc.save(`${judul}.pdf`);
+            doc.save(`Berita_${judul.replace(/\s+/g, '_')}.pdf`);
         }
 
         function hapusBerita() {
+            // SweetAlert2 sekarang akan tampil di atas modal karena z-index fix
             Swal.fire({
                 title: 'Verifikasi Administrator',
                 input: 'password',
@@ -244,21 +252,32 @@
                 showCancelButton: true,
                 confirmButtonText: 'Hapus Berita',
                 confirmButtonColor: '#c0392b',
+                cancelButtonText: 'Batal',
+                backdrop: true, // Pastikan backdrop aktif
             }).then((result) => {
-                if (result.value === 'admin123') {
-                    Swal.fire('Berhasil', 'Berita telah dihapus.', 'success').then(() => {
-                        tutupBerita();
-                    });
-                } else if (result.value) {
-                    Swal.fire('Gagal', 'Password salah!', 'error');
+                if (result.isConfirmed) {
+                    if (result.value === 'admin123') { // Ganti dengan password Anda
+                        Swal.fire('Berhasil', 'Berita telah dihapus.', 'success').then(() => {
+                            tutupBerita();
+                        });
+                    } else {
+                        Swal.fire('Gagal', 'Password salah!', 'error');
+                    }
                 }
             });
         }
 
         function prosesLogin() {
-            document.getElementById('halaman-depan').style.display = 'none';
-            document.querySelector('.admin-dropdown').style.display = 'none';
-            document.getElementById('portal-internal').style.display = 'block';
+            const u = document.getElementById('user').value;
+            const p = document.getElementById('pass').value;
+            
+            if(u === "admin" && p === "admin123") {
+                document.getElementById('halaman-depan').style.display = 'none';
+                document.querySelector('.admin-dropdown').style.display = 'none';
+                document.getElementById('portal-internal').style.display = 'block';
+            } else {
+                Swal.fire('Login Gagal', 'Username atau Password salah', 'error');
+            }
         }
 
         function bukaScanner() {
@@ -266,21 +285,37 @@
             html5QrCode = new Html5Qrcode("reader");
             html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
                 dataScan.push({ nama: text, waktu: new Date().toLocaleTimeString() });
-                Swal.fire({ title: 'Tercatat', timer: 600, showConfirmButton: false });
+                Swal.fire({ title: 'Tercatat: ' + text, timer: 1000, showConfirmButton: false, position: 'top' });
             });
         }
 
         function tutupScanner() {
-            if(html5QrCode) html5QrCode.stop().then(() => { document.getElementById('scanner-container').style.display = 'none'; });
+            if(html5QrCode) {
+                html5QrCode.stop().then(() => { 
+                    document.getElementById('scanner-container').style.display = 'none'; 
+                });
+            } else {
+                document.getElementById('scanner-container').style.display = 'none';
+            }
         }
 
         function simpanLaporan() {
+            if(dataScan.length === 0) return Swal.fire('Data Kosong', 'Belum ada jemaat yang di-scan', 'warning');
+            
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            doc.text("LAPORAN KEHADIRAN", 105, 20, { align: "center" });
+            doc.setFontSize(18);
+            doc.text("LAPORAN KEHADIRAN JEMAAT", 105, 20, { align: "center" });
+            
             const rows = dataScan.map((item, i) => [i+1, item.nama, item.waktu]);
-            doc.autoTable({ head: [['No', 'ID/Nama', 'Waktu']], body: rows, startY: 30 });
-            doc.save("Laporan_Absensi.pdf");
+            doc.autoTable({ 
+                head: [['No', 'ID/Nama Jemaat', 'Waktu Presensi']], 
+                body: rows, 
+                startY: 30,
+                theme: 'striped',
+                headStyles: { fillColor: [0, 51, 102] }
+            });
+            doc.save("Laporan_Absensi_SIPAPUA.pdf");
         }
     </script>
 </body>
