@@ -211,10 +211,12 @@
             
             const d = new Date(data.tgl);
             const dateStr = d.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
-            const thumb = (data.urls && data.urls.length > 0) ? data.urls[0] : 'https://via.placeholder.com/150';
+            
+            // Perbaikan: Pastikan mengambil URL foto pertama untuk thumbnail
+            const thumb = (data.urls && data.urls.length > 0) ? data.urls[0] : 'https://via.placeholder.com/150?text=No+Image';
 
             card.innerHTML = `
-                <div class="img-area"><img src="${thumb}" alt="foto"></div>
+                <div class="img-area"><img src="${thumb}" alt="foto" onerror="this.src='https://via.placeholder.com/150?text=Error+Load'"></div>
                 <div class="info-berita">
                     <h4 style="margin: 0; color: #003366;">${data.nama}</h4>
                     <p style="font-size: 13px; color: #666; margin-top: 5px;">${dateStr}</p>
@@ -226,25 +228,49 @@
         });
     }
 
-    // --- 3. INPUT BERITA BARU ---
+    // --- 3. INPUT BERITA BARU (REDESAIN PORTAL) ---
     function inputBeritaBaru() {
         Swal.fire({
-            title: 'Input Berita Baru',
+            title: '<span style="color: #003366;"><i class="fas fa-edit"></i> Publish Berita Baru</span>',
             html: `
-                <input type="text" id="nb-nama" class="swal2-input" placeholder="Nama Kegiatan">
-                <input type="text" id="nb-subtema" class="swal2-input" placeholder="Sub Tema">
-                <input type="text" id="nb-lokasi" class="swal2-input" placeholder="Lokasi">
-                <input type="date" id="nb-tgl" class="swal2-input">
-                <textarea id="nb-isi" class="swal2-textarea" placeholder="Deskripsi..."></textarea>
-                <input type="file" id="nb-foto" class="swal2-file" accept="image/*" multiple>
+                <div style="text-align: left; font-family: 'Segoe UI', sans-serif;">
+                    <label style="font-size: 13px; font-weight: bold; color: #555;">Judul Kegiatan</label>
+                    <input type="text" id="nb-nama" class="swal2-input" placeholder="Contoh: Ibadah Minggu Raya" style="margin-top: 5px; width: 90%;">
+                    
+                    <div style="margin-top: 15px;">
+                        <label style="font-size: 13px; font-weight: bold; color: #555;">Sub Tema Kegiatan</label>
+                        <input type="text" id="nb-subtema" class="swal2-input" placeholder="Tema Ibadah" style="margin-top: 5px; width: 90%;">
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 15px; width: 95%;">
+                        <div style="flex: 1;">
+                            <label style="font-size: 13px; font-weight: bold; color: #555;">Lokasi Kegiatan</label>
+                            <input type="text" id="nb-lokasi" class="swal2-input" placeholder="Nama Gereja/Wilayah" style="margin-top: 5px; width: 100%; margin-left:0; margin-right:0;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-size: 13px; font-weight: bold; color: #555;">Tanggal Kegiatan</label>
+                            <input type="date" id="nb-tgl" class="swal2-input" style="margin-top: 5px; width: 100%; margin-left:0; margin-right:0;">
+                        </div>
+                    </div>
+
+                    <label style="display: block; margin-top: 15px; font-size: 13px; font-weight: bold; color: #555;">Isi Berita / Keterangan</label>
+                    <textarea id="nb-isi" class="swal2-textarea" placeholder="Tuliskan detail pelaksanaan kegiatan..." style="margin-top: 5px; height: 120px; width: 90%;"></textarea>
+                    
+                    <label style="display: block; margin-top: 15px; font-size: 13px; font-weight: bold; color: #555;">Upload Foto (Maks. 4 Foto)</label>
+                    <input type="file" id="nb-foto" class="swal2-file" accept="image/*" multiple style="margin-top: 5px; width: 90%;">
+                    <small style="color: #888; font-size: 11px; display: block; margin-top: 5px;">*Gunakan koneksi stabil untuk proses upload ke Cloudinary.</small>
+                </div>
             `,
-            confirmButtonText: 'Publish',
+            confirmButtonText: '<i class="fas fa-paper-plane"></i> Publish Sekarang',
+            confirmButtonColor: '#003366',
             showCancelButton: true,
+            cancelButtonText: 'Batal',
+            width: '95%',
             preConfirm: async () => {
                 const nama = document.getElementById('nb-nama').value;
                 const tgl = document.getElementById('nb-tgl').value;
                 const isi = document.getElementById('nb-isi').value;
-                if (!nama || !tgl || !isi) return Swal.showValidationMessage("Wajib diisi!");
+                if (!nama || !tgl || !isi) return Swal.showValidationMessage("Judul, Tanggal, dan Isi wajib diisi!");
 
                 Swal.showLoading();
                 const files = document.getElementById('nb-foto').files;
@@ -265,7 +291,12 @@
                 localStorage.setItem('beritaJemaat', JSON.stringify(savedNews));
                 // Update tampilan seketika
                 refreshTampilanBerita();
-                Swal.fire("Berhasil", "Berita sudah muncul di halaman depan.", "success");
+                Swal.fire({
+                    title: "Berhasil",
+                    text: "Berita sudah muncul di halaman depan.",
+                    icon: "success",
+                    confirmButtonColor: "#003366"
+                });
             }
         });
     }
@@ -292,6 +323,9 @@
         document.getElementById('popup-title').innerText = judul;
         document.getElementById('popup-date').innerText = "Diterbitkan: " + tgl;
         document.getElementById('popup-text').innerText = isi;
+        document.getElementById('popup-subtheme').innerText = subtema || '';
+        document.getElementById('popup-location').querySelector('span').innerText = lokasi || '';
+        
         const gallery = document.getElementById('news-gallery-container');
         gallery.innerHTML = '';
         if (urls && urls.length > 0) {
