@@ -236,27 +236,33 @@
         const modal = document.getElementById('modalBerita');
         if (!modal) return;
 
+        // Isi Konten Teks
         document.getElementById('popup-title').innerText = judul;
         document.getElementById('popup-date').innerText = "Diterbitkan pada: " + tgl;
         document.getElementById('popup-text').innerText = isi;
         
-        // Memastikan Subtema ditampilkan kembali
         const subElem = document.getElementById('popup-subtheme');
         if(subElem) subElem.innerText = subtema || '';
         
         const locElem = document.getElementById('popup-location');
         if(locElem) locElem.querySelector('span').innerText = lokasi || '';
 
+        // Penanganan Gallery Foto
         const gallery = document.getElementById('news-gallery-container');
-        gallery.innerHTML = '';
+        gallery.innerHTML = ''; 
 
         if (urls && urls.length > 0) {
+            gallery.style.display = 'grid'; 
             urls.forEach(url => {
                 const img = document.createElement('img');
                 img.src = url;
                 img.style.borderRadius = "8px";
+                img.onerror = () => img.style.display = 'none'; 
                 gallery.appendChild(img);
             });
+        } else {
+            // Sembunyikan gallery jika tidak ada foto agar tidak ada whitespace
+            gallery.style.display = 'none';
         }
 
         modal.style.display = 'block';
