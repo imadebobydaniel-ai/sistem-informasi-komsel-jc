@@ -174,170 +174,59 @@
     </div>
 
 <script>
-    // --- KONFIGURASI ---
+    // --- 1. KONFIGURASI & STATE ---
     const CLOUDINARY_CLOUD_NAME = "dxzllsbgj";
     const CLOUDINARY_UPLOAD_PRESET = "sipapua_preset";
     const ADMIN_PASSWORD = "admin123"; 
 
-    let html5QrCode;
-    let dataScan = [];
-    let newsLogs = [{ activity: "Publikasi Berita: IBADAH ARSO 1", user: "admin", time: "20 Apr 2026, 09:00" }];
+    // Ambil data dari LocalStorage sejak awal
+    let savedNews = JSON.parse(localStorage.getItem('beritaJemaat')) || [];
 
-    // --- FUNGSI LOGIN & UI ---
-    function toggleDropdown() {
-        document.getElementById('login-dropdown').classList.toggle('show');
-    }
+    // Tampilkan berita saat halaman dibuka
+    window.addEventListener('DOMContentLoaded', () => {
+        refreshTampilanBerita();
+    });
 
-    function prosesLogin() {
-        const user = document.getElementById('user').value;
-        const pass = document.getElementById('pass').value;
-
-        if (user === "admin" && pass === ADMIN_PASSWORD) {
-            document.getElementById('halaman-depan').style.display = 'none';
-            document.getElementById('portal-internal').style.display = 'block';
-            toggleDropdown();
-            Swal.fire("Login Berhasil", "Selamat datang Admin", "success");
-        } else {
-            Swal.fire("Gagal", "Username atau Password salah!", "error");
-        }
-    }
-
-    // --- MANAJEMEN BERITA (RENDER & DETAIL) ---
-    // SUDAH DIPERBAIKI: Menggunakan closure untuk mengunci data pada setiap card
-    function renderBeritaBaru(data) {
+    // --- 2. LOGIKA TAMPILAN (REFRESH) ---
+    function refreshTampilanBerita() {
         const list = document.getElementById('list-berita-jemaat');
         if (!list) return;
 
-        const card = document.createElement('div');
-        card.className = 'card-berita';
-        
-        const d = new Date(data.tgl);
-        const dateStr = d.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
-        
-        const thumb = (data.urls && data.urls.length > 0) 
-            ? `<img src="${data.urls[0]}" style="width:100%; height:100%; object-fit:cover;">` 
-            : `<div style="width:100%; height:100%; background:#f0f0f0; display:flex; align-items:center; justify-content:center;"><i class="fas fa-image" style="color:#ccc;"></i></div>`;
-        
-        card.innerHTML = `
-            <div class="img-area">${thumb}</div>
-            <div class="info-berita">
-                <h4 style="margin: 0; color: #003366;">${data.nama}</h4>
-                <p style="font-size: 13px; color: #666; margin-top: 5px;">${dateStr}</p>
-            </div>
-        `;
+        // Kosongkan dulu listnya supaya tidak double atau tertukar
+        list.innerHTML = '';
 
-        // LOCK DATA: Memastikan parameter yang dikirim ke bukaBerita adalah data unik milik card ini
-        card.onclick = () => {
-            bukaBerita(data.nama, dateStr, data.isi, data.lokasi, data.subtema, data.urls);
-        };
-
-        list.prepend(card);
-    }
-
-    function bukaBerita(judul, tgl, isi, lokasi, subtema, urls) {
-        const modal = document.getElementById('modalBerita');
-        if (!modal) return;
-
-        document.getElementById('popup-title').innerText = judul;
-        document.getElementById('popup-date').innerText = "Diterbitkan pada: " + tgl;
-        document.getElementById('popup-text').innerText = isi;
-        
-        const subElem = document.getElementById('popup-subtheme');
-        if(subElem) subElem.innerText = subtema || '';
-        
-        const locElem = document.getElementById('popup-location');
-        if(locElem) locElem.querySelector('span').innerText = lokasi || '';
-
-        const gallery = document.getElementById('news-gallery-container');
-        gallery.innerHTML = ''; 
-
-        if (urls && urls.length > 0) {
-            gallery.style.display = 'grid'; 
-            urls.forEach(url => {
-                const img = document.createElement('img');
-                img.src = url;
-                img.style.borderRadius = "8px";
-                img.onerror = () => img.style.display = 'none'; 
-                gallery.appendChild(img);
-            });
-        } else {
-            gallery.style.display = 'none';
+        // Berita Default (Hanya muncul jika tidak ada berita lain)
+        if (savedNews.length === 0) {
+            list.innerHTML = `
+                <div class="card-berita" onclick="Swal.fire('Info', 'Belum ada berita jemaat terbaru.', 'info')">
+                    <div class="img-area"><i class="fas fa-church"></i></div>
+                    <div class="info-berita"><h4>IBADAH ARSO 1</h4><p>Data Contoh</p></div>
+                </div>`;
         }
 
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden';
-    }
+        // Tampilkan semua berita yang ada di memori (Urutan Terbaru di Atas)
+        savedNews.forEach((data, index) => {
+            const card = document.createElement('div');
+            card.className = 'card-berita';
+            
+            const d = new Date(data.tgl);
+            const dateStr = d.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
+            const thumb = (data.urls && data.urls.length > 0) ? data.urls[0] : 'https://via.placeholder.com/150';
 
-    function tutupBerita() { 
-        document.getElementById('modalBerita').style.display = 'none'; 
-        document.body.style.overflow = 'auto'; 
-    }
+            card.innerHTML = `
+                <div class="img-area"><img src="${thumb}" alt="foto"></div>
+                <div class="info-berita">
+                    <h4 style="margin: 0; color: #003366;">${data.nama}</h4>
+                    <p style="font-size: 13px; color: #666; margin-top: 5px;">${dateStr}</p>
+                </div>`;
 
-    // --- FUNGSI HAPUS BERITA ---
-    function hapusBerita() {
-        const judulYangAkanDihapus = document.getElementById('popup-title').innerText;
-
-        Swal.fire({
-            title: 'Hapus Berita?',
-            text: `Apakah Anda yakin ingin menghapus berita "${judulYangAkanDihapus}"?`,
-            icon: 'warning',
-            input: 'password',
-            inputPlaceholder: 'Masukkan Password Admin',
-            showCancelButton: true,
-            confirmButtonColor: '#c0392b',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                if (result.value === ADMIN_PASSWORD) {
-                    const daftarKartu = document.querySelectorAll('.card-berita');
-                    let ditemukan = false;
-
-                    daftarKartu.forEach(kartu => {
-                        const judulDiKartu = kartu.querySelector('h4').innerText;
-                        if (judulDiKartu === judulYangAkanDihapus) {
-                            kartu.remove();
-                            ditemukan = true;
-                        }
-                    });
-
-                    if (ditemukan) {
-                        Swal.fire('Terhapus!', 'Berita telah dihapus dari daftar.', 'success');
-                        tutupBerita();
-                    } else {
-                        Swal.fire('Gagal', 'Elemen berita tidak ditemukan di halaman.', 'error');
-                    }
-                } else {
-                    Swal.fire('Gagal', 'Password salah!', 'error');
-                }
-            }
+            // Kunci data ke fungsi klik
+            card.onclick = () => bukaBerita(data.nama, dateStr, data.isi, data.lokasi, data.subtema, data.urls);
+            list.appendChild(card); 
         });
     }
 
-    // --- UPLOAD KE CLOUDINARY ---
-    async function uploadKeCloudinary(files) {
-        const uploadedUrls = [];
-        for (let i = 0; i < Math.min(files.length, 4); i++) {
-            const formData = new FormData();
-            formData.append('file', files[i]);
-            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-            
-            try {
-                const resp = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-                    method: 'POST',
-                    body: formData
-                });
-                const result = await resp.json();
-                if (result.secure_url) uploadedUrls.push(result.secure_url);
-            } catch (err) {
-                console.error("Cloudinary Error:", err);
-            }
-        }
-        return uploadedUrls;
-    }
-
-    // --- INPUT BERITA (ADMIN) ---
-    // SUDAH DIPERBAIKI: Mengambil dan memvalidasi data SEBELUM proses render
+    // --- 3. INPUT BERITA BARU ---
     function inputBeritaBaru() {
         Swal.fire({
             title: 'Input Berita Baru',
@@ -346,61 +235,89 @@
                 <input type="text" id="nb-subtema" class="swal2-input" placeholder="Sub Tema">
                 <input type="text" id="nb-lokasi" class="swal2-input" placeholder="Lokasi">
                 <input type="date" id="nb-tgl" class="swal2-input">
-                <textarea id="nb-isi" class="swal2-textarea" placeholder="Deskripsi Lengkap..."></textarea>
+                <textarea id="nb-isi" class="swal2-textarea" placeholder="Deskripsi..."></textarea>
                 <input type="file" id="nb-foto" class="swal2-file" accept="image/*" multiple>
             `,
             confirmButtonText: 'Publish',
             showCancelButton: true,
-            focusConfirm: false,
             preConfirm: async () => {
                 const nama = document.getElementById('nb-nama').value;
-                const subtema = document.getElementById('nb-subtema').value;
-                const lokasi = document.getElementById('nb-lokasi').value;
                 const tgl = document.getElementById('nb-tgl').value;
                 const isi = document.getElementById('nb-isi').value;
-                const files = document.getElementById('nb-foto').files;
-
-                if (!nama || !tgl || !isi) {
-                    return Swal.showValidationMessage("Data wajib diisi (Nama, Tgl, Deskripsi)!");
-                }
+                if (!nama || !tgl || !isi) return Swal.showValidationMessage("Wajib diisi!");
 
                 Swal.showLoading();
-                let urls = [];
-                if (files.length > 0) {
-                    urls = await uploadKeCloudinary(files);
-                }
-
-                return { nama, subtema, lokasi, tgl, isi, urls };
+                const files = document.getElementById('nb-foto').files;
+                const urls = await uploadKeCloudinary(files);
+                
+                return { 
+                    nama, 
+                    subtema: document.getElementById('nb-subtema').value,
+                    lokasi: document.getElementById('nb-lokasi').value, 
+                    tgl, isi, urls 
+                };
             }
         }).then(res => {
-            if (res.isConfirmed && res.value) {
-                renderBeritaBaru(res.value);
-                newsLogs.unshift({ 
-                    activity: "Input Berita: " + res.value.nama, 
-                    user: "admin", 
-                    time: new Date().toLocaleString() 
-                });
-                Swal.fire("Berhasil", "Berita sudah diterbitkan.", "success");
+            if (res.isConfirmed) {
+                // Simpan ke array state
+                savedNews.unshift(res.value);
+                // Simpan ke memori permanen browser
+                localStorage.setItem('beritaJemaat', JSON.stringify(savedNews));
+                // Update tampilan seketika
+                refreshTampilanBerita();
+                Swal.fire("Berhasil", "Berita sudah muncul di halaman depan.", "success");
             }
         });
     }
 
-    // --- FITUR LAINNYA ---
-    function logInputBerita() {
-        let content = newsLogs.map(log => `<div style="text-align:left; border-bottom:1px solid #eee; padding:5px;">
-            <b>${log.activity}</b><br><small>${log.time} oleh ${log.user}</small></div>`).join('');
-        Swal.fire({ title: 'Log Aktivitas', html: content });
+    // --- 4. UPLOAD KE CLOUDINARY ---
+    async function uploadKeCloudinary(files) {
+        const urls = [];
+        for (let i = 0; i < Math.min(files.length, 4); i++) {
+            const formData = new FormData();
+            formData.append('file', files[i]);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+            try {
+                const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {method:'POST', body:formData});
+                const res = await r.json();
+                if(res.secure_url) urls.push(res.secure_url);
+            } catch(e) { console.error("Upload gagal", e); }
+        }
+        return urls;
     }
 
-    function toggleShare(e) {
-        e.stopPropagation();
-        document.getElementById('share-menu').classList.toggle('show');
+    // --- 5. FUNGSI UI LAINNYA ---
+    function bukaBerita(judul, tgl, isi, lokasi, subtema, urls) {
+        const modal = document.getElementById('modalBerita');
+        document.getElementById('popup-title').innerText = judul;
+        document.getElementById('popup-date').innerText = "Diterbitkan: " + tgl;
+        document.getElementById('popup-text').innerText = isi;
+        const gallery = document.getElementById('news-gallery-container');
+        gallery.innerHTML = '';
+        if (urls && urls.length > 0) {
+            gallery.style.display = 'grid';
+            urls.forEach(u => {
+                const img = document.createElement('img');
+                img.src = u;
+                gallery.appendChild(img);
+            });
+        } else { gallery.style.display = 'none'; }
+        modal.style.display = 'block';
     }
-    
-    window.onclick = function() {
-        const shareMenu = document.getElementById('share-menu');
-        if (shareMenu) shareMenu.classList.remove('show');
+
+    function tutupBerita() { document.getElementById('modalBerita').style.display = 'none'; document.body.style.overflow = 'auto'; }
+
+    function prosesLogin() {
+        const u = document.getElementById('user').value;
+        const p = document.getElementById('pass').value;
+        if (u === "admin" && p === ADMIN_PASSWORD) {
+            document.getElementById('halaman-depan').style.display = 'none';
+            document.getElementById('portal-internal').style.display = 'block';
+            toggleDropdown();
+        } else { Swal.fire("Gagal", "Akses ditolak", "error"); }
     }
+
+    function toggleDropdown() { document.getElementById('login-dropdown').classList.toggle('show'); }
 </script>
 </body>
 </html>
