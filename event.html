@@ -52,8 +52,8 @@
     }
     
     .news-card {
-        background: white; border-radius: 12px; overflow: hidden;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.3s ease;
+        background: white; border-radius: 12px; overflow: visible !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.2s;
         cursor: pointer; display: flex; flex-direction: column;
         width: 100%; margin: 0; position: relative;
     }
@@ -213,7 +213,7 @@
         });
     };
 
-    // 3. --- RENDER LIST BERITA (DENGAN TOMBOL HAPUS DI KARTU) ---
+    // 3. --- RENDER LIST BERITA (VERSI FIX TOMBOL) ---
     onValue(eventRef, (snapshot) => {
         const data = snapshot.val(); 
         const newsList = document.getElementById('newsList');
@@ -227,22 +227,22 @@
             const activeAdmin = localStorage.getItem('sipapua_admin');
             let btnHapusHtml = '';
             
-            // Tombol muncul otomatis jika SuperAdmin atau pemilik berita
+            // CEK LOGIN: Tombol hanya dibuat jika ada session admin
             if (activeAdmin === "SuperAdmin" || (activeAdmin && activeAdmin === item.createdBy)) {
                 btnHapusHtml = `
-                <button class="btn-card-delete" onclick="hapusBerita('${item.id}', '${item.createdBy}')" 
-                    style="position:absolute; top:10px; right:10px; background:rgba(231, 76, 60, 0.9); color:white; border:none; width:35px; height:35px; border-radius:50%; cursor:pointer; z-index:10;">
-                    <i class="fas fa-trash"></i>
-                </button>`;
+                <div onclick="hapusBerita('${item.id}', '${item.createdBy}')" 
+                     style="position: absolute; bottom: 10px; right: 10px; background: #e74c3c; color: white; width: 35px; height: 35px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 999; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                    <i class="fas fa-trash-alt" style="font-size: 14px;"></i>
+                </div>`;
             }
 
             newsList.innerHTML += `
-            <div class="news-card" onclick="detailEvent('${item.id}')" style="position:relative;">
+            <div class="news-card" onclick="detailEvent('${item.id}')" style="position: relative; overflow: visible !important;">
                 <img src="${(item.fotos && item.fotos[0]) || NO_IMG}" class="news-img">
                 <div class="news-body">
-                    <div class="news-category">OLEH: ${item.createdBy || 'ADMIN'}</div>
-                    <div class="news-title">${item.nama}</div>
-                    <div class="news-meta">
+                    <div class="news-category" style="color: #2ecc71; font-weight: bold;">OLEH: ${item.createdBy || 'ADMIN'}</div>
+                    <div class="news-title" style="margin: 5px 0; font-size: 16px;">${item.nama}</div>
+                    <div class="news-meta" style="font-size: 12px; color: #7f8c8d;">
                         <span><i class="fas fa-calendar-alt"></i> ${formatTglIndo(item.tgl)}</span>
                     </div>
                 </div>
