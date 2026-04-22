@@ -55,8 +55,7 @@
         background: white; border-radius: 12px; overflow: hidden;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.3s ease;
         cursor: pointer; display: flex; flex-direction: column;
-        width: 100%; 
-        margin: 0;
+        width: 100%; margin: 0;
     }
 
     .news-card:hover { transform: translateY(-5px); }
@@ -71,7 +70,6 @@
     
     #adminSection { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 2px solid var(--primary); display: none; }
     #superAdminSection { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-top: 15px; border: 1px dashed var(--primary); display: none; }
-    
     .btn-action { width: 100%; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; color: white; font-size: 14px; }
     
     .absensi-box, .log-activity-box { background: white; border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-top: 15px; }
@@ -79,7 +77,6 @@
     .total-counter { background: var(--primary); color: white; padding: 2px 10px; border-radius: 20px; font-size: 14px; }
     
     #reader { width: 100%; border-radius: 10px; overflow: hidden; margin: 10px 0; display: none; border: 2px dashed var(--accent); }
-
     .btn-header-back { border:none; background:#555; color:white; height: 38px; padding:0 15px; border-radius:19px; font-weight:bold; cursor:pointer; font-size: 12px; display: flex; align-items: center; }
 </style>
 </head>
@@ -87,14 +84,14 @@
 
 <div class="header">
     <div class="nav-left">
-        <button id="btnPortalBack" class="btn-header-back" onclick="window.history.back()">
+        <button class="btn-header-back" onclick="window.history.back()">
             <i class="fas fa-chevron-left"></i> &nbsp;KEMBALI
        </button>
         <button id="btnBack" onclick="location.reload()" style="display:none; border:none; background:#d33; color:white; height: 38px; padding:0 20px; border-radius:19px; font-weight:bold; cursor:pointer;">LOGOUT</button>
     </div>
     <h1 style="font-size: 1.1rem; margin: 0; letter-spacing: 1px;">EVENT JEMAAT</h1>
     <div class="nav-admin">
-        <button id="btnToggle" class="btn-toggle-login" onclick="toggleLoginSlider()"><i class="fas fa-user-shield"></i></button>
+        <button class="btn-toggle-login" onclick="toggleLoginSlider()"><i class="fas fa-user-shield"></i></button>
         <div id="loginBox" class="login-dropdown">
             <span class="login-label">LOGIN ADMIN</span>
             <input type="text" id="userAdmin" placeholder="Username">
@@ -133,14 +130,14 @@
               <span style="font-weight:bold; font-size:13px;"><i class="fas fa-qrcode"></i> ABSENSI</span>
               <span class="total-counter" style="cursor:pointer" onclick="showAbsenList()">Total: <span id="totalAbsen">0</span></span>
           </div>
-            <button class="btn-action" style="background: var(--primary);" id="btnStartScan" onclick="startScanner()">SCAN QR</button>
+            <button class="btn-action" style="background: var(--primary);" onclick="startScanner()">SCAN QR</button>
             <button class="btn-action" style="background: #d33; display:none;" id="btnStopScan" onclick="stopScanner()">TUTUP KAMERA</button>
             <div id="reader"></div>
         </div>
 
         <div class="log-activity-box">
             <span style="font-weight:bold; font-size:13px;"><i class="fas fa-history"></i> LOG ACTIVITY (CLOUD)</span>
-            <div id="logContent" style="margin-top:10px; font-size: 11px;"></div>
+            <div id="logContent" style="margin-top:10px; font-size:11px;"></div>
         </div>
     </div>
     
@@ -161,17 +158,13 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    
+    const eventRef = ref(db, 'events');
+    const NO_IMG = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png";
+
     window.currentAdmin = null; 
     window.cloudinaryImages = [];
     window.currentEvents = [];
     let listAbsensi = []; 
-
-    const eventRef = ref(db, 'events');
-    const NO_IMG = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png";
-
-    const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dxt7m8psv/image/upload';
-    const CLOUDINARY_UPLOAD_PRESET = 'vj96p7dt';
 
     function formatTglIndo(dateString) {
         if (!dateString) return "-";
@@ -187,22 +180,19 @@
     window.togglePassword = () => {
         const p = document.getElementById('passAdmin');
         const icon = document.getElementById('eyeIcon');
-        if (p.type === "password") { p.type = "text"; icon.className = "fas fa-eye-slash toggle-pass"; }
-        else { p.type = "password"; icon.className = "fas fa-eye toggle-pass"; }
+        p.type = (p.type === "password") ? "text" : "password";
+        icon.className = (p.type === "password") ? "fas fa-eye toggle-pass" : "fas fa-eye-slash toggle-pass";
     };
 
     window.loginEvent = async function() {
         const u = document.getElementById('userAdmin').value;
         const p = document.getElementById('passAdmin').value;
         let loggedInUser = "";
-
-        if(u === "admin" && p === "admin123") {
-            loggedInUser = "SuperAdmin";
-        } else {
-            const snapshot = await get(child(ref(db), `admin_users/${u}`));
-            if (snapshot.exists() && snapshot.val().password === p) loggedInUser = u;
+        if(u === "admin" && p === "admin123") { loggedInUser = "SuperAdmin"; }
+        else {
+            const snap = await get(child(ref(db), `admin_users/${u}`));
+            if (snap.exists() && snap.val().password === p) loggedInUser = u;
         }
-
         if (loggedInUser) {
             window.currentAdmin = loggedInUser;
             document.getElementById('adminSection').style.display = 'block';
@@ -211,40 +201,32 @@
             document.getElementById('loginBox').style.display = 'none';
             document.getElementById('btnBack').style.display = 'inline-block';
             Swal.fire('Berhasil', `Selamat datang, ${loggedInUser}`, 'success');
-        } else { 
-            Swal.fire('Gagal', 'Username atau Password salah', 'error'); 
-        }
+        } else { Swal.fire('Gagal', 'Username/Password salah', 'error'); }
     };
 
     window.createNewAdmin = async function() {
         const nu = document.getElementById('newAdminUser').value;
         const np = document.getElementById('newAdminPass').value;
-        if(!nu || !np) return Swal.fire('Error', 'Username & Password wajib diisi', 'error');
-        try {
-            await set(ref(db, `admin_users/${nu}`), { password: np });
-            Swal.fire('Berhasil', `Admin ${nu} terdaftar!`, 'success');
-            document.getElementById('newAdminUser').value = "";
-            document.getElementById('newAdminPass').value = "";
-        } catch(e) { Swal.fire('Gagal', 'Terjadi kesalahan sistem', 'error'); }
-    }
+        if(!nu || !np) return Swal.fire('Error', 'Lengkapi data', 'error');
+        await set(ref(db, `admin_users/${nu}`), { password: np });
+        Swal.fire('Berhasil', `Admin ${nu} terdaftar!`, 'success');
+        document.getElementById('newAdminUser').value = ""; document.getElementById('newAdminPass').value = "";
+    };
 
     window.handleFileUpload = async (event) => {
-        const files = event.target.files;
-        window.cloudinaryImages = [];
-        Swal.fire({ title: 'Mengunggah...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-
+        const files = event.target.files; window.cloudinaryImages = [];
+        Swal.fire({ title: 'Mengunggah...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
         for (let file of files) {
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+            formData.append('upload_preset', 'vj96p7dt');
             try {
-                const resp = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
-                const data = await resp.json();
-                window.cloudinaryImages.push(data.secure_url);
+                const resp = await fetch('https://api.cloudinary.com/v1_1/dxt7m8psv/image/upload', { method: 'POST', body: formData });
+                const data = await resp.json(); window.cloudinaryImages.push(data.secure_url);
             } catch (err) { console.error(err); }
         }
         Swal.close();
-        document.getElementById('uploadStatus').innerText = window.cloudinaryImages.length + " Foto siap disinkronkan.";
+        document.getElementById('uploadStatus').innerText = window.cloudinaryImages.length + " Foto siap.";
     };
 
     window.simpanBerita = async function() {
@@ -252,41 +234,24 @@
         const lokasi = document.getElementById('lokasiEvent').value;
         const tgl = document.getElementById('tglEvent').value;
         const isi = document.getElementById('isiEvent').value;
-
         if (!nama || !lokasi || !tgl) return Swal.fire('Error', 'Data wajib diisi!', 'error');
-
-        const newEvent = {
-            nama, lokasi, tgl, isi,
-            fotos: window.cloudinaryImages,
-            createdBy: window.currentAdmin || 'System',
-            createdAt: new Date().toISOString(),
-            absensi: listAbsensi
-        };
-
-        try {
-            await push(eventRef, newEvent);
-            await push(ref(db, 'log_activity'), {
-                user: window.currentAdmin,
-                action: `Menerbitkan Berita: ${nama}`,
-                timestamp: new Date().toLocaleString('id-ID')
-            });
-            Swal.fire('Berhasil', 'Tersinkron ke Cloud!', 'success').then(() => location.reload());
-        } catch (error) { Swal.fire('Gagal', 'Error Firebase', 'error'); }
+        const newEvent = { nama, lokasi, tgl, isi, fotos: window.cloudinaryImages, createdBy: window.currentAdmin, createdAt: new Date().toISOString() };
+        await push(eventRef, newEvent);
+        await push(ref(db, 'log_activity'), { user: window.currentAdmin, action: `Menerbitkan Berita: ${nama}`, timestamp: new Date().toLocaleString('id-ID') });
+        Swal.fire('Berhasil', 'Tersinkron!', 'success').then(() => location.reload());
     };
 
     let html5QrCode;
     window.startScanner = function() {
-        const reader = document.getElementById('reader');
-        reader.style.display = 'block';
+        document.getElementById('reader').style.display = 'block';
         document.getElementById('btnStopScan').style.display = 'block';
         html5QrCode = new Html5Qrcode("reader");
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
             if (!listAbsensi.includes(text)) {
-                listAbsensi.push(text);
-                document.getElementById('totalAbsen').innerText = listAbsensi.length;
-                Swal.fire('Absen Berhasil', text, 'success');
+                listAbsensi.push(text); document.getElementById('totalAbsen').innerText = listAbsensi.length;
+                Swal.fire('Berhasil', text, 'success');
             }
-        }).catch(err => console.error(err));
+        });
     };
 
     window.stopScanner = () => {
@@ -301,109 +266,65 @@
         Swal.fire({ title: 'Daftar Absen', html: list });
     };
 
-    // FUNGSI DETAIL EVENT & DOWNLOAD PDF (RESTORASI TOMBOL)
     window.detailEvent = (id) => {
         const item = window.currentEvents.find(x => x.id === id);
-        if (!item) return;
-
-        const fotoUrl = (item.fotos && item.fotos.length > 0 && item.fotos[0] !== "") ? item.fotos[0] : NO_IMG;
-        const imgTag = `<img src="${fotoUrl}" class="modal-news-img" style="width:100%; border-radius:12px; margin-bottom:15px; object-fit:cover; max-height:250px;" onerror="this.src='${NO_IMG}'">`;
-        
+        const fotoUrl = (item.fotos && item.fotos.length > 0) ? item.fotos[0] : NO_IMG;
         Swal.fire({
             title: item.nama,
             html: `
-                ${imgTag}
+                <img src="${fotoUrl}" class="modal-news-img" style="width:100%; border-radius:12px; margin-bottom:15px; object-fit:cover; max-height:250px;" onerror="this.src='${NO_IMG}'">
                 <div style="text-align:left; font-size:14px">
                     <p><b><i class="fas fa-map-marker-alt"></i> Lokasi:</b> ${item.lokasi}</p>
                     <p><b><i class="fas fa-calendar-day"></i> Tanggal:</b> ${formatTglIndo(item.tgl)}</p>
-                    <hr>
-                    <div class="news-content-text">${item.isi || 'Tidak ada detail kegiatan.'}</div>
-                    <p style="color:#888; font-size:11px; margin-top:15px">Diterbitkan oleh: ${item.createdBy || 'System'}</p>
+                    <hr><div class="news-content-text">${item.isi || ''}</div>
                 </div>
                 <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:20px">
-                    <button onclick="shareWA('${id}')" style="flex:1; padding:12px; background:#25d366; color:white; border:none; border-radius:8px; cursor:pointer"><i class="fab fa-whatsapp"></i> WA</button>
-                    <button onclick="downloadPDF('${id}')" style="flex:1; padding:12px; background:#e74c3c; color:white; border:none; border-radius:8px; cursor:pointer"><i class="fas fa-file-pdf"></i> PDF</button>
-                    <button onclick="hapusBerita('${id}')" style="flex:1; padding:12px; background:#333; color:white; border:none; border-radius:8px; cursor:pointer"><i class="fas fa-trash"></i> Hapus</button>
+                    <button onclick="shareWA('${id}')" style="flex:1; padding:12px; background:#25d366; color:white; border:none; border-radius:8px;"><i class="fab fa-whatsapp"></i></button>
+                    <button onclick="downloadPDF('${id}')" style="flex:1; padding:12px; background:#e74c3c; color:white; border:none; border-radius:8px;"><i class="fas fa-file-pdf"></i></button>
+                    <button onclick="hapusBerita('${id}')" style="flex:1; padding:12px; background:#333; color:white; border:none; border-radius:8px;"><i class="fas fa-trash"></i></button>
                 </div>`,
             showConfirmButton: false, showCloseButton: true, width: '90%'
         });
     };
 
-    // FUNGSI DOWNLOAD PDF DENGAN FOTO
     window.downloadPDF = async (id) => {
-        const { jsPDF } = window.jspdf;
-        const item = window.currentEvents.find(x => x.id === id);
+        const { jsPDF } = window.jspdf; const item = window.currentEvents.find(x => x.id === id);
         const doc = new jsPDF();
-        
-        Swal.fire({ title: 'Menyiapkan PDF...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
-        doc.setFontSize(18); doc.text("LAPORAN KEGIATAN", 105, 20, { align: 'center' });
-        doc.setFontSize(14); doc.text(item.nama, 105, 30, { align: 'center' });
-        doc.setLineWidth(0.5); doc.line(20, 35, 190, 35);
-
-        doc.setFontSize(11);
-        doc.text(`Lokasi: ${item.lokasi}`, 20, 45);
-        doc.text(`Tanggal: ${formatTglIndo(item.tgl)}`, 20, 52);
-        doc.text(`Admin: ${item.createdBy}`, 20, 59);
-
-        // Input Foto ke PDF jika ada
+        Swal.fire({ title: 'PDF...', didOpen: () => Swal.showLoading() });
+        doc.text("LAPORAN KEGIATAN", 105, 20, { align: 'center' });
+        doc.text(item.nama, 105, 30, { align: 'center' });
         if (item.fotos && item.fotos.length > 0) {
             try {
-                const img = new Image();
-                img.crossOrigin = "Anonymous";
-                img.src = item.fotos[0];
-                await new Promise((resolve) => {
-                    img.onload = () => {
-                        doc.addImage(img, 'JPEG', 20, 65, 170, 95);
-                        resolve();
-                    };
-                    img.onerror = () => resolve(); // Lewati jika error
-                });
-                doc.text("Detail Kegiatan:", 20, 170);
-                doc.setFontSize(10);
-                const splitText = doc.splitTextToSize(item.isi, 170);
-                doc.text(splitText, 20, 177);
-            } catch (e) { console.error("PDF Image Error", e); }
-        } else {
-            doc.text("Detail Kegiatan:", 20, 70);
-            const splitText = doc.splitTextToSize(item.isi, 170);
-            doc.text(splitText, 20, 77);
+                const img = new Image(); img.crossOrigin = "Anonymous"; img.src = item.fotos[0];
+                await new Promise((res) => { img.onload = () => { doc.addImage(img, 'JPEG', 20, 40, 170, 90); res(); }; img.onerror = () => res(); });
+            } catch (e) {}
         }
-
-        doc.save(`Kegiatan_${item.nama}.pdf`);
-        Swal.close();
+        doc.save(`Event_${id}.pdf`); Swal.close();
     };
 
     window.shareWA = (id) => {
         const item = window.currentEvents.find(x => x.id === id);
-        const text = `*PONDOK PEMULIHAN PAPUA*\n*Kegiatan:* ${item.nama}\n*Lokasi:* ${item.lokasi}\n\n${item.isi}`;
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(item.nama + '\n' + item.lokasi)}`);
     };
 
     window.hapusBerita = async (id) => {
-        const item = window.currentEvents.find(x => x.id === id);
-        if (window.currentAdmin === "SuperAdmin" || window.currentAdmin === item.createdBy) {
-            const result = await Swal.fire({ title: 'Hapus?', showCancelButton: true });
-            if (result.isConfirmed) { await remove(ref(db, `events/${id}`)); location.reload(); }
-        } else { Swal.fire('Akses Ditolak', 'Hanya Admin pembuat yang bisa menghapus', 'error'); }
+        const res = await Swal.fire({ title: 'Hapus?', showCancelButton: true });
+        if (res.isConfirmed) { await remove(ref(db, `events/${id}`)); location.reload(); }
     };
 
     onValue(eventRef, (snapshot) => {
-        const data = snapshot.val();
-        const list = [];
+        const data = snapshot.val(); const list = [];
         for (let id in data) { list.unshift({ id, ...data[id] }); }
         window.currentEvents = list;
         document.getElementById('newsList').innerHTML = list.map(item => {
-            const fotoUrl = (item.fotos && item.fotos.length > 0 && item.fotos[0] !== "") ? item.fotos[0] : NO_IMG;
+            const fotoUrl = (item.fotos && item.fotos.length > 0) ? item.fotos[0] : NO_IMG;
             return `
                 <div class="news-card" onclick="detailEvent('${item.id}')">
                     <img src="${fotoUrl}" class="news-img" onerror="this.src='${NO_IMG}'">
                     <div class="news-body">
-                        <div class="news-category">BY: ${item.createdBy || 'SYSTEM'}</div>
-                        <div class="news-title">${item.nama || 'Tanpa Nama'}</div>
-                        <div class="news-meta">
-                            <span><i class="fas fa-calendar-alt"></i> ${formatTglIndo(item.tgl)}</span>
-                        </div>
+                        <div class="news-category">BY: ${item.createdBy || 'ADMIN'}</div>
+                        <div class="news-title">${item.nama}</div>
+                        <div class="news-meta"><span><i class="fas fa-calendar-alt"></i> ${formatTglIndo(item.tgl)}</span></div>
                     </div>
                 </div>`;
         }).join('');
