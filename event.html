@@ -55,7 +55,7 @@
         background: white; border-radius: 12px; overflow: hidden;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.3s ease;
         cursor: pointer; display: flex; flex-direction: column;
-        width: 100%; margin: 0;
+        width: 100%; margin: 0; position: relative;
     }
 
     .news-card:hover { transform: translateY(-5px); }
@@ -63,11 +63,13 @@
     .news-body { padding: 15px; flex-grow: 1; }
     .news-category { color: var(--accent); font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
     .news-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: var(--primary); line-height: 1.3; }
-    .news-meta { font-size: 0.75rem; color: #7f8c8d; display: flex; justify-content: space-between; margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; }
+    .news-meta { font-size: 0.75rem; color: #7f8c8d; display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; }
 
-    .modal-news-img { width: 100%; border-radius: 10px; margin-bottom: 15px; }
-    .news-content-text { font-size: 1rem; line-height: 1.6; color: #333; text-align: justify; white-space: pre-line; }
-    
+    .btn-card-delete {
+        background: var(--danger); color: white; border: none; 
+        padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;
+    }
+
     #adminSection { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 2px solid var(--primary); display: none; }
     #superAdminSection { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-top: 15px; border: 1px dashed var(--primary); display: none; }
     .btn-action { width: 100%; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; color: white; font-size: 14px; }
@@ -137,11 +139,6 @@
                 <button class="btn-action" style="background:var(--primary); margin-top:0; margin-bottom: 15px;" onclick="createNewAdmin()">DAFTARKAN ADMIN</button>
             </div>
             <div id="adminListControl" style="font-size: 11px; margin-bottom: 15px;"></div>
-            
-            <div id="superMonitor" class="log-activity-box" style="background: #fffbe6;">
-                <span style="font-weight:bold; font-size:13px;"><i class="fas fa-desktop"></i> MONITOR AGENDA AKTIF</span>
-                <div id="monitorContent" style="margin-top:10px; font-size:11px;"></div>
-            </div>
         </div>
 
         <div class="log-activity-box">
@@ -170,12 +167,12 @@
     const eventRef = ref(db, 'events');
     const NO_IMG = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png";
 
-    window.currentAdmin = null; 
+    window.currentAdmin = localStorage.getItem('sipapua_admin') || null; 
     window.cloudinaryImages = [];
     window.currentEvents = [];
     let listAbsensi = [];
 
-    // --- GLOBAL FUNCTIONS ---
+    // --- PASTIKAN SEMUA FUNGSI TERDEFINISI DI WINDOW (GLOBAL) ---
 
     window.toggleLoginSlider = () => {
         const box = document.getElementById('loginBox');
@@ -204,24 +201,25 @@
         }
 
         if (userData) {
-            if(userData.status === "pending") return Swal.fire('Akses Ditolak', 'Akun Anda sedang di-suspend.', 'error');
-            
+            if(userData.status === "pending") return Swal.fire('Akses Ditolak', 'Akun sedang ditangguhkan.', 'error');
             window.currentAdmin = userData.username;
-            document.getElementById('adminSection').style.display = 'block';
-            document.getElementById('newsList').style.display = 'none'; 
-            document.getElementById('loginBox').style.display = 'none';
-            document.getElementById('btnBack').style.display = 'inline-block';
-            
-            if(userData.username === "SuperAdmin") {
-                document.getElementById('superAdminSection').style.display = 'block';
-                loadAdminList();
-            }
-            
-            Swal.fire('Berhasil', `Selamat datang, ${window.currentAdmin}`, 'success');
+            localStorage.setItem('sipapua_admin', window.currentAdmin);
+            location.reload();
         } else {
             Swal.fire('Gagal', 'Username/Password salah', 'error');
         }
     };
+
+    // Auto-load session jika sudah login
+    if (window.currentAdmin) {
+        document.getElementById('adminSection').style.display = 'block';
+        document.getElementById('newsList').style.display = 'none';
+        document.getElementById('btnBack').style.display = 'inline-block';
+        if (window.currentAdmin === "SuperAdmin") {
+            document.getElementById('superAdminSection').style.display = 'block';
+            loadAdminList();
+        }
+    }
 
     window.createNewAdmin = async function() {
         const nu = document.getElementById('newAdminUser').value;
@@ -237,11 +235,11 @@
             const data = snap.val();
             let h = "";
             for(let user in data) {
-                h += `<div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #ddd;">
-                    <span>${user} (${data[user].status})</span>
+                h += `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #ddd; font-size:11px;">
+                    <span><b>${user}</b> (${data[user].status})</span>
                     <div>
-                        <button onclick="toggleStatusAdmin('${user}', '${data[user].status}')" style="font-size:10px; background:orange; border:none; color:white; border-radius:4px;">Status</button>
-                        <button onclick="hapusAdmin('${user}')" style="font-size:10px; background:red; border:none; color:white; border-radius:4px;">Hapus</button>
+                        <button onclick="toggleStatusAdmin('${user}', '${data[user].status}')" style="background:orange; border:none; color:white; border-radius:4px; padding:2px 5px;">Status</button>
+                        <button onclick="hapusAdminUser('${user}')" style="background:red; border:none; color:white; border-radius:4px; padding:2px 5px; margin-left:5px;">Hapus</button>
                     </div>
                 </div>`;
             }
@@ -254,7 +252,7 @@
         await update(ref(db, `admin_users/${user}`), { status: newStatus });
     };
 
-    window.hapusAdmin = async (user) => {
+    window.hapusAdminUser = async (user) => {
         if(confirm(`Hapus admin ${user}?`)) await remove(ref(db, `admin_users/${user}`));
     };
 
@@ -298,32 +296,25 @@
         Swal.fire('Berhasil', 'Data tersimpan!', 'success').then(() => location.reload());
     };
 
-    let html5QrCode;
-    window.startScanner = function() {
-        document.getElementById('reader').style.display = 'block';
-        document.getElementById('btnStopScan').style.display = 'block';
-        html5QrCode = new Html5Qrcode("reader");
-        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
-            if (!listAbsensi.includes(text)) {
-                listAbsensi.push(text);
-                document.getElementById('totalAbsen').innerText = listAbsensi.length;
-                // Simpan absensi spesifik per admin agar tidak tertukar
-                set(ref(db, `absensi/${window.currentAdmin}/${text.replace(/\./g, '_')}`), { name: text, time: new Date().toLocaleString() });
-                Swal.fire('Absen Berhasil', text, 'success');
+    window.hapusBerita = async (id, owner) => {
+        // StopPropagation agar tidak memicu click pada card
+        event.stopPropagation();
+        if (window.currentAdmin !== "SuperAdmin" && window.currentAdmin !== owner) {
+            return Swal.fire('Ditolak', 'Bukan milik Anda.', 'error');
+        }
+        Swal.fire({
+            title: 'Hapus Berita?',
+            text: "Data akan hilang permanen!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Ya, Hapus!'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                await remove(ref(db, `events/${id}`));
+                Swal.fire('Terhapus!', 'Berita telah dihapus.', 'success').then(() => location.reload());
             }
         });
-    };
-
-    window.stopScanner = () => {
-        if(html5QrCode) html5QrCode.stop().then(() => {
-            document.getElementById('reader').style.display = 'none';
-            document.getElementById('btnStopScan').style.display = 'none';
-        });
-    };
-
-    window.showAbsenList = () => {
-        const list = listAbsensi.length ? `<ol>${listAbsensi.map(n => `<li>${n}</li>`).join('')}</ol>` : 'Kosong';
-        Swal.fire({ title: 'Daftar Absen', html: list });
     };
 
     window.shareWA = (id) => {
@@ -337,43 +328,21 @@
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         Swal.fire({ title: 'Menyiapkan PDF...', didOpen: () => Swal.showLoading() });
-        
         doc.setFontSize(16); doc.text("LAPORAN KEGIATAN", 105, 20, { align: 'center' });
-        doc.setFontSize(10); doc.text(`Dicetak oleh: ${window.currentAdmin} | ${new Date().toLocaleString()}`, 20, 30);
-        doc.setFontSize(12); doc.text(`Judul: ${item.nama}`, 20, 45);
-        doc.text(`Lokasi: ${item.lokasi}`, 20, 55);
-        doc.text(`Tanggal: ${item.tgl}`, 20, 65);
-        doc.text("Deskripsi:", 20, 75);
-        doc.setFontSize(10);
+        doc.setFontSize(10); doc.text(`Judul: ${item.nama}`, 20, 40);
+        doc.text(`Lokasi: ${item.lokasi} | Tanggal: ${item.tgl}`, 20, 50);
         const splitText = doc.splitTextToSize(item.isi || "-", 170);
-        doc.text(splitText, 20, 82);
-
+        doc.text(splitText, 20, 60);
         if (item.fotos && item.fotos.length > 0) {
             const img = new Image(); img.crossOrigin = "Anonymous"; img.src = item.fotos[0];
-            await new Promise(res => { img.onload = () => { doc.addImage(img, 'JPEG', 20, 110, 170, 95); res(); }; img.onerror = () => res(); });
+            await new Promise(res => { img.onload = () => { doc.addImage(img, 'JPEG', 20, 100, 170, 95); res(); }; img.onerror = () => res(); });
         }
         doc.save(`Laporan_${item.nama}.pdf`); Swal.close();
-    };
-
-    window.hapusBerita = async (id) => {
-        const item = window.currentEvents.find(x => x.id === id);
-        if (window.currentAdmin !== "SuperAdmin" && window.currentAdmin !== item.createdBy) {
-            return Swal.fire('Ditolak', 'Anda hanya bisa menghapus berita milik Anda sendiri.', 'error');
-        }
-        if(confirm("Hapus berita ini?")) {
-            await remove(ref(db, `events/${id}`));
-            location.reload();
-        }
     };
 
     window.detailEvent = (id) => {
         const item = window.currentEvents.find(x => x.id === id);
         const gallery = (item.fotos || []).map(f => `<img src="${f}" style="width:100%; border-radius:8px; margin-bottom:10px;">`).join('') || `<img src="${NO_IMG}" style="width:100%;">`;
-        
-        // Cek otoritas hapus
-        const btnHapus = (window.currentAdmin === "SuperAdmin" || window.currentAdmin === item.createdBy) 
-            ? `<button onclick="hapusBerita('${id}')" style="flex:0.5; padding:10px; background:#333; color:white; border:none; border-radius:6px;"><i class="fas fa-trash"></i></button>` : '';
-
         Swal.fire({
             title: item.nama,
             html: `<div style="max-height:350px; overflow-y:auto">${gallery}</div>
@@ -385,7 +354,6 @@
                    <div style="display:flex; gap:8px; margin-top:20px">
                         <button onclick="shareWA('${id}')" style="flex:1; padding:10px; background:#25d366; color:white; border:none; border-radius:6px;"><i class="fab fa-whatsapp"></i> WA</button>
                         <button onclick="downloadPDF('${id}')" style="flex:1; padding:10px; background:#e74c3c; color:white; border:none; border-radius:6px;"><i class="fas fa-file-pdf"></i> PDF</button>
-                        ${btnHapus}
                    </div>`,
             showConfirmButton: false, showCloseButton: true, width: '90%'
         });
@@ -395,23 +363,43 @@
         const data = snapshot.val(); const list = [];
         for (let id in data) { list.unshift({ id, ...data[id] }); }
         window.currentEvents = list;
-        document.getElementById('newsList').innerHTML = list.map(item => `
+        document.getElementById('newsList').innerHTML = list.map(item => {
+            // Tentukan apakah tombol hapus muncul di kartu
+            const canDelete = (window.currentAdmin === "SuperAdmin" || window.currentAdmin === item.createdBy);
+            const btnHapusHtml = canDelete ? `<button class="btn-card-delete" onclick="hapusBerita('${item.id}', '${item.createdBy}')"><i class="fas fa-trash"></i></button>` : '';
+
+            return `
             <div class="news-card" onclick="detailEvent('${item.id}')">
                 <img src="${(item.fotos && item.fotos[0]) || NO_IMG}" class="news-img">
                 <div class="news-body">
                     <div class="news-category">OLEH: ${item.createdBy}</div>
                     <div class="news-title">${item.nama}</div>
-                    <div class="news-meta"><span><i class="fas fa-calendar-alt"></i> ${item.tgl}</span></div>
+                    <div class="news-meta">
+                        <span><i class="fas fa-calendar-alt"></i> ${item.tgl}</span>
+                        ${btnHapusHtml}
+                    </div>
                 </div>
-            </div>`).join('');
-            
-        // Monitor untuk SuperAdmin
-        if(window.currentAdmin === "SuperAdmin") {
-            let m = "";
-            list.slice(0,5).forEach(e => m += `<div>• ${e.createdBy} membuat agenda "${e.nama}"</div>`);
-            document.getElementById('monitorContent').innerHTML = m || "Tidak ada aktivitas.";
-        }
+            </div>`;
+        }).join('');
     });
+
+    // Scanner & Log tetap ada namun disesuaikan
+    let html5QrCode;
+    window.startScanner = function() {
+        document.getElementById('reader').style.display = 'block';
+        document.getElementById('btnStopScan').style.display = 'block';
+        html5QrCode = new Html5Qrcode("reader");
+        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
+            if (!listAbsensi.includes(text)) {
+                listAbsensi.push(text);
+                document.getElementById('totalAbsen').innerText = listAbsensi.length;
+                set(ref(db, `absensi/${window.currentAdmin}/${text.replace(/\./g, '_')}`), { name: text, time: new Date().toLocaleString() });
+                Swal.fire('Berhasil', text, 'success');
+            }
+        });
+    };
+
+    window.stopScanner = () => { if(html5QrCode) html5QrCode.stop().then(() => { document.getElementById('reader').style.display = 'none'; document.getElementById('btnStopScan').style.display = 'none'; }); };
 
     onValue(ref(db, 'log_activity'), (snap) => {
         const data = snap.val(); let h = "";
