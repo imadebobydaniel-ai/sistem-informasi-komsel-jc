@@ -167,19 +167,89 @@
     const eventRef = ref(db, 'events');
     const NO_IMG = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png";
 
-    // Identitas admin diambil langsung dari storage agar tombol hapus muncul otomatis bagi yang berhak
     window.currentAdmin = localStorage.getItem('sipapua_admin') || null; 
     window.cloudinaryImages = [];
     window.currentEvents = [];
     let listAbsensi = [];
 
-    // --- FUNGSI SISTEM TANGGAL INDONESIA ---
+    // 1. --- FUNGSI SISTEM TANGGAL INDONESIA ---
     const formatTglIndo = (dateStr) => {
         if(!dateStr) return "";
         const bulanIndo = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
         const d = new Date(dateStr);
         return `${d.getDate()} ${bulanIndo[d.getMonth()]} ${d.getFullYear()}`;
     };
+
+    // 2. --- SISTEM HAPUS BERITA (LOGIKA KAPASITAS) ---
+    window.hapusBerita = async (id, owner) => {
+        event.stopPropagation(); // Mencegah detail terbuka saat klik tombol hapus
+        const activeAdmin = localStorage.getItem('sipapua_admin');
+
+        if (activeAdmin !== "SuperAdmin" && activeAdmin !== owner) {
+            return Swal.fire('Ditolak', 'Kapasitas Anda tidak cukup untuk menghapus ini.', 'error');
+        }
+
+        Swal.fire({
+            title: 'Hapus Berita?',
+            text: "Data akan hilang permanen dari sistem.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Ya, Hapus!'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await remove(ref(db, `events/${id}`));
+                    await push(ref(db, 'log_activity'), { 
+                        user: activeAdmin, 
+                        action: `Hapus Berita ID: ${id}`, 
+                        timestamp: new Date().toLocaleString() 
+                    });
+                    Swal.fire('Terhapus!', 'Berita telah dibuang.', 'success');
+                } catch (err) {
+                    Swal.fire('Error', 'Gagal menghapus.', 'error');
+                }
+            }
+        });
+    };
+
+    // 3. --- RENDER LIST BERITA (DENGAN TOMBOL HAPUS DI KARTU) ---
+    onValue(eventRef, (snapshot) => {
+        const data = snapshot.val(); 
+        const newsList = document.getElementById('newsList');
+        newsList.innerHTML = "";
+        
+        const list = [];
+        for (let id in data) { list.unshift({ id, ...data[id] }); }
+        window.currentEvents = list;
+
+        list.forEach(item => {
+            const activeAdmin = localStorage.getItem('sipapua_admin');
+            let btnHapusHtml = '';
+            
+            // Tombol muncul otomatis jika SuperAdmin atau pemilik berita
+            if (activeAdmin === "SuperAdmin" || (activeAdmin && activeAdmin === item.createdBy)) {
+                btnHapusHtml = `
+                <button class="btn-card-delete" onclick="hapusBerita('${item.id}', '${item.createdBy}')" 
+                    style="position:absolute; top:10px; right:10px; background:rgba(231, 76, 60, 0.9); color:white; border:none; width:35px; height:35px; border-radius:50%; cursor:pointer; z-index:10;">
+                    <i class="fas fa-trash"></i>
+                </button>`;
+            }
+
+            newsList.innerHTML += `
+            <div class="news-card" onclick="detailEvent('${item.id}')" style="position:relative;">
+                <img src="${(item.fotos && item.fotos[0]) || NO_IMG}" class="news-img">
+                <div class="news-body">
+                    <div class="news-category">OLEH: ${item.createdBy || 'ADMIN'}</div>
+                    <div class="news-title">${item.nama}</div>
+                    <div class="news-meta">
+                        <span><i class="fas fa-calendar-alt"></i> ${formatTglIndo(item.tgl)}</span>
+                    </div>
+                </div>
+                ${btnHapusHtml}
+            </div>`;
+        });
+    });
 
     // --- MANAJEMEN LOGIN & SESSION ---
     window.toggleLoginSlider = () => {
@@ -209,7 +279,7 @@
         }
 
         if (userData) {
-            if(userData.status === "pending") return Swal.fire('Akses Ditolak', 'Akun sedang ditangguhkan.', 'error');
+            if(userData.status === "pending") return Swal.fire('Akses Ditolak', 'Akun ditangguhkan.', 'error');
             window.currentAdmin = userData.username;
             localStorage.setItem('sipapua_admin', window.currentAdmin);
             location.reload();
@@ -218,72 +288,7 @@
         }
     };
 
-    // --- SISTEM HAPUS BERITA (LOGIKA KAPASITAS) ---
-    window.hapusBerita = async (id, owner) => {
-        event.stopPropagation(); // Mencegah detail terbuka saat klik hapus
-        
-        const activeAdmin = localStorage.getItem('sipapua_admin');
-
-        // Pengecekan kapasitas: SuperAdmin bisa semua, Admin Lite hanya miliknya
-        if (activeAdmin !== "SuperAdmin" && activeAdmin !== owner) {
-            return Swal.fire('Ditolak', 'Anda tidak berhak menghapus berita ini.', 'error');
-        }
-
-        Swal.fire({
-            title: 'Hapus Berita?',
-            text: "Data akan hilang permanen dari sistem.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            confirmButtonText: 'Ya, Hapus!'
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                await remove(ref(db, `events/${id}`));
-                await push(ref(db, 'log_activity'), { 
-                    user: activeAdmin, 
-                    action: `Hapus Berita ID: ${id}`, 
-                    timestamp: new Date().toLocaleString() 
-                });
-                Swal.fire('Terhapus!', 'Berita telah dibuang.', 'success');
-            }
-        });
-    };
-
-    // --- RENDER LIST BERITA KE HALAMAN DEPAN ---
-    onValue(eventRef, (snapshot) => {
-        const data = snapshot.val(); 
-        const list = [];
-        const newsList = document.getElementById('newsList');
-        newsList.innerHTML = "";
-        
-        for (let id in data) { list.unshift({ id, ...data[id] }); }
-        window.currentEvents = list;
-
-        list.forEach(item => {
-            // Logika pemunculan tombol hapus otomatis berdasarkan storage
-            const activeAdmin = localStorage.getItem('sipapua_admin');
-            let btnHapusHtml = '';
-            
-            if (activeAdmin === "SuperAdmin" || (activeAdmin && activeAdmin === item.createdBy)) {
-                btnHapusHtml = `<button class="btn-card-delete" onclick="hapusBerita('${item.id}', '${item.createdBy}')"><i class="fas fa-trash"></i></button>`;
-            }
-
-            newsList.innerHTML += `
-            <div class="news-card" onclick="detailEvent('${item.id}')">
-                <img src="${(item.fotos && item.fotos[0]) || NO_IMG}" class="news-img">
-                <div class="news-body">
-                    <div class="news-category">OLEH: ${item.createdBy || 'ADMIN'}</div>
-                    <div class="news-title">${item.nama}</div>
-                    <div class="news-meta">
-                        <span><i class="fas fa-calendar-alt"></i> ${formatTglIndo(item.tgl)}</span>
-                        ${btnHapusHtml}
-                    </div>
-                </div>
-            </div>`;
-        });
-    });
-
-    // --- FUNGSI PENDUKUNG (UPLOAD, SHARE, PDF, DETAIL) ---
+    // --- UPLOAD, SHARE, PDF, DETAIL ---
     window.handleFileUpload = async (event) => {
         const files = event.target.files;
         if (files.length === 0) return;
@@ -320,7 +325,6 @@
             createdAt: new Date().toISOString()
         };
         await push(eventRef, newEvent);
-        await push(ref(db, 'log_activity'), { user: window.currentAdmin, action: `Input: ${nama}`, timestamp: new Date().toLocaleString() });
         Swal.fire('Berhasil', 'Data tersimpan!', 'success').then(() => location.reload());
     };
 
@@ -345,7 +349,7 @@
 
     window.shareWA = (id) => {
         const item = window.currentEvents.find(x => x.id === id);
-        const pesan = encodeURIComponent(`*LAPORAN KEGIATAN*\n\nJudul: ${item.nama}\nLokasi: ${item.lokasi}\nTanggal: ${formatTglIndo(item.tgl)}\n\nDetail:\n${item.isi}`);
+        const pesan = encodeURIComponent(`*BERITA*\n\n${item.nama}\nLokasi: ${item.lokasi}\nTanggal: ${formatTglIndo(item.tgl)}`);
         window.open(`https://api.whatsapp.com/send?text=${pesan}`);
     };
 
@@ -353,43 +357,16 @@
         const item = window.currentEvents.find(x => x.id === id);
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        Swal.fire({ title: 'Menyiapkan PDF...', didOpen: () => Swal.showLoading() });
-        doc.setFontSize(16); doc.text("LAPORAN KEGIATAN", 105, 20, { align: 'center' });
-        doc.setFontSize(10); doc.text(`Judul: ${item.nama}`, 20, 40);
-        doc.text(`Lokasi: ${item.lokasi} | Tanggal: ${formatTglIndo(item.tgl)}`, 20, 50);
-        const splitText = doc.splitTextToSize(item.isi || "-", 170);
-        doc.text(splitText, 20, 60);
-        if (item.fotos && item.fotos.length > 0) {
-            const img = new Image(); img.crossOrigin = "Anonymous"; img.src = item.fotos[0];
-            await new Promise(res => { img.onload = () => { doc.addImage(img, 'JPEG', 20, 100, 170, 95); res(); }; img.onerror = () => res(); });
-        }
-        doc.save(`Laporan_${item.nama}.pdf`); Swal.close();
+        doc.text(`LAPORAN KEGIATAN: ${item.nama}`, 10, 10);
+        doc.save(`Laporan_${item.nama}.pdf`);
     };
 
-    // --- AUTO LOAD SESSION & ADMIN LIST ---
+    // --- AUTO LOAD SESSION & LOG ---
     if (window.currentAdmin) {
         document.getElementById('adminSection').style.display = 'block';
-        document.getElementById('newsList').style.display = 'grid'; // Tetap tampilkan list agar bisa hapus di depan
         document.getElementById('btnBack').style.display = 'inline-block';
-        if (window.currentAdmin === "SuperAdmin") {
-            document.getElementById('superAdminSection').style.display = 'block';
-            onValue(ref(db, 'admin_users'), (snap) => {
-                const data = snap.val(); let h = "";
-                for(let user in data) {
-                    h += `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #ddd; font-size:11px;">
-                        <span><b>${user}</b> (${data[user].status})</span>
-                        <div>
-                            <button onclick="toggleStatusAdmin('${user}', '${data[user].status}')" style="background:orange; border:none; color:white; border-radius:4px; padding:2px 5px;">Status</button>
-                            <button onclick="hapusAdminUser('${user}')" style="background:red; border:none; color:white; border-radius:4px; padding:2px 5px; margin-left:5px;">Hapus</button>
-                        </div>
-                    </div>`;
-                }
-                document.getElementById('adminListControl').innerHTML = h;
-            });
-        }
     }
 
-    // --- LOG & SCANNER ---
     onValue(ref(db, 'log_activity'), (snap) => {
         const data = snap.val(); let h = "";
         for(let id in data) { h = `<div>> ${data[id].timestamp} - ${data[id].user}: ${data[id].action}</div>` + h; }
@@ -398,7 +375,6 @@
 
     document.getElementById('fotoEvent').onchange = window.handleFileUpload;
     document.getElementById('btnSimpan').onclick = window.simpanBerita;
-
 </script>
 </body>
 </html>
