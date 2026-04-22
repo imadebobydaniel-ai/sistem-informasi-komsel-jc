@@ -43,7 +43,6 @@
 
     .container { padding: 15px; max-width: 1000px; margin: auto; }
 
-    /* PERBAIKAN LIST BERITA AGAR SIMETRIS (FINAL) */
     #newsList { 
         display: grid; 
         grid-template-columns: repeat(auto-fit, minmax(280px, 320px)); 
@@ -71,28 +70,14 @@
     .modal-news-img { width: 100%; border-radius: 10px; margin-bottom: 15px; }
     .news-content-text { font-size: 1rem; line-height: 1.6; color: #333; text-align: justify; white-space: pre-line; }
     
-    .action-dropdown { position: relative; display: inline-block; }
-    .dropbtn { background: #f1f1f1; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-    .dropdown-content {
-        display: none; position: absolute; bottom: 100%; left: 0; background-color: white;
-        min-width: 180px; box-shadow: 0px 8px 16px rgba(0,0,0,0.2); z-index: 1001; border-radius: 8px; margin-bottom: 8px;
-    }
-    .dropdown-content button { color: black; padding: 12px 16px; text-decoration: none; display: block; width: 100%; text-align: left; border: none; background: none; cursor: pointer; font-size: 14px; }
-    .dropdown-content button:hover { background-color: #f1f1f1; }
-    .show { display: block; }
-
     #adminSection { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 2px solid var(--primary); display: none; }
     .btn-action { width: 100%; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; color: white; font-size: 14px; }
-    
-    .extra-tools { display: flex; gap: 10px; margin: 10px 0; }
-    .btn-tool { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9; cursor: pointer; font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px; }
     
     .absensi-box, .log-activity-box { background: white; border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-top: 15px; }
     .absensi-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px; }
     .total-counter { background: var(--primary); color: white; padding: 2px 10px; border-radius: 20px; font-size: 14px; }
     
     #reader { width: 100%; border-radius: 10px; overflow: hidden; margin: 10px 0; display: none; border: 2px dashed var(--accent); }
-    .log-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f1f1; font-size: 13px; }
 
     .btn-header-back { border:none; background:#555; color:white; height: 38px; padding:0 15px; border-radius:19px; font-weight:bold; cursor:pointer; font-size: 12px; display: flex; align-items: center; }
 </style>
@@ -117,12 +102,6 @@
                 <i class="fas fa-eye toggle-pass" id="eyeIcon" onclick="togglePassword()"></i>
           </div>
             <button class="btn-masuk-dropdown" onclick="loginEvent()">MASUK</button>
-            
-            <div style="margin-top: 15px; text-align: center;">
-                <a href="javascript:void(0)" onclick="addNewAdmin()" style="font-size: 11px; color: #007bff; text-decoration: none; font-weight: bold;">
-                  <i class="fas fa-user-plus"></i> Create New Admin
-               </a>
-           </div>
         </div>
     </div>
 </div>
@@ -144,7 +123,7 @@
         <div class="absensi-box">
             <div class="absensi-header">
               <span style="font-weight:bold; font-size:13px;"><i class="fas fa-qrcode"></i> ABSENSI</span>
-              <span class="total-counter">Total: <span id="totalAbsen">0</span></span>
+              <span class="total-counter" style="cursor:pointer" onclick="showAbsenList()">Total: <span id="totalAbsen">0</span></span>
           </div>
             <button class="btn-action" style="background: var(--primary);" id="btnStartScan" onclick="startScanner()">SCAN QR</button>
             <button class="btn-action" style="background: #d33; display:none;" id="btnStopScan" onclick="stopScanner()">TUTUP KAMERA</button>
@@ -175,206 +154,37 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     
-    // --- STATE MANAGEMENT ---
+    // Global State
     window.currentAdmin = null; 
-    window.selectedEventId = null; 
     window.cloudinaryImages = [];
     window.currentEvents = [];
-    let listAbsensi = []; // Variabel penampung nama hasil scan
+    let listAbsensi = []; 
 
     const eventRef = ref(db, 'events');
-    const adminRef = ref(db, 'admin_users');
 
-    // --- CONFIG CLOUDINARY ---
     const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dxt7m8psv/image/upload';
     const CLOUDINARY_UPLOAD_PRESET = 'vj96p7dt';
 
-    // --- FUNGSI FORMAT TANGGAL INDONESIA ---
     function formatTglIndo(dateString) {
         if (!dateString) return "-";
         const options = { day: 'numeric', month: 'long', year: 'numeric' };
         return new Date(dateString).toLocaleDateString('id-ID', options);
     }
 
-    // --- 1. LOG ACTIVITY DROPDOWN SETUP ---
-    const setupLogDropdown = () => {
-        const logContainer = document.querySelector('.card:last-child'); 
-        if (logContainer && !logContainer.querySelector('details')) {
-            const content = logContainer.innerHTML;
-            logContainer.innerHTML = `
-                <details style="cursor:pointer; border: 1px solid #eee; border-radius: 8px; padding: 5px;">
-                    <summary style="font-weight:bold; padding:10px; list-style:none; display:flex; justify-content:space-between; align-items:center;">
-                        <span><i class="fas fa-history"></i> LOG ACTIVITY (CLOUD)</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </summary>
-                    <div id="logContent" style="padding:10px; border-top:1px solid #eee; max-height: 200px; overflow-y: auto;">
-                        ${content}
-                    </div>
-                </details>`;
-        }
+    // Helper functions
+    window.toggleLoginSlider = () => {
+        const box = document.getElementById('loginBox');
+        box.style.display = (box.style.display === 'block') ? 'none' : 'block';
     };
 
-    // --- 2. LOGIKA UPLOAD CLOUDINARY & SIMPAN DATA ---
-    window.handleFileUpload = async (event) => {
-        const files = event.target.files;
-        window.cloudinaryImages = [];
-        
-        Swal.fire({ title: 'Mengunggah Gambar...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-
-        for (let file of files) {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
-            try {
-                const resp = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
-                const data = await resp.json();
-                window.cloudinaryImages.push(data.secure_url);
-                console.log("Upload Berhasil:", data.secure_url);
-            } catch (err) {
-                console.error("Gagal upload ke Cloudinary", err);
-            }
-        }
-        Swal.close();
+    window.togglePassword = () => {
+        const p = document.getElementById('passAdmin');
+        const icon = document.getElementById('eyeIcon');
+        if (p.type === "password") { p.type = "text"; icon.className = "fas fa-eye-slash toggle-pass"; }
+        else { p.type = "password"; icon.className = "fas fa-eye toggle-pass"; }
     };
 
-    window.simpanBerita = async function() {
-        const nama = document.getElementById('namaKegiatan').value;
-        const lokasi = document.getElementById('lokasiKegiatan').value;
-        const tgl = document.getElementById('tglKegiatan').value;
-        const isi = document.getElementById('isiKegiatan').value;
-
-        if (!nama || !lokasi || !tgl) {
-            return Swal.fire('Error', 'Nama, Lokasi, dan Tanggal wajib diisi!', 'error');
-        }
-
-        const newEvent = {
-            nama,
-            lokasi,
-            tgl,
-            isi,
-            fotos: window.cloudinaryImages,
-            createdBy: window.currentAdmin || 'System',
-            createdAt: new Date().toISOString(),
-            absensi: listAbsensi
-        };
-
-        try {
-            // Simpan ke Firebase
-            await push(eventRef, newEvent);
-
-            // Catat ke Log Activity (Cloud)
-            const logRef = ref(db, 'log_activity');
-            await push(logRef, {
-                user: window.currentAdmin || 'System',
-                action: `Menerbitkan Berita: ${nama}`,
-                timestamp: new Date().toLocaleString('id-ID')
-            });
-
-            await Swal.fire('Berhasil', 'Berita berhasil diterbitkan dan tersinkron!', 'success');
-            
-            // Reset & Kembali
-            location.reload(); 
-
-        } catch (error) {
-            console.error("Gagal simpan:", error);
-            Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan data.', 'error');
-        }
-    };
-
-    // --- 3. FUNGSI QR SCANNER & PROSES ABSENSI ---
-    let html5QrCode;
-
-    window.startScanner = function() {
-        const scannerContainer = document.getElementById('reader');
-        if (!scannerContainer) {
-            const newReader = document.createElement('div');
-            newReader.id = 'reader';
-            newReader.style.width = '100%';
-            newReader.style.marginTop = '10px';
-            document.getElementById('btnScanQR').after(newReader);
-        }
-
-        html5QrCode = new Html5Qrcode("reader");
-        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-
-        html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
-            prosesAbsensi(decodedText);
-            html5QrCode.stop().then(() => {
-                document.getElementById('reader').remove();
-            });
-        }).catch((err) => {
-            console.error("Gagal start scanner", err);
-        });
-    };
-
-    function prosesAbsensi(nama) {
-        if (!listAbsensi.includes(nama)) {
-            listAbsensi.push(nama);
-            const totalElement = document.getElementById('totalAbsen');
-            if(totalElement) {
-                totalElement.innerText = listAbsensi.length;
-            }
-            Swal.fire('Berhasil', `${nama} telah diabsen`, 'success');
-        } else {
-            Swal.fire('Info', `${nama} sudah diabsen sebelumnya.`, 'warning');
-        }
-    }
-
-    window.showAbsenList = function() {
-        if (listAbsensi.length === 0) return Swal.fire('Info', 'Belum ada jemaat yang absen.', 'info');
-        const htmlList = `<div style="text-align:left; max-height:300px; overflow-y:auto;"><ol>${listAbsensi.map(n => `<li>${n}</li>`).join('')}</ol></div>`;
-        Swal.fire({ title: 'Daftar Nama Terabsen', html: htmlList, confirmButtonText: 'Tutup', confirmButtonColor: '#003366' });
-    };
-
-    // --- EVENT LISTENER & INITIALIZATION ---
-    document.addEventListener('DOMContentLoaded', () => {
-        setupLogDropdown();
-        
-        const fileInput = document.querySelector('input[type="file"]');
-        if(fileInput) fileInput.onchange = window.handleFileUpload;
-
-        const btnSimpan = document.querySelector('button[onclick="simpanBerita()"]') || document.getElementById('btnSimpan');
-        if(btnSimpan) btnSimpan.onclick = window.simpanBerita;
-
-        const btnScan = document.getElementById('btnScanQR');
-        if(btnScan) btnScan.onclick = window.startScanner;
-
-        const totalClick = document.getElementById('totalAbsen');
-        if(totalClick) totalClick.onclick = window.showAbsenList;
-    });
-
-    // === FUNGSI DETAIL & SHARE ===
-    window.detailEvent = function(id) {
-        const item = window.currentEvents.find(x => x.id === id);
-        if (!item) return;
-
-        Swal.fire({
-            title: item.nama,
-            html: `
-                <div id="detailContent" style="text-align: left; font-size: 14px;">
-                    <img src="${item.fotos ? item.fotos[0] : ''}" style="width:100%; border-radius:10px; margin-bottom:15px; border: 1px solid #eee;" onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
-                    <p><strong><i class="fas fa-map-marker-alt"></i> Lokasi:</strong> ${item.lokasi || '-'}</p>
-                    <p><strong><i class="fas fa-calendar-alt"></i> Tanggal:</strong> ${formatTglIndo(item.tgl)}</p>
-                    <hr style="border: 0; border-top: 1px solid #eee;">
-                    <div style="white-space: pre-wrap; max-height: 250px; overflow-y: auto; color: #444; line-height: 1.6;">${item.isi || 'Tidak ada deskripsi.'}</div>
-                    <p style="font-size: 11px; color: #888; margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 10px;">Diposting oleh: ${item.createdBy || 'System'}</p>
-                </div>
-                <div style="margin-top: 20px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-                    <button onclick="shareWA('${id}')" style="background:#25d366; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold; flex: 1;"><i class="fab fa-whatsapp"></i> Share</button>
-                    <button onclick="hapusBerita('${id}')" style="background:#333; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold; flex: 1;"><i class="fas fa-trash"></i> Hapus</button>
-                </div>`,
-            showConfirmButton: false, showCloseButton: true, width: '95%', padding: '1.5em'
-        });
-    };
-
-    window.shareWA = function(id) {
-        const item = window.currentEvents.find(x => x.id === id);
-        if (!item) return;
-        const teksFull = `*PONDOK PEMULIHAN PAPUA*\n*Kegiatan:* ${item.nama}\n*Lokasi:* ${item.lokasi}\n*Tanggal:* ${formatTglIndo(item.tgl)}\n\n${item.isi}`;
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(teksFull)}`, '_blank');
-    };
-
+    // Firebase Functions
     window.loginEvent = async function() {
         const u = document.getElementById('userAdmin').value;
         const p = document.getElementById('passAdmin').value;
@@ -394,25 +204,125 @@
             document.getElementById('loginBox').style.display = 'none';
             document.getElementById('btnBack').style.display = 'inline-block';
             Swal.fire('Berhasil', `Selamat datang, ${loggedInUser}`, 'success');
-            setupLogDropdown();
         } else { 
             Swal.fire('Gagal', 'Username atau Password salah', 'error'); 
         }
     };
 
-    // === RENDER & LISTEN DATABASE ===
-    window.renderList = function(list) {
-        const container = document.getElementById('newsList');
-        if(!container) return;
-        container.innerHTML = list.map(item => `
-            <div class="news-card" onclick="detailEvent('${item.id}')">
-                <img src="${item.fotos ? item.fotos[0] : ''}" class="news-img" onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
-                <div class="news-body">
-                    <div class="news-category">Post by: ${item.createdBy || 'System'}</div>
-                    <div class="news-title">${item.nama}</div>
-                    <div class="news-meta"><span><i class="fas fa-calendar-alt"></i> ${formatTglIndo(item.tgl)}</span></div>
+    window.handleFileUpload = async (event) => {
+        const files = event.target.files;
+        window.cloudinaryImages = [];
+        Swal.fire({ title: 'Mengunggah...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+        for (let file of files) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+            try {
+                const resp = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
+                const data = await resp.json();
+                window.cloudinaryImages.push(data.secure_url);
+            } catch (err) { console.error(err); }
+        }
+        Swal.close();
+        document.getElementById('uploadStatus').innerText = window.cloudinaryImages.length + " Foto siap disinkronkan.";
+    };
+
+    window.simpanBerita = async function() {
+        const nama = document.getElementById('namaEvent').value;
+        const lokasi = document.getElementById('lokasiEvent').value;
+        const tgl = document.getElementById('tglEvent').value;
+        const isi = document.getElementById('isiEvent').value;
+
+        if (!nama || !lokasi || !tgl) return Swal.fire('Error', 'Data wajib diisi!', 'error');
+
+        const newEvent = {
+            nama, lokasi, tgl, isi,
+            fotos: window.cloudinaryImages,
+            createdBy: window.currentAdmin || 'System',
+            createdAt: new Date().toISOString(),
+            absensi: listAbsensi
+        };
+
+        try {
+            await push(eventRef, newEvent);
+            await push(ref(db, 'log_activity'), {
+                user: window.currentAdmin,
+                action: `Menerbitkan Berita: ${nama}`,
+                timestamp: new Date().toLocaleString('id-ID')
+            });
+            Swal.fire('Berhasil', 'Tersinkron ke Cloud!', 'success').then(() => location.reload());
+        } catch (error) { Swal.fire('Gagal', 'Error Firebase', 'error'); }
+    };
+
+    // QR & Logic
+    let html5QrCode;
+    window.startScanner = function() {
+        const reader = document.getElementById('reader');
+        reader.style.display = 'block';
+        document.getElementById('btnStopScan').style.display = 'block';
+        html5QrCode = new Html5Qrcode("reader");
+        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
+            if (!listAbsensi.includes(text)) {
+                listAbsensi.push(text);
+                document.getElementById('totalAbsen').innerText = listAbsensi.length;
+                Swal.fire('Absen Berhasil', text, 'success');
+            }
+        }).catch(err => console.error(err));
+    };
+
+    window.stopScanner = () => {
+        if(html5QrCode) html5QrCode.stop().then(() => {
+            document.getElementById('reader').style.display = 'none';
+            document.getElementById('btnStopScan').style.display = 'none';
+        });
+    };
+
+    window.showAbsenList = () => {
+        const list = listAbsensi.length ? `<ol>${listAbsensi.map(n => `<li>${n}</li>`).join('')}</ol>` : 'Kosong';
+        Swal.fire({ title: 'Daftar Absen', html: list });
+    };
+
+    window.detailEvent = (id) => {
+        const item = window.currentEvents.find(x => x.id === id);
+        if (!item) return;
+        const imgTag = item.fotos && item.fotos.length > 0 ? `<img src="${item.fotos[0]}" class="modal-news-img">` : '';
+        
+        Swal.fire({
+            title: item.nama,
+            html: `
+                ${imgTag}
+                <div style="text-align:left; font-size:14px">
+                    <p><b>Lokasi:</b> ${item.lokasi}</p>
+                    <p><b>Tanggal:</b> ${formatTglIndo(item.tgl)}</p>
+                    <div class="news-content-text">${item.isi}</div>
+                    <p style="color:#888; font-size:10px">Oleh: ${item.createdBy}</p>
                 </div>
-            </div>`).join('');
+                <div style="display:flex; gap:10px; margin-top:15px">
+                    <button onclick="shareWA('${id}')" style="flex:1; padding:10px; background:#25d366; color:white; border:none; border-radius:8px">WA</button>
+                    <button onclick="hapusBerita('${id}')" style="flex:1; padding:10px; background:#333; color:white; border:none; border-radius:8px">Hapus</button>
+                </div>`,
+            showConfirmButton: false, showCloseButton: true
+        });
+    };
+
+    window.shareWA = (id) => {
+        const item = window.currentEvents.find(x => x.id === id);
+        const text = `*PONDOK PEMULIHAN PAPUA*\n*Kegiatan:* ${item.nama}\n*Lokasi:* ${item.lokasi}\n\n${item.isi}`;
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
+    };
+
+    window.hapusBerita = async (id) => {
+        const item = window.currentEvents.find(x => x.id === id);
+        if (window.currentAdmin === "SuperAdmin" || window.currentAdmin === item.createdBy) {
+            const result = await Swal.fire({ title: 'Hapus?', showCancelButton: true });
+            if (result.isConfirmed) {
+                await remove(ref(db, `events/${id}`));
+                location.reload();
+            }
+        } else {
+            Swal.fire('Akses Ditolak', 'Hanya Admin yang diizinkan menghapus berita', 'error');
+        }
     };
 
     onValue(eventRef, (snapshot) => {
@@ -420,7 +330,19 @@
         const list = [];
         for (let id in data) { list.unshift({ id, ...data[id] }); }
         window.currentEvents = list;
-        window.renderList(list);
+        document.getElementById('newsList').innerHTML = list.map(item => `
+            <div class="news-card" onclick="detailEvent('${item.id}')">
+                <img src="${item.fotos && item.fotos.length ? item.fotos[0] : 'https://via.placeholder.com/400x200?text=SIPAPUA'}" class="news-img">
+                <div class="news-body">
+                    <div class="news-category">Post by: ${item.createdBy}</div>
+                    <div class="news-title">${item.nama}</div>
+                    <div class="news-meta"><span><i class="fas fa-calendar-alt"></i> ${formatTglIndo(item.tgl)}</span></div>
+                </div>
+            </div>`).join('');
     });
-</script></body>
+
+    document.getElementById('fotoEvent').onchange = window.handleFileUpload;
+    document.getElementById('btnSimpan').onclick = window.simpanBerita;
+</script>
+</body>
 </html>
