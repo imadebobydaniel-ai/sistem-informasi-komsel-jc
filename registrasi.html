@@ -26,7 +26,6 @@
         .form-group input:focus { border-color: #28a745; background: #fff; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         
-        /* MODIFIKASI TOMBOL SMOOTH */
         .btn-next, .btn-prev, .btn-agree { 
             width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; 
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
@@ -41,24 +40,43 @@
         .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666; }
         #nij-display { background: #fff3cd !important; border: 2px solid #ffc107 !important; color: #856404; font-weight: bold; }
         
-        /* PERBAIKAN SIMETRIS TERMS MODAL */
         #terms-modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; padding: 15px; backdrop-filter: blur(5px); box-sizing: border-box; }
         .terms-box { background: white; padding: 25px; border-radius: 20px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); box-sizing: border-box; margin: auto; }
         
         .check-container { display: flex; align-items: flex-start; text-align: left; background: #f9f9f9; padding: 12px; border-radius: 10px; margin: 15px 0; cursor: pointer; }
-        #blocking-message, #custom-alert { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
-        .modal-box { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; width: 100%; animation: fadeIn 0.3s ease; }
+        #blocking-message, #custom-alert, #notif-email-sent { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
+        
+        /* MODIFIKASI MODAL SEDANG */
+        .modal-box { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 380px; width: 90%; animation: fadeIn 0.3s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        
         .dynamic-field { display: none; }
+        .child-row { background: #f8f9fa; padding: 10px; border-radius: 10px; border-left: 4px solid #28a745; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div id="custom-alert">
     <div class="modal-box">
-        <i class="fa-solid fa-envelope-circle-check" style="font-size: 50px; color: #007bff; margin-bottom: 15px;"></i>
-        <p><b>Email Terkirim!</b></p>
-        <p style="font-size: 13px; color: #555;">Link reset password telah dikirim ke email Anda.</p>
-        <button onclick="document.getElementById('custom-alert').style.display='none'" class="btn-next" style="background:#007bff; margin-top:10px;">OK</button>
+        <div style="background: #e7f3ff; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+            <i class="fa-solid fa-envelope-circle-check" style="font-size: 35px; color: #007bff;"></i>
+        </div>
+        <h3 style="margin-bottom: 10px; color: #333;">Email Terkirim!</h3>
+        <p style="font-size: 14px; color: #666; line-height: 1.5; margin-bottom: 20px;">Link instruksi reset password telah dikirim ke email Anda. Silakan cek Inbox atau folder Spam.</p>
+        <button onclick="document.getElementById('custom-alert').style.display='none'" class="btn-next" style="background:#007bff;">SAYA MENGERTI</button>
+    </div>
+</div>
+
+<div id="notif-email-sent">
+    <div class="modal-box">
+        <div style="background: #e7f3ff; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+            <i class="fa-solid fa-envelope-circle-check" style="font-size: 35px; color: #007bff;"></i>
+        </div>
+        <h3 style="margin-bottom: 10px; color: #333;">Verifikasi Terkirim!</h3>
+        <p style="font-size: 13px; color: #666; line-height: 1.5; margin-bottom: 20px;">
+            Link verifikasi telah dikirim ke email Anda. <br>
+            <b>Silakan verifikasi email Anda</b> sebelum melakukan login ke sistem Pondok Pemulihan Papua.
+        </p>
+        <button onclick="window.location.href='index.html'" class="btn-next" style="background:#007bff;">SAYA MENGERTI</button>
     </div>
 </div>
 
@@ -66,7 +84,7 @@
     <div class="terms-box">
         <img src="logo_pondok.png" alt="Logo" style="width: 70px; margin-bottom: 10px;">
         <h2>Syarat & Ketentuan Jemaat</h2>
-        <p style="font-size: 13px; color: #444; text-align: justify;">Selamat Datang di Sistem Informasi Jemaat Pondok Pemulihan Papua. Layanan ini bertujuan membangun integrasi pelayanan dan pertumbuhan rohani jemaat.</p>
+        <p style="font-size: 13px; color: #444; text-align: justify;">Selamat Datang di Sistem Informasi Jemaat Pondok Pemulihan Papua. Layanan ini bertujuan membangun integrasi pelayanan dan pertumbuhan rohani jemaat, didalam bidang pelayanan dan seluruh aspek bidang kerohaniaan. semoga dengan aplikasi ini dapat membantu jemaat Tuhan untuk mengetahui dan memahami tentang kemampuan kerohanian saudara setiap waktu.</p>
         <label class="check-container">
             <input type="checkbox" id="check-agree" onchange="toggleAgreeButton()">
             <span style="font-size: 12px; margin-left: 10px;">Saya siap menggunakan aplikasi ini sebagai alat penunjang pertumbuhan rohani dan pelayanan.</span>
@@ -116,7 +134,7 @@
                 <label>Password Akun*</label>
                 <div class="password-container"><input type="password" id="pass"><i class="fa-solid fa-eye toggle-password" id="eyeIcon"></i></div>
             </div>
-            <div class="form-group"><label>Alamat Domisili Lengkap*</label><textarea id="alamat" rows="2"></textarea></div>
+            <div class="form-group"><label>Alamat*</label><textarea id="alamat" rows="2"></textarea></div>
             
             <div class="grid-2">
                 <div class="form-group">
@@ -134,9 +152,10 @@
 
             <div id="form_menikah" class="dynamic-field">
                 <div class="grid-2">
-                    <div class="form-group"><label>Jumlah Anak</label><input type="number" id="jumlah_anak" placeholder="0"></div>
                     <div class="form-group"><label>Nama Istri / Suami</label><input type="text" id="nama_pasangan" placeholder="Nama Lengkap"></div>
+                    <div class="form-group"><label>Jumlah Anak</label><input type="number" id="jumlah_anak" placeholder="0" min="0" oninput="generateChildFields()"></div>
                 </div>
+                <div id="child_fields_container"></div>
             </div>
 
             <div id="form_single" class="dynamic-field">
@@ -185,7 +204,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
 <script>
-    /* LOGIKA JAVASCRIPT ASLI DI PERTAHANKAN SEPENUHNYA */
     const _ENV = { k: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", aD: "boby-apps-project.firebaseapp.com", pI: "boby-apps-project", sB: "boby-apps-project.appspot.com", mS: "125984859692", aI: "1:125984859692:web:09f75df5d2e4b6e3bcd389" };
     const firebaseConfig = { apiKey: _ENV.k, authDomain: _ENV.aD, projectId: _ENV.pI, storageBucket: _ENV.sB, messagingSenderId: _ENV.mS, appId: _ENV.aI };
 
@@ -193,9 +211,33 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // Fungsi Pembantu Reset (Pengganti Alert)
-    function showResetNotif() {
-        document.getElementById('custom-alert').style.display = 'flex';
+    // LOGIKA GENERATE KOLOM ANAK
+    function generateChildFields() {
+        const container = document.getElementById("child_fields_container");
+        const count = parseInt(document.getElementById("jumlah_anak").value) || 0;
+        container.innerHTML = ""; // Bersihkan kolom sebelumnya
+
+        for (let i = 1; i <= count; i++) {
+            const childDiv = document.createElement("div");
+            childDiv.className = "child-row";
+            childDiv.innerHTML = `
+                <div style="font-size: 10px; font-weight: bold; margin-bottom: 5px; color: #28a745;">DATA ANAK KE-${i}</div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Nama Anak ${i}</label>
+                        <input type="text" class="child-name" placeholder="Nama Lengkap">
+                    </div>
+                    <div class="form-group">
+                        <label>Jenis Kelamin</label>
+                        <select class="child-gender">
+                            <option value="Laki-laki">Laki-laki</option>
+                            <option value="Perempuan">Perempuan</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+            container.appendChild(childDiv);
+        }
     }
 
     async function updateNIJPreview() {
@@ -215,12 +257,25 @@
 
     async function handleRegistrasi() {
         const btnSubmit = document.getElementById("btnSubmit");
+        
+        // Ambil Data Anak dari input dinamis
+        const childNames = document.querySelectorAll(".child-name");
+        const childGenders = document.querySelectorAll(".child-gender");
+        let listAnak = [];
+        childNames.forEach((input, index) => {
+            if(input.value.trim() !== "") {
+                listAnak.push({ nama: input.value, jk: childGenders[index].value });
+            }
+        });
+
         const data = {
             email: document.getElementById("email").value, pass: document.getElementById("pass").value, nama: document.getElementById("nama").value, nij: document.getElementById("nij-display").value,
             hp: document.getElementById("hp").value, lokasi: document.getElementById("lokasi").value, komsel: document.getElementById("komsel").value, jabatan: document.getElementById("jabatan_jemaat").value,
             sub: document.getElementById("sub_jabatan").value, pel: document.getElementById("pelayanan").value, det: document.getElementById("pelayanan_spesifik_non").value, alamat: document.getElementById("alamat").value,
             nikah: document.getElementById("status_pernikahan").value, kerja: document.getElementById("pekerjaan").value, provLahir: document.getElementById("provinsi_lahir").value,
-            kotaLahir: document.getElementById("kota_lahir").value, kecLahir: document.getElementById("kecamatan_lahir").value, desaLahir: document.getElementById("desa_lahir").value, tglLahir: document.getElementById("tgl_lahir").value
+            kotaLahir: document.getElementById("kota_lahir").value, kecLahir: document.getElementById("kecamatan_lahir").value, desaLahir: document.getElementById("desa_lahir").value, tglLahir: document.getElementById("tgl_lahir").value,
+            namaPasangan: document.getElementById("nama_pasangan")?.value || "",
+            dataAnak: listAnak
         };
 
         if (!data.email || !data.pass || !data.nama || !data.lokasi) { alert("Lengkapi data wajib!"); return; }
@@ -232,19 +287,24 @@
             await db.collection("users").doc(userCredential.user.uid).set({
                 uid: userCredential.user.uid, nama: data.nama, email: data.email, nij: data.nij, whatsapp: data.hp, lokasi: data.lokasi, komsel: data.komsel, jabatan: data.jabatan,
                 sub_jabatan: data.sub, pelayanan: data.pel, detail_pelayanan: data.det, alamat: data.alamat, tempat_lahir: data.kotaLahir, provinsi_lahir: data.provLahir, tanggal_lahir: data.tglLahir,
-                status_pernikahan: data.nikah, pekerjaan: data.kerja, status_akun: "Aktif", createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                status_pernikahan: data.nikah, pekerjaan: data.kerja, nama_pasangan: data.namaPasangan, data_anak: data.dataAnak, status_akun: "Aktif", createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
-            document.getElementById("blocking-message").style.display = "flex";
-        } catch (e) { btnSubmit.disabled = false; btnSubmit.innerText = "FINALISASI & DAFTAR"; alert(e.message); }
+            
+            // MENGAKTIFKAN MODAL NOTIFIKASI YANG BARU DIBUAT
+            document.getElementById("notif-email-sent").style.display = "flex";
+
+        } catch (e) { 
+            btnSubmit.disabled = false; 
+            btnSubmit.innerText = "FINALISASI & DAFTAR"; 
+            alert(e.message); 
+        }
     }
 
-    // API Wilayah (Tetap)
     async function loadProvinsi() { const resp = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json'); const data = await resp.json(); let opt = '<option value="">Pilih Provinsi</option>'; data.forEach(p => opt += `<option value="${p.name}" data-id="${p.id}">${p.name}</option>`); document.getElementById('provinsi_lahir').innerHTML = opt; }
     async function loadKota() { const id = document.getElementById('provinsi_lahir').options[document.getElementById('provinsi_lahir').selectedIndex].getAttribute('data-id'); const resp = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${id}.json`); const data = await resp.json(); let opt = '<option value="">Pilih Kota</option>'; data.forEach(k => opt += `<option value="${k.name}" data-id="${k.id}">${k.name}</option>`); document.getElementById('kota_lahir').innerHTML = opt; }
     async function loadKecamatan() { const id = document.getElementById('kota_lahir').options[document.getElementById('kota_lahir').selectedIndex].getAttribute('data-id'); const resp = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/districts/${id}.json`); const data = await resp.json(); let opt = '<option value="">Pilih Kecamatan</option>'; data.forEach(k => opt += `<option value="${k.name}" data-id="${k.id}">${k.name}</option>`); document.getElementById('kecamatan_lahir').innerHTML = opt; }
     async function loadDesa() { const id = document.getElementById('kecamatan_lahir').options[document.getElementById('kecamatan_lahir').selectedIndex].getAttribute('data-id'); const resp = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/villages/${id}.json`); const data = await resp.json(); let opt = '<option value="">Pilih Desa</option>'; data.forEach(d => opt += `<option value="${d.name}">${d.name}</option>`); document.getElementById('desa_lahir').innerHTML = opt; }
 
-    // Navigasi UI (Tetap)
     function nextStep(n) {
         document.querySelectorAll('.form-step').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
         const target = document.getElementById('step-'+n);
@@ -255,9 +315,17 @@
 
     function toggleAgreeButton() { const c = document.getElementById("check-agree"); const b = document.getElementById("btn-agree-submit"); b.disabled = !c.checked; b.style.opacity = c.checked ? "1" : "0.5"; }
     function closeTermsModal() { document.getElementById("terms-modal").style.display = "none"; nextStep(1); }
-    function handleStatusNikah() { const s = document.getElementById("status_pernikahan").value; document.getElementById("form_menikah").style.display = (s === "Menikah") ? "block" : "none"; document.getElementById("form_single").style.display = (s !== "Menikah" && s !== "") ? "block" : "none"; }
+    
+    function handleStatusNikah() { 
+        const s = document.getElementById("status_pernikahan").value; 
+        document.getElementById("form_menikah").style.display = (s === "Menikah") ? "block" : "none"; 
+        document.getElementById("form_single").style.display = (s !== "Menikah" && s !== "") ? "block" : "none"; 
+        if(s !== "Menikah") {
+            document.getElementById("jumlah_anak").value = "";
+            document.getElementById("child_fields_container").innerHTML = "";
+        }
+    }
 
-    // Data Dropdown (Tetap)
     const dataKomsel = { "ABE": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Esther 1"], "STN": ["Siloam 1", "Siloam 2", "Agape 1"], "DYO": ["Bapak Doyo", "Ibu Doyo"], "ARS1": ["Keluarga Arso 1"], "ARS2": ["Keluarga Arso 2"] };
     const dataSubJabatan = { "Kependetaan": ["Gembala Sidang", "Pdt. Pembantu"], "Pemimpin / Koordinator": ["Sekretaris", "Bendahara", "Koordinator Lansia"], "Anggota Jemaat": ["Anggota Jemaat Ordinari"] };
     
