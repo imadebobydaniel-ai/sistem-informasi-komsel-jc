@@ -165,53 +165,49 @@
     window.currentAdmin = null; 
     window.cloudinaryImages = [];
     window.currentEvents = [];
-    let listAbsensi = []; 
 
-    function formatTglIndo(dateString) {
-        if (!dateString) return "-";
-        const options = { day: 'numeric', month: 'long', year: 'numeric' };
-        return new Date(dateString).toLocaleDateString('id-ID', options);
-    }
+    // --- PASTIKAN FUNGSI INI TERSEDIA SECARA GLOBAL ---
 
-    window.toggleLoginSlider = () => {
-        const box = document.getElementById('loginBox');
-        box.style.display = (box.style.display === 'block') ? 'none' : 'block';
+    window.shareWA = (id) => {
+        const item = window.currentEvents.find(x => x.id === id);
+        if(!item) return;
+        const pesan = encodeURIComponent(`*${item.nama}*\n📍 Lokasi: ${item.lokasi}\n📅 Tanggal: ${item.tgl}\n\n${item.isi}`);
+        window.open(`https://api.whatsapp.com/send?text=${pesan}`);
     };
 
-    window.togglePassword = () => {
-        const p = document.getElementById('passAdmin');
-        const icon = document.getElementById('eyeIcon');
-        p.type = (p.type === "password") ? "text" : "password";
-        icon.className = (p.type === "password") ? "fas fa-eye toggle-pass" : "fas fa-eye-slash toggle-pass";
-    };
-
-    window.loginEvent = async function() {
-        const u = document.getElementById('userAdmin').value;
-        const p = document.getElementById('passAdmin').value;
-        let loggedInUser = "";
-        if(u === "admin" && p === "admin123") { loggedInUser = "SuperAdmin"; }
-        else {
-            const snap = await get(child(ref(db), `admin_users/${u}`));
-            if (snap.exists() && snap.val().password === p) loggedInUser = u;
+    window.downloadPDF = async (id) => {
+        const item = window.currentEvents.find(x => x.id === id);
+        if(!item) return;
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        Swal.fire({ title: 'Menyiapkan PDF...', didOpen: () => Swal.showLoading() });
+        
+        doc.setFontSize(16);
+        doc.text("LAPORAN KEGIATAN", 105, 20, { align: 'center' });
+        doc.setFontSize(12);
+        doc.text(`Judul: ${item.nama}`, 20, 40);
+        doc.text(`Lokasi: ${item.lokasi}`, 20, 50);
+        
+        // Tambahkan foto pertama ke PDF jika ada
+        if (item.fotos && item.fotos.length > 0) {
+            try {
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.src = item.fotos[0];
+                await new Promise((resolve) => {
+                    img.onload = () => {
+                        doc.addImage(img, 'JPEG', 20, 60, 170, 90);
+                        resolve();
+                    };
+                    img.onerror = () => resolve();
+                });
+            } catch (e) { console.error("Gagal muat gambar ke PDF", e); }
         }
-        if (loggedInUser) {
-            window.currentAdmin = loggedInUser;
-            document.getElementById('adminSection').style.display = 'block';
-            if(loggedInUser === "SuperAdmin") document.getElementById('superAdminSection').style.display = 'block';
-            document.getElementById('newsList').style.display = 'none'; 
-            document.getElementById('loginBox').style.display = 'none';
-            document.getElementById('btnBack').style.display = 'inline-block';
-            Swal.fire('Berhasil', `Selamat datang, ${loggedInUser}`, 'success');
-        } else { Swal.fire('Gagal', 'Username/Password salah', 'error'); }
-    };
-
-    window.createNewAdmin = async function() {
-        const nu = document.getElementById('newAdminUser').value;
-        const np = document.getElementById('newAdminPass').value;
-        if(!nu || !np) return Swal.fire('Error', 'Lengkapi data', 'error');
-        await set(ref(db, `admin_users/${nu}`), { password: np });
-        Swal.fire('Berhasil', `Admin ${nu} terdaftar!`, 'success');
-        document.getElementById('newAdminUser').value = ""; document.getElementById('newAdminPass').value = "";
+        
+        doc.save(`${item.nama}.pdf`);
+        Swal.close();
     };
 
     window.handleFileUpload = async (event) => {
@@ -221,14 +217,8 @@
         window.cloudinaryImages = [];
         const btnSimpan = document.getElementById('btnSimpan');
         btnSimpan.disabled = true;
-        btnSimpan.innerText = "Proses Upload...";
 
-        Swal.fire({ 
-            title: 'Mengunggah...', 
-            text: 'Mohon tunggu sampai semua foto terproses',
-            allowOutsideClick: false, 
-            didOpen: () => Swal.showLoading() 
-        });
+        Swal.fire({ title: 'Mengunggah...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
         
         for (let file of files) {
             const formData = new FormData();
@@ -240,18 +230,19 @@
                     method: 'POST', 
                     body: formData 
                 });
+                
+                if (!resp.ok) throw new Error("Gagal upload ke Cloudinary. Cek Preset/Cloud Name.");
+                
                 const data = await resp.json();
-                if (data.secure_url) {
-                    window.cloudinaryImages.push(data.secure_url);
-                }
+                if (data.secure_url) window.cloudinaryImages.push(data.secure_url);
             } catch (err) {
-                console.error("❌ Network Error:", err);
+                console.error(err);
+                Swal.fire('Upload Gagal', 'Pastikan koneksi stabil dan preset Cloudinary benar.', 'error');
             }
         }
 
         Swal.close();
         btnSimpan.disabled = false;
-        btnSimpan.innerText = "Simpan & Sinkronkan";
         document.getElementById('uploadStatus').innerText = window.cloudinaryImages.length + " Foto siap.";
     };
 
@@ -261,95 +252,65 @@
         const tgl = document.getElementById('tglEvent').value;
         const isi = document.getElementById('isiEvent').value;
 
-        if (!nama || !lokasi || !tgl) {
-            return Swal.fire('Error', 'Data nama, lokasi, dan tanggal wajib diisi!', 'error');
-        }
+        if (!nama || !lokasi || !tgl) return Swal.fire('Error', 'Nama, Lokasi, dan Tanggal wajib diisi!', 'error');
 
-        const daftarFotoValid = (window.cloudinaryImages || []).filter(url => url != null && url !== "");
+        // Proteksi: Pastikan fotos minimal array kosong, bukan undefined
+        const daftarFotoValid = window.cloudinaryImages.length > 0 ? window.cloudinaryImages : [];
 
         const newEvent = { 
-            nama, 
-            lokasi, 
-            tgl, 
+            nama, lokasi, tgl, 
             isi: isi || "", 
             fotos: daftarFotoValid, 
-            createdBy: window.currentAdmin || "Admin", 
-            createdAt: new Date().toISOString() 
+            createdBy: window.currentAdmin || "Admin",
+            createdAt: new Date().toISOString()
         };
 
         try {
-            Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             await push(eventRef, newEvent);
-            Swal.fire('Berhasil', 'Data Berhasil Disinkronkan!', 'success').then(() => location.reload());
+            Swal.fire('Berhasil', 'Data tersimpan!', 'success').then(() => location.reload());
         } catch (error) {
-            Swal.fire('Gagal Simpan', 'Error Firebase: ' + error.message, 'error');
+            Swal.fire('Gagal Simpan', error.message, 'error');
         }
     };
 
-    // --- PERBAIKAN DETAIL EVENT: MENAMPILKAN SEMUA FOTO ---
     window.detailEvent = (id) => {
         const item = window.currentEvents.find(x => x.id === id);
-        
-        // Buat HTML untuk gallery foto (Looping semua foto)
-        let galleryHtml = "";
-        if (item.fotos && item.fotos.length > 0) {
-            galleryHtml = item.fotos.map(url => `
-                <img src="${url}" style="width:100%; border-radius:12px; margin-bottom:10px; object-fit:cover; max-height:300px;" onerror="this.src='${NO_IMG}'">
-            `).join('');
-        } else {
-            galleryHtml = `<img src="${NO_IMG}" style="width:100%; border-radius:12px; margin-bottom:15px;">`;
-        }
+        if(!item) return;
+
+        let galleryHtml = (item.fotos && item.fotos.length > 0) 
+            ? item.fotos.map(url => `<img src="${url}" style="width:100%; border-radius:12px; margin-bottom:10px; object-fit:cover; max-height:300px;" onerror="this.src='${NO_IMG}'">`).join('')
+            : `<img src="${NO_IMG}" style="width:100%; border-radius:12px;">`;
 
         Swal.fire({
             title: item.nama,
             html: `
-                <div class="photo-gallery" style="max-height: 400px; overflow-y: auto; margin-bottom: 15px;">
-                    ${galleryHtml}
-                </div>
+                <div style="max-height: 400px; overflow-y: auto; margin-bottom: 15px;">${galleryHtml}</div>
                 <div style="text-align:left; font-size:14px">
-                    <p><b><i class="fas fa-map-marker-alt"></i> Lokasi:</b> ${item.lokasi}</p>
-                    <p><b><i class="fas fa-calendar-day"></i> Tanggal:</b> ${formatTglIndo(item.tgl)}</p>
-                    <hr><div class="news-content-text">${item.isi || ''}</div>
+                    <p><b>📍 Lokasi:</b> ${item.lokasi}</p>
+                    <p><b>📅 Tanggal:</b> ${item.tgl}</p>
+                    <hr><div>${item.isi || ''}</div>
                 </div>
-                <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:20px">
-                    <button onclick="shareWA('${id}')" style="flex:1; padding:8px; background:#25d366; color:white; border:none; border-radius:6px; font-size:12px; font-weight:bold;"><i class="fab fa-whatsapp"></i> Whatsapp</button>
-                    <button onclick="downloadPDF('${id}')" style="flex:1; padding:8px; background:#e74c3c; color:white; border:none; border-radius:6px; font-size:12px; font-weight:bold;"><i class="fas fa-file-pdf"></i> PDF</button>
-                    <button onclick="hapusBerita('${id}')" style="flex:0.5; padding:8px; background:#333; color:white; border:none; border-radius:6px; font-size:12px;"><i class="fas fa-trash"></i></button>
+                <div style="display:flex; gap:8px; margin-top:20px">
+                    <button onclick="shareWA('${id}')" style="flex:1; padding:10px; background:#25d366; color:white; border:none; border-radius:6px;"><i class="fab fa-whatsapp"></i> WA</button>
+                    <button onclick="downloadPDF('${id}')" style="flex:1; padding:10px; background:#e74c3c; color:white; border:none; border-radius:6px;"><i class="fas fa-file-pdf"></i> PDF</button>
                 </div>`,
             showConfirmButton: false, showCloseButton: true, width: '90%'
         });
     };
 
-    window.hapusBerita = async (id) => {
-        const { value: password } = await Swal.fire({
-            title: 'Konfirmasi',
-            text: 'Masukkan password admin123',
-            input: 'password',
-            showCancelButton: true
-        });
-
-        if (password === "admin123") {
-            await remove(ref(db, `events/${id}`));
-            Swal.fire('Terhapus!', '', 'success').then(() => location.reload());
-        }
-    };
-
     onValue(eventRef, (snapshot) => {
-        const data = snapshot.val(); const list = [];
+        const data = snapshot.val(); 
+        const list = [];
         for (let id in data) { list.unshift({ id, ...data[id] }); }
         window.currentEvents = list;
-        document.getElementById('newsList').innerHTML = list.map(item => {
-            const fotoUtama = (item.fotos && item.fotos.length > 0) ? item.fotos[0] : NO_IMG;
-            return `
-                <div class="news-card" onclick="detailEvent('${item.id}')">
-                    <img src="${fotoUtama}" class="news-img" onerror="this.src='${NO_IMG}'">
-                    <div class="news-body">
-                        <div class="news-category">BY: ${item.createdBy || 'ADMIN'}</div>
-                        <div class="news-title">${item.nama}</div>
-                        <div class="news-meta"><span><i class="fas fa-calendar-alt"></i> ${formatTglIndo(item.tgl)}</span></div>
-                    </div>
-                </div>`;
-        }).join('');
+        document.getElementById('newsList').innerHTML = list.map(item => `
+            <div class="news-card" onclick="detailEvent('${item.id}')">
+                <img src="${(item.fotos && item.fotos[0]) || NO_IMG}" class="news-img">
+                <div class="news-body">
+                    <div class="news-title">${item.nama}</div>
+                    <div class="news-meta">${item.tgl}</div>
+                </div>
+            </div>`).join('');
     });
 
     document.getElementById('fotoEvent').onchange = window.handleFileUpload;
