@@ -25,11 +25,13 @@
         position: sticky; top: 0; z-index: 1000; border-bottom: 3px solid var(--accent); 
     }
 
-    /* NAV LEFT DIOSONGKAN UNTUK MENGHILANGKAN TOMBOL KEMBALI/MENU */
     .nav-left { position: absolute; left: 15px; bottom: 15px; display: flex; gap: 10px; }
     
     .nav-admin { position: absolute; right: 15px; bottom: 15px; }
     .btn-toggle-login { background: var(--accent); color: white; border: none; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+    /* Tambahan Style Tombol Kembali */
+    .btn-header-back { border:none; background:#555; color:white; height: 38px; padding:0 15px; border-radius:19px; font-weight:bold; cursor:pointer; font-size: 12px; display: flex; align-items: center; }
 
     .login-dropdown { 
         display: none; position: absolute; top: 50px; right: 0; width: 240px; 
@@ -67,7 +69,6 @@
     .news-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: var(--primary); line-height: 1.3; padding-right: 30px; }
     .news-meta { font-size: 0.75rem; color: #7f8c8d; display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; }
 
-    /* TOMBOL HAPUS PADA SETIAP LIST BERITA */
     .btn-delete-news {
         position: absolute;
         top: 15px;
@@ -101,6 +102,9 @@
 
 <div class="header">
     <div class="nav-left">
+        <button id="btnMainBack" class="btn-header-back" onclick="window.history.back()">
+            <i class="fas fa-chevron-left"></i> &nbsp;KEMBALI
+        </button>
         <button id="btnBack" onclick="logoutEvent()" style="display:none; border:none; background:#d33; color:white; height: 38px; padding:0 20px; border-radius:19px; font-weight:bold; cursor:pointer;">LOGOUT</button>
     </div>
     <h1 style="font-size: 1.1rem; margin: 0; letter-spacing: 1px;">EVENT JEMAAT</h1>
@@ -177,13 +181,22 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const eventRef = ref(db, 'events');
+    const logRef = ref(db, 'log_activity');
     const NO_IMG = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/1665px-No-Image-Placeholder.svg.png";
 
     window.currentAdmin = localStorage.getItem('sipapua_admin') || null; 
     window.cloudinaryImages = [];
     window.currentEvents = [];
 
-    // FUNGSI LOGOUT DENGAN KONFIRMASI
+    // Konfigurasi Visibilitas Tombol Navigasi
+    if (window.currentAdmin) {
+        document.getElementById('adminSection').style.display = 'block';
+        document.getElementById('btnBack').style.display = 'inline-block';
+        document.getElementById('btnMainBack').style.display = 'none'; // Sembunyikan di portal admin
+    } else {
+        document.getElementById('btnMainBack').style.display = 'flex'; // Munculkan di main page
+    }
+
     window.logoutEvent = () => {
         Swal.fire({
             title: 'Keluar?',
@@ -224,7 +237,7 @@
             <div class="news-card" onclick="detailEvent('${item.id}')">
                 <img src="${(item.fotos && item.fotos[0]) || NO_IMG}" class="news-img">
                 <div class="news-body">
-                    <button class="btn-delete-news" onclick="event.stopPropagation(); hapusBerita('${item.id}')">
+                    <button class="btn-delete-news" onclick="event.stopPropagation(); hapusBerita('${item.id}', '${item.createdBy}')">
                         <i class="fas fa-trash"></i>
                     </button>
                     <div class="news-category">OLEH: ${item.createdBy || 'ADMIN'}</div>
@@ -237,21 +250,47 @@
         });
     });
 
-    window.hapusBerita = (id) => {
-        Swal.fire({
-            title: 'Hapus Berita?',
-            text: "Tindakan ini memerlukan otoritas Admin di sistem.",
-            icon: 'warning',
+    // Protokol Hapus Sesuai Instruksi
+    window.hapusBerita = async (id, creator) => {
+        const user = window.currentAdmin;
+        if (!user) return Swal.fire('Akses Ditolak', 'Hanya Admin yang dapat menghapus.', 'error');
+
+        // Validasi Kuasa Hapus Admin Lite
+        if (user !== "SuperAdmin" && user !== creator) {
+            return Swal.fire('Gagal', 'Anda hanya diizinkan menghapus berita yang Anda terbitkan sendiri.', 'error');
+        }
+
+        // Protokol Password Wajib
+        const { value: pass } = await Swal.fire({
+            title: 'Verifikasi Password',
+            text: user === "SuperAdmin" ? "SuperAdmin wajib memasukkan password untuk menghapus." : `Masukkan password untuk konfirmasi hapus.`,
+            input: 'password',
+            inputPlaceholder: 'Password...',
             showCancelButton: true,
-            confirmButtonColor: '#e74c3c',
-            confirmButtonText: 'Ya, Hapus'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                remove(ref(db, `events/${id}`))
-                .then(() => Swal.fire('Berhasil', 'Berita telah dihapus.', 'success'))
-                .catch(() => Swal.fire('Gagal', 'Akses ditolak database.', 'error'));
-            }
+            confirmButtonColor: '#e74c3c'
         });
+
+        if (pass) {
+            let isValid = false;
+            if (user === "SuperAdmin" && pass === "admin123") isValid = true;
+            else {
+                const snap = await get(child(ref(db), `admin_users/${user}`));
+                if (snap.exists() && snap.val().password === pass) isValid = true;
+            }
+
+            if (isValid) {
+                remove(ref(db, `events/${id}`)).then(() => {
+                    push(logRef, {
+                        user: user,
+                        action: `Menghapus Berita ID: ${id}`,
+                        timestamp: new Date().toLocaleString()
+                    });
+                    Swal.fire('Berhasil', 'Berita telah dihapus.', 'success');
+                });
+            } else {
+                Swal.fire('Gagal', 'Password salah!', 'error');
+            }
+        }
     };
 
     window.toggleLoginSlider = () => {
@@ -283,7 +322,6 @@
         if (userData) {
             if(userData.status === "pending") return Swal.fire('Akses Ditolak', 'Akun ditangguhkan.', 'error');
             localStorage.setItem('sipapua_admin', userData.username);
-            // NOTIFIKASI BERHASIL MASUK
             Swal.fire({
                 title: 'Berhasil',
                 text: 'Anda Berhasil Masuk',
@@ -332,6 +370,7 @@
             createdAt: new Date().toISOString()
         };
         await push(eventRef, newEvent);
+        push(logRef, { user: window.currentAdmin, action: `Menambah Berita: ${nama}`, timestamp: new Date().toLocaleString() });
         Swal.fire('Berhasil', 'Data tersimpan!', 'success').then(() => location.reload());
     };
 
@@ -368,14 +407,14 @@
         doc.save(`Laporan_${item.nama}.pdf`);
     };
 
-    if (window.currentAdmin) {
-        document.getElementById('adminSection').style.display = 'block';
-        document.getElementById('btnBack').style.display = 'inline-block';
-    }
-
-    onValue(ref(db, 'log_activity'), (snap) => {
+    // Listener Log Activity Realtime untuk SuperAdmin & Monitoring
+    onValue(logRef, (snap) => {
         const data = snap.val(); let h = "";
-        for(let id in data) { h = `<div>> ${data[id].timestamp} - ${data[id].user}: ${data[id].action}</div>` + h; }
+        const logArr = [];
+        for(let id in data) { logArr.unshift(data[id]); }
+        logArr.slice(0, 20).forEach(l => {
+            h += `<div style="border-bottom:1px solid #eee; padding:3px 0;">> ${l.timestamp} - <b>${l.user}</b>: ${l.action}</div>`;
+        });
         document.getElementById('logContent').innerHTML = h;
     });
 
