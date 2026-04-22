@@ -133,9 +133,29 @@
 
         input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
         .btn-action { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+
+        /* NOTIFICATION BLOCK DISPLAY */
+        #notif-container {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 9999; width: 90%; max-width: 400px; display: none;
+        }
+        .notif-block {
+            background: var(--primary); color: white; padding: 15px 20px;
+            border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: flex; align-items: center; gap: 12px; font-size: 14px;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
+
+<div id="notif-container">
+    <div class="notif-block" id="notif-content">
+        <i class="fa-solid fa-circle-info"></i>
+        <span id="notif-message">Pesan notifikasi di sini...</span>
+    </div>
+</div>
 
 <div class="navbar">
     <h1><i class="fa-solid fa-store"></i> UMKM Jemaat</h1>
@@ -232,9 +252,21 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
-    const storage = firebase.storage(); // Inisialisasi Storage
+    const storage = firebase.storage();
 
-    // FUNGSI DROPDOWN KLIK
+    // FUNGSI NOTIFIKASI BLOCK DISPLAY
+    function tampilNotif(pesan, warna = "#2c3e50") {
+        const container = document.getElementById("notif-container");
+        const content = document.getElementById("notif-content");
+        const msg = document.getElementById("notif-message");
+        
+        msg.innerText = pesan;
+        content.style.background = warna;
+        container.style.display = "block";
+        
+        setTimeout(() => { container.style.display = "none"; }, 3500);
+    }
+
     function toggleMenu(event) {
         event.stopPropagation();
         document.getElementById("myDropdown").classList.toggle("show");
@@ -244,10 +276,7 @@
         if (!event.target.matches('.dropbtn') && !event.target.closest('.dropbtn')) {
             var dropdowns = document.getElementsByClassName("dropdown-content");
             for (var i = 0; i < dropdowns.length; i++) {
-                var openDropdown = dropdowns[i];
-                if (openDropdown.classList.contains('show')) {
-                    openDropdown.classList.remove('show');
-                }
+                if (dropdowns[i].classList.contains('show')) dropdowns[i].classList.remove('show');
             }
         }
     }
@@ -271,25 +300,30 @@
         const pass = document.getElementById('admin-pass').value;
         if(user === "admin" && pass === "admin321") {
             sessionStorage.setItem("isAdmin", "true");
-            window.location.href = "super-admin-umkm.html";
-        } else { alert("Akses Ditolak!"); }
+            tampilNotif("Berhasil Masuk ke Panel Super Admin", "#27ae60");
+            setTimeout(() => { window.location.href = "super-admin-umkm.html"; }, 1000);
+        } else { 
+            tampilNotif("Username atau Password Admin Salah!", "#c0392b"); 
+        }
     }
 
     async function loadMainMarket() {
         const market = document.getElementById("main-market");
-        const snap = await db.collection("umkm_products").orderBy("dibuat", "desc").limit(20).get();
-        market.innerHTML = "";
-        snap.forEach(doc => {
-            const p = doc.data();
-            market.innerHTML += `
-                <div class="product-card">
-                    <img src="${p.img_url}" class="product-img">
-                    <div class="product-info">
-                        <span class="category-tag">${p.status}</span>
-                        <h3>${p.nama}</h3>
-                    </div>
-                </div>`;
-        });
+        try {
+            const snap = await db.collection("umkm_products").orderBy("dibuat", "desc").limit(20).get();
+            market.innerHTML = "";
+            snap.forEach(doc => {
+                const p = doc.data();
+                market.innerHTML += `
+                    <div class="product-card">
+                        <img src="${p.img_url}" class="product-img">
+                        <div class="product-info">
+                            <span class="category-tag">${p.status}</span>
+                            <h3>${p.nama}</h3>
+                        </div>
+                    </div>`;
+            });
+        } catch (e) { console.error(e); }
     }
 
     async function prosesDaftar() {
@@ -298,22 +332,19 @@
         const fotoFile = document.getElementById("reg-foto").files[0];
         const btn = document.getElementById("btn-daftar");
 
-        if(!fotoFile) return alert("Mohon pilih foto UMKM!");
+        if(!fotoFile) return tampilNotif("Mohon pilih foto UMKM!", "#f39c12");
 
         try {
             btn.disabled = true;
             btn.innerText = "Mendaftarkan...";
 
-            // 1. Create User
             const userCredential = await auth.createUserWithEmailAndPassword(email, pass);
             const uid = userCredential.user.uid;
 
-            // 2. Upload Foto ke Storage
             const storageRef = storage.ref(`umkm_logos/${uid}_${fotoFile.name}`);
             await storageRef.put(fotoFile);
             const photoURL = await storageRef.getDownloadURL();
 
-            // 3. Simpan ke Firestore
             await db.collection("umkm_stores").doc(uid).set({
                 nama_toko: document.getElementById("reg-toko").value,
                 nama_pemilik: document.getElementById("reg-pemilik").value,
@@ -325,19 +356,28 @@
                 dibuat: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            window.location.href = "dashboard-umkm.html";
+            tampilNotif("Pendaftaran Berhasil! Membuka Portal...", "#27ae60");
+            setTimeout(() => { window.location.href = "dashboard-umkm.html"; }, 1500);
         } catch (e) { 
-            alert(e.message);
+            let errorMsg = e.message;
+            if(e.code === "auth/email-already-in-use") errorMsg = "Email ini sudah digunakan oleh UMKM lain!";
+            tampilNotif(errorMsg, "#c0392b");
             btn.disabled = false;
             btn.innerText = "BUAT LAPAK SEKARANG";
         }
     }
 
     async function prosesLogin() {
+        const email = document.getElementById("log-email").value;
+        const pass = document.getElementById("log-pass").value;
         try {
-            await auth.signInWithEmailAndPassword(document.getElementById("log-email").value, document.getElementById("log-pass").value);
-            window.location.href = "dashboard-umkm.html";
-        } catch (e) { alert(e.message); }
+            await auth.signInWithEmailAndPassword(email, pass);
+            tampilNotif("Berhasil Masuk! Membuka Dashboard...", "#27ae60");
+            setTimeout(() => { window.location.href = "dashboard-umkm.html"; }, 1000);
+        } catch (e) { 
+            let errorMsg = "Email atau Password Salah!";
+            tampilNotif(errorMsg, "#c0392b"); 
+        }
     }
 
     loadMainMarket();
