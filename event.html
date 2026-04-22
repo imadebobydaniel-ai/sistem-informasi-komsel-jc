@@ -118,24 +118,32 @@
 
         <button class="btn-action" style="background:var(--accent)" id="btnSimpan">SIMPAN & SINNKRONKAN</button>
 
+        <div class="absensi-box">
+            <div class="absensi-header">
+                <span style="font-weight:bold; font-size:13px;"><i class="fas fa-qrcode"></i> ABSENSI</span>
+                <span class="total-counter" style="cursor:pointer" onclick="showAbsenList()">Total: <span id="totalAbsen">0</span></span>
+            </div>
+            <button class="btn-action" style="background: var(--primary);" onclick="startScanner()">SCAN QR</button>
+            <button class="btn-action" style="background: #d33; display:none;" id="btnStopScan" onclick="stopScanner()">TUTUP KAMERA</button>
+            <div id="reader"></div>
+        </div>
+
         <div id="superAdminSection">
-            <p style="font-weight:bold; font-size:13px; margin-bottom:10px;"><i class="fas fa-user-plus"></i> TAMBAH ADMIN LITE</p>
+            <hr>
+            <p style="font-weight:bold; font-size:13px; margin-bottom:10px;"><i class="fas fa-users-cog"></i> MANAJEMEN ADMIN LITE</p>
             <div style="display: flex; flex-direction: column; gap: 0px;">
                 <input type="text" id="newAdminUser" placeholder="Username Baru">
                 <input type="password" id="newAdminPass" placeholder="Password Baru">
                 <button class="btn-action" style="background:var(--primary); margin-top:0; margin-bottom: 15px;" onclick="createNewAdmin()">DAFTARKAN ADMIN</button>
             </div>
-
-            <div class="absensi-box">
-                <div class="absensi-header">
-                  <span style="font-weight:bold; font-size:13px;"><i class="fas fa-qrcode"></i> ABSENSI</span>
-                  <span class="total-counter" style="cursor:pointer" onclick="showAbsenList()">Total: <span id="totalAbsen">0</span></span>
-              </div>
-                <button class="btn-action" style="background: var(--primary);" onclick="startScanner()">SCAN QR</button>
-                <button class="btn-action" style="background: #d33; display:none;" id="btnStopScan" onclick="stopScanner()">TUTUP KAMERA</button>
-                <div id="reader"></div>
+            <div id="adminListControl" style="font-size: 11px; margin-bottom: 15px;"></div>
+            
+            <div id="superMonitor" class="log-activity-box" style="background: #fffbe6;">
+                <span style="font-weight:bold; font-size:13px;"><i class="fas fa-desktop"></i> MONITOR AGENDA AKTIF</span>
+                <div id="monitorContent" style="margin-top:10px; font-size:11px;"></div>
             </div>
         </div>
+
         <div class="log-activity-box">
             <span style="font-weight:bold; font-size:13px;"><i class="fas fa-history"></i> LOG ACTIVITY (CLOUD)</span>
             <div id="logContent" style="margin-top:10px; font-size:11px;"></div>
@@ -165,82 +173,108 @@
     window.currentAdmin = null; 
     window.cloudinaryImages = [];
     window.currentEvents = [];
+    let listAbsensi = [];
 
-    // --- PASTIKAN FUNGSI INI TERSEDIA SECARA GLOBAL ---
+    // --- GLOBAL FUNCTIONS ---
 
-    window.shareWA = (id) => {
-        const item = window.currentEvents.find(x => x.id === id);
-        if(!item) return;
-        const pesan = encodeURIComponent(`*${item.nama}*\n📍 Lokasi: ${item.lokasi}\n📅 Tanggal: ${item.tgl}\n\n${item.isi}`);
-        window.open(`https://api.whatsapp.com/send?text=${pesan}`);
+    window.toggleLoginSlider = () => {
+        const box = document.getElementById('loginBox');
+        box.style.display = (box.style.display === 'block') ? 'none' : 'block';
     };
 
-    window.downloadPDF = async (id) => {
-        const item = window.currentEvents.find(x => x.id === id);
-        if(!item) return;
-        
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        
-        Swal.fire({ title: 'Menyiapkan PDF...', didOpen: () => Swal.showLoading() });
-        
-        doc.setFontSize(16);
-        doc.text("LAPORAN KEGIATAN", 105, 20, { align: 'center' });
-        doc.setFontSize(12);
-        doc.text(`Judul: ${item.nama}`, 20, 40);
-        doc.text(`Lokasi: ${item.lokasi}`, 20, 50);
-        
-        // Tambahkan foto pertama ke PDF jika ada
-        if (item.fotos && item.fotos.length > 0) {
-            try {
-                const img = new Image();
-                img.crossOrigin = "Anonymous";
-                img.src = item.fotos[0];
-                await new Promise((resolve) => {
-                    img.onload = () => {
-                        doc.addImage(img, 'JPEG', 20, 60, 170, 90);
-                        resolve();
-                    };
-                    img.onerror = () => resolve();
-                });
-            } catch (e) { console.error("Gagal muat gambar ke PDF", e); }
+    window.togglePassword = () => {
+        const p = document.getElementById('passAdmin');
+        const icon = document.getElementById('eyeIcon');
+        p.type = (p.type === "password") ? "text" : "password";
+        icon.className = (p.type === "password") ? "fas fa-eye toggle-pass" : "fas fa-eye-slash toggle-pass";
+    };
+
+    window.loginEvent = async function() {
+        const u = document.getElementById('userAdmin').value;
+        const p = document.getElementById('passAdmin').value;
+        let userData = null;
+
+        if(u === "admin" && p === "admin123") {
+            userData = { username: "SuperAdmin", status: "active" };
+        } else {
+            const snap = await get(child(ref(db), `admin_users/${u}`));
+            if (snap.exists() && snap.val().password === p) {
+                userData = { username: u, ...snap.val() };
+            }
         }
-        
-        doc.save(`${item.nama}.pdf`);
-        Swal.close();
+
+        if (userData) {
+            if(userData.status === "pending") return Swal.fire('Akses Ditolak', 'Akun Anda sedang di-suspend.', 'error');
+            
+            window.currentAdmin = userData.username;
+            document.getElementById('adminSection').style.display = 'block';
+            document.getElementById('newsList').style.display = 'none'; 
+            document.getElementById('loginBox').style.display = 'none';
+            document.getElementById('btnBack').style.display = 'inline-block';
+            
+            if(userData.username === "SuperAdmin") {
+                document.getElementById('superAdminSection').style.display = 'block';
+                loadAdminList();
+            }
+            
+            Swal.fire('Berhasil', `Selamat datang, ${window.currentAdmin}`, 'success');
+        } else {
+            Swal.fire('Gagal', 'Username/Password salah', 'error');
+        }
+    };
+
+    window.createNewAdmin = async function() {
+        const nu = document.getElementById('newAdminUser').value;
+        const np = document.getElementById('newAdminPass').value;
+        if(!nu || !np) return Swal.fire('Error', 'Lengkapi data', 'error');
+        await set(ref(db, `admin_users/${nu}`), { password: np, status: "active" });
+        Swal.fire('Berhasil', `Admin ${nu} terdaftar!`, 'success');
+        document.getElementById('newAdminUser').value = ""; document.getElementById('newAdminPass').value = "";
+    };
+
+    async function loadAdminList() {
+        onValue(ref(db, 'admin_users'), (snap) => {
+            const data = snap.val();
+            let h = "";
+            for(let user in data) {
+                h += `<div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #ddd;">
+                    <span>${user} (${data[user].status})</span>
+                    <div>
+                        <button onclick="toggleStatusAdmin('${user}', '${data[user].status}')" style="font-size:10px; background:orange; border:none; color:white; border-radius:4px;">Status</button>
+                        <button onclick="hapusAdmin('${user}')" style="font-size:10px; background:red; border:none; color:white; border-radius:4px;">Hapus</button>
+                    </div>
+                </div>`;
+            }
+            document.getElementById('adminListControl').innerHTML = h;
+        });
+    }
+
+    window.toggleStatusAdmin = async (user, current) => {
+        const newStatus = current === "active" ? "pending" : "active";
+        await update(ref(db, `admin_users/${user}`), { status: newStatus });
+    };
+
+    window.hapusAdmin = async (user) => {
+        if(confirm(`Hapus admin ${user}?`)) await remove(ref(db, `admin_users/${user}`));
     };
 
     window.handleFileUpload = async (event) => {
         const files = event.target.files;
         if (files.length === 0) return;
-
         window.cloudinaryImages = [];
         const btnSimpan = document.getElementById('btnSimpan');
         btnSimpan.disabled = true;
-
         Swal.fire({ title: 'Mengunggah...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-        
         for (let file of files) {
             const formData = new FormData();
             formData.append('file', file);
             formData.append('upload_preset', 'sipapua_preset'); 
-            
             try {
-                const resp = await fetch('https://api.cloudinary.com/v1_1/dxzllsbgi/image/upload', { 
-                    method: 'POST', 
-                    body: formData 
-                });
-                
-                if (!resp.ok) throw new Error("Gagal upload ke Cloudinary. Cek Preset/Cloud Name.");
-                
+                const resp = await fetch('https://api.cloudinary.com/v1_1/dxzllsbgi/image/upload', { method: 'POST', body: formData });
                 const data = await resp.json();
                 if (data.secure_url) window.cloudinaryImages.push(data.secure_url);
-            } catch (err) {
-                console.error(err);
-                Swal.fire('Upload Gagal', 'Pastikan koneksi stabil dan preset Cloudinary benar.', 'error');
-            }
+            } catch (err) { console.error(err); }
         }
-
         Swal.close();
         btnSimpan.disabled = false;
         document.getElementById('uploadStatus').innerText = window.cloudinaryImages.length + " Foto siap.";
@@ -251,69 +285,142 @@
         const lokasi = document.getElementById('lokasiEvent').value;
         const tgl = document.getElementById('tglEvent').value;
         const isi = document.getElementById('isiEvent').value;
-
-        if (!nama || !lokasi || !tgl) return Swal.fire('Error', 'Nama, Lokasi, dan Tanggal wajib diisi!', 'error');
-
-        // Proteksi: Pastikan fotos minimal array kosong, bukan undefined
-        const daftarFotoValid = window.cloudinaryImages.length > 0 ? window.cloudinaryImages : [];
+        if (!nama || !lokasi || !tgl) return Swal.fire('Error', 'Data wajib diisi!', 'error');
 
         const newEvent = { 
-            nama, lokasi, tgl, 
-            isi: isi || "", 
-            fotos: daftarFotoValid, 
-            createdBy: window.currentAdmin || "Admin",
+            nama, lokasi, tgl, isi: isi || "", 
+            fotos: window.cloudinaryImages, 
+            createdBy: window.currentAdmin,
             createdAt: new Date().toISOString()
         };
+        await push(eventRef, newEvent);
+        await push(ref(db, 'log_activity'), { user: window.currentAdmin, action: `Input: ${nama}`, timestamp: new Date().toLocaleString() });
+        Swal.fire('Berhasil', 'Data tersimpan!', 'success').then(() => location.reload());
+    };
 
-        try {
-            await push(eventRef, newEvent);
-            Swal.fire('Berhasil', 'Data tersimpan!', 'success').then(() => location.reload());
-        } catch (error) {
-            Swal.fire('Gagal Simpan', error.message, 'error');
+    let html5QrCode;
+    window.startScanner = function() {
+        document.getElementById('reader').style.display = 'block';
+        document.getElementById('btnStopScan').style.display = 'block';
+        html5QrCode = new Html5Qrcode("reader");
+        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
+            if (!listAbsensi.includes(text)) {
+                listAbsensi.push(text);
+                document.getElementById('totalAbsen').innerText = listAbsensi.length;
+                // Simpan absensi spesifik per admin agar tidak tertukar
+                set(ref(db, `absensi/${window.currentAdmin}/${text.replace(/\./g, '_')}`), { name: text, time: new Date().toLocaleString() });
+                Swal.fire('Absen Berhasil', text, 'success');
+            }
+        });
+    };
+
+    window.stopScanner = () => {
+        if(html5QrCode) html5QrCode.stop().then(() => {
+            document.getElementById('reader').style.display = 'none';
+            document.getElementById('btnStopScan').style.display = 'none';
+        });
+    };
+
+    window.showAbsenList = () => {
+        const list = listAbsensi.length ? `<ol>${listAbsensi.map(n => `<li>${n}</li>`).join('')}</ol>` : 'Kosong';
+        Swal.fire({ title: 'Daftar Absen', html: list });
+    };
+
+    window.shareWA = (id) => {
+        const item = window.currentEvents.find(x => x.id === id);
+        const pesan = encodeURIComponent(`*LAPORAN KEGIATAN*\n\nJudul: ${item.nama}\nLokasi: ${item.lokasi}\nTanggal: ${item.tgl}\n\nDetail:\n${item.isi}`);
+        window.open(`https://api.whatsapp.com/send?text=${pesan}`);
+    };
+
+    window.downloadPDF = async (id) => {
+        const item = window.currentEvents.find(x => x.id === id);
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        Swal.fire({ title: 'Menyiapkan PDF...', didOpen: () => Swal.showLoading() });
+        
+        doc.setFontSize(16); doc.text("LAPORAN KEGIATAN", 105, 20, { align: 'center' });
+        doc.setFontSize(10); doc.text(`Dicetak oleh: ${window.currentAdmin} | ${new Date().toLocaleString()}`, 20, 30);
+        doc.setFontSize(12); doc.text(`Judul: ${item.nama}`, 20, 45);
+        doc.text(`Lokasi: ${item.lokasi}`, 20, 55);
+        doc.text(`Tanggal: ${item.tgl}`, 20, 65);
+        doc.text("Deskripsi:", 20, 75);
+        doc.setFontSize(10);
+        const splitText = doc.splitTextToSize(item.isi || "-", 170);
+        doc.text(splitText, 20, 82);
+
+        if (item.fotos && item.fotos.length > 0) {
+            const img = new Image(); img.crossOrigin = "Anonymous"; img.src = item.fotos[0];
+            await new Promise(res => { img.onload = () => { doc.addImage(img, 'JPEG', 20, 110, 170, 95); res(); }; img.onerror = () => res(); });
+        }
+        doc.save(`Laporan_${item.nama}.pdf`); Swal.close();
+    };
+
+    window.hapusBerita = async (id) => {
+        const item = window.currentEvents.find(x => x.id === id);
+        if (window.currentAdmin !== "SuperAdmin" && window.currentAdmin !== item.createdBy) {
+            return Swal.fire('Ditolak', 'Anda hanya bisa menghapus berita milik Anda sendiri.', 'error');
+        }
+        if(confirm("Hapus berita ini?")) {
+            await remove(ref(db, `events/${id}`));
+            location.reload();
         }
     };
 
     window.detailEvent = (id) => {
         const item = window.currentEvents.find(x => x.id === id);
-        if(!item) return;
-
-        let galleryHtml = (item.fotos && item.fotos.length > 0) 
-            ? item.fotos.map(url => `<img src="${url}" style="width:100%; border-radius:12px; margin-bottom:10px; object-fit:cover; max-height:300px;" onerror="this.src='${NO_IMG}'">`).join('')
-            : `<img src="${NO_IMG}" style="width:100%; border-radius:12px;">`;
+        const gallery = (item.fotos || []).map(f => `<img src="${f}" style="width:100%; border-radius:8px; margin-bottom:10px;">`).join('') || `<img src="${NO_IMG}" style="width:100%;">`;
+        
+        // Cek otoritas hapus
+        const btnHapus = (window.currentAdmin === "SuperAdmin" || window.currentAdmin === item.createdBy) 
+            ? `<button onclick="hapusBerita('${id}')" style="flex:0.5; padding:10px; background:#333; color:white; border:none; border-radius:6px;"><i class="fas fa-trash"></i></button>` : '';
 
         Swal.fire({
             title: item.nama,
-            html: `
-                <div style="max-height: 400px; overflow-y: auto; margin-bottom: 15px;">${galleryHtml}</div>
-                <div style="text-align:left; font-size:14px">
-                    <p><b>📍 Lokasi:</b> ${item.lokasi}</p>
-                    <p><b>📅 Tanggal:</b> ${item.tgl}</p>
-                    <hr><div>${item.isi || ''}</div>
-                </div>
-                <div style="display:flex; gap:8px; margin-top:20px">
-                    <button onclick="shareWA('${id}')" style="flex:1; padding:10px; background:#25d366; color:white; border:none; border-radius:6px;"><i class="fab fa-whatsapp"></i> WA</button>
-                    <button onclick="downloadPDF('${id}')" style="flex:1; padding:10px; background:#e74c3c; color:white; border:none; border-radius:6px;"><i class="fas fa-file-pdf"></i> PDF</button>
-                </div>`,
+            html: `<div style="max-height:350px; overflow-y:auto">${gallery}</div>
+                   <div style="text-align:left; font-size:14px; margin-top:15px">
+                        <p><b>📍 Lokasi:</b> ${item.lokasi}</p>
+                        <p><b>📅 Tanggal:</b> ${item.tgl}</p>
+                        <hr><div style="white-space:pre-line">${item.isi}</div>
+                   </div>
+                   <div style="display:flex; gap:8px; margin-top:20px">
+                        <button onclick="shareWA('${id}')" style="flex:1; padding:10px; background:#25d366; color:white; border:none; border-radius:6px;"><i class="fab fa-whatsapp"></i> WA</button>
+                        <button onclick="downloadPDF('${id}')" style="flex:1; padding:10px; background:#e74c3c; color:white; border:none; border-radius:6px;"><i class="fas fa-file-pdf"></i> PDF</button>
+                        ${btnHapus}
+                   </div>`,
             showConfirmButton: false, showCloseButton: true, width: '90%'
         });
     };
 
     onValue(eventRef, (snapshot) => {
-        const data = snapshot.val(); 
-        const list = [];
+        const data = snapshot.val(); const list = [];
         for (let id in data) { list.unshift({ id, ...data[id] }); }
         window.currentEvents = list;
         document.getElementById('newsList').innerHTML = list.map(item => `
             <div class="news-card" onclick="detailEvent('${item.id}')">
                 <img src="${(item.fotos && item.fotos[0]) || NO_IMG}" class="news-img">
                 <div class="news-body">
+                    <div class="news-category">OLEH: ${item.createdBy}</div>
                     <div class="news-title">${item.nama}</div>
-                    <div class="news-meta">${item.tgl}</div>
+                    <div class="news-meta"><span><i class="fas fa-calendar-alt"></i> ${item.tgl}</span></div>
                 </div>
             </div>`).join('');
+            
+        // Monitor untuk SuperAdmin
+        if(window.currentAdmin === "SuperAdmin") {
+            let m = "";
+            list.slice(0,5).forEach(e => m += `<div>• ${e.createdBy} membuat agenda "${e.nama}"</div>`);
+            document.getElementById('monitorContent').innerHTML = m || "Tidak ada aktivitas.";
+        }
+    });
+
+    onValue(ref(db, 'log_activity'), (snap) => {
+        const data = snap.val(); let h = "";
+        for(let id in data) { h = `<div>> ${data[id].timestamp} - ${data[id].user}: ${data[id].action}</div>` + h; }
+        document.getElementById('logContent').innerHTML = h;
     });
 
     document.getElementById('fotoEvent').onchange = window.handleFileUpload;
     document.getElementById('btnSimpan').onclick = window.simpanBerita;
-</script></body>
+</script>
+</body>
 </html>
