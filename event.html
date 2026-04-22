@@ -223,13 +223,15 @@
             formData.append('upload_preset', 'vj96p7dt');
             try {
                 const resp = await fetch('https://api.cloudinary.com/v1_1/dxt7m8psv/image/upload', { method: 'POST', body: formData });
-                const data = await resp.json(); window.cloudinaryImages.push(data.secure_url);
+                const data = await resp.json(); 
+                if(data.secure_url) window.cloudinaryImages.push(data.secure_url);
             } catch (err) { console.error(err); }
         }
         Swal.close();
         document.getElementById('uploadStatus').innerText = window.cloudinaryImages.length + " Foto siap.";
     };
 
+    // PERBAIKAN LOGIKA SIMPAN BERITA (ANTI-UNDEFINED)
     window.simpanBerita = async function() {
         const nama = document.getElementById('namaEvent').value;
         const lokasi = document.getElementById('lokasiEvent').value;
@@ -240,9 +242,8 @@
             return Swal.fire('Error', 'Data wajib diisi!', 'error');
         }
 
-        const daftarFoto = (window.cloudinaryImages && window.cloudinaryImages.length > 0) 
-            ? window.cloudinaryImages 
-            : [];
+        // Memastikan tidak ada data undefined yang masuk ke Firebase
+        const daftarFoto = (window.cloudinaryImages || []).filter(url => url !== undefined && url !== null);
 
         const newEvent = { 
             nama, 
@@ -256,16 +257,19 @@
 
         try {
             Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            
             await push(eventRef, newEvent);
+            
             await push(ref(db, 'log_activity'), { 
                 user: window.currentAdmin || 'Admin', 
                 action: `Menerbitkan Berita: ${nama}`, 
                 timestamp: new Date().toLocaleString('id-ID') 
             });
+
             Swal.fire('Berhasil', 'Tersinkron!', 'success').then(() => location.reload());
         } catch (error) {
             console.error("Firebase Push Error:", error);
-            Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan data: ' + error.message, 'error');
+            Swal.fire('Gagal', 'Terjadi kesalahan: ' + error.message, 'error');
         }
     };
 
