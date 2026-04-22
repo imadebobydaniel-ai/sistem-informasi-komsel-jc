@@ -248,9 +248,7 @@
         document.getElementById('btnStopScan').style.display = 'block';
         html5QrCode = new Html5Qrcode("reader");
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
-            // Logika: Jika formatnya email, ambil bagian depan sebelum '@' sebagai nama
             let displayName = text.includes('@') ? text.split('@')[0].replace(/\./g, ' ').toUpperCase() : text;
-            
             if (!listAbsensi.includes(displayName)) {
                 listAbsensi.push(displayName); 
                 document.getElementById('totalAbsen').innerText = listAbsensi.length;
@@ -315,32 +313,45 @@
     window.hapusBerita = async (id) => {
         const { value: password } = await Swal.fire({
             title: 'Konfirmasi Keamanan',
-            text: 'Masukkan password Admin untuk menghapus berita ini',
+            text: 'Masukkan password SuperApps (admin123) untuk menghapus',
             input: 'password',
-            inputPlaceholder: 'Password',
+            inputPlaceholder: 'Password Keamanan',
             showCancelButton: true,
-            confirmButtonColor: '#333',
-            confirmButtonText: 'Hapus Data',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Hapus Permanen',
+            cancelButtonText: 'Batal',
             inputAttributes: {
                 autocapitalize: 'off',
-                autocorrect: 'off'
+                autocorrect: 'off',
+                style: 'text-align:center; letter-spacing: 5px; font-size: 20px;'
+            },
+            customClass: {
+                input: 'custom-swal-input'
             }
         });
 
         if (password) {
-            const snap = await get(child(ref(db), `admin_users/${window.currentAdmin}`));
-            const correctPass = window.currentAdmin === "SuperAdmin" ? "admin123" : (snap.exists() ? snap.val().password : null);
-
-            if (password === correctPass) {
-                await remove(ref(db, `events/${id}`));
-                await push(ref(db, 'log_activity'), { 
-                    user: window.currentAdmin, 
-                    action: `Menghapus Berita ID: ${id}`, 
-                    timestamp: new Date().toLocaleString('id-ID') 
-                });
-                Swal.fire('Terhapus!', 'Berita telah dihapus dari sistem.', 'success').then(() => location.reload());
+            // Validasi menggunakan password superapps
+            if (password === "admin123") {
+                try {
+                    await remove(ref(db, `events/${id}`));
+                    await push(ref(db, 'log_activity'), { 
+                        user: window.currentAdmin || 'System', 
+                        action: `Menghapus Berita ID: ${id}`, 
+                        timestamp: new Date().toLocaleString('id-ID') 
+                    });
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Terhapus!',
+                        text: 'Berita telah dihapus dari sistem.',
+                        timer: 1500
+                    }).then(() => location.reload());
+                } catch (error) {
+                    Swal.fire('Error', 'Gagal menghapus: ' + error.message, 'error');
+                }
             } else {
-                Swal.fire('Gagal', 'Password salah!', 'error');
+                Swal.fire('Gagal', 'Password SuperApps Salah!', 'error');
             }
         }
     };
