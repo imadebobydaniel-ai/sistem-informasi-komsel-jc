@@ -235,11 +235,38 @@
         const lokasi = document.getElementById('lokasiEvent').value;
         const tgl = document.getElementById('tglEvent').value;
         const isi = document.getElementById('isiEvent').value;
-        if (!nama || !lokasi || !tgl) return Swal.fire('Error', 'Data wajib diisi!', 'error');
-        const newEvent = { nama, lokasi, tgl, isi, fotos: window.cloudinaryImages, createdBy: window.currentAdmin, createdAt: new Date().toISOString() };
-        await push(eventRef, newEvent);
-        await push(ref(db, 'log_activity'), { user: window.currentAdmin, action: `Menerbitkan Berita: ${nama}`, timestamp: new Date().toLocaleString('id-ID') });
-        Swal.fire('Berhasil', 'Tersinkron!', 'success').then(() => location.reload());
+
+        if (!nama || !lokasi || !tgl) {
+            return Swal.fire('Error', 'Data wajib diisi!', 'error');
+        }
+
+        const daftarFoto = (window.cloudinaryImages && window.cloudinaryImages.length > 0) 
+            ? window.cloudinaryImages 
+            : [];
+
+        const newEvent = { 
+            nama, 
+            lokasi, 
+            tgl, 
+            isi: isi || "", 
+            fotos: daftarFoto, 
+            createdBy: window.currentAdmin || "Admin", 
+            createdAt: new Date().toISOString() 
+        };
+
+        try {
+            Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            await push(eventRef, newEvent);
+            await push(ref(db, 'log_activity'), { 
+                user: window.currentAdmin || 'Admin', 
+                action: `Menerbitkan Berita: ${nama}`, 
+                timestamp: new Date().toLocaleString('id-ID') 
+            });
+            Swal.fire('Berhasil', 'Tersinkron!', 'success').then(() => location.reload());
+        } catch (error) {
+            console.error("Firebase Push Error:", error);
+            Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan data: ' + error.message, 'error');
+        }
     };
 
     let html5QrCode;
@@ -281,10 +308,10 @@
                     <p><b><i class="fas fa-calendar-day"></i> Tanggal:</b> ${formatTglIndo(item.tgl)}</p>
                     <hr><div class="news-content-text">${item.isi || ''}</div>
                 </div>
-                <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:20px">
-                    <button onclick="shareWA('${id}')" style="flex:1; padding:12px; background:#25d366; color:white; border:none; border-radius:8px;"><i class="fab fa-whatsapp"></i></button>
-                    <button onclick="downloadPDF('${id}')" style="flex:1; padding:12px; background:#e74c3c; color:white; border:none; border-radius:8px;"><i class="fas fa-file-pdf"></i></button>
-                    <button onclick="hapusBerita('${id}')" style="flex:1; padding:12px; background:#333; color:white; border:none; border-radius:8px;"><i class="fas fa-trash"></i></button>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:20px">
+                    <button onclick="shareWA('${id}')" style="flex:1; padding:8px; background:#25d366; color:white; border:none; border-radius:6px; font-size:12px; font-weight:bold;"><i class="fab fa-whatsapp"></i> Whatsapp</button>
+                    <button onclick="downloadPDF('${id}')" style="flex:1; padding:8px; background:#e74c3c; color:white; border:none; border-radius:6px; font-size:12px; font-weight:bold;"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <button onclick="hapusBerita('${id}')" style="flex:0.5; padding:8px; background:#333; color:white; border:none; border-radius:6px; font-size:12px;"><i class="fas fa-trash"></i></button>
                 </div>`,
             showConfirmButton: false, showCloseButton: true, width: '90%'
         });
@@ -321,18 +348,11 @@
             cancelButtonColor: '#3085d6',
             confirmButtonText: 'Hapus Permanen',
             cancelButtonText: 'Batal',
-            inputAttributes: {
-                autocapitalize: 'off',
-                autocorrect: 'off',
-                style: 'text-align:center; letter-spacing: 5px; font-size: 20px;'
-            },
-            customClass: {
-                input: 'custom-swal-input'
-            }
+            inputAttributes: { autocapitalize: 'off', autocorrect: 'off', style: 'text-align:center; letter-spacing: 5px; font-size: 20px;' },
+            customClass: { input: 'custom-swal-input' }
         });
 
         if (password) {
-            // Validasi menggunakan password superapps
             if (password === "admin123") {
                 try {
                     await remove(ref(db, `events/${id}`));
@@ -341,12 +361,7 @@
                         action: `Menghapus Berita ID: ${id}`, 
                         timestamp: new Date().toLocaleString('id-ID') 
                     });
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Terhapus!',
-                        text: 'Berita telah dihapus dari sistem.',
-                        timer: 1500
-                    }).then(() => location.reload());
+                    Swal.fire({ icon: 'success', title: 'Terhapus!', text: 'Berita telah dihapus dari sistem.', timer: 1500 }).then(() => location.reload());
                 } catch (error) {
                     Swal.fire('Error', 'Gagal menghapus: ' + error.message, 'error');
                 }
