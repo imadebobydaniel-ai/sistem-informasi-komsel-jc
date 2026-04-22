@@ -214,15 +214,12 @@
         document.getElementById('newAdminUser').value = ""; document.getElementById('newAdminPass').value = "";
     };
 
-    // --- FUNGSI HANDLE FILE UPLOAD (VERSI ANTI-GAGAL DENGAN DEBUG LOG) ---
     window.handleFileUpload = async (event) => {
         const files = event.target.files;
         if (files.length === 0) return;
 
         window.cloudinaryImages = [];
         const btnSimpan = document.getElementById('btnSimpan');
-        
-        // Kunci tombol simpan agar tidak terjadi "Race Condition"
         btnSimpan.disabled = true;
         btnSimpan.innerText = "Proses Upload...";
 
@@ -243,18 +240,9 @@
                     method: 'POST', 
                     body: formData 
                 });
-                
                 const data = await resp.json();
-                
-                // Cek hasil di Console (F12)
-                console.log("DEBUG CLOUDINARY RES:", data);
-                
                 if (data.secure_url) {
                     window.cloudinaryImages.push(data.secure_url);
-                    console.log("✔ Berhasil dapat URL:", data.secure_url);
-                } else {
-                    console.error("❌ Cloudinary Error:", data.error ? data.error.message : "Penyebab tidak diketahui");
-                    Swal.fire('Upload Gagal', data.error ? data.error.message : 'Cek Konsol', 'error');
                 }
             } catch (err) {
                 console.error("❌ Network Error:", err);
@@ -262,17 +250,11 @@
         }
 
         Swal.close();
-        
-        // Buka kembali tombol simpan
         btnSimpan.disabled = false;
         btnSimpan.innerText = "Simpan & Sinkronkan";
-        
-        const statusText = window.cloudinaryImages.length + " Foto siap.";
-        document.getElementById('uploadStatus').innerText = statusText;
-        console.log("TOTAL FOTO SIAP SIMPAN:", window.cloudinaryImages);
+        document.getElementById('uploadStatus').innerText = window.cloudinaryImages.length + " Foto siap.";
     };
 
-    // --- FUNGSI SIMPAN BERITA ---
     window.simpanBerita = async function() {
         const nama = document.getElementById('namaEvent').value;
         const lokasi = document.getElementById('lokasiEvent').value;
@@ -283,7 +265,6 @@
             return Swal.fire('Error', 'Data nama, lokasi, dan tanggal wajib diisi!', 'error');
         }
 
-        // Filter array untuk memastikan tidak ada data kosong yang masuk ke Firebase
         const daftarFotoValid = (window.cloudinaryImages || []).filter(url => url != null && url !== "");
 
         const newEvent = { 
@@ -297,57 +278,34 @@
         };
 
         try {
-            Swal.fire({ title: 'Menyimpan ke Database...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-            
+            Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             await push(eventRef, newEvent);
-            
-            await push(ref(db, 'log_activity'), { 
-                user: window.currentAdmin || 'Admin', 
-                action: `Menerbitkan Berita: ${nama}`, 
-                timestamp: new Date().toLocaleString('id-ID') 
-            });
-
             Swal.fire('Berhasil', 'Data Berhasil Disinkronkan!', 'success').then(() => location.reload());
         } catch (error) {
-            console.error("Firebase Push Error:", error);
             Swal.fire('Gagal Simpan', 'Error Firebase: ' + error.message, 'error');
         }
     };
 
-    let html5QrCode;
-    window.startScanner = function() {
-        document.getElementById('reader').style.display = 'block';
-        document.getElementById('btnStopScan').style.display = 'block';
-        html5QrCode = new Html5Qrcode("reader");
-        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
-            let displayName = text.includes('@') ? text.split('@')[0].replace(/\./g, ' ').toUpperCase() : text;
-            if (!listAbsensi.includes(displayName)) {
-                listAbsensi.push(displayName); 
-                document.getElementById('totalAbsen').innerText = listAbsensi.length;
-                Swal.fire('Berhasil Absen', displayName, 'success');
-            }
-        });
-    };
-
-    window.stopScanner = () => {
-        if(html5QrCode) html5QrCode.stop().then(() => {
-            document.getElementById('reader').style.display = 'none';
-            document.getElementById('btnStopScan').style.display = 'none';
-        });
-    };
-
-    window.showAbsenList = () => {
-        const list = listAbsensi.length ? `<ol>${listAbsensi.map(n => `<li>${n}</li>`).join('')}</ol>` : 'Kosong';
-        Swal.fire({ title: 'Daftar Absen', html: list });
-    };
-
+    // --- PERBAIKAN DETAIL EVENT: MENAMPILKAN SEMUA FOTO ---
     window.detailEvent = (id) => {
         const item = window.currentEvents.find(x => x.id === id);
-        const fotoUrl = (item.fotos && item.fotos.length > 0) ? item.fotos[0] : NO_IMG;
+        
+        // Buat HTML untuk gallery foto (Looping semua foto)
+        let galleryHtml = "";
+        if (item.fotos && item.fotos.length > 0) {
+            galleryHtml = item.fotos.map(url => `
+                <img src="${url}" style="width:100%; border-radius:12px; margin-bottom:10px; object-fit:cover; max-height:300px;" onerror="this.src='${NO_IMG}'">
+            `).join('');
+        } else {
+            galleryHtml = `<img src="${NO_IMG}" style="width:100%; border-radius:12px; margin-bottom:15px;">`;
+        }
+
         Swal.fire({
             title: item.nama,
             html: `
-                <img src="${fotoUrl}" class="modal-news-img" style="width:100%; border-radius:12px; margin-bottom:15px; object-fit:cover; max-height:250px;" onerror="this.src='${NO_IMG}'">
+                <div class="photo-gallery" style="max-height: 400px; overflow-y: auto; margin-bottom: 15px;">
+                    ${galleryHtml}
+                </div>
                 <div style="text-align:left; font-size:14px">
                     <p><b><i class="fas fa-map-marker-alt"></i> Lokasi:</b> ${item.lokasi}</p>
                     <p><b><i class="fas fa-calendar-day"></i> Tanggal:</b> ${formatTglIndo(item.tgl)}</p>
@@ -362,57 +320,17 @@
         });
     };
 
-    window.downloadPDF = async (id) => {
-        const { jsPDF } = window.jspdf; const item = window.currentEvents.find(x => x.id === id);
-        const doc = new jsPDF();
-        Swal.fire({ title: 'PDF...', didOpen: () => Swal.showLoading() });
-        doc.text("LAPORAN KEGIATAN", 105, 20, { align: 'center' });
-        doc.text(item.nama, 105, 30, { align: 'center' });
-        if (item.fotos && item.fotos.length > 0) {
-            try {
-                const img = new Image(); img.crossOrigin = "Anonymous"; img.src = item.fotos[0];
-                await new Promise((res) => { img.onload = () => { doc.addImage(img, 'JPEG', 20, 40, 170, 90); res(); }; img.onerror = () => res(); });
-            } catch (e) {}
-        }
-        doc.save(`Event_${id}.pdf`); Swal.close();
-    };
-
-    window.shareWA = (id) => {
-        const item = window.currentEvents.find(x => x.id === id);
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(item.nama + '\n' + item.lokasi)}`);
-    };
-
     window.hapusBerita = async (id) => {
         const { value: password } = await Swal.fire({
-            title: 'Konfirmasi Keamanan',
-            text: 'Masukkan password SuperApps (admin123) untuk menghapus',
+            title: 'Konfirmasi',
+            text: 'Masukkan password admin123',
             input: 'password',
-            inputPlaceholder: 'Password Keamanan',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Hapus Permanen',
-            cancelButtonText: 'Batal',
-            inputAttributes: { autocapitalize: 'off', autocorrect: 'off', style: 'text-align:center; letter-spacing: 5px; font-size: 20px;' },
-            customClass: { input: 'custom-swal-input' }
+            showCancelButton: true
         });
 
-        if (password) {
-            if (password === "admin123") {
-                try {
-                    await remove(ref(db, `events/${id}`));
-                    await push(ref(db, 'log_activity'), { 
-                        user: window.currentAdmin || 'System', 
-                        action: `Menghapus Berita ID: ${id}`, 
-                        timestamp: new Date().toLocaleString('id-ID') 
-                    });
-                    Swal.fire({ icon: 'success', title: 'Terhapus!', text: 'Berita telah dihapus dari sistem.', timer: 1500 }).then(() => location.reload());
-                } catch (error) {
-                    Swal.fire('Error', 'Gagal menghapus: ' + error.message, 'error');
-                }
-            } else {
-                Swal.fire('Gagal', 'Password SuperApps Salah!', 'error');
-            }
+        if (password === "admin123") {
+            await remove(ref(db, `events/${id}`));
+            Swal.fire('Terhapus!', '', 'success').then(() => location.reload());
         }
     };
 
@@ -421,10 +339,10 @@
         for (let id in data) { list.unshift({ id, ...data[id] }); }
         window.currentEvents = list;
         document.getElementById('newsList').innerHTML = list.map(item => {
-            const fotoUrl = (item.fotos && item.fotos.length > 0) ? item.fotos[0] : NO_IMG;
+            const fotoUtama = (item.fotos && item.fotos.length > 0) ? item.fotos[0] : NO_IMG;
             return `
                 <div class="news-card" onclick="detailEvent('${item.id}')">
-                    <img src="${fotoUrl}" class="news-img" onerror="this.src='${NO_IMG}'">
+                    <img src="${fotoUtama}" class="news-img" onerror="this.src='${NO_IMG}'">
                     <div class="news-body">
                         <div class="news-category">BY: ${item.createdBy || 'ADMIN'}</div>
                         <div class="news-title">${item.nama}</div>
@@ -432,12 +350,6 @@
                     </div>
                 </div>`;
         }).join('');
-    });
-
-    onValue(ref(db, 'log_activity'), (snap) => {
-        const data = snap.val(); let h = "";
-        for(let id in data) { h = `<div>> ${data[id].timestamp} - ${data[id].action}</div>` + h; }
-        document.getElementById('logContent').innerHTML = h;
     });
 
     document.getElementById('fotoEvent').onchange = window.handleFileUpload;
