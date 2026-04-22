@@ -179,38 +179,141 @@
     const eventRef = ref(db, 'events');
     const adminRef = ref(db, 'admin_users');
 
-    // === TAMBAHKAN FUNGSI INI AGAR TIDAK FREEZE ===
+    // === FUNGSI DETAIL EVENT DENGAN SHARE & HAPUS ===
     window.detailEvent = function(id) {
-        // Mencari data event yang diklik dari array currentEvents
         const item = window.currentEvents.find(x => x.id === id);
         if (!item) return;
 
         Swal.fire({
             title: item.nama,
             html: `
-                <div style="text-align: left;">
+                <div id="detailContent" style="text-align: left; font-size: 14px;">
                     <img src="${item.fotos ? item.fotos[0] : ''}" style="width:100%; border-radius:10px; margin-bottom:15px;">
                     <p><strong><i class="fas fa-map-marker-alt"></i> Lokasi:</strong> ${item.lokasi || '-'}</p>
                     <p><strong><i class="fas fa-calendar-alt"></i> Tanggal:</strong> ${item.tgl || '-'}</p>
                     <hr>
-                    <p style="white-space: pre-wrap;">${item.isi || 'Tidak ada deskripsi.'}</p>
-                    <p style="font-size: 12px; color: #888; margin-top: 20px;">Dibuat oleh: ${item.createdBy || 'System'}</p>
+                    <div style="white-space: pre-wrap; max-height: 200px; overflow-y: auto;">${item.isi || 'Tidak ada deskripsi.'}</div>
+                    <p style="font-size: 11px; color: #888; margin-top: 15px;">Kontributor: ${item.createdBy || 'System'}</p>
+                </div>
+                <div style="margin-top: 20px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                    <button onclick="shareWA('${id}')" style="background:#25d366; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
+                    </button>
+                    <button onclick="generatePDF('${id}')" style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </button>
+                    <button onclick="hapusBerita('${id}')" style="background:#333; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">
+                        <i class="fas fa-trash"></i> Hapus
+                    </button>
                 </div>
             `,
+            showConfirmButton: false,
             showCloseButton: true,
-            focusConfirm: false,
-            confirmButtonText: 'Tutup',
-            width: '90%'
+            width: '95%'
         });
     };
 
+    // === FUNGSI SHARE WHATSAPP ===
+    window.shareWA = function(id) {
+        const item = window.currentEvents.find(x => x.id === id);
+        if (!item) return;
+
+        const kop = "*PONDOK PEMULIHAN PAPUA*\n";
+        const subKop = "_Informasi Event Jemaat_\n\n";
+        const body = `*Kegiatan:* ${item.nama}\n*Lokasi:* ${item.lokasi}\n*Tanggal:* ${item.tgl}\n\n${item.isi}\n\n`;
+        const footer = "_Informasi ini di Share melalui Aplikasi SIPAPUA_";
+
+        const teksFull = kop + subKop + body + footer;
+        const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(teksFull)}`;
+        window.open(url, '_blank');
+    };
+
+    // === FUNGSI GENERATE PDF ===
+    window.generatePDF = function(id) {
+        const item = window.currentEvents.find(x => x.id === id);
+        if (!item || !window.jspdf) {
+            return Swal.fire('Error', 'Library PDF tidak ditemukan atau data kosong', 'error');
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Kop PDF
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.text("PONDOK PEMULIHAN PAPUA", 105, 20, { align: "center" });
+        
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        doc.text("Informasi Event Jemaat", 105, 27, { align: "center" });
+        doc.line(20, 30, 190, 30);
+
+        // Konten Berita
+        doc.setFontSize(11);
+        doc.text(`Kegiatan : ${item.nama}`, 20, 40);
+        doc.text(`Lokasi    : ${item.lokasi}`, 20, 47);
+        doc.text(`Tanggal : ${item.tgl}`, 20, 54);
+        
+        const splitText = doc.splitTextToSize(item.isi, 170);
+        doc.text(splitText, 20, 65);
+
+        // Footer PDF
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "italic");
+        doc.text("Informasi ini di Share melalui Aplikasi SIPAPUA", 105, 280, { align: "center" });
+
+        doc.save(`SIPAPUA_${item.nama.replace(/\s+/g, '_')}.pdf`);
+    };
+
+    // === FUNGSI HAPUS BERITA (DENGAN PROTEKSI) ===
+    window.hapusBerita = async function(id) {
+        const item = window.currentEvents.find(x => x.id === id);
+        if (!item) return;
+
+        // Cek Otoritas: Hanya pembuat atau SuperAdmin
+        if (!window.currentAdmin) {
+            return Swal.fire('Akses Ditolak', 'Silakan login admin terlebih dahulu', 'warning');
+        }
+
+        if (window.currentAdmin !== "SuperAdmin" && item.createdBy !== window.currentAdmin) {
+            return Swal.fire('Gagal', 'Hanya admin yang memposting berita ini yang bisa menghapus', 'error');
+        }
+
+        const { value: pass } = await Swal.fire({
+            title: 'Verifikasi Administrator',
+            text: `Masukkan password untuk menghapus: "${item.nama}"`,
+            input: 'password',
+            inputPlaceholder: 'Password Anda',
+            showCancelButton: true,
+            confirmButtonColor: '#d33'
+        });
+
+        if (!pass) return;
+
+        // Validasi Password
+        let isValid = false;
+        if (window.currentAdmin === "SuperAdmin" && pass === "admin123") {
+            isValid = true;
+        } else {
+            const adminSnap = await get(child(ref(db), `admin_users/${window.currentAdmin}`));
+            if (adminSnap.exists() && adminSnap.val().password === pass) isValid = true;
+        }
+
+        if (isValid) {
+            remove(ref(db, `events/${id}`)).then(() => {
+                Swal.fire('Terhapus', 'Data berhasil dihapus dari sistem', 'success').then(() => {
+                    location.reload();
+                });
+            });
+        } else {
+            Swal.fire('Error', 'Password yang Anda masukkan salah', 'error');
+        }
+    };
+
+    // --- FUNGSI LOGIN & ADMIN (TETAP SAMA) ---
     window.toggleLoginSlider = function() {
         const slider = document.getElementById('loginBox');
-        if (slider.style.display === 'none' || slider.style.display === '') {
-            slider.style.display = 'block';
-        } else {
-            slider.style.display = 'none';
-        }
+        slider.style.display = (slider.style.display === 'none' || slider.style.display === '') ? 'block' : 'none';
     };
 
     window.loginEvent = async function() {
@@ -239,44 +342,6 @@
         }
     };
 
-    window.addNewAdmin = async function() {
-        if(window.currentAdmin !== "SuperAdmin") {
-            return Swal.fire('Akses Ditolak', 'Hanya SuperAdmin yang bisa menambah admin baru.', 'error');
-        }
-
-        const { value: formValues } = await Swal.fire({
-            title: 'Portal Create New Admin',
-            html:
-                '<input id="swal-u" class="swal2-input" placeholder="Username Baru">' +
-                '<input id="swal-p" class="swal2-input" type="password" placeholder="Password Baru">',
-            focusConfirm: false,
-            showCancelButton: true,
-            confirmButtonText: 'Buat Akun',
-            preConfirm: () => {
-                const u = document.getElementById('swal-u').value;
-                const p = document.getElementById('swal-p').value;
-                if (!u || !p) {
-                    Swal.showValidationMessage('Harap isi semua kolom');
-                }
-                return [u, p];
-            }
-        });
-
-        if (formValues) {
-            const [newUsername, newPassword] = formValues;
-            try {
-                await set(child(adminRef, newUsername), {
-                    password: newPassword,
-                    createdBy: window.currentAdmin,
-                    createdAt: Date.now()
-                });
-                Swal.fire('Berhasil', `Admin ${newUsername} telah terdaftar.`, 'success');
-            } catch (error) {
-                Swal.fire('Gagal', error.message, 'error');
-            }
-        }
-    };
-
     document.getElementById('btnSimpan').onclick = function() {
         const nama = document.getElementById('namaEvent').value.trim();
         if(!nama) return Swal.fire('Peringatan', 'Isi nama kegiatan!', 'warning');
@@ -290,43 +355,8 @@
             createdBy: window.currentAdmin,
             createdAt: Date.now()
         }).then(() => {
-            Swal.fire('Sukses', 'Kegiatan Berhasil Dipublikasikan', 'success');
-            location.reload();
+            Swal.fire('Sukses', 'Kegiatan Berhasil Dipublikasikan', 'success').then(() => location.reload());
         });
-    };
-
-    window.hapusBerita = async function(id) {
-        const item = window.currentEvents.find(x => x.id === id);
-        if (!item) return;
-
-        if (window.currentAdmin !== "SuperAdmin" && item.createdBy !== window.currentAdmin) {
-            return Swal.fire('Gagal', 'Berita ini tidak bisa Anda hapus', 'error');
-        }
-
-        const { value: pass } = await Swal.fire({
-            title: 'Konfirmasi',
-            text: "Masukkan password admin untuk menghapus",
-            input: 'password',
-            showCancelButton: true
-        });
-
-        if (!pass) return;
-
-        let isValid = false;
-        if (window.currentAdmin === "SuperAdmin" && pass === "admin123") isValid = true;
-        else {
-            const adminSnap = await get(child(ref(db), `admin_users/${window.currentAdmin}`));
-            if (adminSnap.exists() && adminSnap.val().password === pass) isValid = true;
-        }
-
-        if (isValid) {
-            remove(ref(db, `events/${id}`)).then(() => {
-                Swal.fire('Terhapus', 'Data berhasil dibuang', 'success');
-                location.reload();
-            });
-        } else {
-            Swal.fire('Error', 'Password Salah', 'error');
-        }
     };
 
     window.renderList = function(list) {
@@ -353,7 +383,7 @@
         const list = [];
         for (let id in data) { list.unshift({ id, ...data[id] }); }
         window.currentEvents = list;
-        window.renderList(list); // Pastikan memanggil window.renderList
+        window.renderList(list);
     });
 </script>
 </body>
