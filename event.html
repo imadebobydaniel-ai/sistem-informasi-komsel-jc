@@ -179,6 +179,31 @@
     const eventRef = ref(db, 'events');
     const adminRef = ref(db, 'admin_users');
 
+    // === TAMBAHKAN FUNGSI INI AGAR TIDAK FREEZE ===
+    window.detailEvent = function(id) {
+        // Mencari data event yang diklik dari array currentEvents
+        const item = window.currentEvents.find(x => x.id === id);
+        if (!item) return;
+
+        Swal.fire({
+            title: item.nama,
+            html: `
+                <div style="text-align: left;">
+                    <img src="${item.fotos ? item.fotos[0] : ''}" style="width:100%; border-radius:10px; margin-bottom:15px;">
+                    <p><strong><i class="fas fa-map-marker-alt"></i> Lokasi:</strong> ${item.lokasi || '-'}</p>
+                    <p><strong><i class="fas fa-calendar-alt"></i> Tanggal:</strong> ${item.tgl || '-'}</p>
+                    <hr>
+                    <p style="white-space: pre-wrap;">${item.isi || 'Tidak ada deskripsi.'}</p>
+                    <p style="font-size: 12px; color: #888; margin-top: 20px;">Dibuat oleh: ${item.createdBy || 'System'}</p>
+                </div>
+            `,
+            showCloseButton: true,
+            focusConfirm: false,
+            confirmButtonText: 'Tutup',
+            width: '90%'
+        });
+    };
+
     window.toggleLoginSlider = function() {
         const slider = document.getElementById('loginBox');
         if (slider.style.display === 'none' || slider.style.display === '') {
@@ -328,7 +353,7 @@
         const list = [];
         for (let id in data) { list.unshift({ id, ...data[id] }); }
         window.currentEvents = list;
-        renderList(list);
+        window.renderList(list); // Pastikan memanggil window.renderList
     });
 </script>
 </body>
