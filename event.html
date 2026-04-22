@@ -185,6 +185,10 @@
     const eventRef = ref(db, 'events');
     const adminRef = ref(db, 'admin_users');
 
+    // --- CONFIG CLOUDINARY ---
+    const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dxt7m8psv/image/upload';
+    const CLOUDINARY_UPLOAD_PRESET = 'vj96p7dt';
+
     // --- FUNGSI FORMAT TANGGAL INDONESIA ---
     function formatTglIndo(dateString) {
         if (!dateString) return "-";
@@ -194,7 +198,7 @@
 
     // --- 1. LOG ACTIVITY DROPDOWN SETUP ---
     const setupLogDropdown = () => {
-        const logContainer = document.querySelector('.card:last-child'); // Target box LOG ACTIVITY
+        const logContainer = document.querySelector('.card:last-child'); 
         if (logContainer && !logContainer.querySelector('details')) {
             const content = logContainer.innerHTML;
             logContainer.innerHTML = `
@@ -210,7 +214,75 @@
         }
     };
 
-    // --- 2. FUNGSI QR SCANNER & PROSES ABSENSI ---
+    // --- 2. LOGIKA UPLOAD CLOUDINARY & SIMPAN DATA ---
+    window.handleFileUpload = async (event) => {
+        const files = event.target.files;
+        window.cloudinaryImages = [];
+        
+        Swal.fire({ title: 'Mengunggah Gambar...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+        for (let file of files) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+            try {
+                const resp = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
+                const data = await resp.json();
+                window.cloudinaryImages.push(data.secure_url);
+                console.log("Upload Berhasil:", data.secure_url);
+            } catch (err) {
+                console.error("Gagal upload ke Cloudinary", err);
+            }
+        }
+        Swal.close();
+    };
+
+    window.simpanBerita = async function() {
+        const nama = document.getElementById('namaKegiatan').value;
+        const lokasi = document.getElementById('lokasiKegiatan').value;
+        const tgl = document.getElementById('tglKegiatan').value;
+        const isi = document.getElementById('isiKegiatan').value;
+
+        if (!nama || !lokasi || !tgl) {
+            return Swal.fire('Error', 'Nama, Lokasi, dan Tanggal wajib diisi!', 'error');
+        }
+
+        const newEvent = {
+            nama,
+            lokasi,
+            tgl,
+            isi,
+            fotos: window.cloudinaryImages,
+            createdBy: window.currentAdmin || 'System',
+            createdAt: new Date().toISOString(),
+            absensi: listAbsensi
+        };
+
+        try {
+            // Simpan ke Firebase
+            await push(eventRef, newEvent);
+
+            // Catat ke Log Activity (Cloud)
+            const logRef = ref(db, 'log_activity');
+            await push(logRef, {
+                user: window.currentAdmin || 'System',
+                action: `Menerbitkan Berita: ${nama}`,
+                timestamp: new Date().toLocaleString('id-ID')
+            });
+
+            await Swal.fire('Berhasil', 'Berita berhasil diterbitkan dan tersinkron!', 'success');
+            
+            // Reset & Kembali
+            location.reload(); 
+
+        } catch (error) {
+            console.error("Gagal simpan:", error);
+            Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan data.', 'error');
+        }
+    };
+
+    // --- 3. FUNGSI QR SCANNER & PROSES ABSENSI ---
     let html5QrCode;
 
     window.startScanner = function() {
@@ -239,43 +311,32 @@
     function prosesAbsensi(nama) {
         if (!listAbsensi.includes(nama)) {
             listAbsensi.push(nama);
-            
-            // Update UI Angka Akumulasi
             const totalElement = document.getElementById('totalAbsen');
             if(totalElement) {
                 totalElement.innerText = listAbsensi.length;
-                totalElement.style.cursor = 'pointer';
-                totalElement.title = "Klik untuk lihat daftar nama";
             }
-            
             Swal.fire('Berhasil', `${nama} telah diabsen`, 'success');
         } else {
             Swal.fire('Info', `${nama} sudah diabsen sebelumnya.`, 'warning');
         }
     }
 
-    // --- 3. FUNGSI KLIK ANGKA (TAMPILKAN DAFTAR NAMA) ---
     window.showAbsenList = function() {
-        if (listAbsensi.length === 0) {
-            return Swal.fire('Info', 'Belum ada jemaat yang absen.', 'info');
-        }
-
-        const htmlList = `<div style="text-align:left; max-height:300px; overflow-y:auto;">
-            <ol>${listAbsensi.map(n => `<li>${n}</li>`).join('')}</ol>
-        </div>`;
-
-        Swal.fire({
-            title: 'Daftar Nama Terabsen',
-            html: htmlList,
-            confirmButtonText: 'Tutup',
-            confirmButtonColor: '#003366'
-        });
+        if (listAbsensi.length === 0) return Swal.fire('Info', 'Belum ada jemaat yang absen.', 'info');
+        const htmlList = `<div style="text-align:left; max-height:300px; overflow-y:auto;"><ol>${listAbsensi.map(n => `<li>${n}</li>`).join('')}</ol></div>`;
+        Swal.fire({ title: 'Daftar Nama Terabsen', html: htmlList, confirmButtonText: 'Tutup', confirmButtonColor: '#003366' });
     };
 
     // --- EVENT LISTENER & INITIALIZATION ---
     document.addEventListener('DOMContentLoaded', () => {
         setupLogDropdown();
         
+        const fileInput = document.querySelector('input[type="file"]');
+        if(fileInput) fileInput.onchange = window.handleFileUpload;
+
+        const btnSimpan = document.querySelector('button[onclick="simpanBerita()"]') || document.getElementById('btnSimpan');
+        if(btnSimpan) btnSimpan.onclick = window.simpanBerita;
+
         const btnScan = document.getElementById('btnScanQR');
         if(btnScan) btnScan.onclick = window.startScanner;
 
@@ -283,7 +344,7 @@
         if(totalClick) totalClick.onclick = window.showAbsenList;
     });
 
-    // === FUNGSI DETAIL EVENT ===
+    // === FUNGSI DETAIL & SHARE ===
     window.detailEvent = function(id) {
         const item = window.currentEvents.find(x => x.id === id);
         if (!item) return;
@@ -292,7 +353,7 @@
             title: item.nama,
             html: `
                 <div id="detailContent" style="text-align: left; font-size: 14px;">
-                    <img src="${item.fotos ? item.fotos[0] : ''}" style="width:100%; border-radius:10px; margin-bottom:15px; border: 1px solid #eee;">
+                    <img src="${item.fotos ? item.fotos[0] : ''}" style="width:100%; border-radius:10px; margin-bottom:15px; border: 1px solid #eee;" onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
                     <p><strong><i class="fas fa-map-marker-alt"></i> Lokasi:</strong> ${item.lokasi || '-'}</p>
                     <p><strong><i class="fas fa-calendar-alt"></i> Tanggal:</strong> ${formatTglIndo(item.tgl)}</p>
                     <hr style="border: 0; border-top: 1px solid #eee;">
@@ -300,36 +361,20 @@
                     <p style="font-size: 11px; color: #888; margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 10px;">Diposting oleh: ${item.createdBy || 'System'}</p>
                 </div>
                 <div style="margin-top: 20px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-                    <button onclick="shareWA('${id}')" style="background:#25d366; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold; flex: 1; min-width: 100px;">
-                        <i class="fab fa-whatsapp"></i> Share WA
-                    </button>
-                    <button onclick="generatePDF('${id}')" style="background:#e74c3c; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold; flex: 1; min-width: 100px;">
-                        <i class="fas fa-file-pdf"></i> Download PDF
-                    </button>
-                    <button onclick="hapusBerita('${id}')" style="background:#333; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold; flex: 1; min-width: 100px;">
-                        <i class="fas fa-trash"></i> Hapus
-                    </button>
-                </div>
-            `,
-            showConfirmButton: false,
-            showCloseButton: true,
-            width: '95%',
-            padding: '1.5em'
+                    <button onclick="shareWA('${id}')" style="background:#25d366; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold; flex: 1;"><i class="fab fa-whatsapp"></i> Share</button>
+                    <button onclick="hapusBerita('${id}')" style="background:#333; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold; flex: 1;"><i class="fas fa-trash"></i> Hapus</button>
+                </div>`,
+            showConfirmButton: false, showCloseButton: true, width: '95%', padding: '1.5em'
         });
     };
 
-    // === FUNGSI SHARE WHATSAPP ===
     window.shareWA = function(id) {
         const item = window.currentEvents.find(x => x.id === id);
         if (!item) return;
-        const kop = "*PONDOK PEMULIHAN PAPUA*\n";
-        const body = `*Kegiatan:* ${item.nama}\n*Lokasi:* ${item.lokasi}\n*Tanggal:* ${formatTglIndo(item.tgl)}\n\n${item.isi}\n\n`;
-        const teksFull = kop + body + "_Informasi dibagikan melalui SIPAPUA_";
-        const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(teksFull)}`;
-        window.open(url, '_blank');
+        const teksFull = `*PONDOK PEMULIHAN PAPUA*\n*Kegiatan:* ${item.nama}\n*Lokasi:* ${item.lokasi}\n*Tanggal:* ${formatTglIndo(item.tgl)}\n\n${item.isi}`;
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(teksFull)}`, '_blank');
     };
 
-    // === FUNGSI LOGIN EVENT ===
     window.loginEvent = async function() {
         const u = document.getElementById('userAdmin').value;
         const p = document.getElementById('passAdmin').value;
@@ -339,9 +384,7 @@
             loggedInUser = "SuperAdmin";
         } else {
             const snapshot = await get(child(ref(db), `admin_users/${u}`));
-            if (snapshot.exists() && snapshot.val().password === p) {
-                loggedInUser = u;
-            }
+            if (snapshot.exists() && snapshot.val().password === p) loggedInUser = u;
         }
 
         if (loggedInUser) {
@@ -350,9 +393,8 @@
             document.getElementById('newsList').style.display = 'none'; 
             document.getElementById('loginBox').style.display = 'none';
             document.getElementById('btnBack').style.display = 'inline-block';
-            document.getElementById('btnToggle').style.display = 'none';
             Swal.fire('Berhasil', `Selamat datang, ${loggedInUser}`, 'success');
-            setupLogDropdown(); // Pastikan dropdown terpasang setelah login
+            setupLogDropdown();
         } else { 
             Swal.fire('Gagal', 'Username atau Password salah', 'error'); 
         }
@@ -363,7 +405,7 @@
         const container = document.getElementById('newsList');
         if(!container) return;
         container.innerHTML = list.map(item => `
-            <div class="news-card" onclick="detailEvent('${item.id}')" style="position:relative;">
+            <div class="news-card" onclick="detailEvent('${item.id}')">
                 <img src="${item.fotos ? item.fotos[0] : ''}" class="news-img" onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
                 <div class="news-body">
                     <div class="news-category">Post by: ${item.createdBy || 'System'}</div>
@@ -380,6 +422,5 @@
         window.currentEvents = list;
         window.renderList(list);
     });
-</script>
-</body>
+</script></body>
 </html>
