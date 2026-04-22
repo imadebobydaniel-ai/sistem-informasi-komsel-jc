@@ -120,20 +120,21 @@
 
         <div id="superAdminSection">
             <p style="font-weight:bold; font-size:13px; margin-bottom:10px;"><i class="fas fa-user-plus"></i> TAMBAH ADMIN LITE</p>
-            <input type="text" id="newAdminUser" placeholder="Username Baru">
-            <input type="password" id="newAdminPass" placeholder="Password Baru">
-          
+            <div style="display: flex; flex-direction: column; gap: 0px;">
+                <input type="text" id="newAdminUser" placeholder="Username Baru">
+                <input type="password" id="newAdminPass" placeholder="Password Baru">
+                <button class="btn-action" style="background:var(--primary); margin-top:0; margin-bottom: 15px;" onclick="createNewAdmin()">DAFTARKAN ADMIN</button>
+            </div>
 
-        <div class="absensi-box">
-            <div class="absensi-header">
-              <span style="font-weight:bold; font-size:13px;"><i class="fas fa-qrcode"></i> ABSENSI</span>
-              <span class="total-counter" style="cursor:pointer" onclick="showAbsenList()">Total: <span id="totalAbsen">0</span></span>
-          </div>
-            <button class="btn-action" style="background: var(--primary);" onclick="startScanner()">SCAN QR</button>
-            <button class="btn-action" style="background: #d33; display:none;" id="btnStopScan" onclick="stopScanner()">TUTUP KAMERA</button>
-            <div id="reader"></div>
-        </div>
-<button class="btn-action" style="background:var(--primary); margin-top:0;" onclick="createNewAdmin()">DAFTARKAN ADMIN</button>
+            <div class="absensi-box">
+                <div class="absensi-header">
+                  <span style="font-weight:bold; font-size:13px;"><i class="fas fa-qrcode"></i> ABSENSI</span>
+                  <span class="total-counter" style="cursor:pointer" onclick="showAbsenList()">Total: <span id="totalAbsen">0</span></span>
+              </div>
+                <button class="btn-action" style="background: var(--primary);" onclick="startScanner()">SCAN QR</button>
+                <button class="btn-action" style="background: #d33; display:none;" id="btnStopScan" onclick="stopScanner()">TUTUP KAMERA</button>
+                <div id="reader"></div>
+            </div>
         </div>
         <div class="log-activity-box">
             <span style="font-weight:bold; font-size:13px;"><i class="fas fa-history"></i> LOG ACTIVITY (CLOUD)</span>
@@ -247,9 +248,13 @@
         document.getElementById('btnStopScan').style.display = 'block';
         html5QrCode = new Html5Qrcode("reader");
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
-            if (!listAbsensi.includes(text)) {
-                listAbsensi.push(text); document.getElementById('totalAbsen').innerText = listAbsensi.length;
-                Swal.fire('Berhasil', text, 'success');
+            // Logika: Jika formatnya email, ambil bagian depan sebelum '@' sebagai nama
+            let displayName = text.includes('@') ? text.split('@')[0].replace(/\./g, ' ').toUpperCase() : text;
+            
+            if (!listAbsensi.includes(displayName)) {
+                listAbsensi.push(displayName); 
+                document.getElementById('totalAbsen').innerText = listAbsensi.length;
+                Swal.fire('Berhasil Absen', displayName, 'success');
             }
         });
     };
@@ -308,8 +313,36 @@
     };
 
     window.hapusBerita = async (id) => {
-        const res = await Swal.fire({ title: 'Hapus?', showCancelButton: true });
-        if (res.isConfirmed) { await remove(ref(db, `events/${id}`)); location.reload(); }
+        const { value: password } = await Swal.fire({
+            title: 'Konfirmasi Keamanan',
+            text: 'Masukkan password Admin untuk menghapus berita ini',
+            input: 'password',
+            inputPlaceholder: 'Password',
+            showCancelButton: true,
+            confirmButtonColor: '#333',
+            confirmButtonText: 'Hapus Data',
+            inputAttributes: {
+                autocapitalize: 'off',
+                autocorrect: 'off'
+            }
+        });
+
+        if (password) {
+            const snap = await get(child(ref(db), `admin_users/${window.currentAdmin}`));
+            const correctPass = window.currentAdmin === "SuperAdmin" ? "admin123" : (snap.exists() ? snap.val().password : null);
+
+            if (password === correctPass) {
+                await remove(ref(db, `events/${id}`));
+                await push(ref(db, 'log_activity'), { 
+                    user: window.currentAdmin, 
+                    action: `Menghapus Berita ID: ${id}`, 
+                    timestamp: new Date().toLocaleString('id-ID') 
+                });
+                Swal.fire('Terhapus!', 'Berita telah dihapus dari sistem.', 'success').then(() => location.reload());
+            } else {
+                Swal.fire('Gagal', 'Password salah!', 'error');
+            }
+        }
     };
 
     onValue(eventRef, (snapshot) => {
