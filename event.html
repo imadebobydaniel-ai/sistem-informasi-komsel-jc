@@ -214,35 +214,65 @@
         document.getElementById('newAdminUser').value = ""; document.getElementById('newAdminPass').value = "";
     };
 
-    // FUNGSI HANDLE FILE UPLOAD (DIPERBARUI DENGAN CLOUD NAME & PRESET YANG BENAR)
+    // --- FUNGSI HANDLE FILE UPLOAD (VERSI ANTI-GAGAL DENGAN DEBUG LOG) ---
     window.handleFileUpload = async (event) => {
         const files = event.target.files;
+        if (files.length === 0) return;
+
         window.cloudinaryImages = [];
-        Swal.fire({ title: 'Mengunggah...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        const btnSimpan = document.getElementById('btnSimpan');
+        
+        // Kunci tombol simpan agar tidak terjadi "Race Condition"
+        btnSimpan.disabled = true;
+        btnSimpan.innerText = "Proses Upload...";
+
+        Swal.fire({ 
+            title: 'Mengunggah...', 
+            text: 'Mohon tunggu sampai semua foto terproses',
+            allowOutsideClick: false, 
+            didOpen: () => Swal.showLoading() 
+        });
         
         for (let file of files) {
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('upload_preset', 'sipapua_preset'); // Menggunakan preset dari panel Cloudinary Anda
+            formData.append('upload_preset', 'sipapua_preset'); 
+            
             try {
-                // Menggunakan Cloud Name 'dxzllsbgi' sesuai identitas akun Anda
-                const resp = await fetch('https://api.cloudinary.com/v1_1/dxzllsbgi/image/upload', { method: 'POST', body: formData });
+                const resp = await fetch('https://api.cloudinary.com/v1_1/dxzllsbgi/image/upload', { 
+                    method: 'POST', 
+                    body: formData 
+                });
+                
                 const data = await resp.json();
+                
+                // Cek hasil di Console (F12)
+                console.log("DEBUG CLOUDINARY RES:", data);
                 
                 if (data.secure_url) {
                     window.cloudinaryImages.push(data.secure_url);
+                    console.log("✔ Berhasil dapat URL:", data.secure_url);
                 } else {
-                    console.error("Upload gagal:", data.error ? data.error.message : "Unknown error");
+                    console.error("❌ Cloudinary Error:", data.error ? data.error.message : "Penyebab tidak diketahui");
+                    Swal.fire('Upload Gagal', data.error ? data.error.message : 'Cek Konsol', 'error');
                 }
             } catch (err) {
-                console.error("Fetch error:", err);
+                console.error("❌ Network Error:", err);
             }
         }
+
         Swal.close();
-        document.getElementById('uploadStatus').innerText = window.cloudinaryImages.length + " Foto siap.";
+        
+        // Buka kembali tombol simpan
+        btnSimpan.disabled = false;
+        btnSimpan.innerText = "Simpan & Sinkronkan";
+        
+        const statusText = window.cloudinaryImages.length + " Foto siap.";
+        document.getElementById('uploadStatus').innerText = statusText;
+        console.log("TOTAL FOTO SIAP SIMPAN:", window.cloudinaryImages);
     };
 
-    // FUNGSI SIMPAN BERITA (ANTI-UNDEFINED)
+    // --- FUNGSI SIMPAN BERITA ---
     window.simpanBerita = async function() {
         const nama = document.getElementById('namaEvent').value;
         const lokasi = document.getElementById('lokasiEvent').value;
@@ -250,10 +280,11 @@
         const isi = document.getElementById('isiEvent').value;
 
         if (!nama || !lokasi || !tgl) {
-            return Swal.fire('Error', 'Data wajib diisi!', 'error');
+            return Swal.fire('Error', 'Data nama, lokasi, dan tanggal wajib diisi!', 'error');
         }
 
-        const daftarFotoValid = (window.cloudinaryImages || []).filter(url => url != null);
+        // Filter array untuk memastikan tidak ada data kosong yang masuk ke Firebase
+        const daftarFotoValid = (window.cloudinaryImages || []).filter(url => url != null && url !== "");
 
         const newEvent = { 
             nama, 
@@ -266,7 +297,7 @@
         };
 
         try {
-            Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            Swal.fire({ title: 'Menyimpan ke Database...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             
             await push(eventRef, newEvent);
             
@@ -276,10 +307,10 @@
                 timestamp: new Date().toLocaleString('id-ID') 
             });
 
-            Swal.fire('Berhasil', 'Tersinkron!', 'success').then(() => location.reload());
+            Swal.fire('Berhasil', 'Data Berhasil Disinkronkan!', 'success').then(() => location.reload());
         } catch (error) {
             console.error("Firebase Push Error:", error);
-            Swal.fire('Gagal', 'Terjadi kesalahan: ' + error.message, 'error');
+            Swal.fire('Gagal Simpan', 'Error Firebase: ' + error.message, 'error');
         }
     };
 
