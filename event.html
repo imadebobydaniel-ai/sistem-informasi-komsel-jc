@@ -25,7 +25,9 @@
         position: sticky; top: 0; z-index: 1000; border-bottom: 3px solid var(--accent); 
     }
 
+    /* NAV LEFT DIOSONGKAN UNTUK MENGHILANGKAN TOMBOL KEMBALI/MENU */
     .nav-left { position: absolute; left: 15px; bottom: 15px; display: flex; gap: 10px; }
+    
     .nav-admin { position: absolute; right: 15px; bottom: 15px; }
     .btn-toggle-login { background: var(--accent); color: white; border: none; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
@@ -60,10 +62,29 @@
 
     .news-card:hover { transform: translateY(-5px); }
     .news-img { width: 100%; height: 200px; object-fit: cover; background: #eee; border-radius: 12px 12px 0 0; }
-    .news-body { padding: 15px; flex-grow: 1; }
+    .news-body { padding: 15px; flex-grow: 1; position: relative; }
     .news-category { color: var(--accent); font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
-    .news-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: var(--primary); line-height: 1.3; }
+    .news-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: var(--primary); line-height: 1.3; padding-right: 30px; }
     .news-meta { font-size: 0.75rem; color: #7f8c8d; display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; }
+
+    /* TOMBOL HAPUS PADA SETIAP LIST BERITA */
+    .btn-delete-news {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: var(--danger);
+        color: white;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
 
     #adminSection { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 2px solid var(--primary); display: none; }
     #superAdminSection { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-top: 15px; border: 1px dashed var(--primary); display: none; }
@@ -74,16 +95,12 @@
     .total-counter { background: var(--primary); color: white; padding: 2px 10px; border-radius: 20px; font-size: 14px; }
     
     #reader { width: 100%; border-radius: 10px; overflow: hidden; margin: 10px 0; display: none; border: 2px dashed var(--accent); }
-    .btn-header-back { border:none; background:#555; color:white; height: 38px; padding:0 15px; border-radius:19px; font-weight:bold; cursor:pointer; font-size: 12px; display: flex; align-items: center; }
 </style>
 </head>
 <body>
 
 <div class="header">
     <div class="nav-left">
-        <button class="btn-header-back" onclick="window.history.back()">
-            <i class="fas fa-chevron-left"></i> &nbsp;KEMBALI
-       </button>
         <button id="btnBack" onclick="logoutEvent()" style="display:none; border:none; background:#d33; color:white; height: 38px; padding:0 20px; border-radius:19px; font-weight:bold; cursor:pointer;">LOGOUT</button>
     </div>
     <h1 style="font-size: 1.1rem; margin: 0; letter-spacing: 1px;">EVENT JEMAAT</h1>
@@ -166,9 +183,23 @@
     window.cloudinaryImages = [];
     window.currentEvents = [];
 
+    // FUNGSI LOGOUT DENGAN KONFIRMASI
     window.logoutEvent = () => {
-        localStorage.removeItem('sipapua_admin');
-        location.reload();
+        Swal.fire({
+            title: 'Keluar?',
+            text: "Apakah anda yakin akan Keluar?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#555',
+            confirmButtonText: 'Ya',
+            cancelButtonText: 'Tidak'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                localStorage.removeItem('sipapua_admin');
+                location.reload();
+            }
+        });
     };
 
     const formatTglIndo = (dateStr) => {
@@ -178,19 +209,11 @@
         return `${d.getDate()} ${bulanIndo[d.getMonth()]} ${d.getFullYear()}`;
     };
 
-    // LOGIKA RENDER BERITA: Hanya jika TIDAK sedang login admin
     onValue(eventRef, (snapshot) => {
         const data = snapshot.val(); 
         const newsList = document.getElementById('newsList');
         if (!newsList) return;
         
-        // JIKA ADMIN LOGIN, SEMBUNYIKAN LIST BERITA AGAR TIDAK RIBET
-        if (window.currentAdmin) {
-            newsList.style.display = "none";
-            return;
-        }
-
-        newsList.style.display = "grid";
         newsList.innerHTML = "";
         const list = [];
         for (let id in data) { list.unshift({ id, ...data[id] }); }
@@ -201,9 +224,12 @@
             <div class="news-card" onclick="detailEvent('${item.id}')">
                 <img src="${(item.fotos && item.fotos[0]) || NO_IMG}" class="news-img">
                 <div class="news-body">
-                    <div class="news-category" style="color: #2ecc71; font-weight: bold;">OLEH: ${item.createdBy || 'ADMIN'}</div>
-                    <div class="news-title" style="margin: 5px 0; font-size: 16px;">${item.nama}</div>
-                    <div class="news-meta" style="font-size: 12px; color: #7f8c8d;">
+                    <button class="btn-delete-news" onclick="event.stopPropagation(); hapusBerita('${item.id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <div class="news-category">OLEH: ${item.createdBy || 'ADMIN'}</div>
+                    <div class="news-title">${item.nama}</div>
+                    <div class="news-meta">
                         <span><i class="fas fa-calendar-alt"></i> ${formatTglIndo(item.tgl)}</span>
                     </div>
                 </div>
@@ -211,7 +237,23 @@
         });
     });
 
-    // LOGIN & CMS FUNCTIONS
+    window.hapusBerita = (id) => {
+        Swal.fire({
+            title: 'Hapus Berita?',
+            text: "Tindakan ini memerlukan otoritas Admin di sistem.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e74c3c',
+            confirmButtonText: 'Ya, Hapus'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                remove(ref(db, `events/${id}`))
+                .then(() => Swal.fire('Berhasil', 'Berita telah dihapus.', 'success'))
+                .catch(() => Swal.fire('Gagal', 'Akses ditolak database.', 'error'));
+            }
+        });
+    };
+
     window.toggleLoginSlider = () => {
         const box = document.getElementById('loginBox');
         box.style.display = (box.style.display === 'block') ? 'none' : 'block';
@@ -240,9 +282,15 @@
 
         if (userData) {
             if(userData.status === "pending") return Swal.fire('Akses Ditolak', 'Akun ditangguhkan.', 'error');
-            window.currentAdmin = userData.username;
-            localStorage.setItem('sipapua_admin', window.currentAdmin);
-            location.reload();
+            localStorage.setItem('sipapua_admin', userData.username);
+            // NOTIFIKASI BERHASIL MASUK
+            Swal.fire({
+                title: 'Berhasil',
+                text: 'Anda Berhasil Masuk',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => location.reload());
         } else {
             Swal.fire('Gagal', 'Username/Password salah', 'error');
         }
