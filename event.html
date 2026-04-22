@@ -214,24 +214,35 @@
         document.getElementById('newAdminUser').value = ""; document.getElementById('newAdminPass').value = "";
     };
 
+    // FUNGSI HANDLE FILE UPLOAD YANG DIPERBARUI
     window.handleFileUpload = async (event) => {
-        const files = event.target.files; window.cloudinaryImages = [];
+        const files = event.target.files;
+        window.cloudinaryImages = [];
         Swal.fire({ title: 'Mengunggah...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        
         for (let file of files) {
             const formData = new FormData();
             formData.append('file', file);
             formData.append('upload_preset', 'vj96p7dt');
             try {
                 const resp = await fetch('https://api.cloudinary.com/v1_1/dxt7m8psv/image/upload', { method: 'POST', body: formData });
-                const data = await resp.json(); 
-                if(data.secure_url) window.cloudinaryImages.push(data.secure_url);
-            } catch (err) { console.error(err); }
+                const data = await resp.json();
+                
+                // HANYA push jika data.secure_url ada (tidak undefined)
+                if (data.secure_url) {
+                    window.cloudinaryImages.push(data.secure_url);
+                } else {
+                    console.error("Upload gagal:", data.error ? data.error.message : "Unknown error");
+                }
+            } catch (err) {
+                console.error("Fetch error:", err);
+            }
         }
         Swal.close();
         document.getElementById('uploadStatus').innerText = window.cloudinaryImages.length + " Foto siap.";
     };
 
-    // PERBAIKAN LOGIKA SIMPAN BERITA (ANTI-UNDEFINED)
+    // FUNGSI SIMPAN BERITA YANG DIPERBARUI
     window.simpanBerita = async function() {
         const nama = document.getElementById('namaEvent').value;
         const lokasi = document.getElementById('lokasiEvent').value;
@@ -242,15 +253,15 @@
             return Swal.fire('Error', 'Data wajib diisi!', 'error');
         }
 
-        // Memastikan tidak ada data undefined yang masuk ke Firebase
-        const daftarFoto = (window.cloudinaryImages || []).filter(url => url !== undefined && url !== null);
+        // Filter array untuk membuang nilai null/undefined sebelum dikirim ke Firebase
+        const daftarFotoValid = (window.cloudinaryImages || []).filter(url => url != null);
 
         const newEvent = { 
             nama, 
             lokasi, 
             tgl, 
             isi: isi || "", 
-            fotos: daftarFoto, 
+            fotos: daftarFotoValid, // Menggunakan array yang sudah bersih
             createdBy: window.currentAdmin || "Admin", 
             createdAt: new Date().toISOString() 
         };
