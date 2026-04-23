@@ -118,14 +118,20 @@
                 <option>Jualan Aneka Kue Basah & Kering</option>
                 <option>Jualan Makanan Produk Olahan</option>
                 <option>Jualan Kerajinan Tangan</option>
+                <option>Jualan Hasil Industri</option>
+                <option>Jualan Produk FMCG</option>
                 <option>Jualan Hasil Bumi</option>
-                <option>JUALAN HASIL PERIKANAN DAN PETERNAKAN</option>
+                <option>Jualan Hasil Perikanan & Peternakan</option>
                 <option>Jualan Jasa</option>
+                <option>Jualan Lain-lain</option>
             </select>
             <textarea id="reg-desc" placeholder="Deskripsi Usaha..." rows="2"></textarea>
             <div style="background: #f8f9fa; padding: 10px; border-radius: 10px;">
                 <input type="email" id="reg-email" placeholder="Email (Gunakan Email SIPAPUA)" required>
-                <input type="password" id="reg-pass" placeholder="Password (Gunakan Password SIPAPUA)" required>
+                <div style="position: relative;">
+                    <input type="password" id="reg-pass" placeholder="Password (Gunakan Password SIPAPUA)" required>
+                    <i class="fa-solid fa-eye" id="toggleRegEye" onclick="togglePassReg()" style="position: absolute; right: 15px; top: 22px; color: #999; cursor: pointer;"></i>
+                </div>
             </div>
             <button type="button" class="btn-action" id="btn-daftar" onclick="prosesDaftar()">BUAT LAPAK SEKARANG</button>
             <button type="button" onclick="tutupModal()" style="background:none; border:none; width:100%; margin-top:10px; color:#999;">Batal</button>
@@ -137,7 +143,10 @@
     <div class="modal-content">
         <h3>Masuk ke Dashboard</h3>
         <input type="email" id="log-email" placeholder="Email">
-        <input type="password" id="log-pass" placeholder="Password">
+        <div style="position: relative;">
+            <input type="password" id="log-pass" placeholder="Password">
+            <i class="fa-solid fa-eye" id="toggleLogEye" onclick="togglePassLogin()" style="position: absolute; right: 15px; top: 22px; color: #999; cursor: pointer;"></i>
+        </div>
         <button class="btn-action" onclick="prosesLogin()">MASUK DASHBOARD</button>
         <button type="button" onclick="tutupModal()" style="background:none; border:none; width:100%; margin-top:10px; color:#999;">Batal</button>
     </div>
@@ -238,7 +247,7 @@
                 } else { throw err; }
             }
 
-            // STEP 2: Upload Cloudinary (Unsigned Pattern)
+            // STEP 2: Upload Cloudinary (Perbaikan: Unsigned Pattern Tanpa API Key)
             btn.innerText = "Mengunggah Logo...";
             const formData = new FormData();
             formData.append("file", fotoFile);
@@ -247,6 +256,7 @@
             const uploadRes = await fetch("https://api.cloudinary.com/v1_1/dxzllsbgj/image/upload", {
                 method: "POST",
                 body: formData
+                // Catatan: Tidak menggunakan header Authorization atau api_key agar tidak dianggap Signed upload
             });
 
             const dataFoto = await uploadRes.json();
@@ -286,6 +296,21 @@
             tampilNotif("Berhasil Masuk!", "#27ae60");
             setTimeout(() => { window.location.href = "dashboard-umkm.html"; }, 1000);
         } catch (e) { tampilNotif("Email atau Password Salah!", "#c0392b"); }
+    }
+
+    // Fungsi Toggle Password
+    function togglePassReg() {
+        const p = document.getElementById('reg-pass');
+        const eye = document.getElementById('toggleRegEye');
+        p.type = p.type === "password" ? "text" : "password";
+        eye.classList.toggle("fa-eye-slash");
+    }
+
+    function togglePassLogin() {
+        const p = document.getElementById('log-pass');
+        const eye = document.getElementById('toggleLogEye');
+        p.type = p.type === "password" ? "text" : "password";
+        eye.classList.toggle("fa-eye-slash");
     }
 
     function togglePassAdmin() {
