@@ -265,22 +265,28 @@
         "ARS2": ["Komsel Keluarga Arso 2"] 
     };
 
-    // --- FUNGSI PREVIEW NIJ (GANTI KE FIELD 'lokasi' SESUAI DATABASE) ---
+    // --- FUNGSI PREVIEW NIJ (SMART MAPPING) ---
     async function updateNIJPreview() {
         const lokasiSelect = document.getElementById("lokasi");
         const displayInput = document.getElementById("nij-display");
         
         if (!lokasiSelect || !displayInput) return;
         
-        const wilayahTerpilih = lokasiSelect.value;
-        if (!wilayahTerpilih) return;
+        let lokasiKode = lokasiSelect.value; // Contoh: "ABE"
+        if (!lokasiKode) return;
+
+        // PEMETAAN: Ubah kode singkat menjadi nama lengkap sesuai database Anda
+        let namaWilayahFull = lokasiKode;
+        if (lokasiKode === "ABE") namaWilayahFull = "Abepura";
+        if (lokasiKode === "STN") namaWilayahFull = "Sentani";
+        if (lokasiKode === "DYO") namaWilayahFull = "Doyo";
 
         displayInput.value = "Menghitung nomor...";
 
         try {
-            // SINKRONISASI: Menggunakan 'lokasi' karena data lama (Agus) memakai field 'lokasi'
+            // Cari data berdasarkan field 'wilayah' dengan nama lengkap (Abepura)
             const snapshot = await db.collection("users")
-                .where("lokasi", "==", wilayahTerpilih) 
+                .where("wilayah", "==", namaWilayahFull) 
                 .orderBy("nij_number", "desc")
                 .limit(1)
                 .get();
@@ -289,12 +295,10 @@
 
             if (!snapshot.empty) {
                 const lastData = snapshot.docs[0].data();
-                // Gunakan nij_number (angka murni)
                 if (lastData.nij_number) {
                     nextNum = parseInt(lastData.nij_number) + 1;
-                } 
-                // Fallback jika data lama belum punya nij_number
-                else if (lastData.nij) {
+                } else if (lastData.nij) {
+                    // Fallback bedah dari string jika nij_number tidak ada
                     const parts = lastData.nij.split("-");
                     if (parts.length >= 4) {
                         nextNum = parseInt(parts[3]) + 1;
@@ -304,26 +308,33 @@
 
             const tahun = new Date().getFullYear();
             const formattedNum = String(nextNum).padStart(3, '0');
-            displayInput.value = `NIJ-PPP-${wilayahTerpilih}-${formattedNum}-${tahun}`;
+            
+            // Tampilan tetap pakai ABE (Contoh: NIJ-PPP-ABE-005-2026)
+            displayInput.value = `NIJ-PPP-${lokasiKode}-${formattedNum}-${tahun}`;
 
         } catch (e) {
             console.error("Error NIJ Preview:", e);
-            displayInput.value = "Pilih lokasi kembali...";
+            displayInput.value = "Gagal memuat nomor...";
         }
     }
 
     // --- LOGIKA REGISTRASI ---
     async function handleRegistrasi() {
         const btnSubmit = document.getElementById("btnSubmit");
-        const lokasi = document.getElementById("lokasi").value; 
+        const lokasiKode = document.getElementById("lokasi").value; 
         const rawEmail = document.getElementById("email").value.trim();
         const rawPass = document.getElementById("pass").value;
         const rawNama = document.getElementById("nama").value;
         const rawHp = document.getElementById("hp").value.trim();
 
-        if (!rawEmail || !rawPass || !rawNama || !rawHp || !lokasi) { 
+        if (!rawEmail || !rawPass || !rawNama || !rawHp || !lokasiKode) { 
             alert("Mohon lengkapi semua data wajib!"); return; 
         }
+
+        // Mapping Nama Wilayah untuk simpan data
+        let namaWilayahFull = lokasiKode;
+        if (lokasiKode === "ABE") namaWilayahFull = "Abepura";
+        if (lokasiKode === "STN") namaWilayahFull = "Sentani";
 
         btnSubmit.disabled = true;
         btnSubmit.innerText = "Mengamankan NIJ...";
@@ -332,9 +343,9 @@
             const emailCheck = await db.collection("users").where("email", "==", rawEmail).get();
             if (!emailCheck.empty) throw new Error("Email sudah terdaftar!");
 
-            // AMBIL NOMOR TERAKHIR DENGAN FIELD 'lokasi'
+            // Query nomor terakhir pakai nama lengkap
             const snapshot = await db.collection("users")
-                .where("lokasi", "==", lokasi)
+                .where("wilayah", "==", namaWilayahFull)
                 .orderBy("nij_number", "desc")
                 .limit(1)
                 .get();
@@ -342,11 +353,11 @@
             let newNumber = 1;
             if (!snapshot.empty) {
                 const lastData = snapshot.docs[0].data();
-                newNumber = (lastData.nij_number || parseInt(lastData.nij.split("-")[3]) || 0) + 1;
+                newNumber = (lastData.nij_number || 0) + 1;
             }
 
             const tahun = new Date().getFullYear();
-            const finalNIJ = `NIJ-PPP-${lokasi}-${String(newNumber).padStart(3, '0')}-${tahun}`;
+            const finalNIJ = `NIJ-PPP-${lokasiKode}-${String(newNumber).padStart(3, '0')}-${tahun}`;
 
             const userCredential = await auth.createUserWithEmailAndPassword(rawEmail, rawPass);
             
@@ -357,15 +368,15 @@
                 }
             });
 
-            // SIMPAN DATA (HANYA PAKAI 'lokasi', JANGAN CAMPUR DENGAN 'wilayah')
+            // Simpan data (Konsisten pakai field 'wilayah' dengan nama lengkap)
             await db.collection("users").doc(userCredential.user.uid).set({
                 uid: userCredential.user.uid,
                 nama: rawNama,
                 email: rawEmail,
                 nij: finalNIJ,
-                nij_number: newNumber, 
+                nij_number: newNumber,
                 whatsapp: rawHp,
-                lokasi: lokasi,       // ⬅️ KONSISTEN PAKAI LOKASI
+                wilayah: namaWilayahFull, 
                 komsel: document.getElementById("komsel").value,
                 jabatan: document.getElementById("jabatan_jemaat").value,
                 sub_jabatan: document.getElementById("sub_jabatan").value || "-",
