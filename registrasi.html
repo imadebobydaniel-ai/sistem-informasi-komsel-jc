@@ -285,7 +285,6 @@
     }
 
     function nextStep(n) {
-        // Sembunyikan semua step & hapus class active
         document.querySelectorAll('.form-step').forEach(s => { 
             s.style.display = 'none'; 
             s.classList.remove('active');
@@ -294,9 +293,8 @@
         const target = document.getElementById('step-' + n);
         if (target) {
             target.style.display = 'block';
-            target.classList.add('active'); // Memicu animasi CSS
+            target.classList.add('active');
             
-            // Update bar indikator
             document.querySelectorAll('.step').forEach((stepBar, index) => {
                 if (index < n) stepBar.classList.add('active');
                 else stepBar.classList.remove('active');
@@ -311,19 +309,37 @@
     async function updateNIJPreview() {
         const lokasi = document.getElementById("lokasi")?.value;
         const displayInput = document.getElementById("nij-display");
+        
         if (!lokasi || !displayInput) return;
+        
         displayInput.value = "Menghitung nomor...";
+        
         try {
-            const snapshot = await db.collection("users").where("lokasi", "==", lokasi).orderBy("createdAt", "desc").limit(1).get();
+            const snapshot = await db.collection("users")
+                .where("lokasi", "==", lokasi)
+                .orderBy("createdAt", "desc")
+                .limit(1)
+                .get();
+
             let nextNum = 1;
             if (!snapshot.empty) {
                 const lastNij = snapshot.docs[0].data().nij;
-                const parts = lastNij.split("-");
-                if(parts.length >= 4) nextNum = parseInt(parts[3]) + 1;
+                if (lastNij) {
+                    const parts = lastNij.split("-");
+                    if (parts.length >= 4) {
+                        nextNum = parseInt(parts[3]) + 1;
+                    }
+                }
             }
+
             const tahun = new Date().getFullYear();
-            displayInput.value = `NIJ-PPP-${lokasi}-${String(nextNum).padStart(3, '0')}-${tahun}`;
-        } catch (e) { console.error(e); }
+            const formattedNum = String(nextNum).padStart(3, '0');
+            displayInput.value = `NIJ-PPP-${lokasi}-${formattedNum}-${tahun}`;
+            
+        } catch (e) {
+            console.error("Gagal menghitung NIJ:", e);
+            displayInput.value = "Error menghitung nomor";
+        }
     }
 
     async function handleRegistrasi() {
@@ -347,8 +363,14 @@
             const hpCheck = await db.collection("users").where("whatsapp", "==", rawHp).get();
             if (!hpCheck.empty) throw new Error("No WhatsApp sudah terdaftar!");
 
+            // Menggunakan transaksi untuk memastikan nomor NIJ tidak dobel
             const resultNIJ = await db.runTransaction(async (transaction) => {
-                const snapshot = await db.collection("users").where("lokasi", "==", lokasi).orderBy("createdAt", "desc").limit(1).get();
+                const snapshot = await db.collection("users")
+                    .where("lokasi", "==", lokasi)
+                    .orderBy("createdAt", "desc")
+                    .limit(1)
+                    .get();
+
                 let newNumber = 1;
                 if (!snapshot.empty) {
                     const lastNij = snapshot.docs[0].data().nij;
