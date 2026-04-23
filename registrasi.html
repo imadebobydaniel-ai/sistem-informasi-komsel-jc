@@ -266,7 +266,7 @@
         "ARS2": ["Komsel Keluarga Arso 2"] 
     };
 
-    // --- FUNGSI NAVIGASI & UI (CAKUPAN GLOBAL) ---
+    // --- FUNGSI NAVIGASI & UI ---
     function toggleAgreeButton() { 
         const c = document.getElementById("check-agree"); 
         const b = document.getElementById("btn-agree-submit"); 
@@ -305,7 +305,7 @@
         }
     }
 
-    // --- FUNGSI LOGIKA DATA ---
+    // --- FUNGSI LOGIKA DATA (NIJ OTOMATIS) ---
     async function updateNIJPreview() {
         const lokasi = document.getElementById("lokasi")?.value;
         const displayInput = document.getElementById("nij-display");
@@ -315,6 +315,7 @@
         displayInput.value = "Menghitung nomor...";
         
         try {
+            // Mengambil 1 data terakhir dari lokasi yang dipilih berdasarkan waktu pendaftaran
             const snapshot = await db.collection("users")
                 .where("lokasi", "==", lokasi)
                 .orderBy("createdAt", "desc")
@@ -323,9 +324,12 @@
 
             let nextNum = 1;
             if (!snapshot.empty) {
-                const lastNij = snapshot.docs[0].data().nij;
+                const lastData = snapshot.docs[0].data();
+                const lastNij = lastData.nij;
+                
                 if (lastNij) {
                     const parts = lastNij.split("-");
+                    // Format: NIJ (0) - PPP (1) - LOKASI (2) - NOMOR (3) - TAHUN (4)
                     if (parts.length >= 4) {
                         nextNum = parseInt(parts[3]) + 1;
                     }
@@ -338,7 +342,8 @@
             
         } catch (e) {
             console.error("Gagal menghitung NIJ:", e);
-            displayInput.value = "Error menghitung nomor";
+            // Jika error index muncul lagi, link akan muncul di console log
+            displayInput.value = "Error: Klik link di Console Log";
         }
     }
 
@@ -360,27 +365,25 @@
         try {
             const emailCheck = await db.collection("users").where("email", "==", rawEmail).get();
             if (!emailCheck.empty) throw new Error("Email sudah terdaftar!");
-            const hpCheck = await db.collection("users").where("whatsapp", "==", rawHp).get();
-            if (!hpCheck.empty) throw new Error("No WhatsApp sudah terdaftar!");
 
-            // Menggunakan transaksi untuk memastikan nomor NIJ tidak dobel
-            const resultNIJ = await db.runTransaction(async (transaction) => {
-                const snapshot = await db.collection("users")
-                    .where("lokasi", "==", lokasi)
-                    .orderBy("createdAt", "desc")
-                    .limit(1)
-                    .get();
+            // PROSES PENETAPAN NIJ FINAL
+            const snapshot = await db.collection("users")
+                .where("lokasi", "==", lokasi)
+                .orderBy("createdAt", "desc")
+                .limit(1)
+                .get();
 
-                let newNumber = 1;
-                if (!snapshot.empty) {
-                    const lastNij = snapshot.docs[0].data().nij;
-                    const parts = lastNij.split("-");
-                    if(parts.length >= 4) newNumber = parseInt(parts[3]) + 1;
-                }
-                const tahun = new Date().getFullYear();
-                return `NIJ-PPP-${lokasi}-${String(newNumber).padStart(3, '0')}-${tahun}`;
-            });
+            let newNumber = 1;
+            if (!snapshot.empty) {
+                const lastNij = snapshot.docs[0].data().nij;
+                const parts = lastNij.split("-");
+                if(parts.length >= 4) newNumber = parseInt(parts[3]) + 1;
+            }
+            
+            const tahun = new Date().getFullYear();
+            const resultNIJ = `NIJ-PPP-${lokasi}-${String(newNumber).padStart(3, '0')}-${tahun}`;
 
+            // Create User Auth
             const userCredential = await auth.createUserWithEmailAndPassword(rawEmail, rawPass);
             await userCredential.user.sendEmailVerification();
 
@@ -391,6 +394,7 @@
                 }
             });
 
+            // Simpan ke Firestore
             await db.collection("users").doc(userCredential.user.uid).set({
                 uid: userCredential.user.uid,
                 nama: rawNama,
@@ -400,9 +404,9 @@
                 lokasi: lokasi,
                 komsel: document.getElementById("komsel").value,
                 jabatan: document.getElementById("jabatan_jemaat").value,
-                sub_jabatan: document.getElementById("sub_jabatan").value,
+                sub_jabatan: document.getElementById("sub_jabatan").value || "-",
                 pelayanan: document.getElementById("pelayanan").value,
-                detail_pelayanan: document.getElementById("pelayanan_spesifik_non").value,
+                detail_pelayanan: document.getElementById("pelayanan_spesifik_non").value || "-",
                 alamat: document.getElementById("alamat").value,
                 status_pernikahan: document.getElementById("status_pernikahan").value,
                 data_anak: listAnak,
@@ -429,8 +433,16 @@
 
     function handleStatusNikah() { 
         const s = document.getElementById("status_pernikahan").value; 
-        document.getElementById("form_menikah").style.display = (s === "Menikah") ? "block" : "none"; 
-        document.getElementById("form_single").style.display = (s !== "Menikah" && s !== "") ? "block" : "none"; 
+        const fM = document.getElementById("form_menikah");
+        const fS = document.getElementById("form_single");
+        if(fM) fM.style.display = (s === "Menikah") ? "block" : "none"; 
+        if(fS) fS.style.display = (s !== "Menikah" && s !== "") ? "block" : "none"; 
+    }
+
+    // Fungsi tambahan untuk menghindari error "updateSubJabatan is not defined"
+    function updateSubJabatan() {
+        console.log("Fungsi updateSubJabatan dipicu");
+        // Tambahkan logika pengisian sub-bidang di sini jika diperlukan
     }
 
     async function loadProvinsi() { 
@@ -439,7 +451,8 @@
             const data = await resp.json(); 
             let opt = '<option value="">Pilih Provinsi</option>'; 
             data.forEach(p => opt += `<option value="${p.name}" data-id="${p.id}">${p.name}</option>`); 
-            document.getElementById('provinsi_lahir').innerHTML = opt; 
+            const el = document.getElementById('provinsi_lahir');
+            if(el) el.innerHTML = opt; 
         } catch(e) { console.error("Gagal load provinsi", e); }
     }
 
