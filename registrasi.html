@@ -249,9 +249,9 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // --- DATA KOMSEL TERBARU ---
+    // --- DATA KOMSEL TERBARU (SUDAH DISESUAIKAN DENGAN VALUE LOKASI) ---
     const dataKomsel = { 
-        "ABEPURA": [
+        "ABE": [
             "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", 
             "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", 
             "Esther 6", "Esther 7", "Esther 8", "Esther 9", "Esther 10", 
@@ -259,7 +259,7 @@
             "Komsel Profesi Abe", "Komsel Mahasiswa Abe", "Komsel Pelajar Abe", 
             "Komsel Sekolah Minggu Abe", "Komsel Lansia"
         ], 
-        "SENTANI": [
+        "STN": [
             "Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Siloam 5", 
             "Siloam 6", "Siloam 7", "Siloam 8", 
             "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", 
@@ -267,19 +267,20 @@
             "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", 
             "Komsel Sekolah Minggu Sentani", "Komsel Lansia Sentani"
         ], 
-        "DOYO": [
+        "DYO": [
             "Komsel Bapak Doyo", "Komsel Ibu Doyo", "Komsel Profesi Doyo", 
             "Komsel Mahasiswa Doyo", "Komsel Pelajar Doyo", 
             "Komsel Sekolah Minggu Doyo", "Komsel Lansia Doyo"
         ], 
-        "ARSO 1": ["Komsel Keluarga Arso 1"], 
-        "ARSO 2": ["Komsel Keluarga Arso 2"] 
+        "ARS1": ["Komsel Keluarga Arso 1"], 
+        "ARS2": ["Komsel Keluarga Arso 2"] 
     };
 
     // --- LOGIKA RESET PASSWORD ---
     function openForgotPassword() {
         const modal = document.getElementById("forgot-password-modal");
         modal.classList.add("modal-show");
+        modal.style.display = "flex";
     }
 
     function closeForgotPassword() {
@@ -479,7 +480,7 @@
 
     const dataSubJabatan = { "Kependetaan": ["Gembala Sidang", "Pdt. Pembantu"], "Pemimpin / Koordinator": ["Sekretaris", "Bendahara", "Koordinator Lansia"], "Anggota Jemaat": ["Anggota Jemaat Ordinari"] };
     
-    // --- FUNGSI UPDATE KOMSEL OTOMATIS ---
+    // --- FUNGSI UPDATE KOMSEL OTOMATIS (MENCARI KEY ABE, STN, DLL) ---
     function updateKomsel() { 
         const l = document.getElementById("lokasi").value; 
         const s = document.getElementById("komsel"); 
