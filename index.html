@@ -127,6 +127,24 @@
  
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 350px; text-align: center; }
+
+        /* --- NOTIFIKASI TAMBAHAN --- */
+        .notif-block {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid var(--emas-lux);
+            padding: 20px 40px;
+            border-radius: 10px;
+            z-index: 1000000;
+            display: none;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+        .notif-block p { color: #fff; font-size: 18px; font-weight: bold; margin: 0; }
+        .notif-block i { color: var(--emas-lux); font-size: 30px; margin-bottom: 10px; display: block; }
     </style>
 </head>
 <body>
@@ -134,6 +152,11 @@
     <audio id="backsound" loop preload="auto">
         <source src="endgame.mp3" type="audio/mpeg">
     </audio>
+
+    <div id="customNotif" class="notif-block">
+        <i class="fa-solid fa-circle-check"></i>
+        <p id="notifText"></p>
+    </div>
  
     <div id="splash-screen">
         <div class="splash-content">
@@ -243,6 +266,27 @@
             }
         });
 
+        // FUNGSI TAMPIL NOTIFIKASI CUSTOM
+        function showBlockNotif(message, duration = 2000) {
+            const notif = document.getElementById('customNotif');
+            const text = document.getElementById('notifText');
+            text.innerText = message;
+            notif.style.display = 'block';
+            
+            const icon = notif.querySelector('i');
+            if(message.toLowerCase().includes('gagal') || message.toLowerCase().includes('belum') || message.toLowerCase().includes('error')) {
+                icon.className = "fa-solid fa-circle-xmark";
+                icon.style.color = "#ff4444";
+            } else {
+                icon.className = "fa-solid fa-circle-check";
+                icon.style.color = "var(--emas-lux)";
+            }
+
+            setTimeout(() => {
+                notif.style.display = 'none';
+            }, duration);
+        }
+
         // AUDIO FUNCTIONS
         function toggleMute() {
             const muteIcon = document.getElementById('mute-icon');
@@ -272,9 +316,7 @@
 
         // NAVIGATION FUNCTIONS
         function enterSystem() {
-            // Play audio
             backsound.play().catch(e => console.log("Audio ditahan browser:", e));
-            
             const splash = document.getElementById('splash-screen');
             splash.classList.add('splash-hidden');
             setTimeout(() => {
@@ -346,7 +388,6 @@
         document.getElementById('userLoginForm').onsubmit = async (e) => {
            e.preventDefault();
             const btn = document.getElementById('btnMasuk');
-            const msg = document.getElementById('login-msg');
             const email = document.getElementById('user_email').value.trim();
             const pass = document.getElementById('user_pass').value;
  
@@ -357,19 +398,19 @@
                 const userCredential = await auth.signInWithEmailAndPassword(email, pass);
                 if (userCredential.user.emailVerified) {
                    localStorage.setItem("userEmail", email);
-                   msg.innerText = "Berhasil! Mengalihkan...";
-                   msg.className = "msg-success";
-                   setTimeout(() => window.location.replace("menu.html"), 1000);
+                   
+                   // NOTIFIKASI BERHASIL
+                   showBlockNotif("Anda berhasil login.");
+                   
+                   setTimeout(() => window.location.replace("menu.html"), 1500);
                 } else {
-                   msg.innerText = "Email belum diverifikasi!";
-                   msg.className = "msg-error";
+                   showBlockNotif("Email belum diverifikasi!");
                    btn.innerText = "MASUK";
                    btn.disabled = false;
                   auth.signOut();
                 }
             } catch (err) {
-               msg.innerText = "Gagal Login! Periksa kembali email & password.";
-               msg.className = "msg-error";
+               showBlockNotif("Gagal Login! Periksa kembali email & password.");
                btn.innerText = "MASUK";
                btn.disabled = false;
             }
@@ -380,13 +421,13 @@
         document.getElementById('closeModal').onclick = () => document.getElementById('forgotModal').style.display = 'none';
         document.getElementById('sendReset').onclick = async () => {
             const email = document.getElementById('forgotEmail').value.trim();
-            if (!email) return alert("Masukkan email!");
+            if (!email) return showBlockNotif("Masukkan email!");
             try {
                 await auth.sendPasswordResetEmail(email);
-               alert("Link reset password telah dikirim ke email Anda.");
+               showBlockNotif("Link reset password telah dikirim.");
                document.getElementById('forgotModal').style.display = 'none';
             } catch (err) {
-               alert("Error: " + err.message);
+               showBlockNotif("Error: " + err.message);
             }
         };
     </script>
