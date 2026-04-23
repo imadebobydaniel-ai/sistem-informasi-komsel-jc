@@ -179,6 +179,12 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
+    // --- KONFIGURASI CLOUDINARY & PEMBATASAN ---
+    const CLOUD_NAME = "dxzllsbgi";
+    const UPLOAD_PRESET = "sipapua_preset";
+    const MAX_VIDEO_DURATION = 15; // detik
+    const MAX_VIDEO_COUNT = 3;
+
     // --- 2. FUNGSI UI (MENU, MODAL, & MATA PASSWORD) ---
     function toggleMenu(event) {
         event.stopPropagation();
@@ -194,7 +200,6 @@
         document.getElementById(id).style.display = 'flex';
     }
 
-    // Fungsi Toggle Mata Password
     function togglePassword(inputId, iconId) {
         const passwordInput = document.getElementById(inputId);
         const icon = document.getElementById(iconId);
@@ -207,27 +212,17 @@
         }
     }
 
-    window.onclick = function(event) {
-        if (!event.target.matches('.dropbtn')) {
-            const dropdowns = document.getElementsByClassName("dropdown-content");
-            for (let i = 0; i < dropdowns.length; i++) {
-                if (dropdowns[i].classList.contains('show')) {
-                    dropdowns[i].classList.remove('show');
-                }
-            }
-        }
-    }
-
     function tampilNotif(msg, color) {
         const container = document.getElementById("notif-container");
         const content = document.getElementById("notif-content");
+        if(!container) return alert(msg);
         document.getElementById("notif-message").innerText = msg;
         content.style.backgroundColor = color;
         container.style.display = "block";
         setTimeout(() => { container.style.display = "none"; }, 3000);
     }
 
-    // --- 3. PROSES DAFTAR & CLOUDINARY (FIXED CLOUD NAME & ERROR HANDLING) ---
+    // --- 3. PROSES DAFTAR LAPAK (LOGO) ---
     async function prosesDaftar() {
         const btn = document.getElementById("btn-daftar");
         const email = document.getElementById("reg-email").value;
@@ -241,7 +236,6 @@
             btn.disabled = true;
             btn.innerText = "Memproses...";
 
-            // STEP 1: Firebase Auth
             let uid;
             try {
                 const userCredential = await auth.createUserWithEmailAndPassword(email, pass);
@@ -253,37 +247,16 @@
                 } else { throw err; }
             }
 
-            // STEP 2: Upload Cloudinary (FIXED: dxzllsbgi)
             btn.innerText = "Mengunggah Logo...";
-            const CLOUD_NAME = "dxzllsbgi"; 
-            const UPLOAD_PRESET = "sipapua_preset";
+            const logoUrl = await uploadKeCloudinary(fotoFile, "image");
 
-            const formData = new FormData();
-            formData.append("file", fotoFile);
-            formData.append("upload_preset", UPLOAD_PRESET);
-
-            const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-                method: "POST",
-                body: formData
-            });
-
-            const dataFoto = await uploadRes.json();
-
-            // Penanganan error Cloudinary yang lebih kuat
-            if (!uploadRes.ok || dataFoto.error) {
-                console.error("Detail Error Cloudinary:", dataFoto);
-                throw new Error(dataFoto.error?.message || "Cloudinary tidak mengenali akun Anda (Cek Cloud Name)");
-            }
-
-            // STEP 3: Simpan Ke Firestore
-            btn.innerText = "Menyimpan Data...";
             await db.collection("umkm_stores").doc(uid).set({
                 nama_toko: document.getElementById("reg-toko").value,
                 nama_pemilik: document.getElementById("reg-pemilik").value,
                 whatsapp: document.getElementById("reg-hp").value,
                 jenis_umkm: document.getElementById("reg-jenis").value,
                 deskripsi: document.getElementById("reg-desc").value,
-                logo_url: dataFoto.secure_url,
+                logo_url: logoUrl,
                 email_terdaftar: email,
                 uid: uid,
                 dibuat: firebase.firestore.FieldValue.serverTimestamp()
@@ -293,13 +266,113 @@
             setTimeout(() => { window.location.href = "dashboard-umkm.html"; }, 1500);
 
         } catch (e) {
-            console.error("Proses Daftar Gagal:", e);
             tampilNotif("Gagal: " + e.message, "#c0392b");
             btn.disabled = false;
             btn.innerText = "BUAT LAPAK SEKARANG";
         }
     }
-    
+
+    // --- 4. PROSES PRODUK (MULTIPLE IMAGES & VIDEOS) ---
+    async function prosesUploadProduk() {
+        const imagesFiles = document.getElementById("prod-images").files;
+        const videoFiles = document.getElementById("prod-videos").files;
+        
+        if (imagesFiles.length === 0) return tampilNotif("Pilih minimal 1 gambar produk!", "#f39c12");
+        if (videoFiles.length > MAX_VIDEO_COUNT) return tampilNotif("Maksimal 3 video saja!", "#f39c12");
+
+        try {
+            tampilNotif("Sedang mengunggah media...", "#3498db");
+
+            const imageUrls = [];
+            for (let file of imagesFiles) {
+                const url = await uploadKeCloudinary(file, "image");
+                imageUrls.push(url);
+            }
+
+            const videoUrls = [];
+            for (let file of videoFiles) {
+                await validasiDurasiVideo(file);
+                const url = await uploadKeCloudinary(file, "video");
+                videoUrls.push(url);
+            }
+
+            await db.collection("produk_umkm").add({
+                uid_toko: auth.currentUser.uid,
+                nama_produk: document.getElementById("prod-nama").value,
+                foto_urls: imageUrls,
+                video_urls: videoUrls,
+                dibuat: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            tampilNotif("Produk berhasil ditambahkan!", "#27ae60");
+            location.reload();
+        } catch (e) {
+            tampilNotif("Gagal: " + e.message, "#c0392b");
+        }
+    }
+
+    // --- 5. FUNGSI EDIT & HAPUS LAPAK ---
+    async function hapusLapak(uid) {
+        if (confirm("Apakah Anda yakin ingin menghapus lapak ini? Semua data produk juga akan hilang.")) {
+            try {
+                await db.collection("umkm_stores").doc(uid).delete();
+                tampilNotif("Lapak berhasil dihapus", "#27ae60");
+                window.location.href = "index.html"; 
+            } catch (e) {
+                tampilNotif("Gagal menghapus: " + e.message, "#c0392b");
+            }
+        }
+    }
+
+    async function bukaEditLapak(uid) {
+        try {
+            const doc = await db.collection("umkm_stores").doc(uid).get();
+            if (doc.exists) {
+                const data = doc.data();
+                document.getElementById("edit-toko").value = data.nama_toko;
+                document.getElementById("edit-desc").value = data.deskripsi;
+                bukaModal("modal-edit-lapak");
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    // --- HELPER FUNCTIONS ---
+    async function uploadKeCloudinary(file, type) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", UPLOAD_PRESET);
+
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${type}/upload`, {
+            method: "POST",
+            body: formData
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error?.message || "Gagal upload ke Cloudinary");
+        return data.secure_url;
+    }
+
+    function validasiDurasiVideo(file) {
+        return new Promise((resolve, reject) => {
+            const video = document.createElement('video');
+            video.preload = 'metadata';
+            video.onloadedmetadata = function() {
+                window.URL.revokeObjectURL(video.src);
+                if (video.duration > MAX_VIDEO_DURATION) {
+                    reject(new Error(`Video "${file.name}" durasinya ${Math.round(video.duration)} detik (Maksimal 15 detik!)`));
+                }
+                resolve();
+            };
+            video.src = URL.createObjectURL(file);
+        });
+    }
+
+    window.onclick = function(event) {
+        if (!event.target.matches('.dropbtn')) {
+            const dropdowns = document.getElementsByClassName("dropdown-content");
+            for (let d of dropdowns) { if (d.classList.contains('show')) d.classList.remove('show'); }
+        }
+    }
+
     function prosesLogin() { console.log("Fungsi login dipanggil"); }
     function prosesLoginAdmin() { console.log("Fungsi login admin dipanggil"); }
 </script>
