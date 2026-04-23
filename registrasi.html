@@ -242,50 +242,78 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
 <script>
-    // --- KONFIGURASI FIREBASE (Tetap Sama) ---
-    const _ENV = { k: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", aD: "boby-apps-project.firebaseapp.com", pI: "boby-apps-project", sB: "boby-apps-project.appspot.com", mS: "125984859692", aI: "1:125984859692:web:09f75df5d2e4b6e3bcd389" };
+    // --- KONFIGURASI FIREBASE ---
+    const _ENV = { 
+        k: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
+        aD: "boby-apps-project.firebaseapp.com", 
+        pI: "boby-apps-project", 
+        sB: "boby-apps-project.appspot.com", 
+        mS: "125984859692", 
+        aI: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
+    };
     const firebaseConfig = { apiKey: _ENV.k, authDomain: _ENV.aD, projectId: _ENV.pI, storageBucket: _ENV.sB, messagingSenderId: _ENV.mS, appId: _ENV.aI };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
 
     // --- DATA KOMSEL ---
-    const dataKomsel = { "ABE": ["Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "Esther 8", "Esther 9", "Esther 10", "Esther 11", "Esther 12", "Esther 13", "Komsel Profesi Abe", "Komsel Mahasiswa Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu Abe", "Komsel Lansia"], "STN": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Siloam 5", "Siloam 6", "Siloam 7", "Siloam 8", "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", "Agape 6", "Agape 7", "Agape 8", "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", "Komsel Sekolah Minggu Sentani", "Komsel Lansia Sentani"], "DYO": ["Komsel Bapak Doyo", "Komsel Ibu Doyo", "Komsel Profesi Doyo", "Komsel Mahasiswa Doyo", "Komsel Pelajar Doyo", "Komsel Sekolah Minggu Doyo", "Komsel Lansia Doyo"], "ARS1": ["Komsel Keluarga Arso 1"], "ARS2": ["Komsel Keluarga Arso 2"] };
+    const dataKomsel = { 
+        "ABE": ["Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "Esther 8", "Esther 9", "Esther 10", "Esther 11", "Esther 12", "Esther 13", "Komsel Profesi Abe", "Komsel Mahasiswa Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu Abe", "Komsel Lansia"], 
+        "STN": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Siloam 5", "Siloam 6", "Siloam 7", "Siloam 8", "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", "Agape 6", "Agape 7", "Agape 8", "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", "Komsel Sekolah Minggu Sentani", "Komsel Lansia Sentani"], 
+        "DYO": ["Komsel Bapak Doyo", "Komsel Ibu Doyo", "Komsel Profesi Doyo", "Komsel Mahasiswa Doyo", "Komsel Pelajar Doyo", "Komsel Sekolah Minggu Doyo", "Komsel Lansia Doyo"], 
+        "ARS1": ["Komsel Keluarga Arso 1"], 
+        "ARS2": ["Komsel Keluarga Arso 2"] 
+    };
 
-    // --- FUNGSI PREVIEW NIJ (SOLUSI WAJIB) ---
+    // --- FUNGSI PREVIEW NIJ (SINKRON DENGAN FIELD 'wilayah') ---
     async function updateNIJPreview() {
-        const lokasi = document.getElementById("lokasi")?.value;
+        const lokasiSelect = document.getElementById("lokasi");
         const displayInput = document.getElementById("nij-display");
-        if (!lokasi || !displayInput) return;
+        
+        if (!lokasiSelect || !displayInput) return;
+        
+        const wilayahTerpilih = lokasiSelect.value;
+        if (!wilayahTerpilih) return;
 
         displayInput.value = "Menghitung nomor...";
+
         try {
-            // Query berdasarkan angka murni 'nij_number'
+            // Query menggunakan field 'wilayah' dan urut berdasarkan 'nij_number' murni
             const snapshot = await db.collection("users")
-                .where("lokasi", "==", lokasi)
+                .where("wilayah", "==", wilayahTerpilih) 
                 .orderBy("nij_number", "desc")
                 .limit(1)
                 .get();
 
             let nextNum = 1;
+
             if (!snapshot.empty) {
                 const lastData = snapshot.docs[0].data();
-                // Gunakan nij_number, jika tidak ada (data lama) baru ambil dari string NIJ
-                nextNum = (lastData.nij_number || parseInt(lastData.nij.split("-")[3]) || 0) + 1;
+                // Jika sudah ada nij_number gunakan itu, jika data lama bedah dari string NIJ
+                if (lastData.nij_number) {
+                    nextNum = parseInt(lastData.nij_number) + 1;
+                } else if (lastData.nij) {
+                    const parts = lastData.nij.split("-");
+                    if (parts.length >= 4) {
+                        nextNum = parseInt(parts[3]) + 1;
+                    }
+                }
             }
 
             const tahun = new Date().getFullYear();
-            displayInput.value = `NIJ-PPP-${lokasi}-${String(nextNum).padStart(3, '0')}-${tahun}`;
+            const formattedNum = String(nextNum).padStart(3, '0');
+            displayInput.value = `NIJ-PPP-${wilayahTerpilih}-${formattedNum}-${tahun}`;
+
         } catch (e) {
-            console.error(e);
-            displayInput.value = "Pilih lokasi untuk hitung NIJ";
+            console.error("Error NIJ Preview:", e);
+            displayInput.value = "Pilih lokasi kembali...";
         }
     }
 
-    // --- LOGIKA REGISTRASI (ANTI-TABRAKAN) ---
+    // --- LOGIKA REGISTRASI ---
     async function handleRegistrasi() {
         const btnSubmit = document.getElementById("btnSubmit");
-        const lokasi = document.getElementById("lokasi").value;
+        const lokasi = document.getElementById("lokasi").value; // Ini wilayah (ABE, STN, dll)
         const rawEmail = document.getElementById("email").value.trim();
         const rawPass = document.getElementById("pass").value;
         const rawNama = document.getElementById("nama").value;
@@ -299,13 +327,13 @@
         btnSubmit.innerText = "Mengamankan NIJ...";
 
         try {
-            // 1. Cek duplikasi email/hp dulu
+            // 1. Cek duplikasi email
             const emailCheck = await db.collection("users").where("email", "==", rawEmail).get();
             if (!emailCheck.empty) throw new Error("Email sudah terdaftar!");
 
-            // 2. Ambil nomor terakhir secara real-time
+            // 2. Ambil nomor urut terakhir dari database
             const snapshot = await db.collection("users")
-                .where("lokasi", "==", lokasi)
+                .where("wilayah", "==", lokasi)
                 .orderBy("nij_number", "desc")
                 .limit(1)
                 .get();
@@ -319,7 +347,7 @@
             const tahun = new Date().getFullYear();
             const finalNIJ = `NIJ-PPP-${lokasi}-${String(newNumber).padStart(3, '0')}-${tahun}`;
 
-            // 3. Eksekusi Create User & Simpan Data
+            // 3. Create User Auth & Simpan Data
             const userCredential = await auth.createUserWithEmailAndPassword(rawEmail, rawPass);
             
             let listAnak = [];
@@ -334,9 +362,9 @@
                 nama: rawNama,
                 email: rawEmail,
                 nij: finalNIJ,
-                nij_number: newNumber, // <--- DISIMPAN SEBAGAI ANGKA
+                nij_number: newNumber, // Simpan angka murni untuk pengurutan
                 whatsapp: rawHp,
-                lokasi: lokasi,
+                wilayah: lokasi,       // Simpan sebagai 'wilayah' agar cocok dengan data Agus Hernawan
                 komsel: document.getElementById("komsel").value,
                 jabatan: document.getElementById("jabatan_jemaat").value,
                 sub_jabatan: document.getElementById("sub_jabatan").value || "-",
@@ -357,7 +385,7 @@
         }
     }
 
-    // --- FUNGSI UI (Tetap Sama) ---
+    // --- FUNGSI UI ---
     function updateKomsel() { 
         const l = document.getElementById("lokasi").value; 
         const s = document.getElementById("komsel"); 
@@ -389,7 +417,5 @@
             window.scrollTo({top: 0, behavior: 'smooth'});
         }
     }
-
-    window.onload = () => { /* Load API wilayah jika perlu */ };
 </script></body>
 </html>
