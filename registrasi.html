@@ -532,8 +532,54 @@
         } catch (e) { console.error("Gagal load desa"); }
     }
 
-    // Load provinsi saat halaman terbuka
-    window.onload = () => { loadProvinsi(); };
+    // --- DATA DINAMIS JABATAN & PELAYANAN ---
+    const subBidangData = {
+        "Kependetaan": ["Gembala Sidang", "Pendeta Pembantu", "Pendeta Muda"],
+        "Pemimpin / Koordinator": [
+            "Koordinator Bapak", "Koordinator Ibu", "Koordinator Lansia", "Koordinator Profesi", 
+            "Koordinator Mahasiswa", "Koordinator Pelajar", "Koordinator Sekolah Minggu", 
+            "Koordinator KD", "Koordinator Praise and Worshiper", "Koordinator Doa", 
+            "Koordinator Pelayanan Misi", "Koordinator Tamborin and flag", "Koordinator User", 
+            "Koordinator Event Organizer", "Koordinator Multimedia dan Sound", 
+            "Koordinator Cleaning Service", "Koordinator Perparkiran dan Keamanan"
+        ],
+        "PKS Komsel": ["Ketua Komsel", "Wakil Ketua Komsel", "Anggota Komsel"],
+        "Full Timer": [
+            "Sekretaris Kantor", "Bendahara kantor", "Koordinator PPA", "Staff dan Tutor PPA", 
+            "Koordinator Paud", "Guru Paud", "General Affairs"
+        ],
+        "Anggota Jemaat": ["Jemaat Aktif", "Jemaat Simpatisan"]
+    };
+
+    const fungsiSpesifikList = [
+        "Pengembalaan Jemaat", "Bagian Komisi", "Sekertaris Umum Gereja", "Bendahara Umum gereja", 
+        "Music Player", "Worship Leader", "Singer", "Tamborin", "Flag", "Choirs", "Campers", 
+        "Streaming Operator", "Saoundman", "Floor Director", "Creativ Crew", "Peripheral", 
+        "Frontline User", "Guider User", "Lighting", "Set Design", "Parkir Man", "Security", 
+        "Mission Team", "Prayer Team"
+    ];
+
+    // Fungsi untuk Update Dropdown Sub Bidang
+    function updateSubBidang() {
+        const jabatanUtama = document.getElementById("jabatan_jemaat").value;
+        const subSelect = document.getElementById("sub_bidang_jabatan");
+        subSelect.innerHTML = '<option value="">-- Pilih Sub Bidang --</option>';
+        
+        if (subBidangData[jabatanUtama]) {
+            subBidangData[jabatanUtama].forEach(item => {
+                subSelect.add(new Option(item, item));
+            });
+        }
+    }
+
+    // Fungsi untuk Load Fungsi Pelayanan Spesifik (saat halaman dimuat)
+    function loadFungsiSpesifik() {
+        const select = document.getElementById("fungsi_pelayanan_spesifik");
+        if(select) {
+            select.innerHTML = '<option value="">-- Pilih Fungsi Pelayanan --</option>';
+            fungsiSpesifikList.forEach(f => select.add(new Option(f, f)));
+        }
+    }
 
     // --- DATA KOMSEL ---
     const dataKomsel = { 
@@ -544,7 +590,7 @@
         "ARS2": ["Komsel Keluarga Arso 2"] 
     };
 
-    // --- FUNGSI PREVIEW NIJ (ASLI) ---
+    // --- FUNGSI PREVIEW NIJ ---
     async function updateNIJPreview() {
         const lokasiSelect = document.getElementById("lokasi");
         const displayInput = document.getElementById("nij-display");
@@ -581,10 +627,9 @@
         try {
             const userCredential = await auth.createUserWithEmailAndPassword(rawEmail, rawPass);
             
-            // Mengambil teks dari select Wilayah (bukan ID-nya saja)
             const getVal = (id) => {
                 const el = document.getElementById(id);
-                return el.options[el.selectedIndex].text;
+                return el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : "";
             };
 
             await db.collection("users").doc(userCredential.user.uid).set({
@@ -595,7 +640,9 @@
                 kota_lahir: getVal("kota_lahir"),
                 kecamatan_lahir: getVal("kecamatan_lahir"),
                 desa_lahir: getVal("desa_lahir"),
-                // ... Field lainnya tetap sama sesuai struktur Anda
+                jabatan_jemaat: document.getElementById("jabatan_jemaat").value,
+                sub_bidang_jabatan: document.getElementById("sub_bidang_jabatan").value,
+                fungsi_pelayanan_spesifik: document.getElementById("fungsi_pelayanan_spesifik").value,
                 wilayah: lokasiKode === "ABE" ? "Abepura" : lokasiKode === "STN" ? "Sentani" : lokasiKode,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
@@ -606,7 +653,12 @@
         }
     }
 
-    // Fungsi UI Lainnya Tetap Sama
+    // Load saat halaman terbuka
+    window.onload = () => { 
+        loadProvinsi(); 
+        loadFungsiSpesifik();
+    };
+
     function handleStatusNikah() {
         const val = document.getElementById("status_pernikahan").value;
         document.getElementById("form_menikah").style.display = val === "Menikah" ? "block" : "none";
@@ -642,7 +694,5 @@
             window.scrollTo({top: 0, behavior: 'smooth'});
         }
     }
-</script>
-</body>
-</html></body>
+</script></body>
 </html>
