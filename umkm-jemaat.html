@@ -1,160 +1,47 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pasar UMKM Jemaat - Pondok Pemulihan Papua</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root { --primary: #2c3e50; --accent: #4CAF50; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; }
-        
-        /* Navbar */
-        .navbar { 
-            background: white; padding: 15px 20px; display: flex; justify-content: space-between; 
-            align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
-        }
-        .navbar h1 { font-size: 18px; margin: 0; color: var(--primary); }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UMKM Jemaat</title>
 
-        /* Dropdown */
-        .dropdown { position: relative; display: inline-block; }
-        .dropbtn { 
-            background: var(--primary); color: white; padding: 10px 18px; border-radius: 12px; 
-            border: none; cursor: pointer; font-size: 14px; font-weight: 600;
-            display: flex; align-items: center; gap: 8px; transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .dropdown-content { 
-            display: block; position: absolute; right: 0; top: 130%; background-color: white; 
-            min-width: 230px; box-shadow: 0px 10px 30px rgba(0,0,0,0.15); border-radius: 15px; 
-            overflow: hidden; z-index: 1001; border: 1px solid rgba(0,0,0,0.05);
-            opacity: 0; visibility: hidden; transform: translateY(15px);
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-        }
-        .dropdown-content.show { opacity: 1; visibility: visible; transform: translateY(0); }
-        .dropdown-content a { 
-            color: #444; padding: 14px 18px; text-decoration: none; display: flex;
-            align-items: center; gap: 12px; font-size: 14px; font-weight: 500;
-            transition: all 0.2s ease; border-bottom: 1px solid #f8f9fa;
-        }
-        .dropdown-content a:hover { background-color: #f8f9fa; color: var(--accent); padding-left: 24px; }
-        .admin-item { background-color: #fff5f5; color: #d32f2f !important; font-weight: 600 !important; }
-
-        /* Grid Produk */
-        .market-container { padding: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .product-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .product-img { width: 100%; height: 140px; object-fit: cover; }
-        .product-info { padding: 10px; }
-        .category-tag { font-size: 9px; color: var(--accent); font-weight: bold; text-transform: uppercase; }
-        
-        /* Modals */
-        .modal-overlay { 
-            display: none; position: fixed; bottom: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.5); z-index: 2000; align-items: flex-end; 
-        }
-        .modal-content { 
-            background: white; width: 100%; max-width: 500px; padding: 25px; 
-            border-radius: 25px 25px 0 0; box-sizing: border-box; max-height: 90vh; overflow-y: auto; 
-            animation: slideUp 0.3s ease;
-        }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
-        .btn-action { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-
-        /* Notification */
-        #notif-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; width: 90%; max-width: 400px; display: none; }
-        .notif-block { background: var(--primary); color: white; padding: 15px 20px; border-radius: 15px; display: flex; align-items: center; gap: 12px; font-size: 14px; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes popIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
+<style>
+body { font-family: Arial; background:#f4f7f6; margin:0; }
+.navbar { background:#2c3e50; color:white; padding:15px; display:flex; justify-content:space-between; }
+.btn { padding:12px; border:none; border-radius:8px; background:#2c3e50; color:white; width:100%; }
+.modal { display:none; position:fixed; bottom:0; width:100%; background:white; padding:20px; border-radius:20px 20px 0 0; }
+input, select, textarea { width:100%; padding:10px; margin:5px 0; }
+</style>
 </head>
+
 <body>
 
-<div id="notif-container">
-    <div class="notif-block" id="notif-content">
-        <i class="fa-solid fa-circle-info"></i>
-        <span id="notif-message">Pesan notifikasi di sini...</span>
-    </div>
-</div>
-
 <div class="navbar">
-    <h1><i class="fa-solid fa-store"></i> UMKM Jemaat</h1>
-    <div class="dropdown">
-        <button class="dropbtn" onclick="toggleMenu(event)">
-            <i class="fa-solid fa-bars-staggered"></i> Menu UMKM
-        </button>
-        <div id="myDropdown" class="dropdown-content">
-            <a href="javascript:void(0)" onclick="bukaModal('modal-daftar')">
-                <i class="fa-solid fa-store"></i> Daftar UMKM Baru
-            </a>
-            <a href="javascript:void(0)" onclick="bukaModal('modal-login')">
-                <i class="fa-solid fa-right-to-bracket"></i> Masuk Lapak Saya
-            </a>
-            <a href="javascript:void(0)" onclick="bukaModal('modal-admin-auth')" class="admin-item">
-                <i class="fa-solid fa-user-shield"></i> Panel Super Admin
-            </a>
-        </div>
-    </div>
+    <b>UMKM Jemaat</b>
+    <button onclick="bukaModal()">Daftar</button>
 </div>
 
-<div class="market-container" id="main-market"></div>
+<div id="modal" class="modal">
+    <h3>Buat Lapak</h3>
 
-<div id="modal-daftar" class="modal-overlay">
-    <div class="modal-content">
-        <h3 style="margin-top: 0;">Buat Lapak Baru</h3>
-        <p style="font-size: 12px; color: #666; margin-bottom: 15px;">*Gunakan email yang sama dengan aplikasi SIPAPUA</p>
-        <form id="reg-form">
-            <input type="text" id="reg-toko" placeholder="Nama UMKM" required>
-            <input type="text" id="reg-pemilik" placeholder="Nama Pemilik" required>
-            <input type="tel" id="reg-hp" placeholder="Nomor HP / WhatsApp" required>
-            
-            <div style="margin: 8px 0; text-align: left;">
-                <label style="font-size: 11px; font-weight: bold; color: var(--primary); margin-left: 5px;">UNGGAH FOTO/LOGO UMKM:</label>
-                <input type="file" id="reg-foto" accept="image/*" required style="font-size: 12px;">
-            </div>
+    <input id="toko" placeholder="Nama UMKM">
+    <input id="pemilik" placeholder="Nama Pemilik">
+    <input id="hp" placeholder="No HP">
 
-            <select id="reg-jenis" required>
-                <option value="">-- Pilih Jenis UMKM --</option>
-                <option>Jualan Makanan Siap Saji</option>
-                <option>Jualan Aneka Kue Basah & Kering</option>
-                <option>Jualan Makanan Produk Olahan</option>
-                <option>Jualan Kerajinan Tangan</option>
-                <option>Jualan Hasil Bumi</option>
-                <option>JUALAN HASIL PERIKANAN DAN PETERNAKAN</option>
-                <option>Jualan Jasa</option>
-            </select>
-            <textarea id="reg-desc" placeholder="Deskripsi Usaha..." rows="2"></textarea>
-            <div style="background: #f8f9fa; padding: 10px; border-radius: 10px;">
-                <input type="email" id="reg-email" placeholder="Email (Gunakan Email SIPAPUA)" required>
-                <input type="password" id="reg-pass" placeholder="Password (Gunakan Password SIPAPUA)" required>
-            </div>
-            <button type="button" class="btn-action" id="btn-daftar" onclick="prosesDaftar()">BUAT LAPAK SEKARANG</button>
-            <button type="button" onclick="tutupModal()" style="background:none; border:none; width:100%; margin-top:10px; color:#999;">Batal</button>
-        </form>
-    </div>
-</div>
+    <input type="file" id="foto">
 
-<div id="modal-login" class="modal-overlay">
-    <div class="modal-content">
-        <h3>Masuk ke Dashboard</h3>
-        <input type="email" id="log-email" placeholder="Email">
-        <input type="password" id="log-pass" placeholder="Password">
-        <button class="btn-action" onclick="prosesLogin()">MASUK DASHBOARD</button>
-        <button type="button" onclick="tutupModal()" style="background:none; border:none; width:100%; margin-top:10px; color:#999;">Batal</button>
-    </div>
-</div>
+    <select id="jenis">
+        <option value="">Pilih Jenis</option>
+        <option>Jasa</option>
+        <option>Makanan</option>
+    </select>
 
-<div id="modal-admin-auth" class="modal-overlay">
-    <div class="modal-content" style="border-top: 5px solid #d32f2f;">
-        <h3 style="color: #d32f2f;"><i class="fa-solid fa-lock"></i> Verifikasi Admin</h3>
-        <input type="text" id="admin-user" placeholder="Username Admin">
-        <div style="position: relative;">
-            <input type="password" id="admin-pass" placeholder="Password Admin">
-            <i class="fa-solid fa-eye" id="toggleEye" onclick="togglePassAdmin()" 
-               style="position: absolute; right: 15px; top: 22px; color: #999; cursor: pointer;"></i>
-        </div>
-        <button class="btn-action" style="background: #d32f2f;" onclick="prosesLoginAdmin()">MASUK PANEL KONTROL</button>
-        <button type="button" onclick="tutupModal()" style="background:none; border:none; width:100%; margin-top:15px; color:#999;">Batal</button>
-    </div>
+    <textarea id="desc" placeholder="Deskripsi"></textarea>
+
+    <input id="email" placeholder="Email">
+    <input id="pass" type="password" placeholder="Password">
+
+    <button class="btn" id="btn" onclick="daftar()">DAFTAR</button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -162,121 +49,105 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    // 1. Fungsi Menu (Ditaruh paling atas agar langsung terbaca browser)
-    window.toggleMenu = function(event) {
-        if (event) event.stopPropagation();
-        const dropdown = document.getElementById("myDropdown");
-        if (dropdown) dropdown.classList.toggle("show");
-    };
+// 🔥 CONFIG FIREBASE
+firebase.initializeApp({
+    apiKey: "ISI_APIKEY_KAMU",
+    authDomain: "ISI_DOMAIN",
+    projectId: "ISI_PROJECT_ID"
+});
 
-    window.onclick = function(event) {
-        if (!event.target.matches('.dropbtn') && !event.target.closest('.dropbtn')) {
-            const dropdowns = document.getElementsByClassName("dropdown-content");
-            for (let i = 0; i < dropdowns.length; i++) {
-                if (dropdowns[i].classList.contains('show')) dropdowns[i].classList.remove('show');
-            }
-        }
-    };
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-    // 2. Konfigurasi Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
-        authDomain: "boby-apps-project.firebaseapp.com",
-        projectId: "boby-apps-project",
-        storageBucket: "boby-apps-project.appspot.com",
-        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
-    };
+// 🔥 CONFIG CLOUDINARY (PASTIKAN BENAR)
+const CLOUD_NAME = "dxzllsbgj";
+const UPLOAD_PRESET = "sipapua_preset";
 
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
+// UI
+function bukaModal() {
+    document.getElementById("modal").style.display = "block";
+}
 
-    // 3. Fungsi Notifikasi
-    function tampilNotif(pesan, warna = "#2c3e50") {
-        const container = document.getElementById("notif-container");
-        const content = document.getElementById("notif-content");
-        const msg = document.getElementById("notif-message");
-        if (msg) msg.innerText = pesan;
-        if (content) content.style.background = warna;
-        if (container) {
-            container.style.display = "block";
-            setTimeout(() => { container.style.display = "none"; }, 3500);
-        } else { alert(pesan); }
+// 🔥 FUNGSI UTAMA
+async function daftar() {
+    const btn = document.getElementById("btn");
+
+    const toko = document.getElementById("toko").value;
+    const pemilik = document.getElementById("pemilik").value;
+    const hp = document.getElementById("hp").value;
+    const jenis = document.getElementById("jenis").value;
+    const desc = document.getElementById("desc").value;
+    const email = document.getElementById("email").value;
+    const pass = document.getElementById("pass").value;
+    const file = document.getElementById("foto").files[0];
+
+    // VALIDASI
+    if (!toko || !pemilik || !hp || !email || !pass || !file) {
+        alert("Lengkapi semua data!");
+        return;
     }
 
-    // 4. Fungsi Proses Daftar (Menggunakan preset yang sudah Anda buat)
-    async function prosesDaftar() {
-        const btn = document.getElementById("btn-daftar");
-        const email = document.getElementById("reg-email").value;
-        const pass = document.getElementById("reg-pass").value;
-        const fotoFile = document.getElementById("reg-foto").files[0];
+    try {
+        btn.innerText = "Memproses...";
+        btn.disabled = true;
 
-        if(!fotoFile) return tampilNotif("Pilih foto logo UMKM!", "#f39c12");
-
+        // 🔥 STEP 1: AUTH
+        let user;
         try {
-            btn.disabled = true;
-            btn.innerText = "Memproses...";
-
-            // STEP 1: Firebase Auth
-            let uid;
-            try {
-                const userCredential = await auth.createUserWithEmailAndPassword(email, pass);
-                uid = userCredential.user.uid;
-            } catch (err) {
-                if (err.code === "auth/email-already-in-use") {
-                    const userCredential = await auth.signInWithEmailAndPassword(email, pass);
-                    uid = userCredential.user.uid;
-                } else { throw err; }
+            user = await auth.createUserWithEmailAndPassword(email, pass);
+        } catch (err) {
+            if (err.code === "auth/email-already-in-use") {
+                user = await auth.signInWithEmailAndPassword(email, pass);
+            } else {
+                throw err;
             }
-
-            // STEP 2: Upload Cloudinary (Menggunakan sipapua_preset)
-            btn.innerText = "Mengunggah Logo...";
-            const formData = new FormData();
-            formData.append("file", fotoFile);
-            formData.append("upload_preset", "sipapua_preset");
-
-            const uploadRes = await fetch("https://api.cloudinary.com/v1_1/dxzllsbgj/image/upload", {
-                method: "POST",
-                body: formData
-            });
-
-            const dataFoto = await uploadRes.json();
-            if(!uploadRes.ok) throw new Error(dataFoto.error.message);
-
-            // STEP 3: Simpan Firestore
-            btn.innerText = "Menyimpan Data...";
-            await db.collection("umkm_stores").doc(uid).set({
-                nama_toko: document.getElementById("reg-toko").value,
-                nama_pemilik: document.getElementById("reg-pemilik").value,
-                whatsapp: document.getElementById("reg-hp").value,
-                jenis_umkm: document.getElementById("reg-jenis").value,
-                deskripsi: document.getElementById("reg-desc").value,
-                logo_url: dataFoto.secure_url,
-                email_terdaftar: email,
-                uid: uid,
-                dibuat: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            tampilNotif("Lapak Berhasil Aktif!", "#27ae60");
-            setTimeout(() => { window.location.href = "dashboard-umkm.html"; }, 1500);
-
-        } catch (e) {
-            console.error(e);
-            tampilNotif("Error: " + e.message, "#c0392b");
-            btn.disabled = false;
-            btn.innerText = "BUAT LAPAK SEKARANG";
         }
-    }
 
-    // Fungsi Pembantu
-    window.bukaModal = function(id) { 
-        document.getElementById(id).style.display = 'flex'; 
-        const dropdown = document.getElementById("myDropdown");
-        if(dropdown) dropdown.classList.remove("show");
-    };
-    
-    window.tutupModal = function() { 
-        document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); 
-    };
-</script></body>
+        const uid = user.user.uid;
+
+        // 🔥 STEP 2: UPLOAD GAMBAR
+        btn.innerText = "Upload Logo...";
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", UPLOAD_PRESET);
+
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+            throw new Error(data.error?.message || "Upload gagal");
+        }
+
+        // 🔥 STEP 3: SIMPAN
+        btn.innerText = "Menyimpan...";
+
+        await db.collection("umkm").doc(uid).set({
+            toko,
+            pemilik,
+            hp,
+            jenis,
+            desc,
+            logo: data.secure_url,
+            email,
+            created: new Date()
+        });
+
+        alert("Berhasil daftar!");
+        location.reload();
+
+    } catch (err) {
+        console.error(err);
+        alert("Error: " + err.message);
+        btn.innerText = "DAFTAR";
+        btn.disabled = false;
+    }
+}
+</script>
+
+</body>
 </html>
