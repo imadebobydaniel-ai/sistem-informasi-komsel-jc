@@ -249,6 +249,33 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
+    // --- DATA KOMSEL TERBARU ---
+    const dataKomsel = { 
+        "ABEPURA": [
+            "Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", 
+            "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", 
+            "Esther 6", "Esther 7", "Esther 8", "Esther 9", "Esther 10", 
+            "Esther 11", "Esther 12", "Esther 13", 
+            "Komsel Profesi Abe", "Komsel Mahasiswa Abe", "Komsel Pelajar Abe", 
+            "Komsel Sekolah Minggu Abe", "Komsel Lansia"
+        ], 
+        "SENTANI": [
+            "Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Siloam 5", 
+            "Siloam 6", "Siloam 7", "Siloam 8", 
+            "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", 
+            "Agape 6", "Agape 7", "Agape 8", 
+            "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", 
+            "Komsel Sekolah Minggu Sentani", "Komsel Lansia Sentani"
+        ], 
+        "DOYO": [
+            "Komsel Bapak Doyo", "Komsel Ibu Doyo", "Komsel Profesi Doyo", 
+            "Komsel Mahasiswa Doyo", "Komsel Pelajar Doyo", 
+            "Komsel Sekolah Minggu Doyo", "Komsel Lansia Doyo"
+        ], 
+        "ARSO 1": ["Komsel Keluarga Arso 1"], 
+        "ARSO 2": ["Komsel Keluarga Arso 2"] 
+    };
+
     // --- LOGIKA RESET PASSWORD ---
     function openForgotPassword() {
         const modal = document.getElementById("forgot-password-modal");
@@ -310,90 +337,106 @@
         const lokasi = document.getElementById("lokasi")?.value;
         const displayInput = document.getElementById("nij-display");
         if (!lokasi || !displayInput) return;
+        
+        displayInput.value = "Menghitung nomor...";
+        
         try {
-            const lastUser = await db.collection("users").where("lokasi", "==", lokasi).orderBy("nij", "desc").limit(1).get();
+            const lastUser = await db.collection("users")
+                .where("lokasi", "==", lokasi)
+                .orderBy("createdAt", "desc")
+                .limit(1)
+                .get();
+                
             let nextNumber = 1;
             if (!lastUser.empty) {
                 const parts = lastUser.docs[0].data().nij.split("-");
-                nextNumber = parseInt(parts[3]) + 1;
+                if (parts.length >= 4) {
+                    const lastNum = parseInt(parts[3]);
+                    if (!isNaN(lastNum)) {
+                        nextNumber = lastNum + 1;
+                    }
+                }
             }
-            displayInput.value = `NIJ-PPP-${lokasi}-${String(nextNumber).padStart(3, '0')}-${new Date().getFullYear()}`;
-        } catch (e) { displayInput.value = `NIJ-PPP-${lokasi}-001-${new Date().getFullYear()}`; }
+            const tahun = new Date().getFullYear();
+            displayInput.value = `NIJ-PPP-${lokasi}-${String(nextNumber).padStart(3, '0')}-${tahun}`;
+        } catch (e) { 
+            console.error(e);
+            displayInput.value = `NIJ-PPP-${lokasi}-001-${new Date().getFullYear()}`; 
+        }
     }
 
     async function handleRegistrasi() {
         const btnSubmit = document.getElementById("btnSubmit");
         const childNames = document.querySelectorAll(".child-name");
         const childGenders = document.querySelectorAll(".child-gender");
+        const lokasi = document.getElementById("lokasi").value;
         let listAnak = [];
+        
         childNames.forEach((input, index) => {
             if(input.value.trim() !== "") {
                 listAnak.push({ nama: input.value, jk: childGenders[index].value });
             }
         });
 
-        const data = {
-            email: document.getElementById("email").value.trim(), 
-            pass: document.getElementById("pass").value, 
-            nama: document.getElementById("nama").value, 
-            nij: document.getElementById("nij-display").value,
-            hp: document.getElementById("hp").value.trim(), 
-            lokasi: document.getElementById("lokasi").value, 
-            komsel: document.getElementById("komsel").value, 
-            jabatan: document.getElementById("jabatan_jemaat").value,
-            sub: document.getElementById("sub_jabatan").value, 
-            pel: document.getElementById("pelayanan").value, 
-            det: document.getElementById("pelayanan_spesifik_non").value, 
-            alamat: document.getElementById("alamat").value,
-            nikah: document.getElementById("status_pernikahan").value, 
-            kerja: document.getElementById("pekerjaan").value, 
-            provLahir: document.getElementById("provinsi_lahir").value,
-            kotaLahir: document.getElementById("kota_lahir").value, 
-            kecLahir: document.getElementById("kecamatan_lahir").value, 
-            desaLahir: document.getElementById("desa_lahir").value, 
-            tglLahir: document.getElementById("tgl_lahir").value,
-            namaPasangan: document.getElementById("nama_pasangan")?.value || "",
-            dataAnak: listAnak
-        };
+        const rawEmail = document.getElementById("email").value.trim();
+        const rawPass = document.getElementById("pass").value;
+        const rawNama = document.getElementById("nama").value;
+        const rawHp = document.getElementById("hp").value.trim();
 
-        if (!data.email || !data.pass || !data.nama || !data.hp || !data.lokasi) { 
+        if (!rawEmail || !rawPass || !rawNama || !rawHp || !lokasi) { 
             alert("Mohon lengkapi semua data wajib (Nama, Email, WhatsApp, dan Lokasi)!"); 
             return; 
         }
 
         btnSubmit.disabled = true; 
-        btnSubmit.innerText = "Mengecek Data...";
+        btnSubmit.innerText = "Memproses NIJ Baru...";
 
         try {
-            const emailCheck = await db.collection("users").where("email", "==", data.email).get();
-            if (!emailCheck.empty) { throw new Error("Maaf email atau no HP yang anda masukan sudah terdaftar"); }
+            const emailCheck = await db.collection("users").where("email", "==", rawEmail).get();
+            if (!emailCheck.empty) throw new Error("Maaf email sudah terdaftar");
 
-            const hpCheck = await db.collection("users").where("whatsapp", "==", data.hp).get();
-            if (!hpCheck.empty) { throw new Error("Maaf email atau no HP yang anda masukan sudah terdaftar"); }
+            const hpCheck = await db.collection("users").where("whatsapp", "==", rawHp).get();
+            if (!hpCheck.empty) throw new Error("Maaf no HP sudah terdaftar");
 
-            const userCredential = await auth.createUserWithEmailAndPassword(data.email, data.pass);
+            const snapshot = await db.collection("users")
+                .where("lokasi", "==", lokasi)
+                .orderBy("createdAt", "desc")
+                .limit(1)
+                .get();
+
+            let finalNumber = 1;
+            if (!snapshot.empty) {
+                const lastNij = snapshot.docs[0].data().nij;
+                const parts = lastNij.split("-");
+                if(parts.length >= 4) finalNumber = parseInt(parts[3]) + 1;
+            }
+            
+            const tahun = new Date().getFullYear();
+            const fixNIJ = `NIJ-PPP-${lokasi}-${String(finalNumber).padStart(3, '0')}-${tahun}`;
+
+            const userCredential = await auth.createUserWithEmailAndPassword(rawEmail, rawPass);
             await userCredential.user.sendEmailVerification();
             
             await db.collection("users").doc(userCredential.user.uid).set({
                 uid: userCredential.user.uid, 
-                nama: data.nama, 
-                email: data.email, 
-                nij: data.nij, 
-                whatsapp: data.hp, 
-                lokasi: data.lokasi, 
-                komsel: data.komsel, 
-                jabatan: data.jabatan,
-                sub_jabatan: data.sub, 
-                pelayanan: data.pel, 
-                detail_pelayanan: data.det, 
-                alamat: data.alamat, 
-                tempat_lahir: data.kotaLahir, 
-                provinsi_lahir: data.provLahir, 
-                tanggal_lahir: data.tglLahir,
-                status_pernikahan: data.nikah, 
-                pekerjaan: data.kerja, 
-                nama_pasangan: data.namaPasangan, 
-                data_anak: data.dataAnak, 
+                nama: rawNama, 
+                email: rawEmail, 
+                nij: fixNIJ, 
+                whatsapp: rawHp, 
+                lokasi: lokasi, 
+                komsel: document.getElementById("komsel").value, 
+                jabatan: document.getElementById("jabatan_jemaat").value,
+                sub_jabatan: document.getElementById("sub_jabatan").value, 
+                pelayanan: document.getElementById("pelayanan").value, 
+                detail_pelayanan: document.getElementById("pelayanan_spesifik_non").value, 
+                alamat: document.getElementById("alamat").value,
+                tempat_lahir: document.getElementById("kota_lahir").value, 
+                provinsi_lahir: document.getElementById("provinsi_lahir").value, 
+                tanggal_lahir: document.getElementById("tgl_lahir").value,
+                status_pernikahan: document.getElementById("status_pernikahan").value, 
+                pekerjaan: document.getElementById("pekerjaan").value, 
+                nama_pasangan: document.getElementById("nama_pasangan")?.value || "", 
+                data_anak: listAnak, 
                 status_akun: "Aktif", 
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
@@ -434,10 +477,16 @@
         }
     }
 
-    const dataKomsel = { "ABE": ["Lansia Abepura", "Joseph 1", "Joseph 2", "Esther 1"], "STN": ["Siloam 1", "Siloam 2", "Agape 1"], "DYO": ["Bapak Doyo", "Ibu Doyo"], "ARS1": ["Keluarga Arso 1"], "ARS2": ["Keluarga Arso 2"] };
     const dataSubJabatan = { "Kependetaan": ["Gembala Sidang", "Pdt. Pembantu"], "Pemimpin / Koordinator": ["Sekretaris", "Bendahara", "Koordinator Lansia"], "Anggota Jemaat": ["Anggota Jemaat Ordinari"] };
     
-    function updateKomsel() { const l = document.getElementById("lokasi").value; const s = document.getElementById("komsel"); s.innerHTML = '<option value="">-- Pilih Komsel --</option>'; if(dataKomsel[l]) dataKomsel[l].forEach(i => s.add(new Option(i,i))); }
+    // --- FUNGSI UPDATE KOMSEL OTOMATIS ---
+    function updateKomsel() { 
+        const l = document.getElementById("lokasi").value; 
+        const s = document.getElementById("komsel"); 
+        s.innerHTML = '<option value="">-- Pilih Komsel --</option>'; 
+        if(dataKomsel[l]) dataKomsel[l].forEach(i => s.add(new Option(i,i))); 
+    }
+
     function updateSubJabatan() { const j = document.getElementById("jabatan_jemaat").value; const s = document.getElementById("sub_jabatan"); s.innerHTML = '<option value="">-- Pilih Sub --</option>'; if(dataSubJabatan[j]) dataSubJabatan[j].forEach(i => s.add(new Option(i,i))); }
     function updateSpesifikPelayanan() { document.getElementById("pelayanan").innerHTML = '<option value="Praise & Worship">Praise & Worship</option>'; }
     function updateNonStruktural() { document.getElementById("pelayanan_spesifik_non").innerHTML = '<option value="Musisi">Musisi</option>'; }
@@ -449,6 +498,5 @@
             document.getElementById('eyeIcon').classList.toggle('fa-eye-slash');
         });
     };
-</script>
-</body>
+</script></body>
 </html>
