@@ -53,7 +53,6 @@
         .dynamic-field { display: none; }
         .child-row { background: #f8f9fa; padding: 10px; border-radius: 10px; border-left: 4px solid #28a745; margin-bottom: 10px; }
 
-        /* --- FITUR BARU: ANIMASI MODAL LUPA PASSWORD --- */
         .modal-show {
             display: flex !important;
             animation: fadeInModal 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
@@ -65,9 +64,7 @@
         }
 
         .modal-box { transition: transform 0.3s ease-out; }
-
         .btn-next, .btn-prev { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
-
         .btn-next:hover { filter: brightness(1.1); box-shadow: 0 4px 12px rgba(0,123,255,0.3); }
     </style>
 </head>
@@ -265,55 +262,86 @@
         "ARS2": ["Komsel Keluarga Arso 2"] 
     };
 
-    // --- FUNGSI PREVIEW NIJ (SMART MAPPING) ---
+    // --- FITUR BARU: UPDATE DATA JABATAN (INTRUKSI KHUSUS) ---
+    function updateSubJabatan() {
+        const jab = document.getElementById("jabatan_jemaat").value;
+        const sub = document.getElementById("sub_jabatan");
+        sub.innerHTML = '<option value="">-- Pilih Sub Bidang --</option>';
+
+        const listSub = {
+            "Kependetaan": ["Gembala Sidang", "Pendeta Pembantu", "Pendeta Muda"],
+            "Pemimpin / Koordinator": [
+                "Koordinator Bapak", "Koordinator Ibu", "Koordinator Lansia", "Koordinator Profesi", 
+                "Koordinator Mahasiswa", "Koordinator Pelajar", "Koordinator Sekolah Minggu", "Koordinator KD", 
+                "Koordinator Praise and Worshiper", "Koordinator Doa", "Koordinator Pelayanan Misi", 
+                "Koordinator Tamborin and flag", "Koordinator User", "Koordinator Event Organizer", 
+                "Koordinator Multimedia dan Sound", "Koordinator Cleaning Service", "Koordinator Perparkiran dan Keamanan"
+            ],
+            "PKS Komsel": ["Ketua Komsel", "Wakil Ketua Komsel", "Anggota Komsel"],
+            "Fulltimer": ["Sekretaris Kantor", "Bendahara kantor", "Koordinator PPA", "Staff dan Tutor PPA", "Koordinator Paud", "Guru Paud", "General Affairs"],
+            "Anggota Jemaat": ["Jemaat Aktif", "Jemaat Simpatisan"]
+        };
+
+        if(listSub[jab]) {
+            listSub[jab].forEach(i => sub.add(new Option(i, i)));
+        }
+        updateSpesifikPelayanan();
+    }
+
+    function updateSpesifikPelayanan() {
+        const sub = document.getElementById("sub_jabatan").value;
+        const pel = document.getElementById("pelayanan");
+        pel.innerHTML = '<option value="">-- Pilih Fungsi Spesifik --</option>';
+
+        // Klasifikasi Sub Bidang Jabatan Pelayanan Utama
+        const listPel = [
+            "Pengembalaan Jemaat", "Bagian Komisi", "Sekertaris Umum Gereja", "Bendahara Umum gereja",
+            "Music Player", "Worship Leader", "Singer", "Tamborin", "Flag", "Choirs", "Campers",
+            "Streaming Operator", "Saoundman", "Floor Director", "Creativ Crew", "Peripheral",
+            "Frontline User", "Guider User", "Lighting", "Set Design", "Parkir Man", "Security",
+            "Mission Team", "Prayer Team"
+        ];
+
+        listPel.forEach(i => pel.add(new Option(i, i)));
+        updateNonStruktural();
+    }
+
+    function updateNonStruktural() {
+        const pel = document.getElementById("pelayanan").value;
+        const nst = document.getElementById("pelayanan_spesifik_non");
+        nst.innerHTML = '<option value="">-- Pilih Detail Pelayanan --</option>';
+        
+        // Menambahkan opsi default "Sesuai Fungsi"
+        nst.add(new Option("Sesuai Fungsi Utama", "Utama"));
+    }
+
+    // --- FUNGSI PREVIEW NIJ ---
     async function updateNIJPreview() {
         const lokasiSelect = document.getElementById("lokasi");
         const displayInput = document.getElementById("nij-display");
-        
         if (!lokasiSelect || !displayInput) return;
-        
-        let lokasiKode = lokasiSelect.value; // Contoh: "ABE"
+        let lokasiKode = lokasiSelect.value;
         if (!lokasiKode) return;
 
-        // PEMETAAN: Ubah kode singkat menjadi nama lengkap sesuai database Anda
         let namaWilayahFull = lokasiKode;
         if (lokasiKode === "ABE") namaWilayahFull = "Abepura";
         if (lokasiKode === "STN") namaWilayahFull = "Sentani";
         if (lokasiKode === "DYO") namaWilayahFull = "Doyo";
 
         displayInput.value = "Menghitung nomor...";
-
         try {
-            // Cari data berdasarkan field 'wilayah' dengan nama lengkap (Abepura)
             const snapshot = await db.collection("users")
                 .where("wilayah", "==", namaWilayahFull) 
                 .orderBy("nij_number", "desc")
-                .limit(1)
-                .get();
-
+                .limit(1).get();
             let nextNum = 1;
-
             if (!snapshot.empty) {
                 const lastData = snapshot.docs[0].data();
-                if (lastData.nij_number) {
-                    nextNum = parseInt(lastData.nij_number) + 1;
-                } else if (lastData.nij) {
-                    // Fallback bedah dari string jika nij_number tidak ada
-                    const parts = lastData.nij.split("-");
-                    if (parts.length >= 4) {
-                        nextNum = parseInt(parts[3]) + 1;
-                    }
-                }
+                nextNum = (lastData.nij_number || 0) + 1;
             }
-
             const tahun = new Date().getFullYear();
-            const formattedNum = String(nextNum).padStart(3, '0');
-            
-            // Tampilan tetap pakai ABE (Contoh: NIJ-PPP-ABE-005-2026)
-            displayInput.value = `NIJ-PPP-${lokasiKode}-${formattedNum}-${tahun}`;
-
+            displayInput.value = `NIJ-PPP-${lokasiKode}-${String(nextNum).padStart(3, '0')}-${tahun}`;
         } catch (e) {
-            console.error("Error NIJ Preview:", e);
             displayInput.value = "Gagal memuat nomor...";
         }
     }
@@ -331,7 +359,6 @@
             alert("Mohon lengkapi semua data wajib!"); return; 
         }
 
-        // Mapping Nama Wilayah untuk simpan data
         let namaWilayahFull = lokasiKode;
         if (lokasiKode === "ABE") namaWilayahFull = "Abepura";
         if (lokasiKode === "STN") namaWilayahFull = "Sentani";
@@ -343,32 +370,20 @@
             const emailCheck = await db.collection("users").where("email", "==", rawEmail).get();
             if (!emailCheck.empty) throw new Error("Email sudah terdaftar!");
 
-            // Query nomor terakhir pakai nama lengkap
             const snapshot = await db.collection("users")
                 .where("wilayah", "==", namaWilayahFull)
                 .orderBy("nij_number", "desc")
-                .limit(1)
-                .get();
+                .limit(1).get();
 
             let newNumber = 1;
             if (!snapshot.empty) {
-                const lastData = snapshot.docs[0].data();
-                newNumber = (lastData.nij_number || 0) + 1;
+                newNumber = (snapshot.docs[0].data().nij_number || 0) + 1;
             }
 
             const tahun = new Date().getFullYear();
             const finalNIJ = `NIJ-PPP-${lokasiKode}-${String(newNumber).padStart(3, '0')}-${tahun}`;
-
             const userCredential = await auth.createUserWithEmailAndPassword(rawEmail, rawPass);
             
-            let listAnak = [];
-            document.querySelectorAll(".child-name").forEach((input, i) => {
-                if(input.value.trim() !== "") {
-                    listAnak.push({ nama: input.value, jk: document.querySelectorAll(".child-gender")[i].value });
-                }
-            });
-
-            // Simpan data (Konsisten pakai field 'wilayah' dengan nama lengkap)
             await db.collection("users").doc(userCredential.user.uid).set({
                 uid: userCredential.user.uid,
                 nama: rawNama,
@@ -384,7 +399,6 @@
                 detail_pelayanan: document.getElementById("pelayanan_spesifik_non").value || "-",
                 alamat: document.getElementById("alamat").value,
                 status_pernikahan: document.getElementById("status_pernikahan").value,
-                data_anak: listAnak,
                 status_akun: "Aktif",
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
@@ -397,7 +411,7 @@
         }
     }
 
-    // --- FUNGSI UI ---
+    // --- FUNGSI UI LAINNYA ---
     function updateKomsel() { 
         const l = document.getElementById("lokasi").value; 
         const s = document.getElementById("komsel"); 
@@ -425,9 +439,15 @@
             document.querySelectorAll('.step').forEach((stepBar, index) => {
                 if (index < n) stepBar.classList.add('active'); else stepBar.classList.remove('active');
             });
-            if(n === 2) updateNIJPreview();
             window.scrollTo({top: 0, behavior: 'smooth'});
         }
     }
-</script></body>
+
+    function handleStatusNikah() {
+        const val = document.getElementById("status_pernikahan").value;
+        document.getElementById("form_menikah").style.display = (val === "Menikah") ? "block" : "none";
+        document.getElementById("form_single").style.display = (val === "Single") ? "block" : "none";
+    }
+</script>
+</body>
 </html>
