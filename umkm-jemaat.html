@@ -316,11 +316,16 @@
         } catch (e) { console.error(e); }
     }
 
+    // FUNGSI PENDAFTARAN BARU DENGAN INTEGRASI CLOUDINARY & SIPAPUA
     async function prosesDaftar() {
         const email = document.getElementById("reg-email").value;
         const pass = document.getElementById("reg-pass").value;
         const fotoFile = document.getElementById("reg-foto").files[0];
         const btn = document.getElementById("btn-daftar");
+
+        // DATA CLOUDINARY ANDA
+        const CLOUD_NAME = "dxzllsbgj"; 
+        const UPLOAD_PRESET = "sipapua_preset";
 
         if(!fotoFile) return tampilNotif("Mohon unggah logo UMKM Anda!", "#f39c12");
 
@@ -328,32 +333,45 @@
             btn.disabled = true;
             btn.innerText = "Menghubungkan Akun...";
 
+            // 1. Integrasi Login/Daftar SIPAPUA
             let uid;
             try {
                 const userCredential = await auth.createUserWithEmailAndPassword(email, pass);
                 uid = userCredential.user.uid;
-                tampilNotif("Akun baru berhasil dibuat untuk UMKM.", "#27ae60");
+                tampilNotif("Akun baru berhasil dibuat.", "#27ae60");
             } catch (authError) {
                 if (authError.code === "auth/email-already-in-use") {
-                    tampilNotif("Email terdeteksi dari SIPAPUA. Menghubungkan lapak...", "#2980b9");
+                    tampilNotif("Email terdeteksi di SIPAPUA. Memverifikasi...", "#2980b9");
                     const userCredential = await auth.signInWithEmailAndPassword(email, pass);
                     uid = userCredential.user.uid;
-                } else {
-                    throw authError;
-                }
+                } else { throw authError; }
             }
 
-            const storageRef = storage.ref(`umkm_logos/${uid}_${fotoFile.name}`);
-            await storageRef.put(fotoFile);
-            const photoURL = await storageRef.getDownloadURL();
+            // 2. Upload Logo ke Cloudinary (Solusi Error CORS Firebase)
+            btn.innerText = "Mengunggah Logo...";
+            const formData = new FormData();
+            formData.append("file", fotoFile);
+            formData.append("upload_preset", UPLOAD_PRESET);
 
+            const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+                method: "POST",
+                body: formData
+            });
+
+            if(!uploadRes.ok) throw new Error("Gagal mengunggah gambar ke Cloudinary");
+            
+            const dataFoto = await uploadRes.json();
+            const photoURL = dataFoto.secure_url;
+
+            // 3. Simpan Data ke Firestore
+            btn.innerText = "Menyimpan Data...";
             await db.collection("umkm_stores").doc(uid).set({
                 nama_toko: document.getElementById("reg-toko").value,
                 nama_pemilik: document.getElementById("reg-pemilik").value,
                 whatsapp: document.getElementById("reg-hp").value,
                 jenis_umkm: document.getElementById("reg-jenis").value,
                 deskripsi: document.getElementById("reg-desc").value,
-                logo_url: photoURL,
+                logo_url: photoURL, // URL dari Cloudinary
                 email_terdaftar: email,
                 uid: uid,
                 dibuat: firebase.firestore.FieldValue.serverTimestamp()
@@ -363,7 +381,7 @@
             setTimeout(() => { window.location.href = "dashboard-umkm.html"; }, 1500);
 
         } catch (e) {
-            let errorMsg = "Gagal mendaftar: " + e.message;
+            let errorMsg = "Gagal: " + e.message;
             if(e.code === "auth/wrong-password") errorMsg = "Password salah! Gunakan password SIPAPUA Anda.";
             tampilNotif(errorMsg, "#c0392b");
             btn.disabled = false;
