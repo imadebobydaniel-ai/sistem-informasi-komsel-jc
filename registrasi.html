@@ -257,6 +257,25 @@
         "ARS2": ["Komsel Keluarga Arso 2"] 
     };
 
+    // --- FUNGSI UNTUK AKTIVASI TOMBOL SETUJU (FIX FREEZE) ---
+    function toggleAgreeButton() { 
+        const c = document.getElementById("check-agree"); 
+        const b = document.getElementById("btn-agree-submit"); 
+        if (c && b) {
+            b.disabled = !c.checked; 
+            b.style.opacity = c.checked ? "1" : "0.5"; 
+        }
+    }
+
+    // --- FUNGSI UNTUK LANJUT KE STEP 1 ---
+    function closeTermsModal() { 
+        const modal = document.getElementById("terms-modal");
+        if (modal) {
+            modal.style.display = "none"; 
+            nextStep(1); 
+        }
+    }
+
     // --- FUNGSI PREVIEW NIJ (HANYA UNTUK TAMPILAN) ---
     async function updateNIJPreview() {
         const lokasi = document.getElementById("lokasi")?.value;
@@ -293,14 +312,12 @@
         btnSubmit.innerText = "Mengamankan Nomor NIJ...";
 
         try {
-            // 1. Cek Duplikasi Dasar (Email & HP)
             const emailCheck = await db.collection("users").where("email", "==", rawEmail).get();
             if (!emailCheck.empty) throw new Error("Email sudah terdaftar!");
             const hpCheck = await db.collection("users").where("whatsapp", "==", rawHp).get();
             if (!hpCheck.empty) throw new Error("No WhatsApp sudah terdaftar!");
 
-            // 2. Gunakan Transaction untuk NIJ agar tidak bentrok
-            const result = await db.runTransaction(async (transaction) => {
+            const resultNIJ = await db.runTransaction(async (transaction) => {
                 const lastUserQuery = db.collection("users")
                     .where("lokasi", "==", lokasi)
                     .orderBy("createdAt", "desc")
@@ -316,16 +333,12 @@
                 }
 
                 const tahun = new Date().getFullYear();
-                const fixNIJ = `NIJ-PPP-${lokasi}-${String(newNumber).padStart(3, '0')}-${tahun}`;
-                
-                return fixNIJ;
+                return `NIJ-PPP-${lokasi}-${String(newNumber).padStart(3, '0')}-${tahun}`;
             });
 
-            // 3. Buat Akun Auth
             const userCredential = await auth.createUserWithEmailAndPassword(rawEmail, rawPass);
             await userCredential.user.sendEmailVerification();
 
-            // 4. Simpan Data Final
             let listAnak = [];
             document.querySelectorAll(".child-name").forEach((input, i) => {
                 if(input.value.trim() !== "") {
@@ -337,7 +350,7 @@
                 uid: userCredential.user.uid,
                 nama: rawNama,
                 email: rawEmail,
-                nij: result, // Nomor hasil Transaction
+                nij: resultNIJ,
                 whatsapp: rawHp,
                 lokasi: lokasi,
                 komsel: document.getElementById("komsel").value,
@@ -367,7 +380,7 @@
         const s = document.getElementById("komsel"); 
         s.innerHTML = '<option value="">-- Pilih Komsel --</option>'; 
         if(dataKomsel[l]) dataKomsel[l].forEach(i => s.add(new Option(i,i))); 
-        updateNIJPreview(); // Update NIJ saat lokasi diubah
+        updateNIJPreview(); 
     }
 
     function handleStatusNikah() { 
@@ -379,15 +392,25 @@
     function nextStep(n) {
         document.querySelectorAll('.form-step').forEach(s => { s.style.display = 'none'; });
         const target = document.getElementById('step-'+n);
-        target.style.display = 'block';
-        if(n === 2) updateNIJPreview();
-        window.scrollTo({top:0, behavior:'smooth'});
+        if (target) {
+            target.style.display = 'block';
+            if(n === 2) updateNIJPreview();
+            window.scrollTo({top:0, behavior:'smooth'});
+        }
     }
 
-    // (Sisipkan fungsi loadProvinsi, loadKota, dll yang Anda miliki di sini)
+    async function loadProvinsi() { 
+        try {
+            const resp = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json'); 
+            const data = await resp.json(); 
+            let opt = '<option value="">Pilih Provinsi</option>'; 
+            data.forEach(p => opt += `<option value="${p.name}" data-id="${p.id}">${p.name}</option>`); 
+            document.getElementById('provinsi_lahir').innerHTML = opt; 
+        } catch(e) { console.error("Gagal load provinsi", e); }
+    }
 
     window.onload = () => {
-        // Inisialisasi awal jika diperlukan
+        loadProvinsi();
     };
 </script></body>
 </html>
