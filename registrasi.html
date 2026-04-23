@@ -265,7 +265,7 @@
         "ARS2": ["Komsel Keluarga Arso 2"] 
     };
 
-    // --- FUNGSI PREVIEW NIJ (SINKRON DENGAN FIELD 'wilayah') ---
+    // --- FUNGSI PREVIEW NIJ (GANTI KE FIELD 'lokasi' SESUAI DATABASE) ---
     async function updateNIJPreview() {
         const lokasiSelect = document.getElementById("lokasi");
         const displayInput = document.getElementById("nij-display");
@@ -278,9 +278,9 @@
         displayInput.value = "Menghitung nomor...";
 
         try {
-            // Query menggunakan field 'wilayah' dan urut berdasarkan 'nij_number' murni
+            // SINKRONISASI: Menggunakan 'lokasi' karena data lama (Agus) memakai field 'lokasi'
             const snapshot = await db.collection("users")
-                .where("wilayah", "==", wilayahTerpilih) 
+                .where("lokasi", "==", wilayahTerpilih) 
                 .orderBy("nij_number", "desc")
                 .limit(1)
                 .get();
@@ -289,11 +289,11 @@
 
             if (!snapshot.empty) {
                 const lastData = snapshot.docs[0].data();
-                // Jika sudah ada nij_number (angka murni) gunakan itu
+                // Gunakan nij_number (angka murni)
                 if (lastData.nij_number) {
                     nextNum = parseInt(lastData.nij_number) + 1;
                 } 
-                // Fallback: Jika data lama belum ada nij_number, bedah dari string NIJ
+                // Fallback jika data lama belum punya nij_number
                 else if (lastData.nij) {
                     const parts = lastData.nij.split("-");
                     if (parts.length >= 4) {
@@ -329,13 +329,12 @@
         btnSubmit.innerText = "Mengamankan NIJ...";
 
         try {
-            // 1. Cek duplikasi email
             const emailCheck = await db.collection("users").where("email", "==", rawEmail).get();
             if (!emailCheck.empty) throw new Error("Email sudah terdaftar!");
 
-            // 2. Ambil nomor urut terakhir (SINKRON DENGAN 'wilayah' & 'nij_number')
+            // AMBIL NOMOR TERAKHIR DENGAN FIELD 'lokasi'
             const snapshot = await db.collection("users")
-                .where("wilayah", "==", lokasi)
+                .where("lokasi", "==", lokasi)
                 .orderBy("nij_number", "desc")
                 .limit(1)
                 .get();
@@ -349,7 +348,6 @@
             const tahun = new Date().getFullYear();
             const finalNIJ = `NIJ-PPP-${lokasi}-${String(newNumber).padStart(3, '0')}-${tahun}`;
 
-            // 3. Create User Auth
             const userCredential = await auth.createUserWithEmailAndPassword(rawEmail, rawPass);
             
             let listAnak = [];
@@ -359,15 +357,15 @@
                 }
             });
 
-            // 4. Simpan Data ke Firestore
+            // SIMPAN DATA (HANYA PAKAI 'lokasi', JANGAN CAMPUR DENGAN 'wilayah')
             await db.collection("users").doc(userCredential.user.uid).set({
                 uid: userCredential.user.uid,
                 nama: rawNama,
                 email: rawEmail,
                 nij: finalNIJ,
-                nij_number: newNumber, // Simpan angka murni (Integer)
+                nij_number: newNumber, 
                 whatsapp: rawHp,
-                wilayah: lokasi,       // Simpan sebagai 'wilayah' agar cocok dengan data Agus Hernawan
+                lokasi: lokasi,       // ⬅️ KONSISTEN PAKAI LOKASI
                 komsel: document.getElementById("komsel").value,
                 jabatan: document.getElementById("jabatan_jemaat").value,
                 sub_jabatan: document.getElementById("sub_jabatan").value || "-",
