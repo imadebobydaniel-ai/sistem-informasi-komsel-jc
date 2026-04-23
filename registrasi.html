@@ -470,7 +470,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
 <script>
-    // --- KONFIGURASI FIREBASE ---
+    // --- 1. KONFIGURASI FIREBASE ---
     const _ENV = { 
         k: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
         aD: "boby-apps-project.firebaseapp.com", 
@@ -480,59 +480,15 @@
         aI: "1:125984859692:web:09f75df5d2e4b6e3bcd389" 
     };
     const firebaseConfig = { apiKey: _ENV.k, authDomain: _ENV.aD, projectId: _ENV.pI, storageBucket: _ENV.sB, messagingSenderId: _ENV.mS, appId: _ENV.aI };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    
+    // Cegah inisialisasi ganda
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // --- LOGIKA API WILAYAH ---
-    const apiBase = "https://www.emsifa.com/api-wilayah-indonesia/api";
-
-    async function loadProvinsi() {
-        try {
-            const res = await fetch(`${apiBase}/provinces.json`);
-            const data = await res.json();
-            const select = document.getElementById("provinsi_lahir");
-            data.forEach(p => select.add(new Option(p.name, p.id)));
-        } catch (e) { console.error("Gagal load provinsi"); }
-    }
-
-    async function loadKota() {
-        const provId = document.getElementById("provinsi_lahir").value;
-        const select = document.getElementById("kota_lahir");
-        select.innerHTML = '<option value="">Pilih...</option>';
-        if (!provId) return;
-        try {
-            const res = await fetch(`${apiBase}/regencies/${provId}.json`);
-            const data = await res.json();
-            data.forEach(k => select.add(new Option(k.name, k.id)));
-        } catch (e) { console.error("Gagal load kota"); }
-    }
-
-    async function loadKecamatan() {
-        const kotaId = document.getElementById("kota_lahir").value;
-        const select = document.getElementById("kecamatan_lahir");
-        select.innerHTML = '<option value="">Pilih...</option>';
-        if (!kotaId) return;
-        try {
-            const res = await fetch(`${apiBase}/districts/${kotaId}.json`);
-            const data = await res.json();
-            data.forEach(k => select.add(new Option(k.name, k.id)));
-        } catch (e) { console.error("Gagal load kecamatan"); }
-    }
-
-    async function loadDesa() {
-        const kecId = document.getElementById("kecamatan_lahir").value;
-        const select = document.getElementById("desa_lahir");
-        select.innerHTML = '<option value="">Pilih...</option>';
-        if (!kecId) return;
-        try {
-            const res = await fetch(`${apiBase}/villages/${kecId}.json`);
-            const data = await res.json();
-            data.forEach(v => select.add(new Option(v.name, v.id)));
-        } catch (e) { console.error("Gagal load desa"); }
-    }
-
-    // --- DATA DINAMIS JABATAN & PELAYANAN ---
+    // --- 2. DATA DINAMIS JABATAN & PELAYANAN ---
     const subBidangData = {
         "Kependetaan": ["Gembala Sidang", "Pendeta Pembantu", "Pendeta Muda"],
         "Pemimpin / Koordinator": [
@@ -559,29 +515,6 @@
         "Mission Team", "Prayer Team"
     ];
 
-    // Fungsi untuk Update Dropdown Sub Bidang
-    function updateSubBidang() {
-        const jabatanUtama = document.getElementById("jabatan_jemaat").value;
-        const subSelect = document.getElementById("sub_bidang_jabatan");
-        subSelect.innerHTML = '<option value="">-- Pilih Sub Bidang --</option>';
-        
-        if (subBidangData[jabatanUtama]) {
-            subBidangData[jabatanUtama].forEach(item => {
-                subSelect.add(new Option(item, item));
-            });
-        }
-    }
-
-    // Fungsi untuk Load Fungsi Pelayanan Spesifik (saat halaman dimuat)
-    function loadFungsiSpesifik() {
-        const select = document.getElementById("fungsi_pelayanan_spesifik");
-        if(select) {
-            select.innerHTML = '<option value="">-- Pilih Fungsi Pelayanan --</option>';
-            fungsiSpesifikList.forEach(f => select.add(new Option(f, f)));
-        }
-    }
-
-    // --- DATA KOMSEL ---
     const dataKomsel = { 
         "ABE": ["Joseph 1", "Joseph 2", "Joseph 3", "Joseph 4", "Joseph 5", "Esther 1", "Esther 2", "Esther 3", "Esther 4", "Esther 5", "Esther 6", "Esther 7", "Esther 8", "Esther 9", "Esther 10", "Esther 11", "Esther 12", "Esther 13", "Komsel Profesi Abe", "Komsel Mahasiswa Abe", "Komsel Pelajar Abe", "Komsel Sekolah Minggu Abe", "Komsel Lansia"], 
         "STN": ["Siloam 1", "Siloam 2", "Siloam 3", "Siloam 4", "Siloam 5", "Siloam 6", "Siloam 7", "Siloam 8", "Agape 1", "Agape 2", "Agape 3", "Agape 4", "Agape 5", "Agape 6", "Agape 7", "Agape 8", "Komsel Mahasiswa Sentani", "Komsel Profesi Sentani", "Komsel Pelajar Sentani", "Komsel Sekolah Minggu Sentani", "Komsel Lansia Sentani"], 
@@ -590,28 +523,101 @@
         "ARS2": ["Komsel Keluarga Arso 2"] 
     };
 
-    // --- FUNGSI PREVIEW NIJ ---
+    // --- 3. FUNGSI UI & DROPDOWN ---
+    function toggleAgreeButton() { 
+        const c = document.getElementById("check-agree"); 
+        const b = document.getElementById("btn-agree-submit"); 
+        if (c && b) { 
+            b.disabled = !c.checked; 
+            b.style.opacity = c.checked ? "1" : "0.5"; 
+            b.style.cursor = c.checked ? "pointer" : "not-allowed";
+        }
+    }
+
+    function closeTermsModal() { 
+        const modal = document.getElementById("terms-modal");
+        if (modal) {
+            modal.style.display = "none";
+            nextStep(1); // Langsung ke step 1 setelah setuju
+        }
+    }
+
+    function updateSubBidang() {
+        const jabatan = document.getElementById("jabatan_jemaat").value;
+        const subSelect = document.getElementById("sub_bidang_jabatan");
+        if (!subSelect) return;
+
+        subSelect.innerHTML = '<option value="">-- Pilih Sub Bidang --</option>';
+        if (subBidangData[jabatan]) {
+            subBidangData[jabatan].forEach(opt => subSelect.add(new Option(opt, opt)));
+        }
+    }
+
+    function loadFungsiSpesifik() {
+        const select = document.getElementById("fungsi_pelayanan_spesifik");
+        if(select) {
+            select.innerHTML = '<option value="">-- Pilih Fungsi Pelayanan --</option>';
+            fungsiSpesifikList.forEach(f => select.add(new Option(f, f)));
+        }
+    }
+
+    // --- 4. LOGIKA API WILAYAH ---
+    const apiBase = "https://www.emsifa.com/api-wilayah-indonesia/api";
+
+    async function loadProvinsi() {
+        try {
+            const res = await fetch(`${apiBase}/provinces.json`);
+            const data = await res.json();
+            const select = document.getElementById("provinsi_lahir");
+            if(select) data.forEach(p => select.add(new Option(p.name, p.id)));
+        } catch (e) { console.error("Gagal load provinsi"); }
+    }
+
+    async function loadKota() {
+        const provId = document.getElementById("provinsi_lahir").value;
+        const select = document.getElementById("kota_lahir");
+        if(!select) return;
+        select.innerHTML = '<option value="">Pilih...</option>';
+        if (!provId) return;
+        try {
+            const res = await fetch(`${apiBase}/regencies/${provId}.json`);
+            const data = await res.json();
+            data.forEach(k => select.add(new Option(k.name, k.id)));
+        } catch (e) { console.error("Gagal load kota"); }
+    }
+
+    // --- 5. FUNGSI NIJ & REGISTRASI ---
     async function updateNIJPreview() {
         const lokasiSelect = document.getElementById("lokasi");
         const displayInput = document.getElementById("nij-display");
         if (!lokasiSelect || !displayInput) return;
+        
         let lokasiKode = lokasiSelect.value;
         if (!lokasiKode) return;
+        
         let namaWilayahFull = lokasiKode === "ABE" ? "Abepura" : lokasiKode === "STN" ? "Sentani" : lokasiKode === "DYO" ? "Doyo" : lokasiKode;
+        
         displayInput.value = "Menghitung nomor...";
         try {
-            const snapshot = await db.collection("users").where("wilayah", "==", namaWilayahFull).orderBy("nij_number", "desc").limit(1).get();
+            const snapshot = await db.collection("users")
+                .where("wilayah", "==", namaWilayahFull)
+                .orderBy("nij_number", "desc")
+                .limit(1)
+                .get();
+            
             let nextNum = 1;
             if (!snapshot.empty) {
                 const lastData = snapshot.docs[0].data();
-                nextNum = (lastData.nij_number || 0) + 1;
+                nextNum = (parseInt(lastData.nij_number) || 0) + 1;
             }
             const tahun = new Date().getFullYear();
             displayInput.value = `NIJ-PPP-${lokasiKode}-${String(nextNum).padStart(3, '0')}-${tahun}`;
-        } catch (e) { displayInput.value = "Gagal memuat nomor..."; }
+        } catch (e) { 
+            console.error(e);
+            displayInput.value = "Gagal memuat nomor..."; 
+        }
     }
 
-    // --- LOGIKA REGISTRASI ---
     async function handleRegistrasi() {
         const btnSubmit = document.getElementById("btnSubmit");
         const rawEmail = document.getElementById("email").value.trim();
@@ -619,15 +625,24 @@
         const rawNama = document.getElementById("nama").value;
         const lokasiKode = document.getElementById("lokasi").value;
 
-        if (!rawEmail || !rawPass || !rawNama || !lokasiKode) { alert("Lengkapi data wajib!"); return; }
+        if (!rawEmail || !rawPass || !rawNama || !lokasiKode) { 
+            alert("Lengkapi data wajib!"); return; 
+        }
 
         btnSubmit.disabled = true;
         btnSubmit.innerText = "Memproses...";
 
         try {
+            let namaWilayahFull = lokasiKode === "ABE" ? "Abepura" : lokasiKode === "STN" ? "Sentani" : lokasiKode === "DYO" ? "Doyo" : lokasiKode;
+            const snapshot = await db.collection("users").where("wilayah", "==", namaWilayahFull).orderBy("nij_number", "desc").limit(1).get();
+            let finalNumber = 1;
+            if(!snapshot.empty) finalNumber = (parseInt(snapshot.docs[0].data().nij_number) || 0) + 1;
+
             const userCredential = await auth.createUserWithEmailAndPassword(rawEmail, rawPass);
-            
-            const getVal = (id) => {
+            const tahun = new Date().getFullYear();
+            const finalNIJ = `NIJ-PPP-${lokasiKode}-${String(finalNumber).padStart(3, '0')}-${tahun}`;
+
+            const getValText = (id) => {
                 const el = document.getElementById(id);
                 return el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : "";
             };
@@ -636,15 +651,16 @@
                 uid: userCredential.user.uid,
                 nama: rawNama,
                 email: rawEmail,
-                provinsi_lahir: getVal("provinsi_lahir"),
-                kota_lahir: getVal("kota_lahir"),
-                kecamatan_lahir: getVal("kecamatan_lahir"),
-                desa_lahir: getVal("desa_lahir"),
+                nij: finalNIJ,
+                nij_number: finalNumber,
+                provinsi_lahir: getValText("provinsi_lahir"),
+                kota_lahir: getValText("kota_lahir"),
                 jabatan_jemaat: document.getElementById("jabatan_jemaat").value,
                 sub_bidang_jabatan: document.getElementById("sub_bidang_jabatan").value,
                 fungsi_pelayanan_spesifik: document.getElementById("fungsi_pelayanan_spesifik").value,
-                wilayah: lokasiKode === "ABE" ? "Abepura" : lokasiKode === "STN" ? "Sentani" : lokasiKode,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                wilayah: namaWilayahFull,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                status_akun: "Aktif"
             });
             document.getElementById("notif-email-sent").style.display = "flex";
         } catch (e) {
@@ -653,46 +669,38 @@
         }
     }
 
-    // Load saat halaman terbuka
-    window.onload = () => { 
-        loadProvinsi(); 
-        loadFungsiSpesifik();
-    };
-
-    function handleStatusNikah() {
-        const val = document.getElementById("status_pernikahan").value;
-        document.getElementById("form_menikah").style.display = val === "Menikah" ? "block" : "none";
-        document.getElementById("form_single").style.display = (val === "Single" || val === "") ? "block" : "none";
+    // --- 6. FUNGSI NAVIGASI ---
+    function nextStep(n) {
+        document.querySelectorAll('.form-step').forEach(s => { s.style.display = 'none'; s.classList.remove('active'); });
+        const target = document.getElementById('step-' + n);
+        if (target) {
+            target.style.display = 'block';
+            target.classList.add('active');
+            if(n === 2) updateNIJPreview();
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
     }
 
     function updateKomsel() { 
         const l = document.getElementById("lokasi").value; 
         const s = document.getElementById("komsel"); 
+        if(!s) return;
         s.innerHTML = '<option value="">-- Pilih Komsel --</option>'; 
         if(dataKomsel[l]) dataKomsel[l].forEach(i => s.add(new Option(i,i))); 
         updateNIJPreview(); 
     }
 
-    function toggleAgreeButton() { 
-        const c = document.getElementById("check-agree"); 
-        const b = document.getElementById("btn-agree-submit"); 
-        if (c && b) { b.disabled = !c.checked; b.style.opacity = c.checked ? "1" : "0.5"; }
+    function handleStatusNikah() {
+        const val = document.getElementById("status_pernikahan").value;
+        const formMenikah = document.getElementById("form_menikah");
+        const formSingle = document.getElementById("form_single");
+        if(formMenikah) formMenikah.style.display = val === "Menikah" ? "block" : "none";
+        if(formSingle) formSingle.style.display = (val === "Single" || val === "") ? "block" : "none";
     }
 
-    function closeTermsModal() { 
-        document.getElementById("terms-modal").style.display = "none"; 
-    }
-
-    function nextStep(n) {
-        document.querySelectorAll('.form-step').forEach(s => { s.style.display = 'none'; s.classList.remove('active'); });
-        const target = document.getElementById('step-' + n);
-        if (target) {
-            target.style.display = 'block'; target.classList.add('active');
-            document.querySelectorAll('.step').forEach((stepBar, index) => {
-                if (index < n) stepBar.classList.add('active'); else stepBar.classList.remove('active');
-            });
-            window.scrollTo({top: 0, behavior: 'smooth'});
-        }
-    }
+    window.onload = () => { 
+        loadProvinsi(); 
+        loadFungsiSpesifik();
+    };
 </script></body>
 </html>
