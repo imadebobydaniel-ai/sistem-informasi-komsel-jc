@@ -134,7 +134,7 @@
                 </div>
             </div>
             <button type="button" class="btn-action" id="btn-daftar" onclick="prosesDaftar()">BUAT LAPAK SEKARANG</button>
-            <button type="button" onclick="tutupModal()" style="background:none; border:none; width:100%; margin-top:10px; color:#999;">Batal</button>
+           <button type="button" onclick="tutupModal()" style="background:none; border:none; width:100%; margin-top:10px; color:#000; font-weight:bold;">Batal</button>
         </form>
     </div>
 </div>
@@ -169,60 +169,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-<script>
-    // --- 1. FUNGSI MENU (Paling Atas Agar Tidak Freeze) ---
-    window.toggleMenu = function(event) {
-        if (event) event.stopPropagation();
-        const dropdown = document.getElementById("myDropdown");
-        if (dropdown) dropdown.classList.toggle("show");
-    };
-
-    window.onclick = function(event) {
-        if (!event.target.matches('.dropbtn') && !event.target.closest('.dropbtn')) {
-            const dropdowns = document.getElementsByClassName("dropdown-content");
-            for (let i = 0; i < dropdowns.length; i++) {
-                if (dropdowns[i].classList.contains('show')) dropdowns[i].classList.remove('show');
-            }
-        }
-    };
-
-    window.bukaModal = function(id) { 
-        document.getElementById(id).style.display = 'flex'; 
-        const dropdown = document.getElementById("myDropdown");
-        if(dropdown) dropdown.classList.remove("show");
-    };
-    
-    window.tutupModal = function() { 
-        document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); 
-    };
-
-    // --- 2. FIREBASE INIT ---
-    const firebaseConfig = {
-        apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
-        authDomain: "boby-apps-project.firebaseapp.com",
-        projectId: "boby-apps-project",
-        storageBucket: "boby-apps-project.appspot.com",
-        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
-    };
-
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-
-    // --- 3. FUNGSI NOTIFIKASI ---
-    function tampilNotif(pesan, warna = "#2c3e50") {
-        const container = document.getElementById("notif-container");
-        const content = document.getElementById("notif-content");
-        const msg = document.getElementById("notif-message");
-        if (msg) msg.innerText = pesan;
-        if (content) content.style.background = warna;
-        if (container) {
-            container.style.display = "block";
-            setTimeout(() => { container.style.display = "none"; }, 3500);
-        } else { alert(pesan); }
-    }
-
-    // --- 4. PROSES DAFTAR (CLOUDARY PERBAIKAN) ---
+// --- 4. PROSES DAFTAR (PERBAIKAN TOTAL CLOUDINARY) ---
     async function prosesDaftar() {
         const btn = document.getElementById("btn-daftar");
         const email = document.getElementById("reg-email").value;
@@ -230,12 +177,13 @@
         const fotoFile = document.getElementById("reg-foto").files[0];
 
         if(!fotoFile) return tampilNotif("Pilih foto logo UMKM!", "#f39c12");
+        if(!email || !pass) return tampilNotif("Email dan Password wajib diisi!", "#f39c12");
 
         try {
             btn.disabled = true;
             btn.innerText = "Memproses...";
 
-            // STEP 1: Firebase Auth (Check or Create)
+            // STEP 1: Firebase Auth
             let uid;
             try {
                 const userCredential = await auth.createUserWithEmailAndPassword(email, pass);
@@ -247,20 +195,26 @@
                 } else { throw err; }
             }
 
-            // STEP 2: Upload Cloudinary (Perbaikan: Unsigned Pattern Tanpa API Key)
+            // STEP 2: Upload Cloudinary (Pola Unsigned Murni)
             btn.innerText = "Mengunggah Logo...";
+            
             const formData = new FormData();
             formData.append("file", fotoFile);
-            formData.append("upload_preset", "sipapua_preset");
+            formData.append("upload_preset", "sipapua_preset"); // Pastikan nama preset ini tepat
 
+            // Gunakan fetch sederhana tanpa header tambahan
             const uploadRes = await fetch("https://api.cloudinary.com/v1_1/dxzllsbgj/image/upload", {
                 method: "POST",
                 body: formData
-                // Catatan: Tidak menggunakan header Authorization atau api_key agar tidak dianggap Signed upload
             });
 
             const dataFoto = await uploadRes.json();
-            if(!uploadRes.ok) throw new Error(dataFoto.error.message || "Gagal upload gambar");
+            
+            // Jika masih error, kita tangkap pesannya di sini
+            if(!uploadRes.ok) {
+                console.error("Detail Error Cloudinary:", dataFoto);
+                throw new Error(dataFoto.error.message || "Gagal upload ke Cloudinary");
+            }
 
             // STEP 3: Simpan Ke Firestore
             btn.innerText = "Menyimpan Data...";
@@ -280,76 +234,11 @@
             setTimeout(() => { window.location.href = "dashboard-umkm.html"; }, 1500);
 
         } catch (e) {
-            console.error(e);
-            tampilNotif("Error: " + e.message, "#c0392b");
+            console.error("Proses Daftar Gagal:", e);
+            tampilNotif("Gagal: " + e.message, "#c0392b");
             btn.disabled = false;
             btn.innerText = "BUAT LAPAK SEKARANG";
         }
     }
-
-    // --- 5. FUNGSI LAINNYA ---
-    async function prosesLogin() {
-        const email = document.getElementById("log-email").value;
-        const pass = document.getElementById("log-pass").value;
-        try {
-            await auth.signInWithEmailAndPassword(email, pass);
-            tampilNotif("Berhasil Masuk!", "#27ae60");
-            setTimeout(() => { window.location.href = "dashboard-umkm.html"; }, 1000);
-        } catch (e) { tampilNotif("Email atau Password Salah!", "#c0392b"); }
-    }
-
-    // Fungsi Toggle Password
-    function togglePassReg() {
-        const p = document.getElementById('reg-pass');
-        const eye = document.getElementById('toggleRegEye');
-        p.type = p.type === "password" ? "text" : "password";
-        eye.classList.toggle("fa-eye-slash");
-    }
-
-    function togglePassLogin() {
-        const p = document.getElementById('log-pass');
-        const eye = document.getElementById('toggleLogEye');
-        p.type = p.type === "password" ? "text" : "password";
-        eye.classList.toggle("fa-eye-slash");
-    }
-
-    function togglePassAdmin() {
-        const p = document.getElementById('admin-pass');
-        const eye = document.getElementById('toggleEye');
-        p.type = p.type === "password" ? "text" : "password";
-        eye.classList.toggle("fa-eye-slash");
-    }
-
-    function prosesLoginAdmin() {
-        const user = document.getElementById('admin-user').value;
-        const pass = document.getElementById('admin-pass').value;
-        if(user === "admin" && pass === "admin321") {
-            sessionStorage.setItem("isAdmin", "true");
-            tampilNotif("Berhasil Masuk Admin!", "#27ae60");
-            setTimeout(() => { window.location.href = "super-admin-umkm.html"; }, 1000);
-        } else { tampilNotif("Akses Ditolak!", "#c0392b"); }
-    }
-
-    // Load market data
-    async function loadMainMarket() {
-        const market = document.getElementById("main-market");
-        try {
-            const snap = await db.collection("umkm_stores").orderBy("dibuat", "desc").limit(20).get();
-            market.innerHTML = "";
-            snap.forEach(doc => {
-                const p = doc.data();
-                market.innerHTML += `
-                    <div class="product-card">
-                        <img src="${p.logo_url}" class="product-img">
-                        <div class="product-info">
-                            <span class="category-tag">${p.jenis_umkm}</span>
-                            <h3 style="margin:5px 0; font-size:14px;">${p.nama_toko}</h3>
-                        </div>
-                    </div>`;
-            });
-        } catch (e) { console.error(e); }
-    }
-    loadMainMarket();
-</script>
 </body>
 </html>
