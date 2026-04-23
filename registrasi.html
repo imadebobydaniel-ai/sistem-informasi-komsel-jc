@@ -265,35 +265,45 @@
         "ARS2": ["Komsel Keluarga Arso 2"] 
     };
 
-    // --- FUNGSI API WILAYAH (PROVINSI, KOTA, KEC, DESA) ---
+    // --- FUNGSI API WILAYAH (ALAMAT & KELAHIRAN) ---
     async function loadProvinsi() {
         try {
             const res = await fetch(`${BASE_URL_WILAYAH}/provinces.json`);
             const data = await res.json();
             let options = '<option value="">-- Pilih Provinsi --</option>';
             data.forEach(p => options += `<option value="${p.id}">${p.name}</option>`);
-            document.getElementById("provinsi").innerHTML = options;
+            
+            if(document.getElementById("provinsi")) document.getElementById("provinsi").innerHTML = options;
+            if(document.getElementById("provinsi_lahir")) document.getElementById("provinsi_lahir").innerHTML = options;
         } catch (e) { console.error("Gagal load provinsi"); }
     }
 
-    async function loadKota() {
-        const provId = document.getElementById("provinsi").value;
-        const kotaSelect = document.getElementById("kota");
-        if (!provId) return;
+    async function loadKota(suffix = "") {
+        const idPrefix = suffix ? `provinsi_${suffix}` : "provinsi";
+        const targetId = suffix ? `kota_${suffix}` : "kota";
+        
+        const provId = document.getElementById(idPrefix).value;
+        const kotaSelect = document.getElementById(targetId);
+        if (!provId || !kotaSelect) return;
+
         kotaSelect.innerHTML = '<option value="">Memuat...</option>';
         try {
             const res = await fetch(`${BASE_URL_WILAYAH}/regencies/${provId}.json`);
             const data = await res.json();
-            let options = '<option value="">-- Pilih Kota/Kabupaten --</option>';
+            let options = `<option value="">-- Pilih Kota/Kabupaten --</option>`;
             data.forEach(k => options += `<option value="${k.id}">${k.name}</option>`);
             kotaSelect.innerHTML = options;
-        } catch (e) { kotaSelect.innerHTML = '<option value="">Gagal memuat</option>'; }
+        } catch (e) { if(kotaSelect) kotaSelect.innerHTML = '<option value="">Gagal memuat</option>'; }
     }
 
-    async function loadKecamatan() {
-        const kotaId = document.getElementById("kota").value;
-        const kecSelect = document.getElementById("kecamatan");
-        if (!kotaId) return;
+    async function loadKecamatan(suffix = "") {
+        const idPrefix = suffix ? `kota_${suffix}` : "kota";
+        const targetId = suffix ? `kecamatan_${suffix}` : "kecamatan";
+        
+        const kotaId = document.getElementById(idPrefix).value;
+        const kecSelect = document.getElementById(targetId);
+        if (!kotaId || !kecSelect) return;
+
         try {
             const res = await fetch(`${BASE_URL_WILAYAH}/districts/${kotaId}.json`);
             const data = await res.json();
@@ -303,10 +313,14 @@
         } catch (e) { console.error("Gagal load kecamatan"); }
     }
 
-    async function loadDesa() {
-        const kecId = document.getElementById("kecamatan").value;
-        const desaSelect = document.getElementById("desa");
-        if (!kecId) return;
+    async function loadDesa(suffix = "") {
+        const idPrefix = suffix ? `kecamatan_${suffix}` : "kecamatan";
+        const targetId = suffix ? `desa_${suffix}` : "desa";
+        
+        const kecId = document.getElementById(idPrefix).value;
+        const desaSelect = document.getElementById(targetId);
+        if (!kecId || !desaSelect) return;
+
         try {
             const res = await fetch(`${BASE_URL_WILAYAH}/villages/${kecId}.json`);
             const data = await res.json();
@@ -415,16 +429,10 @@
         btnSubmit.innerText = "Mengamankan NIJ...";
 
         try {
-            // Ambil Nama Teks dari Dropdown Wilayah (bukan ID)
             const getTxt = (id) => {
                 const el = document.getElementById(id);
-                return el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : "-";
+                return el && el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : "-";
             };
-
-            const provNama = getTxt("provinsi");
-            const kotaNama = getTxt("kota");
-            const kecNama = getTxt("kecamatan");
-            const desaNama = getTxt("desa");
 
             let namaWilayahFull = lokasiKode;
             if (lokasiKode === "ABE") namaWilayahFull = "Abepura";
@@ -455,12 +463,17 @@
                 nij_number: newNumber,
                 whatsapp: rawHp,
                 wilayah: namaWilayahFull, 
-                // Data Alamat Lengkap dari API
-                provinsi: provNama,
-                kabupaten_kota: kotaNama,
-                kecamatan: kecNama,
-                desa_kelurahan: desaNama,
+                // Data Alamat (Sesuai Struktur Anda)
+                provinsi: getTxt("provinsi"),
+                kabupaten_kota: getTxt("kota"),
+                kecamatan: getTxt("kecamatan"),
+                desa_kelurahan: getTxt("desa"),
                 alamat_detail: document.getElementById("alamat").value,
+                // Data Kelahiran (Penambahan Tanpa Pengurangan)
+                provinsi_lahir: getTxt("provinsi_lahir"),
+                kota_lahir: getTxt("kota_lahir"),
+                kecamatan_lahir: getTxt("kecamatan_lahir"),
+                desa_lahir: getTxt("desa_lahir"),
                 
                 komsel: document.getElementById("komsel").value,
                 jabatan: document.getElementById("jabatan_jemaat").value,
@@ -520,12 +533,23 @@
 
     // --- EVENT LISTENER SAAT HALAMAN DIBUKA ---
     document.addEventListener("DOMContentLoaded", () => {
-        loadProvinsi(); // Inisialisasi API Wilayah
-        // Tambahkan event listener onchange jika belum ada di HTML
-        document.getElementById("provinsi").addEventListener("change", loadKota);
-        document.getElementById("kota").addEventListener("change", loadKecamatan);
-        document.getElementById("kecamatan").addEventListener("change", loadDesa);
+        loadProvinsi();
+        
+        // Listener untuk Alamat Umum
+        const p = document.getElementById("provinsi");
+        const k = document.getElementById("kota");
+        const kc = document.getElementById("kecamatan");
+        if(p) p.addEventListener("change", () => loadKota(""));
+        if(k) k.addEventListener("change", () => loadKecamatan(""));
+        if(kc) kc.addEventListener("change", () => loadDesa(""));
+
+        // Listener untuk Wilayah Kelahiran (Suffix 'lahir')
+        const pL = document.getElementById("provinsi_lahir");
+        const kL = document.getElementById("kota_lahir");
+        const kcL = document.getElementById("kecamatan_lahir");
+        if(pL) pL.addEventListener("change", () => loadKota("lahir"));
+        if(kL) kL.addEventListener("change", () => loadKecamatan("lahir"));
+        if(kcL) kcL.addEventListener("change", () => loadDesa("lahir"));
     });
-</script>
-</body>
+</script></body>
 </html>
