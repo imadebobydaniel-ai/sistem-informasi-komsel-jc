@@ -289,10 +289,12 @@
 
             if (!snapshot.empty) {
                 const lastData = snapshot.docs[0].data();
-                // Jika sudah ada nij_number gunakan itu, jika data lama bedah dari string NIJ
+                // Jika sudah ada nij_number (angka murni) gunakan itu
                 if (lastData.nij_number) {
                     nextNum = parseInt(lastData.nij_number) + 1;
-                } else if (lastData.nij) {
+                } 
+                // Fallback: Jika data lama belum ada nij_number, bedah dari string NIJ
+                else if (lastData.nij) {
                     const parts = lastData.nij.split("-");
                     if (parts.length >= 4) {
                         nextNum = parseInt(parts[3]) + 1;
@@ -313,7 +315,7 @@
     // --- LOGIKA REGISTRASI ---
     async function handleRegistrasi() {
         const btnSubmit = document.getElementById("btnSubmit");
-        const lokasi = document.getElementById("lokasi").value; // Ini wilayah (ABE, STN, dll)
+        const lokasi = document.getElementById("lokasi").value; 
         const rawEmail = document.getElementById("email").value.trim();
         const rawPass = document.getElementById("pass").value;
         const rawNama = document.getElementById("nama").value;
@@ -331,7 +333,7 @@
             const emailCheck = await db.collection("users").where("email", "==", rawEmail).get();
             if (!emailCheck.empty) throw new Error("Email sudah terdaftar!");
 
-            // 2. Ambil nomor urut terakhir dari database
+            // 2. Ambil nomor urut terakhir (SINKRON DENGAN 'wilayah' & 'nij_number')
             const snapshot = await db.collection("users")
                 .where("wilayah", "==", lokasi)
                 .orderBy("nij_number", "desc")
@@ -347,7 +349,7 @@
             const tahun = new Date().getFullYear();
             const finalNIJ = `NIJ-PPP-${lokasi}-${String(newNumber).padStart(3, '0')}-${tahun}`;
 
-            // 3. Create User Auth & Simpan Data
+            // 3. Create User Auth
             const userCredential = await auth.createUserWithEmailAndPassword(rawEmail, rawPass);
             
             let listAnak = [];
@@ -357,12 +359,13 @@
                 }
             });
 
+            // 4. Simpan Data ke Firestore
             await db.collection("users").doc(userCredential.user.uid).set({
                 uid: userCredential.user.uid,
                 nama: rawNama,
                 email: rawEmail,
                 nij: finalNIJ,
-                nij_number: newNumber, // Simpan angka murni untuk pengurutan
+                nij_number: newNumber, // Simpan angka murni (Integer)
                 whatsapp: rawHp,
                 wilayah: lokasi,       // Simpan sebagai 'wilayah' agar cocok dengan data Agus Hernawan
                 komsel: document.getElementById("komsel").value,
