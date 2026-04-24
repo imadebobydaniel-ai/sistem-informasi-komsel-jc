@@ -81,6 +81,7 @@
         storageBucket: "boby-apps-project.appspot.com",
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
+    
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
@@ -88,6 +89,7 @@
     let curCustId = null;
     let myId = null;
 
+    // Listener Status Login
     auth.onAuthStateChanged(user => {
         if (user) {
             myId = user.uid;
@@ -97,7 +99,7 @@
         }
     });
 
-    // Mengambil daftar pembeli unik yang pernah mengirim pesan
+    // Mengambil daftar pembeli unik
     function muatDaftarChat() {
         db.collection("chats")
             .where("seller_uid", "==", myId)
@@ -108,6 +110,7 @@
 
                 snap.forEach(doc => {
                     const d = doc.data();
+                    // Simpan nama pembeli, jika tidak ada gunakan default
                     listUnik[d.customer_id] = d.customer_name || "Pembeli Umum";
                 });
 
@@ -130,37 +133,55 @@
     function bukaChat(cid, cname) {
         curCustId = cid;
         document.getElementById("target-name").innerText = cname;
-        muatPesan();
-        muatDaftarChat(); // Refresh status active
+        muatPesan(); // Memanggil fungsi muat history
+        muatDaftarChat(); // Refresh UI list agar class 'active' pindah
     }
 
-    // Memuat history chat dengan filter index
+    // Memuat history chat (SUDAH DIPERBAIKI)
     function muatPesan() {
         if (!curCustId) return;
         
         db.collection("chats")
             .where("seller_uid", "==", myId)
             .where("customer_id", "==", curCustId)
-            .orderBy("timestamp", "asc")
+            .orderBy("timestamp", "asc") // Memanfaatkan indeks Enabled
             .onSnapshot(snap => {
                 const body = document.getElementById("chat-body");
                 body.innerHTML = "";
+                
                 snap.forEach(doc => {
                     const m = doc.data();
                     const isOut = m.sender === 'seller';
-                    const jam = m.timestamp ? new Date(m.timestamp.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
                     
-                    body.innerHTML += `
-                        <div class="bubble ${isOut ? 'bubble-out' : 'bubble-in'}">
-                            ${m.text}
-                            <span class="timestamp">${jam}</span>
-                        </div>
-                    `;
+                    // Konversi timestamp ke jam menit
+                    const jam = m.timestamp ? new Date(m.timestamp.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '...';
+                    
+                    // PERBAIKAN: Gunakan m.message agar tidak undefined
+                    const teksTampil = m.message || (m.is_product ? "Tanya Produk" : "Pesan kosong");
+
+                    // Cek jika ini adalah pesan produk
+                    if (m.is_product) {
+                        body.innerHTML += `
+                            <div class="bubble ${isOut ? 'bubble-out' : 'bubble-in'}" style="max-width: 85%;">
+                                <div style="background: #f9f9f9; padding: 5px; border-radius: 5px; margin-bottom: 5px; color: #333;">
+                                    <small><b>Menanyakan Produk:</b></small><br>
+                                    ${teksTampil}
+                                </div>
+                                <span class="timestamp">${jam}</span>
+                            </div>`;
+                    } else {
+                        body.innerHTML += `
+                            <div class="bubble ${isOut ? 'bubble-out' : 'bubble-in'}">
+                                ${teksTampil}
+                                <span class="timestamp">${jam}</span>
+                            </div>`;
+                    }
                 });
-                body.scrollTop = body.scrollHeight;
+                body.scrollTop = body.scrollHeight; // Auto scroll ke bawah
             });
     }
 
+    // Fungsi Kirim Balasan (SUDAH DIPERBAIKI)
     async function kirimBalasan() {
         const input = document.getElementById("input-chat");
         const pesan = input.value.trim();
@@ -172,14 +193,14 @@
                 seller_uid: myId,
                 customer_id: curCustId,
                 sender: 'seller', 
-                text: pesan,
+                message: pesan, // Gunakan field 'message' agar sinkron
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
-            input.value = "";
+            input.value = ""; // Kosongkan input setelah kirim
         } catch (e) {
-            console.error("Gagal kirim:", e);
+            console.error("Gagal kirim pesan:", e);
+            alert("Gagal mengirim pesan. Pastikan koneksi stabil.");
         }
     }
-</script>
-</body>
+</script></body>
 </html>
