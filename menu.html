@@ -133,11 +133,22 @@
         }
         .modal-content h2 { color: var(--navy); margin-top: 0; border-bottom: 2px solid var(--gold); padding-bottom: 10px; }
 
-        .input-group { margin-bottom: 15px; }
+        .input-group { margin-bottom: 15px; position: relative; }
         .input-group label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--navy); }
         input, select, textarea { 
             width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; 
             box-sizing: border-box; font-size: 14px;
+        }
+
+        /* PASSWORD TOGGLE SYMBOL */
+        .pass-wrapper { position: relative; display: flex; align-items: center; }
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            cursor: pointer;
+            color: #999;
+            font-size: 16px;
+            z-index: 5;
         }
 
         .btn-gold { 
@@ -204,7 +215,10 @@
         </div>
         <div class="input-group">
             <label>PASSWORD</label>
-            <input type="password" id="reg-pass">
+            <div class="pass-wrapper">
+                <input type="password" id="reg-pass">
+                <i class="fa-solid fa-eye toggle-password" onclick="togglePass('reg-pass', this)"></i>
+            </div>
         </div>
         <button class="btn-gold" id="btn-daftar" onclick="prosesDaftar()">DAFTARKAN LAPAK</button>
         <button onclick="tutupModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer;">Tutup</button>
@@ -220,7 +234,10 @@
         </div>
         <div class="input-group">
             <label>PASSWORD</label>
-            <input type="password" id="log-pass">
+            <div class="pass-wrapper">
+                <input type="password" id="log-pass">
+                <i class="fa-solid fa-eye toggle-password" onclick="togglePass('log-pass', this)"></i>
+            </div>
         </div>
         <button class="btn-gold" onclick="loginUser('seller')">MASUK CMS SELLER</button>
         <button onclick="tutupModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer;">Tutup</button>
@@ -236,7 +253,10 @@
         </div>
         <div class="input-group">
             <label>PASSWORD</label>
-            <input type="password" id="admin-pass">
+            <div class="pass-wrapper">
+                <input type="password" id="admin-pass">
+                <i class="fa-solid fa-eye toggle-password" onclick="togglePass('admin-pass', this)"></i>
+            </div>
         </div>
         <button class="btn-gold" style="background:#1a237e; color:white;" onclick="loginUser('admin')">MASUK PANEL ADMIN</button>
         <button onclick="tutupModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer;">Tutup</button>
@@ -267,6 +287,18 @@
     window.bukaModal = (id) => document.getElementById(id).style.display = 'flex';
     window.tutupModal = () => document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
     
+    // FUNGSI BARU: TOGGLE LIHAT PASSWORD
+    function togglePass(id, icon) {
+        const input = document.getElementById(id);
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.replace("fa-eye", "fa-eye-slash");
+        } else {
+            input.type = "password";
+            icon.classList.replace("fa-eye-slash", "fa-eye");
+        }
+    }
+
     function notif(m) {
         const n = document.getElementById("notif-container");
         document.getElementById("notif-message").innerText = m;
