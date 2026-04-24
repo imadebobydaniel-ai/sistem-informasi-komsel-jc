@@ -95,10 +95,10 @@
     let curCustId = null;
     let myId = null;
 
-    // Fungsi Mobile Toggle (Fungsi Baru untuk mendukung GUI Mobile)
+    // Fungsi Mobile Toggle (Mendukung GUI Mobile)
     function toggleMobileView(showList) {
         const sidebar = document.getElementById('sidebar');
-        if (window.innerWidth <= 768) {
+        if (sidebar && window.innerWidth <= 768) {
             if (showList) {
                 sidebar.classList.remove('mobile-hidden');
             } else {
@@ -125,6 +125,8 @@
             .where("seller_uid", "==", myId)
             .onSnapshot(snap => {
                 const container = document.getElementById("list-container");
+                if (!container) return;
+                
                 const listUnik = {};
                 container.innerHTML = "";
 
@@ -138,7 +140,7 @@
                     item.className = `customer-item ${curCustId === cid ? 'active' : ''}`;
                     item.onclick = () => {
                         bukaChat(cid, listUnik[cid]);
-                        toggleMobileView(false); // Tutup list di mobile saat chat dibuka
+                        toggleMobileView(false); 
                     };
                     item.innerHTML = `
                         <div class="avatar">${listUnik[cid].charAt(0)}</div>
@@ -154,7 +156,8 @@
 
     function bukaChat(cid, cname) {
         curCustId = cid;
-        document.getElementById("target-name").innerText = cname;
+        const targetName = document.getElementById("target-name");
+        if (targetName) targetName.innerText = cname;
         muatPesan();
         muatDaftarChat();
     }
@@ -167,6 +170,8 @@
             .orderBy("timestamp", "asc")
             .onSnapshot(snap => {
                 const body = document.getElementById("chat-body");
+                if (!body) return;
+                
                 body.innerHTML = "";
                 snap.forEach(doc => {
                     const m = doc.data();
@@ -196,8 +201,11 @@
 
     async function kirimBalasan() {
         const input = document.getElementById("input-chat");
+        if (!input) return;
+        
         const pesan = input.value.trim();
         if (!pesan || !curCustId) return;
+        
         try {
             await db.collection("chats").add({
                 seller_uid: myId,
@@ -211,6 +219,18 @@
             console.error("Gagal kirim pesan:", e);
         }
     }
+
+    // Listener Tambahan: Kirim pesan dengan tombol Enter
+    document.addEventListener("DOMContentLoaded", () => {
+        const inputChat = document.getElementById("input-chat");
+        if (inputChat) {
+            inputChat.addEventListener("keypress", (e) => {
+                if (e.key === "Enter") {
+                    kirimBalasan();
+                }
+            });
+        }
+    });
 </script>
 </body>
 </html>
