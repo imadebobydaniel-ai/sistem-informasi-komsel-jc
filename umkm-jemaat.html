@@ -289,38 +289,65 @@
         if(n) { n.style.display = "block"; msgElement.innerText = m; setTimeout(() => { n.style.display = "none"; }, 3000); }
     }
 
-    // LOGIKA PERBAIKAN: SHARE WA, STAR, & THUMB
+// ==========================================
+    // LOGIKA SHARE (BROADCAST), LIKE & RATING
+    // ==========================================
+
+    // 1. FUNGSI SHARE WA (Hanya membagikan info, bukan chat penjual)
     function shareWA(namaProduk, harga, namaToko, nomorWA) {
-        // Pastikan nomor WA diawali kode negara 62
+        // Format nomor agar rapi di dalam teks pesan
         let formattedWA = nomorWA.startsWith('0') ? '62' + nomorWA.slice(1) : nomorWA;
+        
+        // Menyusun pesan promosi untuk dibagikan ke orang lain/grup
         const text = encodeURIComponent(
-            `*PROFIL PRODUK UMKM SIPAPUA*\n\n` +
-            `📦 *Nama Produk:* ${namaProduk}\n` +
-            `💰 *Harga:* Rp ${Number(harga).toLocaleString('id-ID')}\n` +
-            `🏪 *Lapak:* ${namaToko}\n\n` +
-            `Halo, saya ingin bertanya mengenai produk ini. Apakah masih tersedia?`
+            `*REKOMENDASI PRODUK UMKM SIPAPUA*\n\n` +
+            `🏪 *Toko:* ${namaToko}\n` +
+            `📦 *Produk:* ${namaProduk}\n` +
+            `💰 *Harga:* Rp ${Number(harga).toLocaleString('id-ID')}\n\n` +
+            `Jika berminat, hubungi penjual di: wa.me/${formattedWA}\n\n` +
+            `_Dibagikan melalui Aplikasi SIPAPUA_`
         );
-        // Membuka WhatsApp langsung dengan teks terisi
-        window.open(`https://api.whatsapp.com/send?phone=${formattedWA}&text=${text}`, '_blank');
+
+        // KUNCI: Menghilangkan parameter 'phone=' agar WhatsApp membuka daftar kontak/grup Anda
+        const shareUrl = `https://api.whatsapp.com/send?text=${text}`;
+        
+        window.open(shareUrl, '_blank');
     }
 
-    function toggleStar(btn) {
+    // 2. FUNGSI LIKE & RATING (Satu Logika: 20 Like = 1 Bintang)
+    async function toggleThumb(btn, sellerUid) {
+        if (!sellerUid) return notif("Data penjual tidak ditemukan");
+        
         btn.classList.toggle('active');
-        if(btn.classList.contains('active')) {
-            btn.querySelector('i').classList.replace('fa-regular', 'fa-solid');
-            notif("Ditambahkan ke Favorit");
-        } else {
-            notif("Dihapus dari Favorit");
+        const storeRef = db.collection("umkm_stores").doc(sellerUid);
+
+        try {
+            await db.runTransaction(async (transaction) => {
+                const sfDoc = await transaction.get(storeRef);
+                if (!sfDoc.exists) return;
+
+                const currentLikes = sfDoc.data().likes_count || 0;
+                let newLikes;
+
+                if(btn.classList.contains('active')) {
+                    newLikes = currentLikes + 1;
+                    notif("Produk Disukai!");
+                } else {
+                    newLikes = Math.max(0, currentLikes - 1);
+                }
+                
+                // Rumus: Kelipatan 20 Like = 1 Bintang
+                const newRating = Math.floor(newLikes / 20);
+
+                transaction.update(storeRef, { 
+                    likes_count: newLikes,
+                    rating_level: newRating
+                });
+            });
+        } catch (e) {
+            console.error("Error update Like/Rating:", e);
         }
     }
-
-    function toggleThumb(btn) {
-        btn.classList.toggle('active');
-        if(btn.classList.contains('active')) {
-            notif("Produk Disukai");
-        }
-    }
-
     // Auth & Chat Functions (Sesuai Struktur Asli Anda)
     async function prosesDaftar() {
         const btn = document.getElementById("btn-daftar");
