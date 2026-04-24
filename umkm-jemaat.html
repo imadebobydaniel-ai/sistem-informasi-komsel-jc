@@ -96,8 +96,8 @@
             transition: transform 0.2s, background 0.2s, box-shadow 0.3s;
             border: none;
             cursor: pointer;
-            position: relative; /* Wajib agar absolute child berfungsi */
-            overflow: visible !important; /* Jangan di-clip */
+            position: relative; 
+            overflow: visible !important; 
         }
         .btn-icon:active { transform: scale(0.9); }
         
@@ -106,7 +106,7 @@
         .btn-thumb { background: #e3f2fd; color: #1976d2; border: 1px solid #1976d2; }
         .btn-wa { background: var(--wa-green); color: white; }
 
-        /* DROPDOWN INFO (Likes & Bintang) - UPDATED CSS */
+        /* DROPDOWN INFO (Likes & Bintang) */
         .info-dropdown {
             display: none; 
             position: absolute; 
@@ -123,7 +123,7 @@
             z-index: 1000; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             border: 1px solid var(--gold);
-            pointer-events: none; /* Agar tidak mengganggu kursor */
+            pointer-events: none; /* PERBAIKAN: Agar klik tombol tidak terhalang */
         }
 
         .btn-icon:hover .info-dropdown {
@@ -499,46 +499,40 @@
         if (chatUnsubscribe) chatUnsubscribe();
     }
 
-    // --- UPDATED: LOGIKA TOMBOL BINTANG & LIKE (GAMIFIKASI) ---
+    // --- PERBAIKAN: LOGIKA TOMBOL BINTANG & LIKE ---
     async function tambahLike(uid, currentLikes, element) {
-        // Animasi visual
         element.classList.add('glow-active');
         setTimeout(() => element.classList.remove('glow-active'), 500);
 
-        // Hitung Logic
         const newLikes = (currentLikes || 0) + 1;
-        
-        // Rumus Akurat: Setiap 20 Like = 1 Bintang (Maksimal 5 Bintang)
         let newRating = Math.floor(newLikes / 20);
         if (newRating > 5) newRating = 5; 
 
         try {
-            // Update ke Firestore - Ini akan langsung sinkron ke dashboard pelapak
             await db.collection("umkm_stores").doc(uid).update({
                 likes_count: newLikes,
                 rating_level: newRating
             });
-            
-            console.log(`Update Berhasil: ${newLikes} Likes, ${newRating} Bintang`);
+            console.log(`Berhasil: ${newLikes} Likes`);
         } catch (e) {
-            console.error("Gagal sinkronisasi data:", e);
             notif("Gagal memberikan like.");
         }
     }
 
-    // FUNGSI SHARE WA TERBARU
-    function shareWA(namaToko, phone, namaProduk) {
+    // PERBAIKAN: FUNGSI SHARE WHATSAPP (Direct Chat tanpa permintaan profil/undangan)
+    function shareWA(namaToko, phone) {
         if(!phone) {
             notif("Nomor WhatsApp penjual tidak tersedia.");
             return;
         }
-        const cleanPhone = phone.replace(/\D/g, '');
+        let cleanPhone = phone.replace(/\D/g, '');
+        if (cleanPhone.startsWith('0')) {
+            cleanPhone = '62' + cleanPhone.slice(1);
+        }
         const text = encodeURIComponent(
-            `Halo *${namaToko}*,\n\n` +
-            `Saya melihat produk *${namaProduk}* Anda di aplikasi *UMKM SIPAPUA*.\n` +
-            `Apakah produk ini masih tersedia? Saya ingin bertanya lebih lanjut.`
+            `Halo *${namaToko}*,\n\nSaya melihat lapak Anda di aplikasi *UMKM SIPAPUA*. \n\nBisa dibantu informasi lebih lanjut mengenai produk yang Anda tawarkan?`
         );
-        window.open(`https://wa.me/${cleanPhone}?text=${text}`, '_blank');
+        window.open(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${text}`, '_blank');
     }
 
     // --- RENDER MARKET ---
@@ -562,7 +556,7 @@
                                     <i class="fa-solid fa-comment-dots"></i>
                                 </button>
 
-                                <button class="btn-icon btn-star">
+                                <button class="btn-icon btn-star" onclick="this.classList.add('glow-active'); setTimeout(()=>this.classList.remove('glow-active'), 500)">
                                     <i class="fa-solid fa-star"></i>
                                     <div class="info-dropdown">Rating: ${stars} Bintang</div>
                                 </button>
@@ -572,9 +566,7 @@
                                     <div class="info-dropdown">${likes} Likes</div>
                                 </button>
 
-                                <button class="btn-icon btn-wa" 
-                                        onclick="shareWA('${lapak.nama_toko}', '${lapak.whatsapp}', '${lapak.nama_toko}')" 
-                                        title="Hubungi Penjual">
+                                <button class="btn-icon btn-wa" onclick="shareWA('${lapak.nama_toko}', '${lapak.whatsapp}')">
                                     <i class="fa-brands fa-whatsapp"></i>
                                 </button>
                             </div>
