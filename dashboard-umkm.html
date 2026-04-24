@@ -4,36 +4,66 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dashboard UMKM - Pondok Pemulihan Papua</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #2c3e50; --accent: #4CAF50; --bg: #f8f9fa; --warning: #ff9800; }
-        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--bg); margin: 0; padding: 15px; }
-        .container { max-width: 480px; margin: 0 auto; }
+        :root { --primary: #1a237e; --accent: #4CAF50; --bg: #f0f2f5; --warning: #ff9800; --gold: #d4af37; }
+        
+        /* Reset & Base */
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg); 
+            margin: 0; 
+            padding: 0; 
+            min-height: 100vh;
+        }
+
+        /* Navbar Sederhana Khusus Dashboard */
+        .nav-dash {
+            background: var(--primary);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .nav-dash h1 { font-size: 16px; margin: 0; color: var(--gold); }
+        .btn-logout { background: none; border: 1px solid var(--gold); color: var(--gold); padding: 5px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; }
+
+        .container { max-width: 480px; margin: 0 auto; padding: 20px; }
         
         /* Profile Header */
-        .header-card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .header-card { 
+            background: white; 
+            border-radius: 20px; 
+            padding: 20px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            margin-bottom: 20px;
+            border-left: 5px solid var(--gold);
+        }
         #store-logo { width: 65px; height: 65px; border-radius: 18px; object-fit: cover; border: 2px solid #eee; }
         .store-info h2 { margin: 0; font-size: 18px; color: var(--primary); }
         .store-info p { margin: 3px 0 0; font-size: 13px; color: #7f8c8d; }
 
         /* Form Card */
         .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .card-title { font-size: 15px; font-weight: bold; color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .card-title { font-size: 14px; font-weight: bold; color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
         
         .form-group { margin-bottom: 15px; }
         label { display: block; font-size: 11px; font-weight: bold; color: #95a5a6; margin-bottom: 6px; }
         input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #edf2f7; background: #f8f9fa; font-size: 14px; box-sizing: border-box; }
-        input:focus { outline: none; border-color: var(--accent); background: #fff; }
 
         /* Media Uploader Area */
         .media-uploader { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .upload-slot { border: 2px dashed #cbd5e0; border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; transition: 0.3s; background: #fff; }
-        .upload-slot:hover { border-color: var(--accent); background: #f0fff4; }
-        .preview-media { width: 100%; height: 110px; object-fit: cover; border-radius: 10px; display: none; }
+        .upload-slot { border: 2px dashed #cbd5e0; border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; transition: 0.3s; background: #fff; position: relative; overflow: hidden; }
+        .preview-media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
         .slot-label { font-size: 11px; color: #7f8c8d; margin-top: 5px; display: block; }
 
-        .btn-submit { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 15px; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 15px; transition: 0.3s; }
-        .btn-submit:active { transform: scale(0.98); }
+        .btn-submit { width: 100%; padding: 16px; background: var(--primary); color: var(--gold); border: none; border-radius: 15px; font-weight: 800; font-size: 15px; cursor: pointer; margin-top: 15px; }
 
         /* Product List */
         .product-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: #fff; border-radius: 15px; margin-bottom: 10px; border: 1px solid #f1f3f5; }
@@ -44,13 +74,17 @@
         .badge-ready { background: #e6fffa; color: #38b2ac; }
         .badge-po { background: #fffaf0; color: #dd6b20; }
 
-        /* Bottom Sheet Modal (Anti-Katrok) */
-        #notif-sheet { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; align-items: flex-end; }
-        .sheet-content { background: white; width: 100%; max-width: 480px; padding: 30px 20px; border-radius: 25px 25px 0 0; text-align: center; box-sizing: border-box; animation: slideUp 0.4s ease-out; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        /* Notif Sheet */
+        #notif-sheet { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; align-items: flex-end; }
+        .sheet-content { background: white; width: 100%; max-width: 480px; padding: 30px 20px; border-radius: 25px 25px 0 0; text-align: center; box-sizing: border-box; margin: 0 auto; }
     </style>
 </head>
 <body>
+
+<div class="nav-dash">
+    <h1><i class="fa-solid fa-gauge-high"></i> PANEL SELLER</h1>
+    <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> KELUAR</button>
+</div>
 
 <div class="container">
     <div class="header-card" id="profile-area">
@@ -65,15 +99,15 @@
         <div class="card-title"><i class="fa-solid fa-plus-circle" style="color: var(--accent);"></i> Tambah Produk Baru</div>
         <form id="upload-form">
             <div class="form-group">
-                <label>Nama Produk / Menu</label>
+                <label>NAMA PRODUK</label>
                 <input type="text" id="p-name" placeholder="Misal: Ikan Bakar Jayapura" required>
             </div>
             
             <div class="form-group">
-                <label>Status Ketersediaan</label>
+                <label>STATUS</label>
                 <select id="p-status">
-                    <option value="Ready">Ready Stock (Siap Kirim)</option>
-                    <option value="Open Order">Open Order (Pre-Order)</option>
+                    <option value="Ready">Ready Stock</option>
+                    <option value="Open Order">Pre-Order</option>
                 </select>
             </div>
 
@@ -81,25 +115,18 @@
                 <div class="upload-slot" onclick="document.getElementById('file-img').click()">
                     <i class="fa-solid fa-camera" style="color: #cbd5e0; font-size: 20px;"></i>
                     <span class="slot-label">Foto JPG</span>
-                    <input type="file" id="file-img" hidden accept="image/jpeg" onchange="preview(this, 'pre-img')">
+                    <input type="file" id="file-img" hidden accept="image/*" onchange="preview(this, 'pre-img')">
                     <img id="pre-img" class="preview-media">
                 </div>
-                <div class="upload-slot" onclick="document.getElementById('file-vid').click()">
-                    <i class="fa-solid fa-clapperboard" style="color: #cbd5e0; font-size: 20px;"></i>
-                    <span class="slot-label">Video Singkat</span>
-                    <input type="file" id="file-vid" hidden accept="video/*" onchange="preview(this, 'pre-vid')">
-                    <video id="pre-vid" class="preview-media"></video>
                 </div>
-            </div>
 
-            <button type="button" class="btn-submit" onclick="simpanProduk()">TAYANGKAN SEKARANG</button>
+            <button type="button" class="btn-submit" onclick="simpanProduk()">TAYANGKAN PRODUK</button>
         </form>
     </div>
 
     <div class="card">
         <div class="card-title"><i class="fa-solid fa-store" style="color: var(--primary);"></i> Etalase Saya</div>
-        <div id="my-products-list">
-            </div>
+        <div id="my-products-list"></div>
     </div>
 </div>
 
@@ -108,14 +135,13 @@
         <div id="notif-icon" style="margin-bottom: 15px;"></div>
         <h3 id="notif-title" style="margin:0; color: var(--primary);"></h3>
         <p id="notif-desc" style="color: #7f8c8d; font-size: 14px; margin: 10px 0 20px;"></p>
-        <button onclick="tutupNotif()" style="width: 100%; padding: 14px; border: none; border-radius: 12px; background: #f1f3f5; font-weight: bold; color: var(--primary);">OK, MENGERTI</button>
+        <button onclick="tutupNotif()" style="width: 100%; padding: 14px; border: none; border-radius: 12px; background: #f1f3f5; font-weight: bold; color: var(--primary);">OK</button>
     </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
 <script>
     const firebaseConfig = {
@@ -127,8 +153,11 @@
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const storage = firebase.storage();
     const auth = firebase.auth();
+
+    // Cloudinary Config (Gunakan Cloudinary agar lebih ringan dibanding Firebase Storage)
+    const CLOUD_NAME = "dxzllsbgi";
+    const UPLOAD_PRESET = "sipapua_preset";
 
     auth.onAuthStateChanged(user => {
         if (user) {
@@ -142,9 +171,10 @@
     async function fetchStore(uid) {
         const doc = await db.collection("umkm_stores").doc(uid).get();
         if(doc.exists) {
-            document.getElementById("store-name").innerText = doc.data().nama_toko;
-            document.getElementById("store-contact").innerHTML = `<i class="fa-brands fa-whatsapp"></i> ${doc.data().whatsapp}`;
-            document.getElementById("store-logo").src = doc.data().logo;
+            const data = doc.data();
+            document.getElementById("store-name").innerText = data.nama_toko;
+            document.getElementById("store-contact").innerHTML = `<i class="fa-brands fa-whatsapp"></i> ${data.whatsapp}`;
+            document.getElementById("store-logo").src = data.logo_url;
         }
     }
 
@@ -154,8 +184,6 @@
         if (file) {
             pre.src = URL.createObjectURL(file);
             pre.style.display = 'block';
-            pre.parentElement.querySelector('i').style.display = 'none';
-            pre.parentElement.querySelector('span').style.display = 'none';
         }
     }
 
@@ -165,62 +193,67 @@
         const status = document.getElementById("p-status").value;
         const imgFile = document.getElementById("file-img").files[0];
         
-        if(!name || !imgFile) {
-            munculkanNotif("Lengkapi Data", "Nama produk dan foto wajib ada.", "warning");
-            return;
-        }
+        if(!name || !imgFile) return munculkanNotif("Gagal", "Nama dan Foto wajib diisi!", "warning");
 
         const btn = document.querySelector(".btn-submit");
         btn.disabled = true; btn.innerText = "Mengupload...";
 
         try {
-            const imgRef = storage.ref(`umkm_products/${user.uid}_${Date.now()}.jpg`);
-            await imgRef.put(imgFile);
-            const url = await imgRef.getDownloadURL();
+            // Upload ke Cloudinary
+            const fd = new FormData();
+            fd.append("file", imgFile);
+            fd.append("upload_preset", UPLOAD_PRESET);
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: fd });
+            const dataImg = await res.json();
 
             await db.collection("umkm_products").add({
                 seller_uid: user.uid,
                 nama: name,
                 status: status,
-                img_url: url,
+                img_url: dataImg.secure_url,
                 dibuat: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            munculkanNotif("Berhasil!", "Produk Anda sudah tampil di pasar jemaat.", "success");
+            munculkanNotif("Berhasil!", "Produk berhasil ditayangkan.", "success");
             document.getElementById("upload-form").reset();
+            document.getElementById("pre-img").style.display = 'none';
             fetchProducts(user.uid);
         } catch (e) {
-            munculkanNotif("Gagal", e.message, "error");
+            munculkanNotif("Error", e.message, "error");
         } finally {
-            btn.disabled = false; btn.innerText = "TAYANGKAN SEKARANG";
+            btn.disabled = false; btn.innerText = "TAYANGKAN PRODUK";
         }
     }
 
     async function fetchProducts(uid) {
         const list = document.getElementById("my-products-list");
-        list.innerHTML = "";
-        const snap = await db.collection("umkm_products").where("seller_uid", "==", uid).get();
-        
-        snap.forEach(doc => {
-            const p = doc.data();
-            const badge = p.status === 'Ready' ? 'badge-ready' : 'badge-po';
-            list.innerHTML += `
-                <div class="product-item">
-                    <img src="${p.img_url}">
-                    <div class="p-details">
-                        <h4>${p.nama}</h4>
-                        <span class="badge ${badge}">${p.status}</span>
-                    </div>
-                </div>`;
+        db.collection("umkm_products").where("seller_uid", "==", uid)
+          .orderBy("dibuat", "desc").onSnapshot(snap => {
+            list.innerHTML = "";
+            snap.forEach(doc => {
+                const p = doc.data();
+                const badge = p.status === 'Ready' ? 'badge-ready' : 'badge-po';
+                list.innerHTML += `
+                    <div class="product-item">
+                        <img src="${p.img_url}">
+                        <div class="p-details">
+                            <h4>${p.nama}</h4>
+                            <span class="badge ${badge}">${p.status}</span>
+                        </div>
+                    </div>`;
+            });
         });
+    }
+
+    function logout() {
+        auth.signOut().then(() => window.location.href = "umkm-jemaat.html");
     }
 
     function munculkanNotif(title, desc, type) {
         const sheet = document.getElementById("notif-sheet");
-        const icon = document.getElementById("notif-icon");
         document.getElementById("notif-title").innerText = title;
         document.getElementById("notif-desc").innerText = desc;
-        
+        const icon = document.getElementById("notif-icon");
         icon.innerHTML = type === 'success' ? '<i class="fa-solid fa-circle-check" style="font-size: 50px; color: var(--accent);"></i>' : '<i class="fa-solid fa-circle-exclamation" style="font-size: 50px; color: var(--warning);"></i>';
         sheet.style.display = "flex";
     }
