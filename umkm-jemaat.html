@@ -405,18 +405,28 @@
         }
     }
 
-    // Fungsi Popup Chat Baru
+    // --- LOGIKA CHAT POPUP ---
     window.bukaChatPopup = function(uid, namaToko, gbrProduk) {
-        const chatModal = document.getElementById("modal-chat"); 
+        const chatModal = document.getElementById("chat-popup"); 
+        
         if (chatModal) {
             chatModal.style.display = 'flex';
-            console.log("Membuka chat untuk toko:", namaToko, "dengan UID:", uid);
             
-            const chatHeader = document.getElementById("chat-header-name");
-            if(chatHeader) chatHeader.innerText = namaToko;
+            // Mengatur judul chat dengan nama produk atau toko
+            const chatHeader = document.getElementById("chat-title");
+            if(chatHeader) chatHeader.innerText = "Chat Penjual: " + namaToko;
+
+            console.log("Membuka chat untuk toko UID:", uid);
+            
+            // (Opsional) Di sini Anda bisa menambahkan logika untuk memuat pesan dari Firestore
         } else {
-            notif("Fitur Chat sedang dalam pemeliharaan.");
+            notif("Fitur Chat tidak ditemukan di sistem.");
         }
+    };
+
+    window.tutupChatPopup = function() {
+        const chatModal = document.getElementById("chat-popup");
+        if(chatModal) chatModal.style.display = 'none';
     };
 
     function triggerTwister(element, uid, namaToko, gbrProduk) {
