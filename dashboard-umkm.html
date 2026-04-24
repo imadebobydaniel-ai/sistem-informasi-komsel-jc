@@ -54,6 +54,24 @@
         .store-info h2 { margin: 0; font-size: 18px; color: var(--primary); }
         .store-info p { margin: 3px 0 0; font-size: 13px; color: #7f8c8d; }
 
+        /* Statistik Rating di Header */
+        .store-stats { 
+            display: flex; 
+            gap: 10px; 
+            margin-top: 8px; 
+        }
+        .stat-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 5px; 
+            font-size: 11px; 
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+        .stat-star { background: #fffdf0; color: #f1c40f; border: 1px solid #f1c40f; }
+        .stat-thumb { background: #f0f7ff; color: #2980b9; border: 1px solid #2980b9; }
+
         /* Form Card */
         .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .card-title { font-size: 14px; font-weight: bold; color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
@@ -114,6 +132,14 @@
         <div class="store-info">
             <h2 id="store-name">Memuat profil...</h2>
             <p id="store-contact">--</p>
+            <div class="store-stats">
+                <div class="stat-item stat-star">
+                    <i class="fa-solid fa-star"></i> <span id="total-stars">0.0</span>
+                </div>
+                <div class="stat-item stat-thumb">
+                    <i class="fa-solid fa-thumbs-up"></i> <span id="total-thumbs">0</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -208,13 +234,13 @@
         if (user) {
             fetchStore(user.uid);
             fetchProducts(user.uid);
+            fetchRatings(user.uid); // Ambil data rating saat login
         } else {
             window.location.href = "umkm-jemaat.html";
         }
     });
 
     async function fetchStore(uid) {
-        // Mengambil data dari koleksi umkm_stores sesuai UID login
         const doc = await db.collection("umkm_stores").doc(uid).get();
         if(doc.exists) {
             const data = doc.data();
@@ -222,6 +248,31 @@
             document.getElementById("store-contact").innerText = data.whatsapp || "No WhatsApp belum diatur";
             document.getElementById("store-logo").src = data.logo_url || "https://via.placeholder.com/100";
         }
+    }
+
+    // FUNGSI MENGAMBIL RATING & LIKE
+    function fetchRatings(uid) {
+        db.collection("rating_toko").where("seller_uid", "==", uid)
+        .onSnapshot(snapshot => {
+            let totalStars = 0;
+            let totalThumbs = 0;
+            let count = 0;
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.rating) {
+                    totalStars += data.rating;
+                    count++;
+                }
+                if (data.like === true || data.is_like === true) {
+                    totalThumbs++;
+                }
+            });
+
+            // Update UI: Tampilkan rata-rata bintang dan jumlah jempol
+            document.getElementById("total-stars").innerText = count > 0 ? (totalStars / count).toFixed(1) : "0.0";
+            document.getElementById("total-thumbs").innerText = totalThumbs;
+        });
     }
 
     function handleMultiplePreview(input) {
@@ -300,7 +351,6 @@
 
     async function fetchProducts(uid) {
         const list = document.getElementById("product-list");
-        // Pastikan index seller_uid & dibuat sudah dibuat di Firebase Console sesuai gambar log error Anda
         db.collection("umkm_products").where("seller_uid", "==", uid)
           .orderBy("dibuat", "desc").onSnapshot(snap => {
             list.innerHTML = "";
@@ -325,7 +375,6 @@
             });
         }, err => {
             console.error("Firestore Error:", err);
-            // Jika error index, link akan muncul di console browser Anda
         });
     }
 
@@ -364,7 +413,6 @@
 
     function tutupNotif() { document.getElementById("notif-sheet").style.display = "none"; }
     
-    // Fungsi Placeholder untuk Edit (Bisa dikembangkan sesuai kebutuhan)
     function editProduk(id) {
         alert("Fungsi edit untuk ID: " + id + " dapat dikembangkan lebih lanjut.");
     }
