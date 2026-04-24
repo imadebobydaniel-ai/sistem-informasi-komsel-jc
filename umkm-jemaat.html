@@ -17,7 +17,7 @@
 
    body { 
     font-family: 'Plus Jakarta Sans', sans-serif; 
-    /* Gunakan kombinasi warna putih transparan (overlay) agar konten tetap terbaca */
+    /* Overlay agar teks tetap terbaca */
     background: linear-gradient(rgba(240, 242, 245, 0.8), rgba(240, 242, 245, 0.8)), 
                 url('umkm.jpeg');
     background-size: cover;
@@ -27,7 +27,7 @@
     margin: 0; 
     color: var(--text);
     padding-bottom: 50px;
-    min-height: 100vh; /* Memastikan background menutupi seluruh layar */
+    min-height: 100vh;
 }
 
     /* NAVBAR PREMIUM */
@@ -77,16 +77,6 @@
         margin-top: 0; 
     }
 
-    .dropdown-content::before {
-        content: "";
-        position: absolute;
-        top: -15px;
-        left: 0;
-        width: 100%;
-        height: 15px;
-        background: transparent;
-    }
-
     .dropdown-content a, .dropdown-content button {
         color: var(--navy);
         padding: 12px 16px;
@@ -103,10 +93,6 @@
         border-bottom: 1px solid #f0f0f0;
     }
 
-    .dropdown-content a:last-child, .dropdown-content button:last-child {
-        border-bottom: none;
-    }
-
     .dropdown-content a:hover, .dropdown-content button:hover {
         background-color: var(--gold-light);
     }
@@ -119,7 +105,7 @@
     .market-container { padding: 20px; display: flex; flex-direction: column; gap: 20px; }
     
     .lapak-card { 
-        background: rgba(255, 255, 255, 0.95); /* Sedikit transparan agar background terlihat tipis */
+        background: rgba(255, 255, 255, 0.95);
         border-radius: 20px; 
         overflow: hidden; 
         box-shadow: 0 8px 20px rgba(0,0,0,0.06);
@@ -172,7 +158,6 @@
         border-radius: 12px; font-weight: 800; cursor: pointer; 
     }
 
-    /* FAB */
     .fab-add {
         position: fixed; bottom: 25px; right: 20px;
         background: var(--gold); color: var(--navy);
@@ -202,8 +187,7 @@
     </div>
 </div>
 
-<div class="market-container" id="main-market">
-    </div>
+<div class="market-container" id="main-market"></div>
 
 <button class="fab-add" onclick="bukaModal('modal-daftar')">
     <i class="fa-solid fa-plus"></i>
@@ -248,9 +232,7 @@
             <label>PASSWORD</label>
             <div style="position: relative;">
                 <input type="password" id="log-pass" placeholder="Password" style="width: 100%; padding-right: 40px;">
-                <span id="togglePassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 18px;">
-                    👁️
-                </span>
+                <span id="togglePassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 18px;">👁️</span>
             </div>
         </div>
         <button class="btn-gold" onclick="loginUser('seller')">MASUK CMS SELLER</button>
@@ -295,7 +277,6 @@
     const CLOUD_NAME = "dxzllsbgi";
     const UPLOAD_PRESET = "sipapua_preset";
 
-    // --- LOGIKA TOGGLE PASSWORD ---
     document.getElementById("togglePassword").addEventListener("click", function() {
         const passInput = document.getElementById("log-pass");
         if (passInput.type === "password") {
@@ -319,44 +300,69 @@
     async function prosesDaftar() {
         const btn = document.getElementById("btn-daftar");
         const foto = document.getElementById("reg-foto").files[0];
+        const email = document.getElementById("reg-email").value;
+        const pass = document.getElementById("reg-pass").value;
+        const namaToko = document.getElementById("reg-toko").value;
+        const noHp = document.getElementById("reg-hp").value;
+
         if(!foto) return notif("Logo wajib diunggah!");
+        if(!email || !pass) return notif("Email/Password wajib diisi!");
+
         try {
             btn.innerText = "Mengaktifkan..."; btn.disabled = true;
+
+            // 1. Upload Cloudinary
             const fd = new FormData();
             fd.append("file", foto);
             fd.append("upload_preset", UPLOAD_PRESET);
-            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: fd });
-            const data = await res.json();
+            const resImg = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: fd });
+            const dataImg = await resImg.json();
+
+            // 2. Logika Authentication Cerdas
+            let user;
+            try {
+                const resAuth = await auth.createUserWithEmailAndPassword(email, pass);
+                user = resAuth.user;
+            } catch (authError) {
+                if (authError.code === 'auth/email-already-in-use') {
+                    // Jika email tersangkut, langsung login
+                    const resLog = await auth.signInWithEmailAndPassword(email, pass);
+                    user = resLog.user;
+                } else {
+                    throw authError;
+                }
+            }
             
-            const user = await auth.createUserWithEmailAndPassword(document.getElementById("reg-email").value, document.getElementById("reg-pass").value);
-            
-            await db.collection("umkm_stores").doc(user.user.uid).set({
-                nama_toko: document.getElementById("reg-toko").value,
-                whatsapp: document.getElementById("reg-hp").value,
-                logo_url: data.secure_url,
-                uid: user.user.uid,
+            // 3. Simpan data ke Firestore (Akan menimpa data lama jika UID sama)
+            await db.collection("umkm_stores").doc(user.uid).set({
+                nama_toko: namaToko,
+                whatsapp: noHp,
+                logo_url: dataImg.secure_url,
+                uid: user.uid,
                 role: 'seller',
                 status: 'active',
                 dibuat: firebase.firestore.FieldValue.serverTimestamp()
             });
-            notif("Lapak Aktif! Silakan Login ke CMS.");
-            location.reload();
-        } catch (e) { notif(e.message); btn.disabled = false; }
+
+            notif("Lapak Berhasil Diaktifkan!");
+            setTimeout(() => location.reload(), 1500);
+        } catch (e) { 
+            notif("Gagal: " + e.message); 
+            btn.innerText = "DAFTARKAN LAPAK";
+            btn.disabled = false; 
+        }
     }
 
     async function loginUser(role) {
         const email = role === 'admin' ? document.getElementById('admin-email').value : document.getElementById('log-email').value;
         const pass = role === 'admin' ? document.getElementById('admin-pass').value : document.getElementById('log-pass').value;
-        
         try {
             const user = await auth.signInWithEmailAndPassword(email, pass);
             const doc = await db.collection("umkm_stores").doc(user.user.uid).get();
-            
             if (role === 'admin' && email === 'boby.daniel4@gmail.com') { 
                 window.location.href = "admin-umkm.html";
-            } 
-            else if (doc.exists && doc.data().role === 'seller') {
-                if(doc.data().status === 'suspended') return notif("Akun Anda sedang disuspen!");
+            } else if (doc.exists && doc.data().role === 'seller') {
+                if(doc.data().status === 'suspended') return notif("Akun disuspen!");
                 window.location.href = "cms-seller.html";
             } else {
                 notif("Akses tidak dikenal.");
@@ -368,26 +374,22 @@
         const container = document.getElementById("main-market");
         const snap = await db.collection("umkm_stores").where("status", "==", "active").get();
         container.innerHTML = "";
-        if(snap.empty) container.innerHTML = "<p style='text-align:center'>Belum ada lapak aktif.</p>";
-        
+        if(snap.empty) container.innerHTML = "<p style='text-align:center'>Belum ada lapak.</p>";
         snap.forEach(doc => {
             const lapak = doc.data();
             container.innerHTML += `
                 <div class="lapak-card">
-                    <div class="lapak-img-wrapper">
-                        <img src="${lapak.logo_url}" class="lapak-img">
-                    </div>
+                    <div class="lapak-img-wrapper"><img src="${lapak.logo_url}" class="lapak-img"></div>
                     <div class="lapak-info">
                         <h3>${lapak.nama_toko}</h3>
                         <a href="portal-chat.html?uid=${lapak.uid}" class="portal-chat">
                             <i class="fa-solid fa-comments"></i> TANYA PENJUAL
                         </a>
                     </div>
-                </div>
-            `;
+                </div>`;
         });
     }
-
     muatMarket();
-</script></body>
+</script>
+</body>
 </html>
