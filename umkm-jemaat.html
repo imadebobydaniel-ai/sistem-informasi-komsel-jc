@@ -272,10 +272,15 @@
     }
     window.bukaModal = (id) => document.getElementById(id).style.display = 'flex';
     window.tutupModal = () => document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
+    
     function notif(m) {
         const n = document.getElementById("notif-container");
         const msgElement = document.getElementById("notif-message");
-        if(n) { n.style.display = "block"; msgElement.innerText = m; setTimeout(() => { n.style.display = "none"; }, 3000); }
+        if(n) { 
+            n.style.display = "block"; 
+            msgElement.innerText = m; 
+            setTimeout(() => { n.style.display = "none"; }, 3000); 
+        }
     }
 
     // Auth Logic
@@ -305,13 +310,42 @@
     async function loginUser(role) {
         const email = role === 'admin' ? document.getElementById('admin-email').value : document.getElementById('log-email').value;
         const pass = role === 'admin' ? document.getElementById('admin-pass').value : document.getElementById('log-pass').value;
+
+        if (!email || !pass) return notif("Email dan Password harus diisi!");
+
         try {
+            notif("Sedang memverifikasi...");
             const userCredential = await auth.signInWithEmailAndPassword(email, pass);
-            if (role === 'admin' && email === 'boby.daniel4@gmail.com') { window.location.href = "admin-umkm.html"; return; }
+            
+            // Logika Admin
+            if (role === 'admin' && email === 'boby.daniel4@gmail.com') {
+                notif("Login Admin Berhasil!");
+                setTimeout(() => { window.location.href = "admin-umkm.html"; }, 1000);
+                return;
+            }
+
+            // Logika Reseller / Seller
             const doc = await db.collection("umkm_stores").doc(userCredential.user.uid).get();
-            if (doc.exists && doc.data().status === 'active') { window.location.href = "dashboard-umkm.html"; }
-            else { notif("Akses ditolak."); }
-        } catch (e) { notif("Login Gagal."); }
+            
+            if (doc.exists && doc.data().status === 'active') {
+                notif("Login Berhasil! Mengalihkan...");
+                setTimeout(() => { window.location.href = "dashboard-umkm.html"; }, 1000);
+            } 
+            else if (doc.exists && doc.data().status !== 'active') {
+                notif("Akun Anda sedang tidak aktif.");
+                auth.signOut();
+            }
+            else {
+                notif("Akses ditolak. Data toko tidak ditemukan.");
+                auth.signOut();
+            }
+        } catch (e) {
+            let pesanError = "Login Gagal.";
+            if (e.code === 'auth/user-not-found') pesanError = "Email tidak terdaftar.";
+            if (e.code === 'auth/wrong-password') pesanError = "Password salah.";
+            notif(pesanError);
+            console.error("Login Error:", e);
+        }
     }
 
     // Chat Logic
@@ -352,6 +386,7 @@
         await db.collection("chats").add({ seller_uid: currentSellerUid, customer_id: customerAnonymousId, message: input.value.trim(), sender: 'customer', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
         input.value = "";
     }
+    
     function tutupChatPopup() { document.getElementById("chat-popup").style.display = "none"; if (chatUnsubscribe) chatUnsubscribe(); }
 
     function shareWA(namaToko, nomorWA) {
@@ -359,7 +394,7 @@
         window.open(`https://wa.me/${nomorWA}?text=${text}`, '_blank');
     }
 
-    // --- INTEGRATED RENDER MARKET (Updated with Slider & Status Below Price) ---
+    // --- MARKET RENDERER ---
     function muatMarket() {
         const container = document.getElementById("main-market");
         if(!container) return;
@@ -369,25 +404,14 @@
             snap.forEach(doc => {
                 const produk = doc.data();
                 const docId = doc.id;
-                
                 const namaProduk = produk.nama || "Tanpa Nama";
                 const hargaProduk = produk.harga || 0;
                 const deskripsiProduk = produk.deskripsi || "-";
                 const sellerUid = produk.seller_uid || "";
                 const statusOrder = produk.status || "Closed"; 
                 
-                // Slider Logic
-                let daftarFoto = [];
-                if (Array.isArray(produk.img_urls) && produk.img_urls.length > 0) {
-                    daftarFoto = produk.img_urls;
-                } else {
-                    daftarFoto = [produk.img_primary || ""];
-                }
-
-                let statusColorClass = "dot-offline";
-                if(statusOrder.toLowerCase().includes("open") || statusOrder.toLowerCase().includes("ready")) { 
-                    statusColorClass = "dot-online"; 
-                }
+                let daftarFoto = Array.isArray(produk.img_urls) && produk.img_urls.length > 0 ? produk.img_urls : [produk.img_primary || ""];
+                let statusColorClass = (statusOrder.toLowerCase().includes("open") || statusOrder.toLowerCase().includes("ready")) ? "dot-online" : "dot-offline";
 
                 container.innerHTML += `
                     <div class="lapak-card" id="card-${docId}">
@@ -396,11 +420,10 @@
                                 ${daftarFoto.map(img => `<img src="${img}">`).join('')}
                             </div>
                             ${daftarFoto.length > 1 ? `
-                                <button class="slide-btn prev" onclick="moveSlide('${docId}', -1)" style="position: absolute; left: 5px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.3); border: none; color: white; border-radius: 50%; width: 30px; height: 30px; cursor: pointer;">&#10094;</button>
-                                <button class="slide-btn next" onclick="moveSlide('${docId}', 1)" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.3); border: none; color: white; border-radius: 50%; width: 30px; height: 30px; cursor: pointer;">&#10095;</button>
+                                <button class="slide-btn prev" onclick="moveSlide('${docId}', -1)">&#10094;</button>
+                                <button class="slide-btn next" onclick="moveSlide('${docId}', 1)">&#10095;</button>
                             ` : ''}
                         </div>
-                        
                         <div class="lapak-info">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
                                 <div>
@@ -412,7 +435,6 @@
                                         <span style="font-size: 0.8rem;">${statusOrder}</span>
                                     </div>
                                 </div>
-
                                 <div class="action-group" style="padding:0; gap:8px;">
                                     <button class="btn-icon btn-chat" onclick="triggerTwister(this, '${sellerUid}', '${namaProduk}', '${daftarFoto[0]}')">
                                         <i class="fa-solid fa-comment-dots"></i>
@@ -424,12 +446,10 @@
                                     </button>
                                 </div>
                             </div>
-
                             <button class="btn-dropdown" onclick="toggleDetail('${docId}')">
                                 <i class="fa-solid fa-chevron-up" id="icon-${docId}"></i>
                             </button>
                         </div>
-
                         <div class="detail-panel" id="detail-${docId}">
                             <p><strong>Produk:</strong> ${namaProduk}</p>
                             <p style="font-size: 12px; color: #555;"><strong>Deskripsi:</strong> ${deskripsiProduk}</p>
