@@ -5,160 +5,180 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>UMKM SIPAPUA - Marketplace Jemaat</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --navy: #1a237e; /* Biru Default Aplikasi */
-            --gold: #d4af37; /* Emas Mewah */
-            --gold-light: #f9f1d7;
-            --white: #ffffff;
-            --bg: #f0f2f5;
-            --text: #1c1e21;
-        }
+   <style>
+    :root {
+        --navy: #1a237e; /* Biru Default Aplikasi */
+        --gold: #d4af37; /* Emas Mewah */
+        --gold-light: #f9f1d7;
+        --white: #ffffff;
+        --bg: #f0f2f5;
+        --text: #1c1e21;
+    }
 
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: var(--bg); 
-            margin: 0; 
-            color: var(--text);
-            padding-bottom: 50px;
-        }
+    body { 
+        font-family: 'Plus Jakarta Sans', sans-serif; 
+        background: var(--bg); 
+        margin: 0; 
+        color: var(--text);
+        padding-bottom: 50px;
+    }
 
-        /* NAVBAR PREMIUM */
-        .navbar { 
-            background: var(--navy);
-            padding: 15px 20px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            position: sticky; 
-            top: 0; 
-            z-index: 1000; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
+    /* NAVBAR PREMIUM */
+    .navbar { 
+        background: var(--navy);
+        padding: 15px 20px; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        position: sticky; 
+        top: 0; 
+        z-index: 1000; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
 
-        .navbar h1 { font-size: 18px; font-weight: 800; margin: 0; color: var(--gold); letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+    .navbar h1 { font-size: 18px; font-weight: 800; margin: 0; color: var(--gold); letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
 
-        /* DROPDOWN MENU NAVIGATION */
-        .nav-actions { position: relative; display: inline-block; }
-        
-        .dropbtn {
-            background: var(--gold);
-            color: var(--navy);
-            padding: 10px 18px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 800;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+    /* DROPDOWN MENU NAVIGATION */
+    .nav-actions { position: relative; display: inline-block; }
+    
+    .dropbtn {
+        background: var(--gold);
+        color: var(--navy);
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 800;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
 
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            background-color: white;
-            min-width: 200px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1001;
-            border-radius: 12px;
-            margin-top: 10px;
-            overflow: hidden;
-            border: 1px solid var(--gold);
-        }
+    /* PERBAIKAN DROPDOWN: Menghilangkan celah agar tidak menghindar */
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 100%; /* Menempel tepat di bawah tombol */
+        background-color: white;
+        min-width: 200px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 1001;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--gold);
+        margin-top: 0; /* Jarak nol agar kursor tidak kehilangan fokus */
+    }
 
-        .dropdown-content a, .dropdown-content button {
-            color: var(--navy);
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-            font-size: 13px;
-            font-weight: 700;
-            text-align: left;
-            width: 100%;
-            border: none;
-            background: none;
-            cursor: pointer;
-            transition: 0.2s;
-        }
+    /* Jembatan transparan agar hover tetap aktif saat transisi */
+    .dropdown-content::before {
+        content: "";
+        position: absolute;
+        top: -15px;
+        left: 0;
+        width: 100%;
+        height: 15px;
+        background: transparent;
+    }
 
-        .dropdown-content a:hover, .dropdown-content button:hover {
-            background-color: var(--gold-light);
-        }
+    .dropdown-content a, .dropdown-content button {
+        color: var(--navy);
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        text-align: left;
+        width: 100%;
+        border: none;
+        background: none;
+        cursor: pointer;
+        transition: 0.2s;
+        border-bottom: 1px solid #f0f0f0;
+    }
 
-        .nav-actions:hover .dropdown-content { display: block; }
+    .dropdown-content a:last-child, .dropdown-content button:last-child {
+        border-bottom: none;
+    }
 
-        /* MARKET CONTAINER */
-        .market-container { padding: 20px; display: flex; flex-direction: column; gap: 20px; }
-        
-        .lapak-card { 
-            background: white; 
-            border-radius: 20px; 
-            overflow: hidden; 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-        }
+    .dropdown-content a:hover, .dropdown-content button:hover {
+        background-color: var(--gold-light);
+    }
 
-        .lapak-img-wrapper { width: 100%; height: 220px; background: #eee; }
-        .lapak-img { width: 100%; height: 100%; object-fit: cover; }
-        
-        .lapak-info { padding: 20px; text-align: center; }
-        .lapak-info h3 { margin: 0 0 10px 0; font-size: 20px; color: var(--navy); }
-        
-        .portal-chat { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 10px;
-            background: var(--navy);
-            color: var(--gold); 
-            padding: 14px; 
-            border-radius: 12px; 
-            text-decoration: none; 
-            font-weight: 700;
-            border: 1px solid var(--gold);
-        }
+    .nav-actions:hover .dropdown-content { 
+        display: block; 
+    }
 
-        /* MODAL DESIGN */
-        .modal-overlay { 
-            display: none; position: fixed; inset: 0; 
-            background: rgba(0,0,0,0.7); z-index: 2000; 
-            align-items: center; justify-content: center; padding: 20px; 
-        }
-        .modal-content { 
-            background: white; width: 100%; max-width: 400px; padding: 30px; 
-            border-radius: 24px; position: relative;
-        }
-        .modal-content h2 { color: var(--navy); margin-top: 0; border-bottom: 2px solid var(--gold); padding-bottom: 10px; }
+    /* MARKET CONTAINER */
+    .market-container { padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+    
+    .lapak-card { 
+        background: white; 
+        border-radius: 20px; 
+        overflow: hidden; 
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        border: 1px solid rgba(212, 175, 55, 0.2);
+    }
 
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--navy); }
-        input, select, textarea { 
-            width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; 
-            box-sizing: border-box; font-size: 14px;
-        }
+    .lapak-img-wrapper { width: 100%; height: 220px; background: #eee; }
+    .lapak-img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .lapak-info { padding: 20px; text-align: center; }
+    .lapak-info h3 { margin: 0 0 10px 0; font-size: 20px; color: var(--navy); }
+    
+    .portal-chat { 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 10px;
+        background: var(--navy);
+        color: var(--gold); 
+        padding: 14px; 
+        border-radius: 12px; 
+        text-decoration: none; 
+        font-weight: 700;
+        border: 1px solid var(--gold);
+    }
 
-        .btn-gold { 
-            background: var(--gold); color: var(--navy); 
-            width: 100%; border: none; padding: 14px; 
-            border-radius: 12px; font-weight: 800; cursor: pointer; 
-        }
+    /* MODAL DESIGN */
+    .modal-overlay { 
+        display: none; position: fixed; inset: 0; 
+        background: rgba(0,0,0,0.7); z-index: 2000; 
+        align-items: center; justify-content: center; padding: 20px; 
+    }
+    .modal-content { 
+        background: white; width: 100%; max-width: 400px; padding: 30px; 
+        border-radius: 24px; position: relative;
+    }
+    .modal-content h2 { color: var(--navy); margin-top: 0; border-bottom: 2px solid var(--gold); padding-bottom: 10px; }
 
-        /* FAB */
-        .fab-add {
-            position: fixed; bottom: 25px; right: 20px;
-            background: var(--gold); color: var(--navy);
-            width: 55px; height: 55px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            z-index: 999; border: none; font-size: 20px; cursor: pointer;
-        }
+    .input-group { margin-bottom: 15px; }
+    .input-group label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--navy); }
+    input, select, textarea { 
+        width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; 
+        box-sizing: border-box; font-size: 14px;
+    }
 
-        #notif-container { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; width: 80%; display: none; }
-        .notif-block { background: var(--navy); color: var(--gold); padding: 15px; border-radius: 10px; text-align: center; border: 1px solid var(--gold); }
-    </style>
+    .btn-gold { 
+        background: var(--gold); color: var(--navy); 
+        width: 100%; border: none; padding: 14px; 
+        border-radius: 12px; font-weight: 800; cursor: pointer; 
+    }
+
+    /* FAB */
+    .fab-add {
+        position: fixed; bottom: 25px; right: 20px;
+        background: var(--gold); color: var(--navy);
+        width: 55px; height: 55px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        z-index: 999; border: none; font-size: 20px; cursor: pointer;
+    }
+
+    #notif-container { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; width: 80%; display: none; }
+    .notif-block { background: var(--navy); color: var(--gold); padding: 15px; border-radius: 10px; text-align: center; border: 1px solid var(--gold); }
+</style>
 </head>
 <body>
 
