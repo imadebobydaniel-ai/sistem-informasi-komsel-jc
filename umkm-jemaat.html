@@ -341,28 +341,29 @@
         }
     }
 
-    // FUNGSI SHARE WHATSAPP
     function shareWA(nama, phone) {
         const text = encodeURIComponent(`Halo, saya tertarik dengan produk dari ${nama} di UMKM SIPAPUA.`);
         window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
     }
 
+    // FUNGSI MUAT MARKET DENGAN LINK CHAT TERBARU
     function muatMarket() {
         const container = document.getElementById("main-market");
         db.collection("umkm_stores").where("status", "==", "active").onSnapshot(snap => {
             container.innerHTML = "";
             snap.forEach(doc => {
                 const lapak = doc.data();
-                // Mengganti tombol panjang menjadi deretan ikon
+                
                 container.innerHTML += `
                     <div class="lapak-card">
                         <div class="lapak-img-wrapper"><img src="${lapak.logo_url}" class="lapak-img"></div>
                         <div class="lapak-info">
                             <h3>${lapak.nama_toko}</h3>
                             <div class="action-group">
-                                <a href="portal-chat.html?uid=${lapak.uid}" class="btn-icon btn-chat" title="Chat">
+                                <a href="chat-umkm.html?uid=${lapak.uid}" class="btn-icon btn-chat" title="Chat">
                                     <i class="fa-solid fa-comment-dots"></i>
                                 </a>
+                                
                                 <button class="btn-icon btn-star" title="Rating">
                                     <i class="fa-solid fa-star"></i>
                                 </button>
@@ -378,6 +379,8 @@
             });
         });
     }
+
+    // Jalankan muat market saat halaman siap
     muatMarket();
 </script>
 </body>
