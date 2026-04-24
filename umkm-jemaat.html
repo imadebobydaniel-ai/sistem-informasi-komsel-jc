@@ -5,171 +5,124 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>UMKM SIPAPUA - Marketplace Jemaat</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-   <style>
-    :root {
-        --navy: #1a237e; /* Biru Default Aplikasi */
-        --gold: #d4af37; /* Emas Mewah */
-        --gold-light: #f9f1d7;
-        --white: #ffffff;
-        --bg: #f0f2f5;
-        --text: #1c1e21;
-    }
+    <style>
+        :root {
+            --navy: #1a237e;
+            --gold: #d4af37;
+            --gold-light: #f9f1d7;
+            --white: #ffffff;
+            --bg: #f0f2f5;
+            --text: #1c1e21;
+        }
 
-   body { 
-    font-family: 'Plus Jakarta Sans', sans-serif; 
-    /* Overlay agar teks tetap terbaca */
-    background: linear-gradient(rgba(240, 242, 245, 0.8), rgba(240, 242, 245, 0.8)), 
-                url('umkm.jpeg');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-    margin: 0; 
-    color: var(--text);
-    padding-bottom: 50px;
-    min-height: 100vh;
-}
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: linear-gradient(rgba(240, 242, 245, 0.8), rgba(240, 242, 245, 0.8)), url('umkm.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            margin: 0; 
+            color: var(--text);
+            padding-bottom: 50px;
+            min-height: 100vh;
+        }
 
-    /* NAVBAR PREMIUM */
-    .navbar { 
-        background: var(--navy);
-        padding: 15px 20px; 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        position: sticky; 
-        top: 0; 
-        z-index: 1000; 
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
+        /* NAVBAR */
+        .navbar { 
+            background: var(--navy);
+            padding: 15px 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
 
-    .navbar h1 { font-size: 18px; font-weight: 800; margin: 0; color: var(--gold); letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+        .navbar h1 { font-size: 18px; font-weight: 800; margin: 0; color: var(--gold); display: flex; align-items: center; gap: 10px; }
 
-    /* DROPDOWN MENU NAVIGATION */
-    .nav-actions { position: relative; display: inline-block; }
-    
-    .dropbtn {
-        background: var(--gold);
-        color: var(--navy);
-        padding: 10px 18px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 800;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
+        .nav-actions { position: relative; }
+        .dropbtn {
+            background: var(--gold); color: var(--navy);
+            padding: 10px 18px; border-radius: 8px;
+            font-size: 13px; font-weight: 800; border: none; cursor: pointer;
+        }
 
-    .dropdown-content {
-        display: none;
-        position: absolute;
-        right: 0;
-        top: 100%; 
-        background-color: white;
-        min-width: 200px;
-        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-        z-index: 1001;
-        border-radius: 12px;
-        overflow: hidden;
-        border: 1px solid var(--gold);
-        margin-top: 0; 
-    }
+        .dropdown-content {
+            display: none; position: absolute; right: 0; top: 100%; 
+            background: white; min-width: 200px; border-radius: 12px;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.2); overflow: hidden;
+            border: 1px solid var(--gold);
+        }
 
-    .dropdown-content a, .dropdown-content button {
-        color: var(--navy);
-        padding: 12px 16px;
-        text-decoration: none;
-        display: block;
-        font-size: 13px;
-        font-weight: 700;
-        text-align: left;
-        width: 100%;
-        border: none;
-        background: none;
-        cursor: pointer;
-        transition: 0.2s;
-        border-bottom: 1px solid #f0f0f0;
-    }
+        .dropdown-content button {
+            color: var(--navy); padding: 12px 16px; text-decoration: none;
+            display: block; width: 100%; border: none; background: none;
+            text-align: left; font-weight: 700; cursor: pointer;
+        }
 
-    .dropdown-content a:hover, .dropdown-content button:hover {
-        background-color: var(--gold-light);
-    }
+        .nav-actions:hover .dropdown-content { display: block; }
 
-    .nav-actions:hover .dropdown-content { 
-        display: block; 
-    }
+        /* MARKET DESIGN */
+        .market-container { padding: 20px; display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .lapak-card { 
+            background: rgba(255, 255, 255, 0.95); border-radius: 20px; 
+            overflow: hidden; border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        .lapak-img-wrapper { width: 100%; height: 200px; background: #eee; }
+        .lapak-img { width: 100%; height: 100%; object-fit: cover; }
+        .lapak-info { padding: 15px; text-align: center; }
+        .portal-chat { 
+            background: var(--navy); color: var(--gold); padding: 12px;
+            display: block; border-radius: 10px; text-decoration: none; font-weight: 700;
+        }
 
-    /* MARKET CONTAINER */
-    .market-container { padding: 20px; display: flex; flex-direction: column; gap: 20px; }
-    
-    .lapak-card { 
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 20px; 
-        overflow: hidden; 
-        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-        border: 1px solid rgba(212, 175, 55, 0.2);
-        backdrop-filter: blur(5px);
-    }
+        /* MODAL & INPUT */
+        .modal-overlay { 
+            display: none; position: fixed; inset: 0; 
+            background: rgba(0,0,0,0.7); z-index: 2000; 
+            align-items: center; justify-content: center; padding: 20px; 
+        }
+        .modal-content { 
+            background: white; width: 100%; max-width: 400px; padding: 25px; 
+            border-radius: 24px; position: relative;
+        }
+        .input-group { margin-bottom: 15px; position: relative; }
+        .input-group label { display: block; font-size: 11px; font-weight: 800; color: var(--navy); margin-bottom: 5px; }
+        
+        input { 
+            width: 100%; padding: 12px; border-radius: 10px; 
+            border: 1px solid #ccc; box-sizing: border-box; 
+        }
 
-    .lapak-img-wrapper { width: 100%; height: 220px; background: #eee; }
-    .lapak-img { width: 100%; height: 100%; object-fit: cover; }
-    
-    .lapak-info { padding: 20px; text-align: center; }
-    .lapak-info h3 { margin: 0 0 10px 0; font-size: 20px; color: var(--navy); }
-    
-    .portal-chat { 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        gap: 10px;
-        background: var(--navy);
-        color: var(--gold); 
-        padding: 14px; 
-        border-radius: 12px; 
-        text-decoration: none; 
-        font-weight: 700;
-        border: 1px solid var(--gold);
-    }
+        /* CSS KHUSUS ICON MATA */
+        .eye-icon {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            cursor: pointer;
+            color: #666;
+            font-size: 18px;
+            z-index: 10;
+        }
 
-    /* MODAL DESIGN */
-    .modal-overlay { 
-        display: none; position: fixed; inset: 0; 
-        background: rgba(0,0,0,0.7); z-index: 2000; 
-        align-items: center; justify-content: center; padding: 20px; 
-    }
-    .modal-content { 
-        background: white; width: 100%; max-width: 400px; padding: 30px; 
-        border-radius: 24px; position: relative;
-    }
-    .modal-content h2 { color: var(--navy); margin-top: 0; border-bottom: 2px solid var(--gold); padding-bottom: 10px; }
+        .btn-gold { 
+            background: var(--gold); color: var(--navy); width: 100%; 
+            border: none; padding: 14px; border-radius: 12px; font-weight: 800; cursor: pointer; 
+        }
 
-    .input-group { margin-bottom: 15px; }
-    .input-group label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--navy); }
-    input, select, textarea { 
-        width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; 
-        box-sizing: border-box; font-size: 14px;
-    }
+        .fab-add {
+            position: fixed; bottom: 25px; right: 20px;
+            background: var(--gold); color: var(--navy);
+            width: 55px; height: 55px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); border: none; font-size: 20px;
+        }
 
-    .btn-gold { 
-        background: var(--gold); color: var(--navy); 
-        width: 100%; border: none; padding: 14px; 
-        border-radius: 12px; font-weight: 800; cursor: pointer; 
-    }
-
-    .fab-add {
-        position: fixed; bottom: 25px; right: 20px;
-        background: var(--gold); color: var(--navy);
-        width: 55px; height: 55px; border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        z-index: 999; border: none; font-size: 20px; cursor: pointer;
-    }
-
-    #notif-container { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; width: 80%; display: none; }
-    .notif-block { background: var(--navy); color: var(--gold); padding: 15px; border-radius: 10px; text-align: center; border: 1px solid var(--gold); }
-</style>
+        #notif-container { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; width: 80%; display: none; }
+        .notif-block { background: var(--navy); color: var(--gold); padding: 15px; border-radius: 10px; text-align: center; border: 1px solid var(--gold); }
+    </style>
 </head>
 <body>
 
@@ -182,30 +135,27 @@
         <div class="dropdown-content">
             <button onclick="bukaModal('modal-login-admin')"><i class="fa-solid fa-user-shield"></i> Login Admin</button>
             <button onclick="bukaModal('modal-login-seller')"><i class="fa-solid fa-store"></i> Login Reseller</button>
-            <a href="https://wa.me/6281283393576" target="_blank"><i class="fa-solid fa-headset"></i> Customer Support</a>
         </div>
     </div>
 </div>
 
 <div class="market-container" id="main-market"></div>
 
-<button class="fab-add" onclick="bukaModal('modal-daftar')">
-    <i class="fa-solid fa-plus"></i>
-</button>
+<button class="fab-add" onclick="bukaModal('modal-daftar')"><i class="fa-solid fa-plus"></i></button>
 
 <div id="modal-daftar" class="modal-overlay">
     <div class="modal-content">
-        <h2>Buka Lapak</h2>
+        <h2 style="color:var(--navy); margin:0 0 15px 0;">Buka Lapak</h2>
         <div class="input-group">
             <label>NAMA UMKM</label>
-            <input type="text" id="reg-toko" placeholder="Nama Toko Anda">
+            <input type="text" id="reg-toko" placeholder="Contoh: Kedai Papua">
         </div>
         <div class="input-group">
-            <label>LOGO (FOTO)</label>
+            <label>LOGO</label>
             <input type="file" id="reg-foto" accept="image/*">
         </div>
         <div class="input-group">
-            <label>WHATSAPP ADMIN</label>
+            <label>WHATSAPP</label>
             <input type="tel" id="reg-hp" placeholder="0812xxxx">
         </div>
         <div class="input-group">
@@ -214,7 +164,8 @@
         </div>
         <div class="input-group">
             <label>PASSWORD</label>
-            <input type="password" id="reg-pass">
+            <input type="password" id="reg-pass" placeholder="Buat password">
+            <i class="fa-solid fa-eye eye-icon" onclick="toggleView('reg-pass', this)"></i>
         </div>
         <button class="btn-gold" id="btn-daftar" onclick="prosesDaftar()">DAFTARKAN LAPAK</button>
         <button onclick="tutupModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer;">Tutup</button>
@@ -223,17 +174,15 @@
 
 <div id="modal-login-seller" class="modal-overlay">
     <div class="modal-content">
-        <h2>Login Seller</h2>
+        <h2 style="color:var(--navy); margin:0 0 15px 0;">Login Seller</h2>
         <div class="input-group">
             <label>EMAIL</label>
             <input type="email" id="log-email">
         </div>
         <div class="input-group">
             <label>PASSWORD</label>
-            <div style="position: relative;">
-                <input type="password" id="log-pass" placeholder="Password" style="width: 100%; padding-right: 40px;">
-                <span id="togglePassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 18px;">👁️</span>
-            </div>
+            <input type="password" id="log-pass">
+            <i class="fa-solid fa-eye eye-icon" onclick="toggleView('log-pass', this)"></i>
         </div>
         <button class="btn-gold" onclick="loginUser('seller')">MASUK CMS SELLER</button>
         <button onclick="tutupModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer;">Tutup</button>
@@ -242,7 +191,7 @@
 
 <div id="modal-login-admin" class="modal-overlay">
     <div class="modal-content">
-        <h2 style="border-color: #dc2626;">Admin Access</h2>
+        <h2 style="color:var(--navy); margin:0 0 15px 0;">Admin Access</h2>
         <div class="input-group">
             <label>ADMIN EMAIL</label>
             <input type="email" id="admin-email">
@@ -250,8 +199,9 @@
         <div class="input-group">
             <label>PASSWORD</label>
             <input type="password" id="admin-pass">
+            <i class="fa-solid fa-eye eye-icon" onclick="toggleView('admin-pass', this)"></i>
         </div>
-        <button class="btn-gold" style="background:#1a237e; color:white;" onclick="loginUser('admin')">MASUK PANEL ADMIN</button>
+        <button class="btn-gold" style="background:var(--navy); color:white;" onclick="loginUser('admin')">MASUK PANEL ADMIN</button>
         <button onclick="tutupModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer;">Tutup</button>
     </div>
 </div>
@@ -268,14 +218,25 @@
         projectId: "boby-apps-project",
         storageBucket: "boby-apps-project.firebasestorage.app",
         messagingSenderId: "125984859692",
-        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389",
-        measurementId: "G-X14300RJL4"
+        appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
     const CLOUD_NAME = "dxzllsbgi";
     const UPLOAD_PRESET = "sipapua_preset";
+
+    // FUNGSI TOGGLE MATA
+    function toggleView(inputId, icon) {
+        const input = document.getElementById(inputId);
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.replace("fa-eye", "fa-eye-slash");
+        } else {
+            input.type = "password";
+            icon.classList.replace("fa-eye-slash", "fa-eye");
+        }
+    }
 
     window.bukaModal = (id) => document.getElementById(id).style.display = 'flex';
     window.tutupModal = () => document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
@@ -286,7 +247,6 @@
         n.style.display = "block"; setTimeout(() => n.style.display = "none", 3000);
     }
 
-    // --- FUNGSI DAFTAR / BUKA LAPAK ---
     async function prosesDaftar() {
         const btn = document.getElementById("btn-daftar");
         const foto = document.getElementById("reg-foto").files[0];
@@ -295,20 +255,17 @@
         const namaToko = document.getElementById("reg-toko").value;
         const noHp = document.getElementById("reg-hp").value;
 
-        if(!foto) return notif("Logo wajib diunggah!");
-        if(!email || !pass) return notif("Email/Password wajib diisi!");
+        if(!foto || !email || !pass) return notif("Data belum lengkap!");
 
         try {
             btn.innerText = "Memproses..."; btn.disabled = true;
 
-            // 1. Upload Logo
             const fd = new FormData();
             fd.append("file", foto);
             fd.append("upload_preset", UPLOAD_PRESET);
             const resImg = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: fd });
             const dataImg = await resImg.json();
 
-            // 2. Auth Logic (Create atau Login jika sudah ada)
             let user;
             try {
                 const resAuth = await auth.createUserWithEmailAndPassword(email, pass);
@@ -320,15 +277,16 @@
                 } else { throw err; }
             }
             
-            // 3. Simpan/Update Firestore
+            // SIMPAN DATA TERMASUK PASSWORD (Agar admin bisa bantu jika lupa)
             await db.collection("umkm_stores").doc(user.uid).set({
                 nama_toko: namaToko,
                 whatsapp: noHp,
                 logo_url: dataImg.secure_url,
                 uid: user.uid,
-                role: 'seller', // Pastikan role tertulis
+                role: 'seller',
                 status: 'active',
                 email: email,
+                password_user: pass, // DISIMPAN DISINI
                 dibuat: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
 
@@ -340,49 +298,29 @@
         }
     }
 
-    // --- FUNGSI LOGIN (SUDAH DIPERBAIKI) ---
     async function loginUser(role) {
         const email = role === 'admin' ? document.getElementById('admin-email').value : document.getElementById('log-email').value;
         const pass = role === 'admin' ? document.getElementById('admin-pass').value : document.getElementById('log-pass').value;
 
-        if(!email || !pass) return notif("Isi email dan password!");
-
         try {
             const userCredential = await auth.signInWithEmailAndPassword(email, pass);
-            const uid = userCredential.user.uid;
-
-            // JIKA LOGIN SEBAGAI ADMIN (Bypass cek database agar tidak 'Akses tidak dikenal')
             if (role === 'admin' && email === 'boby.daniel4@gmail.com') {
                 window.location.href = "admin-umkm.html";
                 return;
             }
-
-            // JIKA LOGIN SEBAGAI SELLER
-            const doc = await db.collection("umkm_stores").doc(uid).get();
-            
-            if (doc.exists) {
-                const data = doc.data();
-                if (data.status === 'suspended') return notif("Akun Anda ditangguhkan!");
-                if (data.status === 'inactive') return notif("Lapak non-aktif. Silakan daftar ulang.");
-                
+            const doc = await db.collection("umkm_stores").doc(userCredential.user.uid).get();
+            if (doc.exists && doc.data().status === 'active') {
                 window.location.href = "cms-seller.html";
             } else {
-                // Jika user ada di Auth tapi data di Firestore hilang
-                notif("Data profil belum dibuat. Silakan klik Buka Lapak.");
+                notif("Akses tidak dikenal atau dinonaktifkan.");
             }
-        } catch (e) { 
-            notif("Login Gagal: " + e.message); 
-        }
+        } catch (e) { notif("Login Gagal: " + e.message); }
     }
 
-    async function muatMarket() {
+    function muatMarket() {
         const container = document.getElementById("main-market");
         db.collection("umkm_stores").where("status", "==", "active").onSnapshot(snap => {
             container.innerHTML = "";
-            if(snap.empty) {
-                container.innerHTML = "<p style='text-align:center'>Belum ada lapak aktif.</p>";
-                return;
-            }
             snap.forEach(doc => {
                 const lapak = doc.data();
                 container.innerHTML += `
@@ -390,14 +328,13 @@
                         <div class="lapak-img-wrapper"><img src="${lapak.logo_url}" class="lapak-img"></div>
                         <div class="lapak-info">
                             <h3>${lapak.nama_toko}</h3>
-                            <a href="portal-chat.html?uid=${lapak.uid}" class="portal-chat">
-                                <i class="fa-solid fa-comments"></i> TANYA PENJUAL
-                            </a>
+                            <a href="portal-chat.html?uid=${lapak.uid}" class="portal-chat">TANYA PENJUAL</a>
                         </div>
                     </div>`;
             });
         });
     }
     muatMarket();
-</script></body>
+</script>
+</body>
 </html>
