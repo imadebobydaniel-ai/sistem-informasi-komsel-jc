@@ -74,36 +74,42 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
 
+        /* Pengaturan Slider Sesuai Instruksi */
         .product-slider {
-            display: flex;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            scroll-behavior: smooth;
+            width: 100%;
             height: 250px;
             background: #eee;
+            position: relative;
+            overflow: hidden;
         }
-        .product-slider::-webkit-scrollbar { display: none; }
-        .product-slider img {
-            flex: 0 0 100%;
-            scroll-snap-align: start;
+        
+        .slider-wrapper {
+            display: flex;
+            transition: transform 0.3s ease;
+            height: 100%;
+        }
+
+        .slider-wrapper img {
+            width: 100%;
+            height: 100%;
+            flex-shrink: 0;
             object-fit: cover;
         }
 
         .lapak-info { padding: 15px; }
 
-        /* STATUS INDICATOR */
+        /* STATUS INDICATOR - Updated Colors */
         .status-indicator {
             display: flex;
             align-items: center;
             gap: 6px;
             font-size: 10px;
             font-weight: 800;
-            margin-bottom: 8px;
-            justify-content: center;
+            margin-top: 4px; /* Dipindah ke bawah harga */
         }
         .dot { width: 8px; height: 8px; border-radius: 50%; }
-        .dot-online { background: #007bff; box-shadow: 0 0 5px #007bff; }
-        .dot-offline { background: #ff0000; }
+        .dot-online { background-color: #2ecc71 !important; box-shadow: 0 0 5px #2ecc71; } /* Warna Hijau */
+        .dot-offline { background-color: #e74c3c !important; }
         .dot-suspend { background: #000000; }
 
         /* PANEL SLIDE-UP */
@@ -353,49 +359,62 @@
         window.open(`https://wa.me/${nomorWA}?text=${text}`, '_blank');
     }
 
-    // --- INTEGRATED RENDER MARKET (Updated to Match Your Firestore) ---
+    // --- INTEGRATED RENDER MARKET (Updated with Slider & Status Below Price) ---
     function muatMarket() {
         const container = document.getElementById("main-market");
         if(!container) return;
 
-        // Menggunakan koleksi 'umkm_products' sesuai database Anda
         db.collection("umkm_products").onSnapshot(snap => { 
             container.innerHTML = "";
             snap.forEach(doc => {
                 const produk = doc.data();
+                const docId = doc.id;
                 
-                // Mapping field sesuai database Anda
                 const namaProduk = produk.nama || "Tanpa Nama";
                 const hargaProduk = produk.harga || 0;
-                const fotoUtama = produk.img_primary || ""; 
                 const deskripsiProduk = produk.deskripsi || "-";
                 const sellerUid = produk.seller_uid || "";
                 const statusOrder = produk.status || "Closed"; 
+                
+                // Slider Logic
+                let daftarFoto = [];
+                if (Array.isArray(produk.img_urls) && produk.img_urls.length > 0) {
+                    daftarFoto = produk.img_urls;
+                } else {
+                    daftarFoto = [produk.img_primary || ""];
+                }
 
-                // Logika Warna Indikator
-                let statusColor = "dot-offline";
-                if(statusOrder.toLowerCase().includes("open")) { 
-                    statusColor = "dot-online"; 
+                let statusColorClass = "dot-offline";
+                if(statusOrder.toLowerCase().includes("open") || statusOrder.toLowerCase().includes("ready")) { 
+                    statusColorClass = "dot-online"; 
                 }
 
                 container.innerHTML += `
-                    <div class="lapak-card" id="card-${doc.id}">
+                    <div class="lapak-card" id="card-${docId}">
                         <div class="product-slider">
-                            <img src="${fotoUtama}" alt="${namaProduk}">
+                            <div class="slider-wrapper" id="slider-${docId}">
+                                ${daftarFoto.map(img => `<img src="${img}">`).join('')}
+                            </div>
+                            ${daftarFoto.length > 1 ? `
+                                <button class="slide-btn prev" onclick="moveSlide('${docId}', -1)" style="position: absolute; left: 5px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.3); border: none; color: white; border-radius: 50%; width: 30px; height: 30px; cursor: pointer;">&#10094;</button>
+                                <button class="slide-btn next" onclick="moveSlide('${docId}', 1)" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.3); border: none; color: white; border-radius: 50%; width: 30px; height: 30px; cursor: pointer;">&#10095;</button>
+                            ` : ''}
                         </div>
                         
                         <div class="lapak-info">
-                            <div class="status-indicator">
-                                <div class="dot ${statusColor}"></div>
-                                <span>${statusOrder}</span>
-                            </div>
-                            
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                <span style="color: var(--navy); font-weight: 800; font-size: 1.1rem;">
-                                    Rp ${Number(hargaProduk).toLocaleString('id-ID')}
-                                </span>
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                <div>
+                                    <span style="color: var(--navy); font-weight: 800; font-size: 1.1rem; display: block;">
+                                        Rp ${Number(hargaProduk).toLocaleString('id-ID')}
+                                    </span>
+                                    <div class="status-indicator">
+                                        <div class="dot ${statusColorClass}"></div>
+                                        <span style="font-size: 0.8rem;">${statusOrder}</span>
+                                    </div>
+                                </div>
+
                                 <div class="action-group" style="padding:0; gap:8px;">
-                                    <button class="btn-icon btn-chat" onclick="triggerTwister(this, '${sellerUid}', '${namaProduk}', '${fotoUtama}')">
+                                    <button class="btn-icon btn-chat" onclick="triggerTwister(this, '${sellerUid}', '${namaProduk}', '${daftarFoto[0]}')">
                                         <i class="fa-solid fa-comment-dots"></i>
                                     </button>
                                     <button class="btn-icon btn-star"><i class="fa-solid fa-star"></i></button>
@@ -406,12 +425,12 @@
                                 </div>
                             </div>
 
-                            <button class="btn-dropdown" onclick="toggleDetail('${doc.id}')">
-                                <i class="fa-solid fa-chevron-up" id="icon-${doc.id}"></i>
+                            <button class="btn-dropdown" onclick="toggleDetail('${docId}')">
+                                <i class="fa-solid fa-chevron-up" id="icon-${docId}"></i>
                             </button>
                         </div>
 
-                        <div class="detail-panel" id="detail-${doc.id}">
+                        <div class="detail-panel" id="detail-${docId}">
                             <p><strong>Produk:</strong> ${namaProduk}</p>
                             <p style="font-size: 12px; color: #555;"><strong>Deskripsi:</strong> ${deskripsiProduk}</p>
                         </div>
@@ -419,6 +438,19 @@
             });
             if(snap.empty) container.innerHTML = "<p style='text-align:center; color:gray;'>Belum ada produk di etalase.</p>";
         });
+    }
+
+    let slideIndices = {};
+    function moveSlide(docId, step) {
+        const wrapper = document.getElementById(`slider-${docId}`);
+        const slides = wrapper.getElementsByTagName("img");
+        const totalSlides = slides.length;
+        if (!slideIndices[docId]) slideIndices[docId] = 0;
+        slideIndices[docId] += step;
+        if (slideIndices[docId] >= totalSlides) slideIndices[docId] = 0;
+        if (slideIndices[docId] < 0) slideIndices[docId] = totalSlides - 1;
+        const offset = slideIndices[docId] * -100;
+        wrapper.style.transform = `translateX(${offset}%)`;
     }
 
     function toggleDetail(id) {
