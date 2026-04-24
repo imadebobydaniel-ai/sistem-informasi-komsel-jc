@@ -526,9 +526,19 @@
         }
     }
 
-    function shareWA(nama, phone) {
-        const text = encodeURIComponent(`Halo ${nama}, saya melihat profil UMKM Anda di SIPAPUA dan ingin bertanya mengenai produk Anda.`);
-        window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+    // FUNGSI SHARE WA TERBARU
+    function shareWA(namaToko, phone, namaProduk) {
+        if(!phone) {
+            notif("Nomor WhatsApp penjual tidak tersedia.");
+            return;
+        }
+        const cleanPhone = phone.replace(/\D/g, '');
+        const text = encodeURIComponent(
+            `Halo *${namaToko}*,\n\n` +
+            `Saya melihat produk *${namaProduk}* Anda di aplikasi *UMKM SIPAPUA*.\n` +
+            `Apakah produk ini masih tersedia? Saya ingin bertanya lebih lanjut.`
+        );
+        window.open(`https://wa.me/${cleanPhone}?text=${text}`, '_blank');
     }
 
     // --- RENDER MARKET ---
@@ -562,7 +572,9 @@
                                     <div class="info-dropdown">${likes} Likes</div>
                                 </button>
 
-                                <button class="btn-icon btn-wa" onclick="shareWA('${lapak.nama_toko}', '${lapak.whatsapp}')">
+                                <button class="btn-icon btn-wa" 
+                                        onclick="shareWA('${lapak.nama_toko}', '${lapak.whatsapp}', '${lapak.nama_toko}')" 
+                                        title="Hubungi Penjual">
                                     <i class="fa-brands fa-whatsapp"></i>
                                 </button>
                             </div>
