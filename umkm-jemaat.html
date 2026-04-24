@@ -309,9 +309,12 @@
             const user = await auth.signInWithEmailAndPassword(email, pass);
             const doc = await db.collection("umkm_stores").doc(user.user.uid).get();
             
-            if (role === 'admin' && email === 'admin@sipapua.com') { 
-                window.location.href = "admin-panel.html";
-            } else if (doc.exists && doc.data().role === 'seller') {
+            // Logika Akses Admin Khusus
+            if (role === 'admin' && email === 'boby.daniel4@gmail.com') { 
+                window.location.href = "admin-umkm.html";
+            } 
+            // Logika Akses Seller
+            else if (doc.exists && doc.data().role === 'seller') {
                 if(doc.data().status === 'suspended') return notif("Akun Anda sedang disuspen!");
                 window.location.href = "cms-seller.html";
             } else {
@@ -345,6 +348,5 @@
     }
 
     muatMarket();
-</script>
-</body>
+</script></body>
 </html>
