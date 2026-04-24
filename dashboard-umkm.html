@@ -99,7 +99,7 @@
 <div class="nav-dash">
     <h1><i class="fa-solid fa-gauge-high"></i> PANEL SELLER</h1>
     <div class="nav-actions">
-        <button class="btn-nav btn-chat-nav" onclick="window.location.href='chat-dashboard-umkm.html'">
+        <button class="btn-nav btn-chat-nav" onclick="window.location.href='chat-admin.html'">
             <i class="fa-solid fa-comment-dots"></i> Pesan
         </button>
         <button class="btn-nav" onclick="logout()">
@@ -214,12 +214,13 @@
     });
 
     async function fetchStore(uid) {
+        // Mengambil data dari koleksi umkm_stores sesuai UID login
         const doc = await db.collection("umkm_stores").doc(uid).get();
         if(doc.exists) {
             const data = doc.data();
-            document.getElementById("store-name").innerText = data.nama_toko;
-            document.getElementById("store-contact").innerText = data.whatsapp;
-            document.getElementById("store-logo").src = data.logo_url;
+            document.getElementById("store-name").innerText = data.nama_toko || "Toko Tanpa Nama";
+            document.getElementById("store-contact").innerText = data.whatsapp || "No WhatsApp belum diatur";
+            document.getElementById("store-logo").src = data.logo_url || "https://via.placeholder.com/100";
         }
     }
 
@@ -266,7 +267,7 @@
                 fd.append("upload_preset", UPLOAD_PRESET);
                 const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: fd });
                 const d = await res.json();
-                uploadedUrls.push(d.secure_url);
+                if(d.secure_url) uploadedUrls.push(d.secure_url);
             }
 
             await db.collection("umkm_products").add({
@@ -299,6 +300,7 @@
 
     async function fetchProducts(uid) {
         const list = document.getElementById("product-list");
+        // Pastikan index seller_uid & dibuat sudah dibuat di Firebase Console sesuai gambar log error Anda
         db.collection("umkm_products").where("seller_uid", "==", uid)
           .orderBy("dibuat", "desc").onSnapshot(snap => {
             list.innerHTML = "";
@@ -308,10 +310,10 @@
                 list.innerHTML += `
                     <tr class="product-row">
                         <td><input type="checkbox" class="prod-checkbox" value="${id}" onclick="updateDeleteButton()"></td>
-                        <td><img src="${p.img_primary}" class="p-thumb"></td>
+                        <td><img src="${p.img_primary || 'https://via.placeholder.com/50'}" class="p-thumb"></td>
                         <td class="p-info">
                             <h4>${p.nama}</h4>
-                            <p>Rp ${p.harga.toLocaleString()}</p>
+                            <p>Rp ${(p.harga || 0).toLocaleString()}</p>
                         </td>
                         <td>
                             <div class="action-btns">
@@ -321,6 +323,9 @@
                         </td>
                     </tr>`;
             });
+        }, err => {
+            console.error("Firestore Error:", err);
+            // Jika error index, link akan muncul di console browser Anda
         });
     }
 
@@ -331,9 +336,12 @@
     async function hapusTerpilih() {
         const selected = document.querySelectorAll('.prod-checkbox:checked');
         if(confirm(`Hapus ${selected.length} produk?`)) {
-            for(let cb of selected) {
-                await db.collection("umkm_products").doc(cb.value).delete();
-            }
+            const batch = db.batch();
+            selected.forEach(cb => {
+                const ref = db.collection("umkm_products").doc(cb.value);
+                batch.delete(ref);
+            });
+            await batch.commit();
             document.getElementById('check-all').checked = false;
             updateDeleteButton();
         }
@@ -355,6 +363,11 @@
     }
 
     function tutupNotif() { document.getElementById("notif-sheet").style.display = "none"; }
+    
+    // Fungsi Placeholder untuk Edit (Bisa dikembangkan sesuai kebutuhan)
+    function editProduk(id) {
+        alert("Fungsi edit untuk ID: " + id + " dapat dikembangkan lebih lanjut.");
+    }
 </script>
 </body>
 </html>
