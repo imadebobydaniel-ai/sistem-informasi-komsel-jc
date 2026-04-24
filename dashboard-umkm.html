@@ -73,7 +73,7 @@
 
         .upload-area { border: 2px dashed #cbd5e0; border-radius: 15px; padding: 20px; text-align: center; cursor: pointer; background: #fff; transition: 0.3s; }
         .upload-area:hover { border-color: var(--gold); background: #fffdf5; }
-        #preview-container { display: flex; gap: 8px; overflow-x: auto; margin-top: 10px; padding-bottom: 5px; }
+        #preview-container, #edit-preview-container { display: flex; gap: 8px; overflow-x: auto; margin-top: 10px; padding-bottom: 5px; }
         .preview-img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; }
 
         .btn-submit { width: 100%; padding: 16px; background: var(--primary); color: var(--gold); border: none; border-radius: 15px; font-weight: 800; font-size: 14px; cursor: pointer; margin-top: 10px; }
@@ -97,6 +97,49 @@
 
         #notif-sheet { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; align-items: flex-end; }
         .sheet-content { background: white; width: 100%; max-width: 480px; padding: 30px 20px; border-radius: 25px 25px 0 0; text-align: center; box-sizing: border-box; margin: 0 auto; }
+
+        /* --- STYLES FOR EDIT POPUP --- */
+        #modal-edit {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 10000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            max-width: 440px;
+            margin: 40px auto;
+            padding: 25px;
+            border-radius: 30px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .btn-close-modal {
+            background: #f1f3f5;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
@@ -186,6 +229,53 @@
             </thead>
             <tbody id="product-list"></tbody>
         </table>
+    </div>
+</div>
+
+<div id="modal-edit">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="card-title" style="margin:0;"><i class="fa-solid fa-pen-to-square"></i> Edit Produk</div>
+            <button class="btn-close-modal" onclick="tutupEdit()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <input type="hidden" id="edit-id">
+
+        <div class="form-group">
+            <label>NAMA PRODUK</label>
+            <input type="text" id="edit-p-name">
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group">
+                <label>HARGA (RP)</label>
+                <input type="number" id="edit-p-price">
+            </div>
+            <div class="form-group">
+                <label>STATUS</label>
+                <select id="edit-p-status">
+                    <option value="Ready">Ready Stock</option>
+                    <option value="Open Order">Pre-Order</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>DESKRIPSI PRODUK</label>
+            <textarea id="edit-p-desc" rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>GANTI FOTO (BISA KOSONGKAN)</label>
+            <div class="upload-area" onclick="document.getElementById('edit-p-files').click()">
+                <i class="fa-solid fa-camera" style="font-size: 24px; color: #cbd5e0;"></i>
+                <p style="font-size: 11px; color: #7f8c8d; margin: 5px 0 0;">Klik untuk ganti foto baru</p>
+                <input type="file" id="edit-p-files" hidden accept="image/*" multiple onchange="handleEditPreview(this)">
+            </div>
+            <div id="edit-preview-container"></div>
+        </div>
+
+        <button class="btn-submit" onclick="updateProduk()" id="btn-edit-save">SIMPAN PERUBAHAN</button>
     </div>
 </div>
 
@@ -352,6 +442,103 @@
         });
     }
 
+    /* --- LOGIKA EDIT POPUP --- */
+
+    async function editProduk(id) {
+        const doc = await db.collection("umkm_products").doc(id).get();
+        if(!doc.exists) return;
+
+        const p = doc.data();
+        
+        // Load data ke modal
+        document.getElementById("edit-id").value = id;
+        document.getElementById("edit-p-name").value = p.nama;
+        document.getElementById("edit-p-price").value = p.harga;
+        document.getElementById("edit-p-status").value = p.status;
+        document.getElementById("edit-p-desc").value = p.deskripsi;
+        
+        // Preview foto lama
+        const container = document.getElementById("edit-preview-container");
+        container.innerHTML = "";
+        if(p.img_urls) {
+            p.img_urls.forEach(url => {
+                const img = document.createElement("img");
+                img.src = url;
+                img.className = "preview-img";
+                container.appendChild(img);
+            });
+        }
+
+        document.getElementById("modal-edit").style.display = "block";
+        document.body.style.overflow = "hidden"; 
+    }
+
+    function tutupEdit() {
+        document.getElementById("modal-edit").style.display = "none";
+        document.body.style.overflow = "auto";
+        document.getElementById("edit-p-files").value = "";
+    }
+
+    function handleEditPreview(input) {
+        const container = document.getElementById("edit-preview-container");
+        container.innerHTML = "";
+        Array.from(input.files).forEach(file => {
+            const img = document.createElement("img");
+            img.src = URL.createObjectURL(file);
+            img.className = "preview-img";
+            container.appendChild(img);
+        });
+    }
+
+    async function updateProduk() {
+        const id = document.getElementById("edit-id").value;
+        const name = document.getElementById("edit-p-name").value;
+        const price = document.getElementById("edit-p-price").value;
+        const status = document.getElementById("edit-p-status").value;
+        const desc = document.getElementById("edit-p-desc").value;
+        const files = document.getElementById("edit-p-files").files;
+        
+        if(!name || !price) return munculkanNotif("Gagal", "Lengkapi Nama & Harga!", "warning");
+
+        const btn = document.getElementById("btn-edit-save");
+        btn.disabled = true; btn.innerText = "Memproses...";
+
+        try {
+            let updateData = {
+                nama: name,
+                harga: parseInt(price),
+                status: status,
+                deskripsi: desc,
+                terakhir_update: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            // Jika ada foto baru, upload dulu
+            if(files.length > 0) {
+                const uploadedUrls = [];
+                for (let file of files) {
+                    const fd = new FormData();
+                    fd.append("file", file);
+                    fd.append("upload_preset", UPLOAD_PRESET);
+                    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: fd });
+                    const d = await res.json();
+                    if(d.secure_url) uploadedUrls.push(d.secure_url);
+                }
+                updateData.img_urls = uploadedUrls;
+                updateData.img_primary = uploadedUrls[0];
+            }
+
+            await db.collection("umkm_products").doc(id).update(updateData);
+            tutupEdit();
+            munculkanNotif("Berhasil", "Data produk diperbarui!", "success");
+        } catch (e) {
+            munculkanNotif("Error", e.message, "error");
+        } finally {
+            btn.disabled = false; btn.innerText = "SIMPAN PERUBAHAN";
+        }
+    }
+
+    /* --- FUNGSI LAINNYA --- */
+
     async function hapusSatu(id) {
         if(confirm("Hapus produk ini?")) await db.collection("umkm_products").doc(id).delete();
     }
@@ -386,10 +573,6 @@
     }
 
     function tutupNotif() { document.getElementById("notif-sheet").style.display = "none"; }
-    
-    function editProduk(id) {
-        alert("Fungsi edit untuk ID: " + id + " sedang dalam pengembangan.");
-    }
 </script>
 </body>
 </html>
