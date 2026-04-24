@@ -96,8 +96,8 @@
             transition: transform 0.2s, background 0.2s, box-shadow 0.3s;
             border: none;
             cursor: pointer;
-            position: relative;
-            overflow: visible;
+            position: relative; /* Wajib agar absolute child berfungsi */
+            overflow: visible !important; /* Jangan di-clip */
         }
         .btn-icon:active { transform: scale(0.9); }
         
@@ -106,14 +106,35 @@
         .btn-thumb { background: #e3f2fd; color: #1976d2; border: 1px solid #1976d2; }
         .btn-wa { background: var(--wa-green); color: white; }
 
-        /* DROPDOWN INFO (Likes & Bintang) */
+        /* DROPDOWN INFO (Likes & Bintang) - UPDATED CSS */
         .info-dropdown {
-            display: none; position: absolute; bottom: 50px; left: 50%;
-            transform: translateX(-50%); background: var(--navy); color: var(--gold);
-            padding: 5px 10px; border-radius: 8px; font-size: 10px; font-weight: bold;
-            white-space: nowrap; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            display: none; 
+            position: absolute; 
+            bottom: 50px; 
+            left: 50%;
+            transform: translateX(-50%); 
+            background: var(--navy); 
+            color: var(--gold);
+            padding: 8px 12px; 
+            border-radius: 8px; 
+            font-size: 11px; 
+            font-weight: bold;
+            white-space: nowrap; 
+            z-index: 1000; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 1px solid var(--gold);
+            pointer-events: none; /* Agar tidak mengganggu kursor */
         }
-        .btn-icon:hover .info-dropdown { display: block; }
+
+        .btn-icon:hover .info-dropdown {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -10px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
 
         /* EFEK CAHAYA (Glow) */
         .glow-active {
@@ -325,7 +346,7 @@
         setTimeout(() => { n.style.display = "none"; }, 3000);
     }
 
-    // --- LOGIKA AUTH (DAFTAR & LOGIN) ---
+    // --- LOGIKA AUTH ---
     async function prosesDaftar() {
         const btn = document.getElementById("btn-daftar");
         const foto = document.getElementById("reg-foto").files[0];
@@ -478,21 +499,30 @@
         if (chatUnsubscribe) chatUnsubscribe();
     }
 
-    // --- LOGIKA TOMBOL BINTANG, LIKE & WA (GAMIFIKASI) ---
+    // --- UPDATED: LOGIKA TOMBOL BINTANG & LIKE (GAMIFIKASI) ---
     async function tambahLike(uid, currentLikes, element) {
+        // Animasi visual
         element.classList.add('glow-active');
         setTimeout(() => element.classList.remove('glow-active'), 500);
 
+        // Hitung Logic
         const newLikes = (currentLikes || 0) + 1;
-        const newRating = Math.floor(newLikes / 20); // Setiap 20 Like dapat 1 Bintang
+        
+        // Rumus Akurat: Setiap 20 Like = 1 Bintang (Maksimal 5 Bintang)
+        let newRating = Math.floor(newLikes / 20);
+        if (newRating > 5) newRating = 5; 
 
         try {
+            // Update ke Firestore - Ini akan langsung sinkron ke dashboard pelapak
             await db.collection("umkm_stores").doc(uid).update({
                 likes_count: newLikes,
                 rating_level: newRating
             });
+            
+            console.log(`Update Berhasil: ${newLikes} Likes, ${newRating} Bintang`);
         } catch (e) {
-            console.error("Gagal update likes:", e);
+            console.error("Gagal sinkronisasi data:", e);
+            notif("Gagal memberikan like.");
         }
     }
 
@@ -510,6 +540,7 @@
                 const lapak = doc.data();
                 const stars = lapak.rating_level || 0;
                 const likes = lapak.likes_count || 0;
+                const uid = doc.id;
 
                 container.innerHTML += `
                     <div class="lapak-card">
@@ -517,21 +548,21 @@
                         <div class="lapak-info">
                             <h3>${lapak.nama_toko}</h3>
                             <div class="action-group">
-                                <button class="btn-icon btn-chat" onclick="triggerTwister(this, '${lapak.uid}', '${lapak.nama_toko}', '${lapak.logo_url}')" title="Chat">
+                                <button class="btn-icon btn-chat" onclick="triggerTwister(this, '${uid}', '${lapak.nama_toko}', '${lapak.logo_url}')">
                                     <i class="fa-solid fa-comment-dots"></i>
                                 </button>
 
-                                <button class="btn-icon btn-star" onclick="this.classList.add('glow-active'); setTimeout(()=>this.classList.remove('glow-active'), 500)">
+                                <button class="btn-icon btn-star">
                                     <i class="fa-solid fa-star"></i>
-                                    <div class="info-dropdown">${stars} Bintang (${likes} Likes)</div>
+                                    <div class="info-dropdown">Rating: ${stars} Bintang</div>
                                 </button>
 
-                                <button class="btn-icon btn-thumb" onclick="tambahLike('${lapak.uid}', ${likes}, this)">
+                                <button class="btn-icon btn-thumb" onclick="tambahLike('${uid}', ${likes}, this)">
                                     <i class="fa-solid fa-thumbs-up"></i>
-                                    <div class="info-dropdown">${likes} Terpuji</div>
+                                    <div class="info-dropdown">${likes} Likes</div>
                                 </button>
 
-                                <button class="btn-icon btn-wa" onclick="shareWA('${lapak.nama_toko}', '${lapak.whatsapp}')" title="Hubungi WA">
+                                <button class="btn-icon btn-wa" onclick="shareWA('${lapak.nama_toko}', '${lapak.whatsapp}')">
                                     <i class="fa-brands fa-whatsapp"></i>
                                 </button>
                             </div>
