@@ -283,6 +283,7 @@
     const CLOUD_NAME = "dxzllsbgi";
     const UPLOAD_PRESET = "sipapua_preset";
 
+    // --- LOGIKA UI & MODAL ---
     function toggleView(inputId, icon) {
         const input = document.getElementById(inputId);
         if (input.type === "password") {
@@ -303,6 +304,7 @@
         n.style.display = "block"; setTimeout(() => n.style.display = "none", 3000);
     }
 
+    // --- LOGIKA AUTH (DAFTAR & LOGIN) ---
     async function prosesDaftar() {
         const btn = document.getElementById("btn-daftar");
         const foto = document.getElementById("reg-foto").files[0];
@@ -373,14 +375,11 @@
         }
     }
 
-    function shareWA(nama, phone) {
-        const text = encodeURIComponent(`Halo, saya tertarik dengan produk dari ${nama} di UMKM SIPAPUA.`);
-        window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
-    }
-
-    // LOGIKA CHAT POPUP & TWISTER
+    // --- LOGIKA INTEGRASI CHAT POPUP ---
     let currentSellerUid = "";
     let chatUnsubscribe = null;
+    let customerAnonymousId = localStorage.getItem('chat_customer_id') || 'cust_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('chat_customer_id', customerAnonymousId);
 
     function triggerTwister(element, uid, namaToko, gbrProduk) {
         const flash = document.createElement('div');
@@ -394,17 +393,15 @@
         currentSellerUid = uid;
         document.getElementById("chat-title").innerText = "Chat: " + namaToko;
         document.getElementById("chat-popup").style.display = "flex";
-        if (chatUnsubscribe) chatUnsubscribe();
         
-        const custId = localStorage.getItem('chat_customer_id') || "GUEST_" + Math.random().toString(36).substr(2, 5);
-        localStorage.setItem('chat_customer_id', custId);
+        if (chatUnsubscribe) chatUnsubscribe();
 
-        // Kirim info produk jika dipicu dari tombol market
+        // Kirim info produk otomatis jika dipicu dari klik toko
         if (gbrProduk) {
             db.collection("chats").add({
                 seller_uid: uid,
-                customer_id: custId,
-                message: "[INFO PRODUK]",
+                customer_id: customerAnonymousId,
+                message: "[Tanya Produk]",
                 is_product: true,
                 product_img: gbrProduk,
                 sender: 'customer',
@@ -412,63 +409,51 @@
             });
         }
 
-        // PERBAIKAN LOGIKA LISTENER CHAT (Agar Histori Tidak Kosong)
+        // Listener Realtime Histori Chat
         chatUnsubscribe = db.collection("chats")
             .where("seller_uid", "==", uid)
-            .where("customer_id", "==", custId)
+            .where("customer_id", "==", customerAnonymousId)
             .orderBy("timestamp", "asc")
             .onSnapshot(snap => {
                 const box = document.getElementById("chat-box-popup");
-                box.innerHTML = ""; // Bersihkan box sebelum memuat ulang histori
+                box.innerHTML = "";
                 
                 snap.forEach(doc => {
                     const m = doc.data();
-                    const align = m.sender === 'customer' ? 'flex-end' : 'flex-start';
+                    const isMe = m.sender === 'customer';
+                    const align = isMe ? 'flex-end' : 'flex-start';
                     
-                    // Logika 1: Menampilkan riwayat lampiran produk
                     if (m.is_product) {
                         box.innerHTML += `
-                            <div style="align-self: ${align}; width: 85%;">
-                                <div class="chat-product-attachment">
-                                    <img src="${m.product_img}">
-                                    <div class="chat-product-info">
-                                        <b style="color:var(--navy)">Tanya Produk:</b><br>
-                                        ${namaToko}
-                                    </div>
+                            <div style="align-self: ${align}; width: 85%; margin-bottom:10px;">
+                                <div class="chat-product-attachment" style="background:#f9f9f9; padding:5px; border-radius:10px; border:1px solid #ddd;">
+                                    <img src="${m.product_img}" style="width:100%; border-radius:8px;">
+                                    <div style="font-size:10px; padding:5px;"><b>Produk:</b> ${namaToko}</div>
                                 </div>
                             </div>`;
-                    } 
-                    // Logika 2: Menampilkan riwayat pesan teks manual
-                    else if (m.message) {
-                        const bg = m.sender === 'customer' ? 'var(--navy)' : '#fff';
-                        const color = m.sender === 'customer' ? 'white' : '#333';
+                    } else {
+                        const bg = isMe ? 'var(--navy)' : '#eee';
+                        const color = isMe ? 'white' : '#333';
                         box.innerHTML += `
                             <div style="align-self: ${align}; background: ${bg}; color: ${color}; 
                                         padding: 8px 12px; border-radius: 12px; max-width: 80%; 
-                                        font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                                        font-size: 12px; margin-bottom:5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
                                 ${m.message}
                             </div>`;
                     }
                 });
-                box.scrollTop = box.scrollHeight; // Auto-scroll ke bawah
-            }, err => {
-                console.error("Gagal memuat histori chat:", err);
-            });
+                box.scrollTop = box.scrollHeight;
+            }, err => console.error("Chat Error:", err));
     }
 
-    function tutupChatPopup() {
-        document.getElementById("chat-popup").style.display = "none";
-        if (chatUnsubscribe) chatUnsubscribe();
-    }
-
-    function kirimPesanPopup() {
+    async function kirimPesanPopup() {
         const input = document.getElementById("msg-input-popup");
         const msg = input.value.trim();
-        const custId = localStorage.getItem('chat_customer_id');
         if (!msg || !currentSellerUid) return;
-        db.collection("chats").add({
+
+        await db.collection("chats").add({
             seller_uid: currentSellerUid,
-            customer_id: custId,
+            customer_id: customerAnonymousId,
             message: msg,
             sender: 'customer',
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -476,6 +461,17 @@
         input.value = "";
     }
 
+    function tutupChatPopup() {
+        document.getElementById("chat-popup").style.display = "none";
+        if (chatUnsubscribe) chatUnsubscribe();
+    }
+
+    function shareWA(nama, phone) {
+        const text = encodeURIComponent(`Halo, saya tertarik dengan produk dari ${nama} di UMKM SIPAPUA.`);
+        window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+    }
+
+    // --- RENDER MARKET ---
     function muatMarket() {
         const container = document.getElementById("main-market");
         db.collection("umkm_stores").where("status", "==", "active").onSnapshot(snap => {
@@ -487,18 +483,12 @@
                         <div class="lapak-img-wrapper"><img src="${lapak.logo_url}" class="lapak-img"></div>
                         <div class="lapak-info">
                             <h3>${lapak.nama_toko}</h3>
-                            <div class="action-group">
-                                <button class="btn-icon btn-chat" onclick="triggerTwister(this, '${lapak.uid}', '${lapak.nama_toko}', '${lapak.logo_url}')" title="Chat">
-                                    <i class="fa-solid fa-comment-dots"></i>
+                            <div class="action-group" style="display:flex; justify-content:center; gap:10px; margin-top:10px;">
+                                <button class="btn-icon" onclick="triggerTwister(this, '${lapak.uid}', '${lapak.nama_toko}', '${lapak.logo_url}')" style="background:var(--navy); color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">
+                                    <i class="fa-solid fa-comment-dots"></i> Chat
                                 </button>
-                                <button class="btn-icon btn-star" title="Rating">
-                                    <i class="fa-solid fa-star"></i>
-                                </button>
-                                <button class="btn-icon btn-thumb" title="Suka">
-                                    <i class="fa-solid fa-thumbs-up"></i>
-                                </button>
-                                <button class="btn-icon btn-wa" onclick="shareWA('${lapak.nama_toko}', '${lapak.whatsapp}')" title="Share ke WA">
-                                    <i class="fa-brands fa-whatsapp"></i>
+                                <button class="btn-icon" onclick="shareWA('${lapak.nama_toko}', '${lapak.whatsapp}')" style="background:#25d366; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">
+                                    <i class="fa-brands fa-whatsapp"></i> WA
                                 </button>
                             </div>
                         </div>
