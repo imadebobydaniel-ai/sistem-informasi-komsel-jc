@@ -317,19 +317,12 @@
     window.bukaModal = (id) => document.getElementById(id).style.display = 'flex';
     window.tutupModal = () => document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
     
-    // Fungsi Notifikasi dengan sistem Block Display
     function notif(m) {
         const n = document.getElementById("notif-container");
         const msgElement = document.getElementById("notif-message");
-        
-        // Mengubah ke block display sesuai instruksi
         n.style.display = "block"; 
         msgElement.innerText = m;
-        
-        // Menghilangkan notifikasi setelah 3 detik
-        setTimeout(() => {
-            n.style.display = "none";
-        }, 3000);
+        setTimeout(() => { n.style.display = "none"; }, 3000);
     }
 
     // --- LOGIKA AUTH (DAFTAR & LOGIN) ---
@@ -341,7 +334,6 @@
         const namaToko = document.getElementById("reg-toko").value;
         const noHp = document.getElementById("reg-hp").value;
 
-        // Sistem Notifikasi Validasi Berbasis Block
         if(!namaToko) return notif("Nama UMKM wajib diisi!");
         if(!foto) return notif("Logo UMKM belum diupload!");
         if(!noHp) return notif("Nomor WhatsApp diperlukan!");
@@ -352,9 +344,7 @@
             const fd = new FormData();
             fd.append("file", foto);
             fd.append("upload_preset", UPLOAD_PRESET);
-            
             notif("Sedang mengupload logo..."); 
-            
             const resImg = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: fd });
             const dataImg = await resImg.json();
 
@@ -394,19 +384,16 @@
     async function loginUser(role) {
         const email = role === 'admin' ? document.getElementById('admin-email').value : document.getElementById('log-email').value;
         const pass = role === 'admin' ? document.getElementById('admin-pass').value : document.getElementById('log-pass').value;
-        
         if(!email || !pass) return notif("Mohon masukkan Email dan Password!");
 
         try {
             notif("Melakukan verifikasi login...");
             const userCredential = await auth.signInWithEmailAndPassword(email, pass);
-            
             if (role === 'admin' && email === 'boby.daniel4@gmail.com') {
                 notif("Selamat Datang Admin!");
                 window.location.href = "admin-umkm.html";
                 return;
             }
-            
             const doc = await db.collection("umkm_stores").doc(userCredential.user.uid).get();
             if (doc.exists && doc.data().status === 'active') {
                 notif("Login Berhasil! Mengalihkan ke Dashboard...");
@@ -414,12 +401,10 @@
             } else {
                 notif("Akses ditolak: Lapak Anda tidak aktif.");
             }
-        } catch (e) { 
-            notif("Login Gagal: Periksa kembali akun Anda."); 
-        }
+        } catch (e) { notif("Login Gagal: Periksa kembali akun Anda."); }
     }
 
-    // --- LOGIKA INTEGRASI CHAT POPUP ---
+    // --- LOGIKA CHAT & TWISTER ---
     let currentSellerUid = "";
     let chatUnsubscribe = null;
     let customerAnonymousId = localStorage.getItem('chat_customer_id') || 'cust_' + Math.random().toString(36).substr(2, 9);
@@ -437,9 +422,7 @@
         currentSellerUid = uid;
         document.getElementById("chat-title").innerText = "Chat: " + namaToko;
         document.getElementById("chat-popup").style.display = "flex";
-        
         if (chatUnsubscribe) chatUnsubscribe();
-
         if (gbrProduk) {
             db.collection("chats").add({
                 seller_uid: uid,
@@ -451,7 +434,6 @@
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
         }
-
         chatUnsubscribe = db.collection("chats")
             .where("seller_uid", "==", uid)
             .where("customer_id", "==", customerAnonymousId)
@@ -479,7 +461,6 @@
         const input = document.getElementById("msg-input-popup");
         const msg = input.value.trim();
         if (!msg || !currentSellerUid) return;
-        
         try {
             await db.collection("chats").add({
                 seller_uid: currentSellerUid,
@@ -489,9 +470,7 @@
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
             input.value = "";
-        } catch (e) {
-            notif("Gagal mengirim pesan.");
-        }
+        } catch (e) { notif("Gagal mengirim pesan."); }
     }
 
     function tutupChatPopup() {
@@ -499,18 +478,22 @@
         if (chatUnsubscribe) chatUnsubscribe();
     }
 
-    // --- LOGIKA GAMIFIKASI (LIKE & RATING) ---
+    // --- LOGIKA TOMBOL BINTANG, LIKE & WA (GAMIFIKASI) ---
     async function tambahLike(uid, currentLikes, element) {
         element.classList.add('glow-active');
         setTimeout(() => element.classList.remove('glow-active'), 500);
 
         const newLikes = (currentLikes || 0) + 1;
-        const newRating = Math.floor(newLikes / 20); 
+        const newRating = Math.floor(newLikes / 20); // Setiap 20 Like dapat 1 Bintang
 
-        await db.collection("umkm_stores").doc(uid).update({
-            likes_count: newLikes,
-            rating_level: newRating
-        });
+        try {
+            await db.collection("umkm_stores").doc(uid).update({
+                likes_count: newLikes,
+                rating_level: newRating
+            });
+        } catch (e) {
+            console.error("Gagal update likes:", e);
+        }
     }
 
     function shareWA(nama, phone) {
