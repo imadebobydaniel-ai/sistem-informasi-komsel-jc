@@ -214,13 +214,27 @@
 
     window.updateStatus = async (id, status) => {
         if(confirm(`Ubah status toko menjadi ${status}?`)) {
-            await db.collection("umkm_stores").doc(id).update({ status: status });
+            try {
+                await db.collection("umkm_stores").doc(id).update({ status: status });
+            } catch (error) {
+                alert("Gagal memperbarui status: " + error.message);
+            }
         }
     }
 
+    // FUNGSI HAPUS TOKO REALTIME DENGAN ERROR HANDLING
     window.hapusToko = async (id) => {
         if(confirm("Hapus permanen toko ini? Tindakan ini tidak bisa dibatalkan.")) {
-            await db.collection("umkm_stores").doc(id).delete();
+            try {
+                // Melakukan penghapusan dokumen langsung ke koleksi Firestore
+                await db.collection("umkm_stores").doc(id).delete();
+                
+                // Karena menggunakan .onSnapshot(), tampilan akan otomatis terupdate secara realtime
+                alert("Lapak berhasil dihapus secara permanen dari database.");
+            } catch (error) {
+                console.error("Error saat menghapus:", error);
+                alert("Gagal menghapus data: " + error.message);
+            }
         }
     }
 </script>
