@@ -8,7 +8,6 @@
     <style>
         :root { --primary: #1a237e; --accent: #4CAF50; --bg: #f0f2f5; --warning: #ff9800; --gold: #d4af37; --danger: #e53935; }
         
-        /* Reset & Base */
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             background: var(--bg); 
@@ -17,7 +16,6 @@
             min-height: 100vh;
         }
 
-        /* Navbar Sederhana Khusus Dashboard */
         .nav-dash {
             background: var(--primary);
             padding: 15px 20px;
@@ -38,7 +36,6 @@
 
         .container { max-width: 480px; margin: 0 auto; padding: 20px; }
         
-        /* Profile Header */
         .header-card { 
             background: white; 
             border-radius: 20px; 
@@ -54,12 +51,7 @@
         .store-info h2 { margin: 0; font-size: 18px; color: var(--primary); }
         .store-info p { margin: 3px 0 0; font-size: 13px; color: #7f8c8d; }
 
-        /* Statistik Rating di Header */
-        .store-stats { 
-            display: flex; 
-            gap: 10px; 
-            margin-top: 8px; 
-        }
+        .store-stats { display: flex; gap: 10px; margin-top: 8px; }
         .stat-item { 
             display: flex; 
             align-items: center; 
@@ -72,16 +64,13 @@
         .stat-star { background: #fffdf0; color: #f1c40f; border: 1px solid #f1c40f; }
         .stat-thumb { background: #f0f7ff; color: #2980b9; border: 1px solid #2980b9; }
 
-        /* Form Card */
         .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .card-title { font-size: 14px; font-weight: bold; color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
         
         .form-group { margin-bottom: 12px; }
         label { display: block; font-size: 10px; font-weight: bold; color: #95a5a6; margin-bottom: 4px; }
         input, select, textarea { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #edf2f7; background: #f8f9fa; font-size: 13px; box-sizing: border-box; font-family: inherit; }
-        textarea { resize: none; }
 
-        /* Multiple Uploader */
         .upload-area { border: 2px dashed #cbd5e0; border-radius: 15px; padding: 20px; text-align: center; cursor: pointer; background: #fff; transition: 0.3s; }
         .upload-area:hover { border-color: var(--gold); background: #fffdf5; }
         #preview-container { display: flex; gap: 8px; overflow-x: auto; margin-top: 10px; padding-bottom: 5px; }
@@ -89,7 +78,6 @@
 
         .btn-submit { width: 100%; padding: 16px; background: var(--primary); color: var(--gold); border: none; border-radius: 15px; font-weight: 800; font-size: 14px; cursor: pointer; margin-top: 10px; }
 
-        /* Table & Checkbox Styles */
         .etalase-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .btn-danger-sm { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer; display: none; }
         
@@ -107,7 +95,6 @@
         .btn-edit { background: #e3f2fd; color: #1976d2; }
         .btn-delete { background: #ffebee; color: #c62828; }
 
-        /* Notif Sheet */
         #notif-sheet { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; align-items: flex-end; }
         .sheet-content { background: white; width: 100%; max-width: 480px; padding: 30px 20px; border-radius: 25px 25px 0 0; text-align: center; box-sizing: border-box; margin: 0 auto; }
     </style>
@@ -117,7 +104,7 @@
 <div class="nav-dash">
     <h1><i class="fa-solid fa-gauge-high"></i> PANEL SELLER</h1>
     <div class="nav-actions">
-        <button class="btn-nav btn-chat-nav" onclick="window.location.href="chat-dashboard.html">
+        <button class="btn-nav btn-chat-nav" onclick="window.location.href='chat-dashboard.html'">
             <i class="fa-solid fa-comment-dots"></i> Pesan
         </button>
         <button class="btn-nav" onclick="logout()">
@@ -234,7 +221,7 @@
         if (user) {
             fetchStore(user.uid);
             fetchProducts(user.uid);
-            fetchRatings(user.uid); // Ambil data rating saat login
+            fetchRatings(user.uid);
         } else {
             window.location.href = "umkm-jemaat.html";
         }
@@ -250,26 +237,15 @@
         }
     }
 
-    // FUNGSI MENGAMBIL RATING & LIKE
     function fetchRatings(uid) {
         db.collection("rating_toko").where("seller_uid", "==", uid)
         .onSnapshot(snapshot => {
-            let totalStars = 0;
-            let totalThumbs = 0;
-            let count = 0;
-
+            let totalStars = 0; let totalThumbs = 0; let count = 0;
             snapshot.forEach(doc => {
                 const data = doc.data();
-                if (data.rating) {
-                    totalStars += data.rating;
-                    count++;
-                }
-                if (data.like === true || data.is_like === true) {
-                    totalThumbs++;
-                }
+                if (data.rating) { totalStars += data.rating; count++; }
+                if (data.like === true || data.is_like === true) { totalThumbs++; }
             });
-
-            // Update UI: Tampilkan rata-rata bintang dan jumlah jempol
             document.getElementById("total-stars").innerText = count > 0 ? (totalStars / count).toFixed(1) : "0.0";
             document.getElementById("total-thumbs").innerText = totalThumbs;
         });
@@ -305,7 +281,7 @@
         const desc = document.getElementById("p-desc").value;
         const files = document.getElementById("p-files").files;
         
-        if(!name || !price || files.length === 0) return munculkanNotif("Gagal", "Nama, Harga, dan Foto wajib diisi!", "warning");
+        if(!name || !price || files.length === 0) return munculkanNotif("Gagal", "Lengkapi semua data!", "warning");
 
         const btn = document.getElementById("btn-main");
         btn.disabled = true; btn.innerText = "Mengupload...";
@@ -332,7 +308,7 @@
                 dibuat: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            munculkanNotif("Berhasil!", "Produk ditayangkan.", "success");
+            munculkanNotif("Berhasil!", "Produk telah ditayangkan.", "success");
             resetForm();
         } catch (e) {
             munculkanNotif("Error", e.message, "error");
@@ -349,7 +325,7 @@
         document.getElementById("preview-container").innerHTML = "";
     }
 
-    async function fetchProducts(uid) {
+    function fetchProducts(uid) {
         const list = document.getElementById("product-list");
         db.collection("umkm_products").where("seller_uid", "==", uid)
           .orderBy("dibuat", "desc").onSnapshot(snap => {
@@ -373,8 +349,6 @@
                         </td>
                     </tr>`;
             });
-        }, err => {
-            console.error("Firestore Error:", err);
         });
     }
 
@@ -414,7 +388,7 @@
     function tutupNotif() { document.getElementById("notif-sheet").style.display = "none"; }
     
     function editProduk(id) {
-        alert("Fungsi edit untuk ID: " + id + " dapat dikembangkan lebih lanjut.");
+        alert("Fungsi edit untuk ID: " + id + " sedang dalam pengembangan.");
     }
 </script>
 </body>
