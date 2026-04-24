@@ -136,11 +136,11 @@
 <div id="modal-daftar" class="modal-overlay">
     <div class="modal-content">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h2 style="margin:0">Buka Lapak</h2>
+            <h2 id="modal-title" style="margin:0">Buka Lapak</h2>
             <i class="fa-solid fa-times" onclick="tutupModal()" style="cursor:pointer; font-size:20px;"></i>
         </div>
         
-        <div class="input-group">
+        <input type="hidden" id="edit-id"> <div class="input-group">
             <label>NAMA UMKM</label>
             <input type="text" id="reg-toko" placeholder="Contoh: Kedai Kopi Papua">
         </div>
@@ -148,6 +148,7 @@
         <div class="input-group">
             <label>LOGO LAPAK</label>
             <input type="file" id="reg-foto" accept="image/*">
+            <small id="foto-info" style="display:none; color: var(--primary);">Biarkan kosong jika tidak ingin mengubah logo</small>
         </div>
 
         <div class="input-group">
@@ -155,13 +156,15 @@
             <input type="tel" id="reg-hp" placeholder="0812xxxx">
         </div>
 
-        <div class="input-group">
-            <label>EMAIL & PASSWORD (UNTUK LOGIN)</label>
-            <input type="email" id="reg-email" placeholder="Email Anda">
-            <input type="password" id="reg-pass" placeholder="Password" style="margin-top:10px;">
+        <div id="auth-fields">
+            <div class="input-group">
+                <label>EMAIL & PASSWORD (UNTUK LOGIN)</label>
+                <input type="email" id="reg-email" placeholder="Email Anda">
+                <input type="password" id="reg-pass" placeholder="Password" style="margin-top:10px;">
+            </div>
         </div>
 
-        <button class="btn-action" id="btn-daftar" onclick="prosesDaftar()" style="background:var(--primary); color:white; width:100%; border:none; padding:16px; border-radius:16px; font-weight:800; font-size:16px;">AKTIFKAN LAPAK</button>
+        <button class="btn-action" id="btn-daftar" onclick="simpanLapak()" style="background:var(--primary); color:white; width:100%; border:none; padding:16px; border-radius:16px; font-weight:800; font-size:16px;">SIMPAN PERUBAHAN</button>
     </div>
 </div>
 
@@ -186,8 +189,20 @@
     const CLOUD_NAME = "dxzllsbgi";
     const UPLOAD_PRESET = "sipapua_preset";
 
-    // UI Logic
-    window.bukaModal = (id) => document.getElementById(id).style.display = 'flex';
+    window.toggleMenu = (e) => {
+        const d = document.getElementById("myDropdown");
+        d.style.display = d.style.display === 'none' ? 'block' : 'none';
+        e.stopPropagation();
+    };
+
+    window.bukaModal = (id) => {
+        document.getElementById('modal-title').innerText = "Buka Lapak";
+        document.getElementById('edit-id').value = "";
+        document.getElementById('auth-fields').style.display = "block";
+        document.getElementById('foto-info').style.display = "none";
+        document.getElementById(id).style.display = 'flex';
+    };
+
     window.tutupModal = () => document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
     
     function notif(m) {
@@ -196,36 +211,51 @@
         n.style.display = "block"; setTimeout(() => n.style.display = "none", 3000);
     }
 
-    // --- DAFTAR LAPAK ---
-    async function prosesDaftar() {
+    // --- FUNGSI SIMPAN (DAFTAR & EDIT) ---
+    async function simpanLapak() {
         const btn = document.getElementById("btn-daftar");
+        const editId = document.getElementById("edit-id").value;
         const foto = document.getElementById("reg-foto").files[0];
-        if(!foto) return notif("Wajib upload logo!");
-
+        
         try {
-            btn.innerText = "Mengunggah..."; btn.disabled = true;
-            
-            // 1. Upload Logo
-            const fd = new FormData();
-            fd.append("file", foto);
-            fd.append("upload_preset", UPLOAD_PRESET);
-            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: fd });
-            const data = await res.json();
-            
-            // 2. Auth & Simpan
-            const user = await auth.createUserWithEmailAndPassword(document.getElementById("reg-email").value, document.getElementById("reg-pass").value);
-            
-            await db.collection("umkm_stores").doc(user.user.uid).set({
-                nama_toko: document.getElementById("reg-toko").value,
-                whatsapp: document.getElementById("reg-hp").value,
-                logo_url: data.secure_url,
-                uid: user.user.uid,
-                dibuat: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            btn.innerText = "Memproses..."; btn.disabled = true;
+            let finalLogoUrl = "";
 
-            notif("Lapak Berhasil Dibuat!");
+            // 1. Upload Logo jika ada file baru
+            if(foto) {
+                const fd = new FormData();
+                fd.append("file", foto);
+                fd.append("upload_preset", UPLOAD_PRESET);
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: fd });
+                const data = await res.json();
+                finalLogoUrl = data.secure_url;
+            }
+
+            if(editId) {
+                // MODE EDIT
+                let updateData = {
+                    nama_toko: document.getElementById("reg-toko").value,
+                    whatsapp: document.getElementById("reg-hp").value
+                };
+                if(finalLogoUrl) updateData.logo_url = finalLogoUrl;
+                
+                await db.collection("umkm_stores").doc(editId).update(updateData);
+                notif("Lapak Diperbarui!");
+            } else {
+                // MODE DAFTAR BARU
+                if(!foto) throw new Error("Wajib upload logo!");
+                const user = await auth.createUserWithEmailAndPassword(document.getElementById("reg-email").value, document.getElementById("reg-pass").value);
+                await db.collection("umkm_stores").doc(user.user.uid).set({
+                    nama_toko: document.getElementById("reg-toko").value,
+                    whatsapp: document.getElementById("reg-hp").value,
+                    logo_url: finalLogoUrl,
+                    uid: user.user.uid,
+                    dibuat: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                notif("Lapak Berhasil Dibuat!");
+            }
             location.reload();
-        } catch (e) { notif(e.message); btn.disabled = false; }
+        } catch (e) { notif(e.message); btn.disabled = false; btn.innerText = "SIMPAN PERUBAHAN"; }
     }
 
     // --- MUAT MARKET ---
@@ -247,7 +277,7 @@
                             <i class="fa-solid fa-comments"></i> TANYA PENJUAL
                         </a>
                         <div class="admin-controls">
-                            <button class="btn-edit" onclick="editLapak('${doc.id}')"><i class="fa-solid fa-pen"></i> Edit</button>
+                            <button class="btn-edit" onclick="ambilDataEdit('${doc.id}')"><i class="fa-solid fa-pen"></i> Edit</button>
                             <button class="btn-delete" onclick="hapusLapak('${doc.id}')"><i class="fa-solid fa-trash"></i> Hapus</button>
                         </div>
                     </div>
@@ -256,10 +286,28 @@
         });
     }
 
+    // Ambil data untuk dimasukkan ke form Edit
+    async function ambilDataEdit(id) {
+        const doc = await db.collection("umkm_stores").doc(id).get();
+        if(doc.exists) {
+            const data = doc.data();
+            document.getElementById('edit-id').value = id;
+            document.getElementById('reg-toko').value = data.nama_toko;
+            document.getElementById('reg-hp').value = data.whatsapp;
+            document.getElementById('modal-title').innerText = "Edit Lapak";
+            document.getElementById('auth-fields').style.display = "none"; // Sembunyikan email/pass saat edit
+            document.getElementById('foto-info').style.display = "block";
+            document.getElementById('modal-daftar').style.display = 'flex';
+        }
+    }
+
     async function hapusLapak(id) {
-        if(confirm("Hapus lapak permanen?")) {
-            await db.collection("umkm_stores").doc(id).delete();
-            notif("Terhapus!"); muatMarket();
+        if(confirm("Hapus lapak permanen? Tindakan ini tidak bisa dibatalkan.")) {
+            try {
+                await db.collection("umkm_stores").doc(id).delete();
+                notif("Lapak Terhapus!"); 
+                muatMarket();
+            } catch (e) { notif("Gagal: " + e.message); }
         }
     }
 
