@@ -269,7 +269,7 @@
     const CLOUD_NAME = "dxzllsbgi";
     const UPLOAD_PRESET = "sipapua_preset";
 
-    // 2. Global Helper Functions (Terikat ke window agar tidak "Not Defined")
+    // 2. Global Helper Functions
     window.notif = (m) => {
         const n = document.getElementById("notif-container");
         const msgElement = document.getElementById("notif-message");
@@ -278,7 +278,7 @@
             msgElement.innerText = m; 
             setTimeout(() => { n.style.display = "none"; }, 3000); 
         } else {
-            alert(m); // Fallback jika elemen UI hilang
+            alert(m);
         }
     };
 
@@ -291,7 +291,7 @@
         document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
     };
 
-    // 3. Chat & Market Logic dengan Error Handling
+    // 3. Chat & Market Logic
     let currentSellerUid = "";
     let chatUnsubscribe = null;
     let customerAnonymousId = localStorage.getItem('chat_customer_id') || 'cust_' + Math.random().toString(36).substr(2, 9);
@@ -357,7 +357,6 @@
             }, err => console.error("Snapshot Error:", err));
     };
 
-    // FORCE BIND: Memastikan fungsi kirim pesan tersedia secara global
     window.kirimPesanPopup = async function() {
         const input = document.getElementById("msg-input-popup");
         if (!input) return;
@@ -387,7 +386,7 @@
         if (chatUnsubscribe) chatUnsubscribe();
     };
 
-    // --- MARKET RENDERER (DIBERSIHKAN) ---
+    // --- MARKET RENDERER (DENGAN FIX RATING PANEL) ---
     window.muatMarket = () => {
         const container = document.getElementById("main-market");
         if(!container) return;
@@ -447,6 +446,10 @@
                             <div class="detail-panel" id="detail-${docId}">
                                 <p><strong>Produk:</strong> ${namaProduk}</p>
                                 <p style="font-size: 12px; color: #555;"><strong>Deskripsi:</strong> ${deskripsi}</p>
+                                <div style="display: flex; gap: 10px; margin-top: 10px; border-top: 1px solid #ddd; padding-top: 10px;">
+                                    <button class="btn-icon btn-star" onclick="window.notif('Terima kasih ratingnya!')"><i class="fa-solid fa-star"></i></button>
+                                    <button class="btn-icon btn-thumb" onclick="window.notif('Anda menyukai ini!')"><i class="fa-solid fa-thumbs-up"></i></button>
+                                </div>
                             </div>
                         </div>`;
                 } catch (err) {
@@ -456,7 +459,6 @@
         });
     };
 
-    // Tambahkan listener moveSlide dan toggleDetail ke window agar tidak hilang
     window.moveSlide = (docId, step) => {
         const wrapper = document.getElementById(`slider-${docId}`);
         if(!wrapper) return;
@@ -486,7 +488,6 @@
         window.open(`https://wa.me/${nomorWA}?text=${text}`, '_blank');
     };
 
-    // Run
     document.addEventListener("DOMContentLoaded", window.muatMarket);
 </script>
 </body>
