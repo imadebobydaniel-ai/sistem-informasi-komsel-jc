@@ -153,10 +153,11 @@
     
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 
-    const dataPribadi = {
-        "Pembacaan FT": 97, "Kehadiran Doa": 40, "Kehadiran Komsel": 75,
-        "Ibadah Raya": 100, "Komsel Gabungan": 85, "Kegiatan KD": 60,
-        "Latihan": 30, "Pelayanan": 95
+    // Variabel ini sekarang menjadi penampung sementara, akan diisi dari Database
+    let dataPribadi = {
+        "Pembacaan FT": 0, "Kehadiran Doa": 0, "Kehadiran Komsel": 0,
+        "Ibadah Raya": 0, "Komsel Gabungan": 0, "Kegiatan KD": 0,
+        "Latihan": 0, "Pelayanan": 0
     };
 
     function getKategori(val) {
@@ -181,6 +182,7 @@
         html2pdf().set(opt).from(element).save().then(() => { btn.style.display = 'block'; });
     }
 
+    // FUNGSI UTAMA: MENGAMBIL DATA PROFIL DAN LAPORAN KEGIATAN
     function fetchDataJemaat() {
         const userEmail = localStorage.getItem('userEmail');
         const displayNama = document.getElementById('display-nama');
@@ -196,10 +198,29 @@
                     const key = Object.keys(userData)[0];
                     const data = userData[key];
                     
+                    // 1. Update Informasi Profil
                     if(displayNama) displayNama.innerText = data.nama_lengkap || data.nama || 'Tidak Ada Nama';
                     if(displayNij) displayNij.innerText = data.nij || '-';
                     if(displayJemaat) displayJemaat.innerText = data.wilayah_jemaat || 'Papua';
                     if(displayKomsel) displayKomsel.innerText = data.nama_komsel || data.komsel || '-';
+
+                    // 2. Update Data Laporan dari 'statistik_bulanan' di Database
+                    if (data.statistik_bulanan) {
+                        const s = data.statistik_bulanan;
+                        dataPribadi = {
+                            "Pembacaan FT": s.alkitab || 0,
+                            "Kehadiran Doa": s.doa || 0,
+                            "Kehadiran Komsel": s.komsel || 0,
+                            "Ibadah Raya": s.ibadah_raya || 0,
+                            "Komsel Gabungan": s.komsel_gabungan || 0,
+                            "Kegiatan KD": s.kegiatan_kd || 0,
+                            "Latihan": s.latihan || 0,
+                            "Pelayanan": s.pelayanan || 0
+                        };
+                        
+                        // 3. Render ulang tampilan dengan data asli dari database
+                        renderHalaman();
+                    }
                 } else {
                     if(displayNama) displayNama.innerText = "Data Tidak Ditemukan";
                 }
@@ -214,6 +235,7 @@
         const excelTable = document.getElementById('excel-table-body');
         const excelTablePoin = document.getElementById('excel-table-body-poin');
         
+        // Render Kartu Statistik di Atas
         if(cardsCont) {
             cardsCont.innerHTML = "";
             Object.keys(dataPribadi).forEach(key => {
@@ -223,18 +245,30 @@
             });
         }
 
-        const listAnggota = [{ periode: "Minggu I" }, { periode: "Minggu II" }, { periode: "Minggu III" }, { periode: "Minggu IV" }];
-        let tableHTML = "";
-        listAnggota.forEach((user) => {
-            tableHTML += `<tr><td>${user.periode}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>`;
-        });
+        // Contoh Pengisian Tabel (Minggu I diisi dengan data rata-rata dari statistik_bulanan)
+        const tableHTML = `<tr>
+            <td>Minggu I</td>
+            <td>${dataPribadi["Pembacaan FT"]}%</td>
+            <td>${dataPribadi["Ibadah Raya"]}%</td>
+            <td>${dataPribadi["Kehadiran Komsel"]}%</td>
+            <td>${dataPribadi["Komsel Gabungan"]}%</td>
+            <td>-</td>
+            <td>${dataPribadi["Kegiatan KD"]}%</td>
+            <td>${dataPribadi["Latihan"]}%</td>
+            <td>${dataPribadi["Pelayanan"]}%</td>
+            <td>${dataPribadi["Kehadiran Doa"]}%</td>
+        </tr>`;
         
-        if(excelTable) excelTable.innerHTML = tableHTML + `<tr class="separator"><td colspan="10"></td></tr>`;
-        if(excelTablePoin) excelTablePoin.innerHTML = tableHTML + `<tr class="separator"><td colspan="10"></td></tr>`;
+        const emptyRow = `<tr><td>Minggu II-IV</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>`;
+        
+        if(excelTable) excelTable.innerHTML = tableHTML + emptyRow + `<tr class="separator"><td colspan="10"></td></tr>`;
+        if(excelTablePoin) excelTablePoin.innerHTML = tableHTML + emptyRow + `<tr class="separator"><td colspan="10"></td></tr>`;
 
+        // Update Grafik Pie
         const pieCtx = document.getElementById('pieChart');
         if(pieCtx) {
-            new Chart(pieCtx, {
+            if(window.myPieChart) window.myPieChart.destroy(); // Hapus chart lama jika ada
+            window.myPieChart = new Chart(pieCtx, {
                 type: 'pie',
                 data: {
                     labels: Object.keys(dataPribadi),
@@ -244,13 +278,15 @@
             });
         }
 
+        // Update Grafik Batang
         const barCtx = document.getElementById('barChart');
         if(barCtx) {
-            new Chart(barCtx, {
+            if(window.myBarChart) window.myBarChart.destroy(); // Hapus chart lama jika ada
+            window.myBarChart = new Chart(barCtx, {
                 type: 'bar',
                 data: {
                     labels: Object.keys(dataPribadi),
-                    datasets: [{ label: 'Capaian', data: Object.values(dataPribadi), backgroundColor: '#548235' }]
+                    datasets: [{ label: 'Capaian (%)', data: Object.values(dataPribadi), backgroundColor: '#548235' }]
                 },
                 options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true, max: 100 } } }
             });
@@ -258,21 +294,14 @@
     }
 
     window.onload = function() {
-        // LOGIKA OTOMATISASI BULAN
-        const namaBulan = [
-            "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-            "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-        ];
+        const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
         const tgl = new Date();
-        const bulanSekarang = namaBulan[tgl.getMonth()];
-        const tahunSekarang = tgl.getFullYear();
-        
         const elemenPeriode = document.getElementById('periode-rapor');
         if (elemenPeriode) {
-            elemenPeriode.innerText = `Periode: ${bulanSekarang} ${tahunSekarang}`;
+            elemenPeriode.innerText = `Periode: ${namaBulan[tgl.getMonth()]} ${tgl.getFullYear()}`;
         }
 
-        renderHalaman();
+        // Panggil fetch data jemaat (ini akan memicu renderHalaman secara otomatis)
         fetchDataJemaat();
     };
 </script>
