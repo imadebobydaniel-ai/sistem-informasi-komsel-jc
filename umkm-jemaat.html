@@ -297,6 +297,30 @@
     let customerAnonymousId = localStorage.getItem('chat_customer_id') || 'cust_' + Math.random().toString(36).substr(2, 9);
     localStorage.setItem('chat_customer_id', customerAnonymousId);
 
+    // FIX: Pastikan fungsi ini terdaftar secara global sebelum dipanggil UI
+    window.kirimPesanPopup = async function() {
+        const input = document.getElementById("msg-input-popup");
+        if (!input) return;
+        const pesan = input.value.trim();
+        
+        if (!pesan || !currentSellerUid) return;
+
+        try {
+            await db.collection("chats").add({
+                seller_uid: currentSellerUid,
+                customer_id: customerAnonymousId,
+                message: pesan,
+                sender: 'customer',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                is_read: false
+            });
+            input.value = ""; 
+        } catch (error) {
+            console.error("Kirim Pesan Error:", error);
+            window.notif("Gagal mengirim pesan.");
+        }
+    };
+
     window.triggerTwister = (element, uid, namaToko, gbrProduk) => {
         try {
             const flash = document.createElement('div'); 
@@ -357,36 +381,13 @@
             }, err => console.error("Snapshot Error:", err));
     };
 
-    window.kirimPesanPopup = async function() {
-        const input = document.getElementById("msg-input-popup");
-        if (!input) return;
-        const pesan = input.value.trim();
-        
-        if (!pesan || !currentSellerUid) return;
-
-        try {
-            await db.collection("chats").add({
-                seller_uid: currentSellerUid,
-                customer_id: customerAnonymousId,
-                message: pesan,
-                sender: 'customer',
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                is_read: false
-            });
-            input.value = ""; 
-        } catch (error) {
-            console.error("Kirim Pesan Error:", error);
-            window.notif("Gagal mengirim pesan.");
-        }
-    };
-
     window.tutupChatPopup = () => {
         const popup = document.getElementById("chat-popup");
         if(popup) popup.style.display = "none";
         if (chatUnsubscribe) chatUnsubscribe();
     };
 
-    // --- MARKET RENDERER (DENGAN FIX RATING PANEL) ---
+    // --- MARKET RENDERER (AKUMULASI DATA RATING & LIKES) ---
     window.muatMarket = () => {
         const container = document.getElementById("main-market");
         if(!container) return;
@@ -402,6 +403,10 @@
                     const sellerUid = produk.seller_uid || "";
                     const statusOrder = produk.status || "Closed"; 
                     const deskripsi = produk.deskripsi || "-";
+                    
+                    // Ambil hasil akumulasi rating & likes dari database
+                    const hasilRating = produk.rating_avg || "0.0";
+                    const hasilLikes = produk.total_likes || 0;
                     
                     let daftarFoto = Array.isArray(produk.img_urls) && produk.img_urls.length > 0 ? produk.img_urls : [produk.img_primary || ""];
                     let statusColor = (statusOrder.toLowerCase().includes("open") || statusOrder.toLowerCase().includes("ready")) ? "dot-online" : "dot-offline";
@@ -432,7 +437,7 @@
                                         <button class="btn-icon btn-chat" onclick="triggerTwister(this, '${sellerUid}', '${namaProduk}', '${daftarFoto[0]}')">
                                             <i class="fa-solid fa-comment-dots"></i>
                                         </button>
-                                        <button class="btn-icon btn-star" onclick="window.notif('Terima kasih ratingnya!')"><i class="fa-solid fa-star"></i></button>
+                                        <button class="btn-icon btn-star" onclick="window.notif('Gunakan panel detail untuk melihat rating')"><i class="fa-solid fa-star"></i></button>
                                         <button class="btn-icon btn-thumb" onclick="window.notif('Anda menyukai ini!')"><i class="fa-solid fa-thumbs-up"></i></button>
                                         <button class="btn-icon btn-wa" onclick="shareWA('${namaProduk}', '081283393576')">
                                             <i class="fa-brands fa-whatsapp"></i>
@@ -446,9 +451,16 @@
                             <div class="detail-panel" id="detail-${docId}">
                                 <p><strong>Produk:</strong> ${namaProduk}</p>
                                 <p style="font-size: 12px; color: #555;"><strong>Deskripsi:</strong> ${deskripsi}</p>
-                                <div style="display: flex; gap: 10px; margin-top: 10px; border-top: 1px solid #ddd; padding-top: 10px;">
-                                    <button class="btn-icon btn-star" onclick="window.notif('Terima kasih ratingnya!')"><i class="fa-solid fa-star"></i></button>
-                                    <button class="btn-icon btn-thumb" onclick="window.notif('Anda menyukai ini!')"><i class="fa-solid fa-thumbs-up"></i></button>
+                                
+                                <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 10px; border-top: 1px solid #ddd; padding-top: 10px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #444;">
+                                        <i class="fa-solid fa-star" style="color: #ffca08;"></i> 
+                                        <span><strong>${hasilRating}</strong> / 5.0</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #444;">
+                                        <i class="fa-solid fa-thumbs-up" style="color: var(--navy);"></i> 
+                                        <span><strong>${hasilLikes}</strong> Orang menyukai ini</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>`;
