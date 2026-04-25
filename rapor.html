@@ -153,7 +153,7 @@
     
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 
-    // Variabel ini sekarang menjadi penampung sementara, akan diisi dari Database
+    // Variabel penampung data dari Database
     let dataPribadi = {
         "Pembacaan FT": 0, "Kehadiran Doa": 0, "Kehadiran Komsel": 0,
         "Ibadah Raya": 0, "Komsel Gabungan": 0, "Kegiatan KD": 0,
@@ -182,7 +182,6 @@
         html2pdf().set(opt).from(element).save().then(() => { btn.style.display = 'block'; });
     }
 
-    // FUNGSI UTAMA: MENGAMBIL DATA PROFIL DAN LAPORAN KEGIATAN
     function fetchDataJemaat() {
         const userEmail = localStorage.getItem('userEmail');
         const displayNama = document.getElementById('display-nama');
@@ -198,13 +197,11 @@
                     const key = Object.keys(userData)[0];
                     const data = userData[key];
                     
-                    // 1. Update Informasi Profil
                     if(displayNama) displayNama.innerText = data.nama_lengkap || data.nama || 'Tidak Ada Nama';
                     if(displayNij) displayNij.innerText = data.nij || '-';
                     if(displayJemaat) displayJemaat.innerText = data.wilayah_jemaat || 'Papua';
                     if(displayKomsel) displayKomsel.innerText = data.nama_komsel || data.komsel || '-';
 
-                    // 2. Update Data Laporan dari 'statistik_bulanan' di Database
                     if (data.statistik_bulanan) {
                         const s = data.statistik_bulanan;
                         dataPribadi = {
@@ -217,8 +214,6 @@
                             "Latihan": s.latihan || 0,
                             "Pelayanan": s.pelayanan || 0
                         };
-                        
-                        // 3. Render ulang tampilan dengan data asli dari database
                         renderHalaman();
                     }
                 } else {
@@ -235,7 +230,7 @@
         const excelTable = document.getElementById('excel-table-body');
         const excelTablePoin = document.getElementById('excel-table-body-poin');
         
-        // Render Kartu Statistik di Atas
+        // 1. Render Kartu Statistik
         if(cardsCont) {
             cardsCont.innerHTML = "";
             Object.keys(dataPribadi).forEach(key => {
@@ -245,8 +240,8 @@
             });
         }
 
-        // Contoh Pengisian Tabel (Minggu I diisi dengan data rata-rata dari statistik_bulanan)
-        const tableHTML = `<tr>
+        // 2. Membuat Baris Tabel (Minggu I - IV)
+        let rowsHTML = `<tr>
             <td>Minggu I</td>
             <td>${dataPribadi["Pembacaan FT"]}%</td>
             <td>${dataPribadi["Ibadah Raya"]}%</td>
@@ -259,15 +254,21 @@
             <td>${dataPribadi["Kehadiran Doa"]}%</td>
         </tr>`;
         
-        const emptyRow = `<tr><td>Minggu II-IV</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>`;
+        const mingguLain = ["Minggu II", "Minggu III", "Minggu IV"];
+        mingguLain.forEach(minggu => {
+            rowsHTML += `<tr>
+                <td>${minggu}</td>
+                <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+            </tr>`;
+        });
         
-        if(excelTable) excelTable.innerHTML = tableHTML + emptyRow + `<tr class="separator"><td colspan="10"></td></tr>`;
-        if(excelTablePoin) excelTablePoin.innerHTML = tableHTML + emptyRow + `<tr class="separator"><td colspan="10"></td></tr>`;
+        if(excelTable) excelTable.innerHTML = rowsHTML + `<tr class="separator"><td colspan="10"></td></tr>`;
+        if(excelTablePoin) excelTablePoin.innerHTML = rowsHTML + `<tr class="separator"><td colspan="10"></td></tr>`;
 
-        // Update Grafik Pie
+        // 3. Update Grafik Pie
         const pieCtx = document.getElementById('pieChart');
         if(pieCtx) {
-            if(window.myPieChart) window.myPieChart.destroy(); // Hapus chart lama jika ada
+            if(window.myPieChart) window.myPieChart.destroy();
             window.myPieChart = new Chart(pieCtx, {
                 type: 'pie',
                 data: {
@@ -278,10 +279,10 @@
             });
         }
 
-        // Update Grafik Batang
+        // 4. Update Grafik Batang
         const barCtx = document.getElementById('barChart');
         if(barCtx) {
-            if(window.myBarChart) window.myBarChart.destroy(); // Hapus chart lama jika ada
+            if(window.myBarChart) window.myBarChart.destroy();
             window.myBarChart = new Chart(barCtx, {
                 type: 'bar',
                 data: {
@@ -300,8 +301,6 @@
         if (elemenPeriode) {
             elemenPeriode.innerText = `Periode: ${namaBulan[tgl.getMonth()]} ${tgl.getFullYear()}`;
         }
-
-        // Panggil fetch data jemaat (ini akan memicu renderHalaman secara otomatis)
         fetchDataJemaat();
     };
 </script>
