@@ -74,7 +74,6 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
 
-        /* Pengaturan Slider Sesuai Instruksi */
         .product-slider {
             width: 100%;
             height: 250px;
@@ -98,17 +97,17 @@
 
         .lapak-info { padding: 15px; }
 
-        /* STATUS INDICATOR - Updated Colors */
+        /* STATUS INDICATOR */
         .status-indicator {
             display: flex;
             align-items: center;
             gap: 6px;
             font-size: 10px;
             font-weight: 800;
-            margin-top: 4px; /* Dipindah ke bawah harga */
+            margin-top: 4px;
         }
         .dot { width: 8px; height: 8px; border-radius: 50%; }
-        .dot-online { background-color: #2ecc71 !important; box-shadow: 0 0 5px #2ecc71; } /* Warna Hijau */
+        .dot-online { background-color: #2ecc71 !important; box-shadow: 0 0 5px #2ecc71; }
         .dot-offline { background-color: #e74c3c !important; }
         .dot-suspend { background: #000000; }
 
@@ -249,7 +248,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
-    // 1. Inisialisasi Firebase dengan proteksi ganda
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -266,10 +264,7 @@
     
     const auth = firebase.auth();
     const db = firebase.firestore();
-    const CLOUD_NAME = "dxzllsbgi";
-    const UPLOAD_PRESET = "sipapua_preset";
 
-    // 2. Global Helper Functions
     window.notif = (m) => {
         const n = document.getElementById("notif-container");
         const msgElement = document.getElementById("notif-message");
@@ -291,7 +286,6 @@
         document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
     };
 
-    // --- FUNGSI REALTIME RATING & LIKE (LOGIKA INTI) ---
     window.tambahLike = async (docId) => {
         try {
             await db.collection("umkm_products").doc(docId).update({
@@ -304,18 +298,13 @@
     };
 
     window.tambahRating = async (docId) => {
-        // Simulasi input rating sederhana (misal setiap klik beri 5 bintang)
-        // Untuk sistem lebih kompleks, ini bisa diganti dengan pilihan angka
         try {
             const produkRef = db.collection("umkm_products").doc(docId);
             const doc = await produkRef.get();
             const data = doc.data();
-
             const currentCount = data.rating_count || 0;
             const currentAvg = parseFloat(data.rating_avg) || 0;
-            const newRating = 5; // Nilai rating yang diberikan
-
-            // Hitung rata-rata baru
+            const newRating = 5;
             const newCount = currentCount + 1;
             const newAvg = ((currentAvg * currentCount) + newRating) / newCount;
 
@@ -329,7 +318,6 @@
         }
     };
 
-    // 3. Chat Logic
     let currentSellerUid = "";
     let chatUnsubscribe = null;
     let customerAnonymousId = localStorage.getItem('chat_customer_id') || 'cust_' + Math.random().toString(36).substr(2, 9);
@@ -421,7 +409,6 @@
         if (chatUnsubscribe) chatUnsubscribe();
     };
 
-    // --- MARKET RENDERER (DENGAN TOMBOL AKTIF REALTIME) ---
     window.muatMarket = () => {
         const container = document.getElementById("main-market");
         if(!container) return;
@@ -437,10 +424,8 @@
                     const sellerUid = produk.seller_uid || "";
                     const statusOrder = produk.status || "Closed"; 
                     const deskripsi = produk.deskripsi || "-";
-                    
                     const hasilRating = produk.rating_avg || "0.0";
                     const hasilLikes = produk.total_likes || 0;
-                    
                     let daftarFoto = Array.isArray(produk.img_urls) && produk.img_urls.length > 0 ? produk.img_urls : [produk.img_primary || ""];
                     let statusColor = (statusOrder.toLowerCase().includes("open") || statusOrder.toLowerCase().includes("ready")) ? "dot-online" : "dot-offline";
 
@@ -450,10 +435,6 @@
                                 <div class="slider-wrapper" id="slider-${docId}">
                                     ${daftarFoto.map(img => `<img src="${img}">`).join('')}
                                 </div>
-                                ${daftarFoto.length > 1 ? `
-                                    <button class="slide-btn prev" onclick="moveSlide('${docId}', -1)">&#10094;</button>
-                                    <button class="slide-btn next" onclick="moveSlide('${docId}', 1)">&#10095;</button>
-                                ` : ''}
                             </div>
                             <div class="lapak-info">
                                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
@@ -484,7 +465,6 @@
                             <div class="detail-panel" id="detail-${docId}">
                                 <p><strong>Produk:</strong> ${namaProduk}</p>
                                 <p style="font-size: 12px; color: #555;"><strong>Deskripsi:</strong> ${deskripsi}</p>
-                                
                                 <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 10px; border-top: 1px solid #ddd; padding-top: 10px;">
                                     <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #444;">
                                         <i class="fa-solid fa-star" style="color: #ffca08;"></i> 
@@ -502,18 +482,6 @@
                 }
             });
         });
-    };
-
-    window.moveSlide = (docId, step) => {
-        const wrapper = document.getElementById(`slider-${docId}`);
-        if(!wrapper) return;
-        const slides = wrapper.getElementsByTagName("img");
-        if(!window.slideIndices) window.slideIndices = {};
-        if (!window.slideIndices[docId]) window.slideIndices[docId] = 0;
-        window.slideIndices[docId] += step;
-        if (window.slideIndices[docId] >= slides.length) window.slideIndices[docId] = 0;
-        if (window.slideIndices[docId] < 0) window.slideIndices[docId] = slides.length - 1;
-        wrapper.style.transform = `translateX(${window.slideIndices[docId] * -100}%)`;
     };
 
     window.toggleDetail = (id) => {
