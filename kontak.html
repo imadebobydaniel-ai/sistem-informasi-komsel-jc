@@ -214,8 +214,7 @@
             </div>
         </div>
 
-        <div id="contactList" class="contact-list">
-            </div>
+        <div id="contactList" class="contact-list"></div>
     </div>
 
     <div id="editModal" class="modal">
@@ -232,12 +231,16 @@
     </div>
 
     <script>
-        // Data Simulasi (Nanti data ini datang dari proses scanning/koneksi)
-        let contacts = [
+        // --- LOGIKA PENYIMPANAN DATA ---
+        
+        // Ambil data dari LocalStorage saat halaman dimuat
+        // Jika storage kosong, gunakan data dummy sebagai awalan
+        let defaultContacts = [
             { id: 101, name: "Boby Creative", photo: "https://ui-avatars.com/api/?name=Boby+Creative&background=0D8ABC&color=fff" },
-            { id: 102, name: "Admin Pondok", photo: "https://ui-avatars.com/api/?name=Admin+Pondok&background=2563eb&color=fff" },
-            { id: 103, name: "User Papua", photo: "https://ui-avatars.com/api/?name=User+Papua&background=059669&color=fff" }
+            { id: 102, name: "Admin Pondok", photo: "https://ui-avatars.com/api/?name=Admin+Pondok&background=2563eb&color=fff" }
         ];
+
+        let contacts = JSON.parse(localStorage.getItem('saved_contacts')) || defaultContacts;
 
         const contactList = document.getElementById('contactList');
         const searchInput = document.getElementById('searchInput');
@@ -247,6 +250,10 @@
         // Fungsi Render List
         function renderContacts(data) {
             contactList.innerHTML = '';
+            
+            // Selalu simpan perubahan terbaru ke LocalStorage
+            localStorage.setItem('saved_contacts', JSON.stringify(contacts));
+
             if (data.length === 0) {
                 contactList.innerHTML = '<p style="text-align:center; color:#94a3b8; margin-top:20px;">Tidak ada kontak ditemukan.</p>';
                 return;
@@ -267,14 +274,23 @@
             setupCheckboxListeners();
         }
 
-        // Filter Pencarian
+        // Fungsi untuk Menambah Kontak Baru (Gunakan ini setelah scan kartu digital berhasil)
+        function addNewContact(name, photoUrl = "") {
+            const newId = Date.now(); // Gunakan timestamp sebagai ID unik
+            const photo = photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`;
+            
+            contacts.unshift({ id: newId, name: name, photo: photo });
+            renderContacts(contacts);
+        }
+
+        // --- FITUR INTERAKSI ---
+
         searchInput.addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
             const filtered = contacts.filter(c => c.name.toLowerCase().includes(term));
             renderContacts(filtered);
         });
 
-        // Pilih Semua
         checkAll.addEventListener('change', (e) => {
             const checkboxes = document.querySelectorAll('.contact-checkbox');
             checkboxes.forEach(cb => cb.checked = e.target.checked);
@@ -285,7 +301,6 @@
             document.querySelectorAll('.contact-checkbox').forEach(cb => {
                 cb.addEventListener('change', () => {
                     toggleDeleteBtn();
-                    // Jika satu uncheck, CheckAll juga uncheck
                     if (!cb.checked) checkAll.checked = false;
                 });
             });
@@ -296,7 +311,6 @@
             deleteBtn.style.display = checkedCount > 0 ? 'block' : 'none';
         }
 
-        // Fungsi Hapus Kontak Terpilih
         function deleteChecked() {
             if (confirm('Hapus kontak yang dipilih?')) {
                 const checkedIds = Array.from(document.querySelectorAll('.contact-checkbox:checked'))
@@ -309,7 +323,6 @@
             }
         }
 
-        // Logika Modal Edit
         function openEdit(id, name) {
             document.getElementById('editId').value = id;
             document.getElementById('editName').value = name;
