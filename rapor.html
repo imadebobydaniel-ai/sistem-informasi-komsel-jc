@@ -152,13 +152,13 @@
     };
     
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
- 
+
     const dataPribadi = {
         "Pembacaan FT": 97, "Kehadiran Doa": 40, "Kehadiran Komsel": 75,
         "Ibadah Raya": 100, "Komsel Gabungan": 85, "Kegiatan KD": 60,
         "Latihan": 30, "Pelayanan": 95
     };
- 
+
     function getKategori(val) {
         if (val === "" || val === null) return { label: '', class: '' };
         if (val < 50) return { label: 'SANGAT KURANG', class: 'bg-sangat-kurang' };
@@ -166,7 +166,7 @@
         if (val < 95) return { label: 'CUKUP', class: 'bg-cukup' };
         return { label: 'SANGAT BAIK', class: 'bg-sangat-baik' };
     }
- 
+
     function exportToPDF() {
         const element = document.getElementById('report-content');
         const btn = document.querySelector('.pdf-export-btn');
@@ -180,35 +180,42 @@
         };
         html2pdf().set(opt).from(element).save().then(() => { btn.style.display = 'block'; });
     }
- 
+
+    // FUNGSI FETCH DATA JEMAAT YANG SUDAH DIPERBAIKI
     function fetchDataJemaat() {
-        // MENGAMBIL DATA DINAMIS BERDASARKAN USER LOGIN
-        const userEmail = localStorage.getItem("userEmail");
-        
+        const userEmail = localStorage.getItem('userEmail');
+        console.log("Mencari data untuk:", userEmail);
+
         if (userEmail) {
-            const usersRef = firebase.database().ref('users');
-            // Query mencari email yang cocok di database
-            usersRef.orderByChild('email').equalTo(userEmail).on('value', (snapshot) => {
+            const dbRef = firebase.database().ref('users');
+            dbRef.orderByChild('email').equalTo(userEmail).on('value', (snapshot) => {
                 if (snapshot.exists()) {
-                    snapshot.forEach((childSnapshot) => {
-                        const data = childSnapshot.val();
-                        document.getElementById('display-nama').innerText = data.nama || data.nama_lengkap || '-';
-                        document.getElementById('display-nij').innerText = data.nij || '-';
-                        document.getElementById('display-jemaat').innerText = data.wilayah_jemaat || 'Papua';
-                        document.getElementById('display-komsel-info').innerText = data.komsel || data.nama_komsel || '-';
-                    });
+                    const userData = snapshot.val();
+                    // Mengambil data pertama yang cocok dari hasil query
+                    const key = Object.keys(userData)[0];
+                    const data = userData[key];
+                    
+                    // Masukkan ke tampilan HTML sesuai ID yang ada
+                    document.getElementById('display-nama').innerText = data.nama || data.nama_lengkap || 'Tidak Ada Nama';
+                    document.getElementById('display-nij').innerText = data.nij || '-';
+                    document.getElementById('display-jemaat').innerText = data.wilayah_jemaat || 'Papua';
+                    document.getElementById('display-komsel-info').innerText = data.komsel || data.nama_komsel || '-';
+                    
+                    console.log("Data berhasil dimuat:", data.nama);
                 } else {
-                    console.log("Data tidak ditemukan untuk email:", userEmail);
+                    console.log("Data tidak ditemukan untuk email: " + userEmail);
+                    document.getElementById('display-nama').innerText = "Data Tidak Ditemukan";
                 }
             }, (error) => {
-                console.error("Gagal mengambil data Firebase:", error);
-                document.getElementById('display-nama').innerText = "Gagal Memuat Data";
+                console.error("Gagal mengambil data Firebase: ", error);
+                document.getElementById('display-nama').innerText = "Izin Ditolak";
             });
         } else {
-            console.log("Sesi email tidak ditemukan. Harap login kembali.");
+            console.log("Sesi email tidak ditemukan di localStorage.");
+            document.getElementById('display-nama').innerText = "Silakan Login Kembali";
         }
     }
- 
+
     function renderHalaman() {
         const cardsCont = document.getElementById('cards-container');
         const excelTable = document.getElementById('excel-table-body');
@@ -220,7 +227,7 @@
             const kat = getKategori(val);
             cardsCont.innerHTML += `<div class="stat-card ${kat.class}"><div style="font-size:11px; opacity:0.9;">${key}</div><div style="font-size:22px; font-weight:bold;">${val}%</div></div>`;
         });
- 
+
         const listAnggota = [{ periode: "Minggu I" }, { periode: "Minggu II" }, { periode: "Minggu III" }, { periode: "Minggu IV" }];
         let tableHTML = "";
         listAnggota.forEach((user) => {
@@ -229,7 +236,7 @@
         
         excelTable.innerHTML = tableHTML + `<tr class="separator"><td colspan="10"></td></tr>`;
         excelTablePoin.innerHTML = tableHTML + `<tr class="separator"><td colspan="10"></td></tr>`;
- 
+
         new Chart(document.getElementById('pieChart'), {
             type: 'pie',
             data: {
@@ -238,7 +245,7 @@
             },
             options: { responsive: true, maintainAspectRatio: true }
         });
- 
+
         new Chart(document.getElementById('barChart'), {
             type: 'bar',
             data: {
@@ -248,7 +255,7 @@
             options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true, max: 100 } } }
         });
     }
- 
+
     window.onload = function() {
         renderHalaman();
         fetchDataJemaat();
