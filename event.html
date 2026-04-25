@@ -192,9 +192,9 @@
     if (window.currentAdmin) {
         document.getElementById('adminSection').style.display = 'block';
         document.getElementById('btnBack').style.display = 'inline-block';
-        document.getElementById('btnMainBack').style.display = 'none'; // Sembunyikan di portal admin
+        document.getElementById('btnMainBack').style.display = 'none';
     } else {
-        document.getElementById('btnMainBack').style.display = 'flex'; // Munculkan di main page
+        document.getElementById('btnMainBack').style.display = 'flex';
     }
 
     window.logoutEvent = () => {
@@ -250,17 +250,13 @@
         });
     });
 
-    // Protokol Hapus Sesuai Instruksi
     window.hapusBerita = async (id, creator) => {
         const user = window.currentAdmin;
         if (!user) return Swal.fire('Akses Ditolak', 'Hanya Admin yang dapat menghapus.', 'error');
-
-        // Validasi Kuasa Hapus Admin Lite
         if (user !== "SuperAdmin" && user !== creator) {
             return Swal.fire('Gagal', 'Anda hanya diizinkan menghapus berita yang Anda terbitkan sendiri.', 'error');
         }
 
-        // Protokol Password Wajib
         const { value: pass } = await Swal.fire({
             title: 'Verifikasi Password',
             text: user === "SuperAdmin" ? "SuperAdmin wajib memasukkan password untuk menghapus." : `Masukkan password untuk konfirmasi hapus.`,
@@ -374,9 +370,11 @@
         Swal.fire('Berhasil', 'Data tersimpan!', 'success').then(() => location.reload());
     };
 
+    // FUNGSI DETAIL EVENT TERBARU (TANPA WA & PDF)
     window.detailEvent = (id) => {
         const item = window.currentEvents.find(x => x.id === id);
         const gallery = (item.fotos || []).map(f => `<img src="${f}" style="width:100%; border-radius:8px; margin-bottom:10px;">`).join('') || `<img src="${NO_IMG}" style="width:100%;">`;
+        
         Swal.fire({
             title: item.nama,
             html: `<div style="max-height:350px; overflow-y:auto">${gallery}</div>
@@ -384,30 +382,14 @@
                         <p><b>📍 Lokasi:</b> ${item.lokasi}</p>
                         <p><b>📅 Tanggal:</b> ${formatTglIndo(item.tgl)}</p>
                         <hr><div style="white-space:pre-line">${item.isi}</div>
-                    </div>
-                    <div style="display:flex; gap:8px; margin-top:20px">
-                        <button onclick="shareWA('${id}')" style="flex:1; padding:10px; background:#25d366; color:white; border:none; border-radius:6px;"><i class="fab fa-whatsapp"></i> WA</button>
-                        <button onclick="downloadPDF('${id}')" style="flex:1; padding:10px; background:#e74c3c; color:white; border:none; border-radius:6px;"><i class="fas fa-file-pdf"></i> PDF</button>
                     </div>`,
-            showConfirmButton: false, showCloseButton: true, width: '90%'
+            showConfirmButton: false, 
+            showCloseButton: true, 
+            width: '90%'
         });
     };
 
-    window.shareWA = (id) => {
-        const item = window.currentEvents.find(x => x.id === id);
-        const pesan = encodeURIComponent(`*BERITA*\n\n${item.nama}\nLokasi: ${item.lokasi}\nTanggal: ${formatTglIndo(item.tgl)}`);
-        window.open(`https://api.whatsapp.com/send?text=${pesan}`);
-    };
-
-    window.downloadPDF = async (id) => {
-        const item = window.currentEvents.find(x => x.id === id);
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.text(`LAPORAN KEGIATAN: ${item.nama}`, 10, 10);
-        doc.save(`Laporan_${item.nama}.pdf`);
-    };
-
-    // Listener Log Activity Realtime untuk SuperAdmin & Monitoring
+    // Listener Log Activity Realtime
     onValue(logRef, (snap) => {
         const data = snap.val(); let h = "";
         const logArr = [];
@@ -415,11 +397,11 @@
         logArr.slice(0, 20).forEach(l => {
             h += `<div style="border-bottom:1px solid #eee; padding:3px 0;">> ${l.timestamp} - <b>${l.user}</b>: ${l.action}</div>`;
         });
-        document.getElementById('logContent').innerHTML = h;
+        const logContent = document.getElementById('logContent');
+        if(logContent) logContent.innerHTML = h;
     });
 
     document.getElementById('fotoEvent').onchange = window.handleFileUpload;
     document.getElementById('btnSimpan').onclick = window.simpanBerita;
-</script>
-</body>
+</script></body>
 </html>
