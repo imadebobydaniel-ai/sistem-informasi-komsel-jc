@@ -74,7 +74,7 @@
  
 <div class="dashboard-container" id="report-content">
     <h2 style="text-align:center; margin-bottom:0;">REKAPITULASI RAPOR ANDA</h2>
-    <p style="text-align:center; color:#666; margin-top:5px;">Periode: Maret 2026</p>
+    <p id="periode-rapor" style="text-align:center; color:#666; margin-top:5px;">Periode: Memuat...</p>
  
     <div class="excel-table-container">
         <button class="pdf-export-btn" onclick="exportToPDF()">
@@ -181,7 +181,6 @@
         html2pdf().set(opt).from(element).save().then(() => { btn.style.display = 'block'; });
     }
 
-    // FUNGSI FETCH DATA JEMAAT YANG SUDAH DISATUKAN & DIPERBAIKI
     function fetchDataJemaat() {
         const userEmail = localStorage.getItem('userEmail');
         const displayNama = document.getElementById('display-nama');
@@ -189,34 +188,23 @@
         const displayJemaat = document.getElementById('display-jemaat');
         const displayKomsel = document.getElementById('display-komsel-info');
 
-        console.log("Mencari data untuk:", userEmail);
-
         if (userEmail) {
             const dbRef = firebase.database().ref('users');
             dbRef.orderByChild('email').equalTo(userEmail).on('value', (snapshot) => {
                 if (snapshot.exists()) {
                     const userData = snapshot.val();
-                    // Mengambil data pertama yang cocok dari hasil query
                     const key = Object.keys(userData)[0];
                     const data = userData[key];
                     
-                    // Masukkan ke tampilan HTML dengan pengecekan elemen
                     if(displayNama) displayNama.innerText = data.nama_lengkap || data.nama || 'Tidak Ada Nama';
                     if(displayNij) displayNij.innerText = data.nij || '-';
                     if(displayJemaat) displayJemaat.innerText = data.wilayah_jemaat || 'Papua';
                     if(displayKomsel) displayKomsel.innerText = data.nama_komsel || data.komsel || '-';
-                    
-                    console.log("Data berhasil dimuat:", data.nama_lengkap || data.nama);
                 } else {
-                    console.log("Data tidak ditemukan untuk email: " + userEmail);
                     if(displayNama) displayNama.innerText = "Data Tidak Ditemukan";
                 }
-            }, (error) => {
-                console.error("Gagal mengambil data Firebase: ", error);
-                if(displayNama) displayNama.innerText = "Izin Ditolak";
             });
         } else {
-            console.log("Sesi email tidak ditemukan di localStorage.");
             if(displayNama) displayNama.innerText = "Silakan Login Kembali";
         }
     }
@@ -244,7 +232,6 @@
         if(excelTable) excelTable.innerHTML = tableHTML + `<tr class="separator"><td colspan="10"></td></tr>`;
         if(excelTablePoin) excelTablePoin.innerHTML = tableHTML + `<tr class="separator"><td colspan="10"></td></tr>`;
 
-        // Render Grafik
         const pieCtx = document.getElementById('pieChart');
         if(pieCtx) {
             new Chart(pieCtx, {
@@ -271,6 +258,20 @@
     }
 
     window.onload = function() {
+        // LOGIKA OTOMATISASI BULAN
+        const namaBulan = [
+            "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+            "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+        ];
+        const tgl = new Date();
+        const bulanSekarang = namaBulan[tgl.getMonth()];
+        const tahunSekarang = tgl.getFullYear();
+        
+        const elemenPeriode = document.getElementById('periode-rapor');
+        if (elemenPeriode) {
+            elemenPeriode.innerText = `Periode: ${bulanSekarang} ${tahunSekarang}`;
+        }
+
         renderHalaman();
         fetchDataJemaat();
     };
