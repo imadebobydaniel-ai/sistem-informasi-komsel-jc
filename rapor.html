@@ -14,7 +14,6 @@
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f9; padding: 20px; margin: 0; }
         .dashboard-container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         
-        /* Gaya Visualisasi */
         .header-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 30px; }
         .stat-card { padding: 15px; border-radius: 12px; color: white; text-align: center; }
         
@@ -25,12 +24,12 @@
             margin-bottom: 40px; 
             margin-top: 50px;
         }
- 
+
         .bg-sangat-kurang { background: #ff0000 !important; color: white; }
         .bg-kurang { background: #ed7d31 !important; color: white; }
         .bg-cukup { background: #548235 !important; color: white; }
         .bg-sangat-baik { background: #00FF00 !important; color: black !important; }
- 
+
         .excel-table-container { overflow-x: auto; margin-top: 20px; border-top: 3px solid #000; padding-top: 20px; margin-bottom: 30px; position: relative; -webkit-overflow-scrolling: touch; }
         .excel-table { width: 100%; border-collapse: collapse; font-size: 11px; color: #000; min-width: 800px; }
         .excel-table th, .excel-table td { border: 1px solid #000; padding: 6px; text-align: center; }
@@ -38,11 +37,11 @@
         
         .separator { background-color: #000; color: #000; height: 12px !important; }
         .separator td { border: none; }
- 
+
         .info-jemaat-box { margin-bottom: 20px; font-family: 'Courier New', Courier, monospace; font-size: 13px; line-height: 1.6; color: #000; }
         .info-row { display: flex; align-items: flex-start; margin-bottom: 2px; }
         .info-label { width: 120px; display: inline-block; font-weight: bold; }
- 
+
         .pdf-export-btn {
             position: absolute;
             right: 0;
@@ -58,7 +57,7 @@
             transition: 0.3s;
             z-index: 10;
         }
- 
+
         @media (max-width: 768px) { 
             body { padding: 10px; }
             .dashboard-container { padding: 15px; border-radius: 10px; }
@@ -71,23 +70,23 @@
     </style>
 </head>
 <body>
- 
+
 <div class="dashboard-container" id="report-content">
     <h2 style="text-align:center; margin-bottom:0;">REKAPITULASI RAPOR ANDA</h2>
     <p id="periode-rapor" style="text-align:center; color:#666; margin-top:5px;">Periode: Memuat...</p>
- 
+
     <div class="excel-table-container">
         <button class="pdf-export-btn" onclick="exportToPDF()">
             <i class="fas fa-file-pdf"></i> EXTRACT PDF
        </button>
- 
+
         <div id="info-jemaat" class="info-jemaat-box">
             <div class="info-row"><span class="info-label">NAMA</span> : <span id="display-nama" style="margin-left: 10px; font-weight: bold;">Memuat...</span></div>
             <div class="info-row"><span class="info-label">NIJ</span> : <span id="display-nij" style="margin-left: 10px;">Memuat...</span></div>
             <div class="info-row"><span class="info-label">JEMAAT</span> : <span id="display-jemaat" style="margin-left: 10px;">Memuat...</span></div>
             <div class="info-row"><span class="info-label">KOMSEL</span> : <span id="display-komsel-info" style="margin-left: 10px;">Memuat...</span></div>
         </div>
- 
+
         <h3 style="text-align:left; font-size:16px; margin-bottom:10px;">TABEL PERSENTASE</h3>
         <table class="excel-table">
             <thead>
@@ -106,7 +105,7 @@
             </thead>
             <tbody id="excel-table-body"></tbody>
         </table>
- 
+
         <h3 style="text-align:left; font-size:16px; margin-top:30px; margin-bottom:10px;">TABEL POIN</h3>
         <table class="excel-table">
             <thead>
@@ -126,9 +125,9 @@
             <tbody id="excel-table-body-poin"></tbody>
         </table>
     </div>
- 
+
     <div class="header-stats" id="cards-container"></div>
- 
+
     <div class="chart-section">
         <div>
             <h3 style="font-size:14px; text-align:center;">Proporsi Keaktifan</h3>
@@ -138,9 +137,36 @@
             <h3 style="font-size:14px; text-align:center;">Perbandingan Capaian (%)</h3>
             <canvas id="barChart"></canvas>
         </div>
+
+        <div style="grid-column: 1 / -1; margin-top: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 10px; background-color: #fff;">
+            <h4 style="margin-top: 0; color: #333; border-bottom: 2px solid #548235; padding-bottom: 5px;">Keterangan Perhitungan Poin & Kriteria</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 12px; line-height: 1.6;">
+                <div>
+                    <strong>Rumus Poin:</strong><br>
+                    (Persentase Capaian / 100) x Bobot Maksimal
+                    <br><br>
+                    <strong>Bobot Maksimal per Kategori:</strong>
+                    <ul style="margin: 5px 0; padding-left: 20px;">
+                        <li>Ibadah Raya: 25 Poin</li>
+                        <li>Komsel / Komsel Gabungan: 20 Poin</li>
+                        <li>Alkitab / Doa / Pelayanan: 15 Poin</li>
+                        <li>Kegiatan KD / Latihan: 10 Poin</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong>Kriteria Predikat:</strong>
+                    <ul style="margin: 5px 0; padding-left: 20px;">
+                        <li><span style="color: #00FF00; font-weight: bold;">Sangat Baik:</span> 95% - 100%</li>
+                        <li><span style="color: #548235; font-weight: bold;">Cukup:</span> 80% - 94%</li>
+                        <li><span style="color: #ed7d31; font-weight: bold;">Kurang:</span> 50% - 79%</li>
+                        <li><span style="color: #ff0000; font-weight: bold;">Sangat Kurang:</span> < 50%</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
- 
+
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM", 
@@ -153,7 +179,6 @@
     
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 
-    // Variabel penampung data dari Database
     let dataPribadi = {
         "Pembacaan FT": 0, "Kehadiran Doa": 0, "Kehadiran Komsel": 0,
         "Ibadah Raya": 0, "Komsel Gabungan": 0, "Kegiatan KD": 0,
@@ -184,11 +209,6 @@
 
     function fetchDataJemaat() {
         const userEmail = localStorage.getItem('userEmail');
-        const displayNama = document.getElementById('display-nama');
-        const displayNij = document.getElementById('display-nij');
-        const displayJemaat = document.getElementById('display-jemaat');
-        const displayKomsel = document.getElementById('display-komsel-info');
-
         if (userEmail) {
             const dbRef = firebase.database().ref('users');
             dbRef.orderByChild('email').equalTo(userEmail).on('value', (snapshot) => {
@@ -197,10 +217,10 @@
                     const key = Object.keys(userData)[0];
                     const data = userData[key];
                     
-                    if(displayNama) displayNama.innerText = data.nama_lengkap || data.nama || 'Tidak Ada Nama';
-                    if(displayNij) displayNij.innerText = data.nij || '-';
-                    if(displayJemaat) displayJemaat.innerText = data.wilayah_jemaat || 'Papua';
-                    if(displayKomsel) displayKomsel.innerText = data.nama_komsel || data.komsel || '-';
+                    document.getElementById('display-nama').innerText = data.nama_lengkap || data.nama || 'Tidak Ada Nama';
+                    document.getElementById('display-nij').innerText = data.nij || '-';
+                    document.getElementById('display-jemaat').innerText = data.wilayah_jemaat || 'Papua';
+                    document.getElementById('display-komsel-info').innerText = data.nama_komsel || data.komsel || '-';
 
                     if (data.statistik_bulanan) {
                         const s = data.statistik_bulanan;
@@ -216,12 +236,8 @@
                         };
                         renderHalaman();
                     }
-                } else {
-                    if(displayNama) displayNama.innerText = "Data Tidak Ditemukan";
                 }
             });
-        } else {
-            if(displayNama) displayNama.innerText = "Silakan Login Kembali";
         }
     }
 
@@ -229,8 +245,13 @@
         const cardsCont = document.getElementById('cards-container');
         const excelTable = document.getElementById('excel-table-body');
         const excelTablePoin = document.getElementById('excel-table-body-poin');
-        
-        // 1. Render Kartu Statistik
+
+        const bobotMaks = {
+            "Pembacaan FT": 15, "Ibadah Raya": 25, "Kehadiran Komsel": 20,
+            "Komsel Gabungan": 20, "Kegiatan KD": 10, "Latihan": 10,
+            "Pelayanan": 15, "Kehadiran Doa": 15
+        };
+
         if(cardsCont) {
             cardsCont.innerHTML = "";
             Object.keys(dataPribadi).forEach(key => {
@@ -240,32 +261,24 @@
             });
         }
 
-        // 2. Membuat Baris Tabel (Minggu I - IV)
-        let rowsHTML = `<tr>
-            <td>Minggu I</td>
-            <td>${dataPribadi["Pembacaan FT"]}%</td>
-            <td>${dataPribadi["Ibadah Raya"]}%</td>
-            <td>${dataPribadi["Kehadiran Komsel"]}%</td>
-            <td>${dataPribadi["Komsel Gabungan"]}%</td>
-            <td>-</td>
-            <td>${dataPribadi["Kegiatan KD"]}%</td>
-            <td>${dataPribadi["Latihan"]}%</td>
-            <td>${dataPribadi["Pelayanan"]}%</td>
-            <td>${dataPribadi["Kehadiran Doa"]}%</td>
-        </tr>`;
-        
-        const mingguLain = ["Minggu II", "Minggu III", "Minggu IV"];
-        mingguLain.forEach(minggu => {
-            rowsHTML += `<tr>
-                <td>${minggu}</td>
-                <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-            </tr>`;
-        });
-        
-        if(excelTable) excelTable.innerHTML = rowsHTML + `<tr class="separator"><td colspan="10"></td></tr>`;
-        if(excelTablePoin) excelTablePoin.innerHTML = rowsHTML + `<tr class="separator"><td colspan="10"></td></tr>`;
+        let rowsPersen = `<tr><td>Minggu I</td>${Object.keys(bobotMaks).map(key => `<td>${dataPribadi[key]}%</td>`).join('')}<td>-</td></tr>`;
+        let rowsPoin = `<tr><td>Minggu I</td>${Object.keys(bobotMaks).map(key => {
+            const poin = (dataPribadi[key] / 100) * bobotMaks[key];
+            return `<td>${poin.toFixed(1)}</td>`;
+        }).join('')}<td>-</td></tr>`;
 
-        // 3. Update Grafik Pie
+        for (let i = 2; i <= 4; i++) {
+            const emptyRow = `<tr><td>Minggu ${i === 2 ? 'II' : i === 3 ? 'III' : 'IV'}</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>`;
+            rowsPersen += emptyRow; rowsPoin += emptyRow;
+        }
+
+        if(excelTable) excelTable.innerHTML = rowsPersen + `<tr class="separator"><td colspan="10"></td></tr>`;
+        if(excelTablePoin) excelTablePoin.innerHTML = rowsPoin + `<tr class="separator"><td colspan="10"></td></tr>`;
+
+        updateCharts();
+    }
+
+    function updateCharts() {
         const pieCtx = document.getElementById('pieChart');
         if(pieCtx) {
             if(window.myPieChart) window.myPieChart.destroy();
@@ -274,12 +287,10 @@
                 data: {
                     labels: Object.keys(dataPribadi),
                     datasets: [{ data: Object.values(dataPribadi), backgroundColor: ['#2ecc71','#e74c3c','#f1c40f','#3498db','#9b59b6','#e67e22','#1abc9c','#34495e'] }]
-                },
-                options: { responsive: true, maintainAspectRatio: true }
+                }
             });
         }
 
-        // 4. Update Grafik Batang
         const barCtx = document.getElementById('barChart');
         if(barCtx) {
             if(window.myBarChart) window.myBarChart.destroy();
@@ -289,7 +300,7 @@
                     labels: Object.keys(dataPribadi),
                     datasets: [{ label: 'Capaian (%)', data: Object.values(dataPribadi), backgroundColor: '#548235' }]
                 },
-                options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true, max: 100 } } }
+                options: { scales: { y: { beginAtZero: true, max: 100 } } }
             });
         }
     }
@@ -297,10 +308,8 @@
     window.onload = function() {
         const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
         const tgl = new Date();
-        const elemenPeriode = document.getElementById('periode-rapor');
-        if (elemenPeriode) {
-            elemenPeriode.innerText = `Periode: ${namaBulan[tgl.getMonth()]} ${tgl.getFullYear()}`;
-        }
+        const ep = document.getElementById('periode-rapor');
+        if (ep) ep.innerText = `Periode: ${namaBulan[tgl.getMonth()]} ${tgl.getFullYear()}`;
         fetchDataJemaat();
     };
 </script>
