@@ -47,8 +47,7 @@
         .notif-block {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
             background: #333; color: white; padding: 12px 25px; border-radius: 8px;
-            display: none; /* Default hidden */
-            align-items: center; gap: 10px; z-index: 9999;
+            display: none; align-items: center; gap: 10px; z-index: 9999;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2); animation: slideDown 0.3s ease;
         }
         @keyframes slideDown { from { top: -50px; opacity: 0; } to { top: 20px; opacity: 1; } }
@@ -126,7 +125,6 @@
     let curCustId = null;
     let myId = null;
 
-    // FUNGSI TAMPILKAN NOTIFIKASI
     function showToast(message) {
         const notif = document.getElementById("custom-notif");
         document.getElementById("notif-text").innerText = message;
@@ -147,7 +145,8 @@
 
     function updateDeleteButtonVisibility() {
         const anyChecked = document.querySelectorAll('.chat-checkbox:checked').length > 0;
-        document.getElementById('btn-hapus-massal').classList.toggle('show', anyChecked);
+        const btn = document.getElementById('btn-hapus-massal');
+        if(btn) btn.classList.toggle('show', anyChecked);
     }
 
     function muatDaftarChat() {
@@ -198,17 +197,41 @@
                 snapshot.forEach(doc => batch.delete(doc.ref));
                 await batch.commit();
             }
-            showToast("Percakapan berhasil dihapus"); // Memicu notifikasi
+            showToast("Percakapan berhasil dihapus");
             document.getElementById('check-all').checked = false;
         } catch (e) { console.error(e); }
     }
 
-    function bukaPercakapan(cid, cname) {
+    // FUNGSI UTAMA: Buka Chat & Tandai sebagai Dibaca (is_read: true)
+    async function bukaPercakapan(cid, cname) {
         curCustId = cid;
         document.getElementById("target-name").innerText = cname;
         document.getElementById("input-chat").disabled = false;
         document.getElementById("btn-kirim").disabled = false;
+        
+        // 1. Muat Pesan Real-time
         muatPesan();
+
+        // 2. Logika Update: Tandai semua pesan dari customer ini sebagai 'sudah dibaca'
+        try {
+            const batch = db.batch();
+            const pesanBelumDibaca = await db.collection("chats")
+                .where("seller_uid", "==", myId)
+                .where("customer_id", "==", cid)
+                .where("sender", "==", "customer") // Hanya pesan dari pembeli
+                .where("is_read", "==", false)
+                .get();
+
+            if (!pesanBelumDibaca.empty) {
+                pesanBelumDibaca.forEach(doc => {
+                    batch.update(doc.ref, { is_read: true });
+                });
+                await batch.commit(); 
+                // Setelah commit, listener lencana di dashboard-umkm.html akan otomatis update angkanya
+            }
+        } catch (err) {
+            console.error("Gagal update status baca:", err);
+        }
     }
 
     function muatPesan() {
@@ -229,8 +252,12 @@
         const input = document.getElementById("input-chat");
         if (!input.value.trim()) return;
         await db.collection("chats").add({
-            seller_uid: myId, customer_id: curCustId, sender: 'seller', 
-            message: input.value.trim(), timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            seller_uid: myId, 
+            customer_id: curCustId, 
+            sender: 'seller', 
+            is_read: true, // Pesan seller otomatis dianggap sudah "dibaca" oleh sistem lokal
+            message: input.value.trim(), 
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         input.value = "";
     }
