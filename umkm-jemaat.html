@@ -249,6 +249,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
+    // 1. Inisialisasi Firebase dengan proteksi ganda
     const firebaseConfig = {
         apiKey: "AIzaSyDU2rk0rIF-sos_Sj7C5IMM9dU8z8p_VJM",
         authDomain: "boby-apps-project.firebaseapp.com",
@@ -258,107 +259,67 @@
         messagingSenderId: "125984859692",
         appId: "1:125984859692:web:09f75df5d2e4b6e3bcd389"
     };
-    firebase.initializeApp(firebaseConfig);
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    
     const auth = firebase.auth();
     const db = firebase.firestore();
     const CLOUD_NAME = "dxzllsbgi";
     const UPLOAD_PRESET = "sipapua_preset";
 
-    // UI Helper Functions
-    function toggleView(inputId, icon) {
-        const input = document.getElementById(inputId);
-        if (input.type === "password") { input.type = "text"; icon.classList.replace("fa-eye", "fa-eye-slash"); }
-        else { input.type = "password"; icon.classList.replace("fa-eye-slash", "fa-eye"); }
-    }
-    window.bukaModal = (id) => document.getElementById(id).style.display = 'flex';
-    window.tutupModal = () => document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
-    
-    function notif(m) {
+    // 2. Global Helper Functions (Terikat ke window agar tidak "Not Defined")
+    window.notif = (m) => {
         const n = document.getElementById("notif-container");
         const msgElement = document.getElementById("notif-message");
-        if(n) { 
+        if(n && msgElement) { 
             n.style.display = "block"; 
             msgElement.innerText = m; 
             setTimeout(() => { n.style.display = "none"; }, 3000); 
+        } else {
+            alert(m); // Fallback jika elemen UI hilang
         }
-    }
+    };
 
-    // Auth Logic
-    async function prosesDaftar() {
-        const btn = document.getElementById("btn-daftar");
-        const foto = document.getElementById("reg-foto").files[0];
-        const email = document.getElementById("reg-email").value;
-        const pass = document.getElementById("reg-pass").value;
-        const namaToko = document.getElementById("reg-toko").value;
-        const noHp = document.getElementById("reg-hp").value;
-        if(!namaToko || !foto || !noHp || !email || !pass) return notif("Lengkapi data!");
-        try {
-            btn.innerText = "Memproses..."; btn.disabled = true;
-            const fd = new FormData(); fd.append("file", foto); fd.append("upload_preset", UPLOAD_PRESET);
-            const resImg = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: fd });
-            const dataImg = await resImg.json();
-            let user;
-            try { const resAuth = await auth.createUserWithEmailAndPassword(email, pass); user = resAuth.user; }
-            catch (err) { if (err.code === 'auth/email-already-in-use') { const resLog = await auth.signInWithEmailAndPassword(email, pass); user = resLog.user; } else { throw err; } }
-            await db.collection("umkm_stores").doc(user.uid).set({
-                nama_toko: namaToko, whatsapp: noHp, logo_url: dataImg.secure_url, uid: user.uid, role: 'seller', status: 'active', email: email, password_user: pass, likes_count: 0, rating_level: 0, dibuat: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
-            notif("Lapak Berhasil Diaktifkan!"); setTimeout(() => location.reload(), 1500);
-        } catch (e) { notif("Gagal: " + e.message); btn.innerText = "DAFTARKAN LAPAK"; btn.disabled = false; }
-    }
+    window.bukaModal = (id) => {
+        const el = document.getElementById(id);
+        if(el) el.style.display = 'flex';
+    };
 
-    async function loginUser(role) {
-        const email = role === 'admin' ? document.getElementById('admin-email').value : document.getElementById('log-email').value;
-        const pass = role === 'admin' ? document.getElementById('admin-pass').value : document.getElementById('log-pass').value;
-        if (!email || !pass) return notif("Email dan Password harus diisi!");
-        try {
-            notif("Sedang memverifikasi...");
-            const userCredential = await auth.signInWithEmailAndPassword(email, pass);
-            if (role === 'admin' && email === 'boby.daniel4@gmail.com') {
-                notif("Login Admin Berhasil!");
-                setTimeout(() => { window.location.href = "admin-umkm.html"; }, 1000);
-                return;
-            }
-            const doc = await db.collection("umkm_stores").doc(userCredential.user.uid).get();
-            if (doc.exists && doc.data().status === 'active') {
-                notif("Login Berhasil! Mengalihkan...");
-                setTimeout(() => { window.location.href = "dashboard-umkm.html"; }, 1000);
-            } 
-            else if (doc.exists && doc.data().status !== 'active') {
-                notif("Akun Anda sedang tidak aktif.");
-                auth.signOut();
-            }
-            else {
-                notif("Akses ditolak. Data toko tidak ditemukan.");
-                auth.signOut();
-            }
-        } catch (e) {
-            let pesanError = "Login Gagal.";
-            if (e.code === 'auth/user-not-found') pesanError = "Email tidak terdaftar.";
-            if (e.code === 'auth/wrong-password') pesanError = "Password salah.";
-            notif(pesanError);
-            console.error("Login Error:", e);
-        }
-    }
+    window.tutupModal = () => {
+        document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
+    };
 
-    // Chat Logic
+    // 3. Chat & Market Logic dengan Error Handling
     let currentSellerUid = "";
     let chatUnsubscribe = null;
     let customerAnonymousId = localStorage.getItem('chat_customer_id') || 'cust_' + Math.random().toString(36).substr(2, 9);
     localStorage.setItem('chat_customer_id', customerAnonymousId);
 
-    function triggerTwister(element, uid, namaToko, gbrProduk) {
-        const flash = document.createElement('div'); flash.className = 'twister-effect';
-        element.appendChild(flash);
-        setTimeout(() => flash.remove(), 600);
-        setTimeout(() => bukaChatPopup(uid, namaToko, gbrProduk), 200);
-    }
+    window.triggerTwister = (element, uid, namaToko, gbrProduk) => {
+        try {
+            const flash = document.createElement('div'); 
+            flash.className = 'twister-effect';
+            element.appendChild(flash);
+            setTimeout(() => flash.remove(), 600);
+            setTimeout(() => window.bukaChatPopup(uid, namaToko, gbrProduk), 200);
+        } catch (e) {
+            console.error("Twister Error:", e);
+            window.bukaChatPopup(uid, namaToko, gbrProduk);
+        }
+    };
 
-    function bukaChatPopup(uid, namaToko, gbrProduk) {
+    window.bukaChatPopup = (uid, namaToko, gbrProduk) => {
         currentSellerUid = uid;
-        document.getElementById("chat-title").innerText = "Chat: " + namaToko;
-        document.getElementById("chat-popup").style.display = "flex";
+        const titleEl = document.getElementById("chat-title");
+        const popupEl = document.getElementById("chat-popup");
+        
+        if(titleEl) titleEl.innerText = "Chat: " + namaToko;
+        if(popupEl) popupEl.style.display = "flex";
+
         if (chatUnsubscribe) chatUnsubscribe();
+
         if (gbrProduk) {
             db.collection("chats").add({ 
                 seller_uid: uid, 
@@ -369,22 +330,37 @@
                 sender: 'customer', 
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 is_read: false 
-            });
+            }).catch(e => console.error("Gagal kirim status produk:", e));
         }
-        chatUnsubscribe = db.collection("chats").where("seller_uid", "==", uid).where("customer_id", "==", customerAnonymousId).orderBy("timestamp", "asc").onSnapshot(snap => {
-            const box = document.getElementById("chat-box-popup"); box.innerHTML = "";
-            snap.forEach(doc => {
-                const m = doc.data(); const isMe = m.sender === 'customer'; const align = isMe ? 'flex-end' : 'flex-start';
-                if (m.is_product) { box.innerHTML += `<div style="align-self: ${align}; width: 85%; margin-bottom:10px;"><div class="chat-product-attachment"><img src="${m.product_img}"><div class="chat-product-info"><b>Produk:</b><br>${namaToko}</div></div></div>`; }
-                else { const bg = isMe ? 'var(--navy)' : '#eee'; const color = isMe ? 'white' : '#333'; box.innerHTML += `<div style="align-self: ${align}; background: ${bg}; color: ${color}; padding: 8px 12px; border-radius: 12px; max-width: 80%; font-size: 12px; margin-bottom:5px;">${m.message}</div>`; }
-            });
-            box.scrollTop = box.scrollHeight;
-        });
-    }
 
-    // FUNGSI KIRIM PESAN POPUP (DIPERBARUI)
-    async function kirimPesanPopup() {
+        chatUnsubscribe = db.collection("chats")
+            .where("seller_uid", "==", uid)
+            .where("customer_id", "==", customerAnonymousId)
+            .orderBy("timestamp", "asc")
+            .onSnapshot(snap => {
+                const box = document.getElementById("chat-box-popup"); 
+                if(!box) return;
+                box.innerHTML = "";
+                snap.forEach(doc => {
+                    const m = doc.data(); 
+                    const isMe = m.sender === 'customer'; 
+                    const align = isMe ? 'flex-end' : 'flex-start';
+                    if (m.is_product) { 
+                        box.innerHTML += `<div style="align-self: ${align}; width: 85%; margin-bottom:10px;"><div class="chat-product-attachment"><img src="${m.product_img}"><div class="chat-product-info"><b>Produk:</b><br>${namaToko}</div></div></div>`; 
+                    } else { 
+                        const bg = isMe ? 'var(--navy)' : '#eee'; 
+                        const color = isMe ? 'white' : '#333'; 
+                        box.innerHTML += `<div style="align-self: ${align}; background: ${bg}; color: ${color}; padding: 8px 12px; border-radius: 12px; max-width: 80%; font-size: 12px; margin-bottom:5px;">${m.message}</div>`; 
+                    }
+                });
+                box.scrollTop = box.scrollHeight;
+            }, err => console.error("Snapshot Error:", err));
+    };
+
+    // FORCE BIND: Memastikan fungsi kirim pesan tersedia secara global
+    window.kirimPesanPopup = async function() {
         const input = document.getElementById("msg-input-popup");
+        if (!input) return;
         const pesan = input.value.trim();
         
         if (!pesan || !currentSellerUid) return;
@@ -396,110 +372,122 @@
                 message: pesan,
                 sender: 'customer',
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                is_read: false // Digunakan untuk notifikasi di dashboard UMKM
+                is_read: false
             });
-            input.value = ""; // Bersihkan input
+            input.value = ""; 
         } catch (error) {
-            console.error("Gagal mengirim pesan:", error);
-            notif("Gagal mengirim pesan.");
+            console.error("Kirim Pesan Error:", error);
+            window.notif("Gagal mengirim pesan.");
         }
-    }
-    
-    function tutupChatPopup() { document.getElementById("chat-popup").style.display = "none"; if (chatUnsubscribe) chatUnsubscribe(); }
+    };
 
-    function shareWA(namaToko, nomorWA) {
-        const text = encodeURIComponent(`Halo, saya tertarik dengan produk *${namaToko}* di UMKM SIPAPUA.`);
-        window.open(`https://wa.me/${nomorWA}?text=${text}`, '_blank');
-    }
+    window.tutupChatPopup = () => {
+        const popup = document.getElementById("chat-popup");
+        if(popup) popup.style.display = "none";
+        if (chatUnsubscribe) chatUnsubscribe();
+    };
 
-    // --- MARKET RENDERER ---
-    function muatMarket() {
+    // --- MARKET RENDERER (DIBERSIHKAN) ---
+    window.muatMarket = () => {
         const container = document.getElementById("main-market");
         if(!container) return;
 
         db.collection("umkm_products").onSnapshot(snap => { 
             container.innerHTML = "";
             snap.forEach(doc => {
-                const produk = doc.data();
-                const docId = doc.id;
-                const namaProduk = produk.nama || "Tanpa Nama";
-                const hargaProduk = produk.harga || 0;
-                const deskripsiProduk = produk.deskripsi || "-";
-                const sellerUid = produk.seller_uid || "";
-                const statusOrder = produk.status || "Closed"; 
-                
-                let daftarFoto = Array.isArray(produk.img_urls) && produk.img_urls.length > 0 ? produk.img_urls : [produk.img_primary || ""];
-                let statusColorClass = (statusOrder.toLowerCase().includes("open") || statusOrder.toLowerCase().includes("ready")) ? "dot-online" : "dot-offline";
+                try {
+                    const produk = doc.data();
+                    const docId = doc.id;
+                    const namaProduk = produk.nama || "Tanpa Nama";
+                    const hargaProduk = produk.harga || 0;
+                    const sellerUid = produk.seller_uid || "";
+                    const statusOrder = produk.status || "Closed"; 
+                    const deskripsi = produk.deskripsi || "-";
+                    
+                    let daftarFoto = Array.isArray(produk.img_urls) && produk.img_urls.length > 0 ? produk.img_urls : [produk.img_primary || ""];
+                    let statusColor = (statusOrder.toLowerCase().includes("open") || statusOrder.toLowerCase().includes("ready")) ? "dot-online" : "dot-offline";
 
-                container.innerHTML += `
-                    <div class="lapak-card" id="card-${docId}">
-                        <div class="product-slider">
-                            <div class="slider-wrapper" id="slider-${docId}">
-                                ${daftarFoto.map(img => `<img src="${img}">`).join('')}
+                    container.innerHTML += `
+                        <div class="lapak-card" id="card-${docId}">
+                            <div class="product-slider">
+                                <div class="slider-wrapper" id="slider-${docId}">
+                                    ${daftarFoto.map(img => `<img src="${img}">`).join('')}
+                                </div>
+                                ${daftarFoto.length > 1 ? `
+                                    <button class="slide-btn prev" onclick="moveSlide('${docId}', -1)">&#10094;</button>
+                                    <button class="slide-btn next" onclick="moveSlide('${docId}', 1)">&#10095;</button>
+                                ` : ''}
                             </div>
-                            ${daftarFoto.length > 1 ? `
-                                <button class="slide-btn prev" onclick="moveSlide('${docId}', -1)">&#10094;</button>
-                                <button class="slide-btn next" onclick="moveSlide('${docId}', 1)">&#10095;</button>
-                            ` : ''}
-                        </div>
-                        <div class="lapak-info">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-                                <div>
-                                    <span style="color: var(--navy); font-weight: 800; font-size: 1.1rem; display: block;">
-                                        Rp ${Number(hargaProduk).toLocaleString('id-ID')}
-                                    </span>
-                                    <div class="status-indicator">
-                                        <div class="dot ${statusColorClass}"></div>
-                                        <span style="font-size: 0.8rem;">${statusOrder}</span>
+                            <div class="lapak-info">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                    <div>
+                                        <span style="color: var(--navy); font-weight: 800; font-size: 1.1rem; display: block;">
+                                            Rp ${Number(hargaProduk).toLocaleString('id-ID')}
+                                        </span>
+                                        <div class="status-indicator">
+                                            <div class="dot ${statusColor}"></div>
+                                            <span style="font-size: 0.8rem;">${statusOrder}</span>
+                                        </div>
+                                    </div>
+                                    <div class="action-group" style="padding:0; gap:8px;">
+                                        <button class="btn-icon btn-chat" onclick="triggerTwister(this, '${sellerUid}', '${namaProduk}', '${daftarFoto[0]}')">
+                                            <i class="fa-solid fa-comment-dots"></i>
+                                        </button>
+                                        <button class="btn-icon btn-star" onclick="window.notif('Terima kasih ratingnya!')"><i class="fa-solid fa-star"></i></button>
+                                        <button class="btn-icon btn-thumb" onclick="window.notif('Anda menyukai ini!')"><i class="fa-solid fa-thumbs-up"></i></button>
+                                        <button class="btn-icon btn-wa" onclick="shareWA('${namaProduk}', '081283393576')">
+                                            <i class="fa-brands fa-whatsapp"></i>
+                                        </button>
                                     </div>
                                 </div>
-                                <div class="action-group" style="padding:0; gap:8px;">
-                                    <button class="btn-icon btn-chat" onclick="triggerTwister(this, '${sellerUid}', '${namaProduk}', '${daftarFoto[0]}')">
-                                        <i class="fa-solid fa-comment-dots"></i>
-                                    </button>
-                                    <button class="btn-icon btn-star"><i class="fa-solid fa-star"></i></button>
-                                    <button class="btn-icon btn-thumb"><i class="fa-solid fa-thumbs-up"></i></button>
-                                    <button class="btn-icon btn-wa" onclick="shareWA('${namaProduk}', '081283393576')">
-                                        <i class="fa-brands fa-whatsapp"></i>
-                                    </button>
-                                </div>
+                                <button class="btn-dropdown" onclick="toggleDetail('${docId}')">
+                                    <i class="fa-solid fa-chevron-up" id="icon-${docId}"></i>
+                                </button>
                             </div>
-                            <button class="btn-dropdown" onclick="toggleDetail('${docId}')">
-                                <i class="fa-solid fa-chevron-up" id="icon-${docId}"></i>
-                            </button>
-                        </div>
-                        <div class="detail-panel" id="detail-${docId}">
-                            <p><strong>Produk:</strong> ${namaProduk}</p>
-                            <p style="font-size: 12px; color: #555;"><strong>Deskripsi:</strong> ${deskripsiProduk}</p>
-                        </div>
-                    </div>`;
+                            <div class="detail-panel" id="detail-${docId}">
+                                <p><strong>Produk:</strong> ${namaProduk}</p>
+                                <p style="font-size: 12px; color: #555;"><strong>Deskripsi:</strong> ${deskripsi}</p>
+                            </div>
+                        </div>`;
+                } catch (err) {
+                    console.error("Error rendering card:", err);
+                }
             });
-            if(snap.empty) container.innerHTML = "<p style='text-align:center; color:gray;'>Belum ada produk di etalase.</p>";
         });
-    }
+    };
 
-    let slideIndices = {};
-    function moveSlide(docId, step) {
+    // Tambahkan listener moveSlide dan toggleDetail ke window agar tidak hilang
+    window.moveSlide = (docId, step) => {
         const wrapper = document.getElementById(`slider-${docId}`);
+        if(!wrapper) return;
         const slides = wrapper.getElementsByTagName("img");
-        const totalSlides = slides.length;
-        if (!slideIndices[docId]) slideIndices[docId] = 0;
-        slideIndices[docId] += step;
-        if (slideIndices[docId] >= totalSlides) slideIndices[docId] = 0;
-        if (slideIndices[docId] < 0) slideIndices[docId] = totalSlides - 1;
-        const offset = slideIndices[docId] * -100;
-        wrapper.style.transform = `translateX(${offset}%)`;
-    }
+        if(!window.slideIndices) window.slideIndices = {};
+        if (!window.slideIndices[docId]) window.slideIndices[docId] = 0;
+        
+        window.slideIndices[docId] += step;
+        if (window.slideIndices[docId] >= slides.length) window.slideIndices[docId] = 0;
+        if (window.slideIndices[docId] < 0) window.slideIndices[docId] = slides.length - 1;
+        
+        wrapper.style.transform = `translateX(${window.slideIndices[docId] * -100}%)`;
+    };
 
-    function toggleDetail(id) {
+    window.toggleDetail = (id) => {
         const panel = document.getElementById(`detail-${id}`);
         const icon = document.getElementById(`icon-${id}`);
-        panel.classList.toggle('active');
-        icon.classList.toggle('fa-chevron-down');
-        icon.classList.toggle('fa-chevron-up');
-    }
+        if(panel) panel.classList.toggle('active');
+        if(icon) {
+            icon.classList.toggle('fa-chevron-down');
+            icon.classList.toggle('fa-chevron-up');
+        }
+    };
 
-    document.addEventListener("DOMContentLoaded", muatMarket);
+    window.shareWA = (namaToko, nomorWA) => {
+        const text = encodeURIComponent(`Halo, saya tertarik dengan produk *${namaToko}* di UMKM SIPAPUA.`);
+        window.open(`https://wa.me/${nomorWA}?text=${text}`, '_blank');
+    };
+
+    // Run
+    document.addEventListener("DOMContentLoaded", window.muatMarket);
 </script>
 </body>
 </html>
